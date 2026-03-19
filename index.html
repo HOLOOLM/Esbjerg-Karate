@@ -659,7 +659,11 @@ const SEED = [
 ════════════════════════════════════════ */
 let members=[], sessions=[], editingId=null, nextId=200, cloudLoaded=false;
 let config={adminEmail:'', clubEmail:'holmoos@mail.dk', scriptUrl:'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec'};
-let currentTrainingDate = new Date().toISOString().slice(0,10);
+function localDate(d){
+  const x=d||new Date();
+  return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+}
+let currentTrainingDate = localDate();
 
 /* ════════════════════════════════════════
    HELPERS
@@ -674,7 +678,7 @@ function calcAge(bd){
 function getAge(m){ return m.birthdate?calcAge(m.birthdate):(m.age!=null?m.age:null); }
 function ageStr(m){ const a=getAge(m); return a===null?'—':a+' år'+(m.birthdate?'':''); }
 function inits(m){ return ((m.firstName||'')[0]||'')+((m.lastName||'')[0]||''); }
-function today(){ return new Date().toISOString().slice(0,10); }
+function today(){ return localDate(); }
 function fmtDate(iso){
   if(!iso)return'';
   const d=new Date(iso+'T12:00:00');
@@ -1017,7 +1021,7 @@ function renderHistory(){
   let curM=-1;
   dates.forEach(date=>{
     const isFut=date>td,isToday=date.getTime()===td.getTime();
-    const ds=date.toISOString().slice(0,10),dw=date.getDay();
+    const ds=localDate(date),dw=date.getDay();
     const saved=sessions.find(s=>s.date===ds);
     if(date.getMonth()!==curM){
       curM=date.getMonth();
