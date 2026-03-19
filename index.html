@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Esbjerg Shuri-Ryu Karate – Medlemsstyring</title>
+<style>
+:root{
+--td:#2c4a4a;--tm:#3d6060;--tl:#5a8a8a;
+--mbg:#e8f2f0;--mc:#f2f8f6;--w:#ffffff;
+--xtd:#1a2e2e;--xtm:#4a6060;--xtl:#7a9898;
+--go:#2e7d52;--gb:#d4f0e2;--rb:#c0392b;--rbb:#fde8e6;
+--or:#d97706;--ob:#fef3c7;--bl:#1d6fa4;--blb:#dbeafe;
+--pu:#6d28d9;--pub:#ede9fe;
+--sh:0 2px 12px rgba(44,74,74,.10);--shl:0 4px 24px rgba(44,74,74,.16)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--mbg);color:var(--xtd);min-height:100vh}
+
+/* HEADER */
+header{background:linear-gradient(135deg,var(--td) 0%,#1a3030 100%);color:#fff;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;box-shadow:var(--shl);position:sticky;top:0;z-index:100}
+.hbrand{display:flex;align-items:center;gap:12px}
+.hlogo{width:40px;height:40px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.htitle{font-size:1.05rem;font-weight:700;letter-spacing:.3px}
+.hsub{font-size:.72rem;opacity:.65;margin-top:1px}
+.hdate{font-size:.82rem;opacity:.75}
+.hdr-actions{display:flex;gap:.5rem;align-items:center}
+
+/* TABS */
+.nav-tabs{background:var(--tm);display:flex;padding:0 2rem;gap:4px;overflow-x:auto}
+.nav-tab{padding:.72rem 1.4rem;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;display:flex;align-items:center;gap:7px;user-select:none;white-space:nowrap;flex-shrink:0}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav-tab.active{color:#fff;border-bottom-color:#7ecece}
+
+/* PAGES */
+.page{display:none;max-width:1280px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.page.active{display:block}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:#fff;border-radius:12px;padding:1rem 1.2rem;box-shadow:var(--sh);display:flex;align-items:center;gap:.9rem;transition:box-shadow .2s}
+.stat-card:hover{box-shadow:var(--shl)}
+.si{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+.si-a{background:#d0e8e8}.si-b{background:var(--gb)}.si-c{background:var(--rbb)}.si-d{background:var(--ob)}.si-e{background:var(--blb)}.si-f{background:var(--pub)}
+.sv{font-size:1.7rem;font-weight:700;color:var(--td);line-height:1}
+.sl{font-size:.74rem;color:var(--xtl);margin-top:3px}
+
+/* SECTION HDR */
+.sh{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem}
+.st{font-size:1.05rem;font-weight:700;color:var(--td);display:flex;align-items:center;gap:8px}
+
+/* CONTROLS */
+.controls{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.sbx{padding:.46rem .95rem;border:1.5px solid #c8dede;border-radius:8px;font-size:.85rem;background:#fff;color:var(--xtd);outline:none;transition:border-color .2s;width:195px}
+.sbx:focus{border-color:var(--tl)}
+select.fs{padding:.46rem .82rem;border:1.5px solid #c8dede;border-radius:8px;font-size:.85rem;background:#fff;color:var(--xtd);outline:none;cursor:pointer;transition:border-color .2s}
+select.fs:focus{border-color:var(--tl)}
+
+/* BUTTONS */
+.btn{padding:.46rem .95rem;border-radius:8px;border:none;font-size:.855rem;font-weight:600;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:5px}
+.bp{background:var(--td);color:#fff}.bp:hover{background:var(--tm)}
+.bs{background:var(--go);color:#fff}.bs:hover{background:#256644}
+.bdr{background:var(--rb);color:#fff}.bdr:hover{background:#a93226}
+.bb{background:var(--bl);color:#fff}.bb:hover{background:#175d8a}
+.bg{background:transparent;color:var(--xtd);border:1.5px solid #c8dede}.bg:hover{background:var(--mbg)}
+.btn-sm{padding:.28rem .7rem;font-size:.78rem;border-radius:6px}
+
+/* TRAINING CARD */
+.tc{background:#fff;border-radius:14px;padding:1.2rem 1.5rem;box-shadow:var(--sh);margin-bottom:2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;border-left:4px solid var(--tl)}
+.tc-info{flex:1;min-width:200px}
+.tc-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--xtl);font-weight:600}
+.tc-nm{font-size:1.1rem;font-weight:700;color:var(--td);margin-top:2px}
+.tc-mt{font-size:.82rem;color:var(--xtm);margin-top:4px}
+.tc-act{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+
+/* DATE PICKER BAR */
+.date-bar{background:#fff;border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.5rem;box-shadow:var(--sh);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;border-left:4px solid var(--or)}
+.date-bar label{font-size:.8rem;font-weight:700;color:var(--xtm);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
+.date-bar input[type=date]{padding:.4rem .8rem;border:1.5px solid #c8dede;border-radius:8px;font-size:.875rem;color:var(--xtd);outline:none;transition:border-color .2s;background:#fff}
+.date-bar input[type=date]:focus{border-color:var(--tl)}
+.att-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--gb);color:var(--go);border-radius:20px;padding:.3rem .9rem;font-size:.8rem;font-weight:600}
+.att-pill.low{background:var(--ob);color:var(--or)}
+
+/* TABLE */
+.tcard{background:#fff;border-radius:14px;box-shadow:var(--sh);overflow:hidden;margin-bottom:2rem}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--td);color:#fff;padding:.8rem 1rem;text-align:left;font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+tbody tr{border-bottom:1px solid #eef4f4;transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--mc)}
+td{padding:.7rem 1rem;font-size:.855rem;vertical-align:middle}
+
+/* AVATAR */
+.mrow{display:flex;align-items:center;gap:10px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--td);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.74rem;font-weight:700;flex-shrink:0}
+.av-boern {background:#2980b9}
+.av-junior{background:#27ae60}
+.av-senior{background:#8e44ad}
+.mn{font-weight:600;color:var(--xtd)}
+.me{font-size:.73rem;color:var(--xtl);margin-top:1px}
+.gm{color:var(--bl);font-weight:700;font-size:.8rem}
+.gk{color:#be185d;font-weight:700;font-size:.8rem}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:.2rem .65rem;border-radius:20px;font-size:.74rem;font-weight:600}
+.badge::before{content:'●';font-size:.45rem}
+.bgg{background:var(--gb);color:var(--go)}
+.bgr{background:var(--rbb);color:var(--rb)}
+.bgo{background:var(--ob);color:var(--or)}
+.bgb{background:var(--blb);color:var(--bl)}
+.bgx{background:#eef4f4;color:var(--xtl)}
+.bgp{background:var(--pub);color:var(--pu)}
+
+/* GROUP CHIP */
+.grp-chip{display:inline-block;padding:.18rem .6rem;border-radius:6px;font-size:.72rem;font-weight:700;letter-spacing:.3px}
+.grp-b{background:#dbeafe;color:#1e40af}
+.grp-j{background:#dcfce7;color:#166534}
+.grp-s{background:#f3e8ff;color:#6b21a8}
+
+/* TOGGLE */
+.tw{display:flex;align-items:center;gap:7px}
+.toggle{position:relative;display:inline-block;width:42px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccdede;border-radius:22px;transition:.25s}
+.slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+input:checked+.slider{background:var(--go)}
+input:checked+.slider::before{transform:translateX(20px)}
+.tl{font-size:.78rem;color:var(--xtm);min-width:68px;font-weight:500}
+
+/* BELT */
+.blt{display:inline-block;width:22px;height:7px;border-radius:4px;vertical-align:middle}
+
+/* BETALT BELØB BADGE */
+.amt-badge{display:inline-flex;align-items:center;gap:3px;padding:.2rem .6rem;border-radius:6px;font-size:.75rem;font-weight:700}
+.amt-paid{background:var(--gb);color:var(--go)}
+.amt-partial{background:var(--ob);color:var(--or)}
+.amt-unpaid{background:var(--rbb);color:var(--rb)}
+.amt-overdue{background:var(--pub);color:var(--pu)}
+
+/* MODAL */
+.mbd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px)}
+.mbd.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:1.8rem;width:100%;max-width:520px;box-shadow:var(--shl);animation:slideUp .22s ease;max-height:92vh;overflow-y:auto}
+.modal-lg{max-width:720px}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mtitle{font-size:1.05rem;font-weight:700;color:var(--td);margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between}
+.mtitle-left{display:flex;align-items:center;gap:8px}
+.mclose{background:#f0f4f4;border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--xtm);transition:background .15s}
+.mclose:hover{background:#e0eaec}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.fgrp{display:flex;flex-direction:column;gap:4px}
+.fgrp.full{grid-column:1/-1}
+.fgrp label{font-size:.75rem;font-weight:700;color:var(--xtm);text-transform:uppercase;letter-spacing:.5px}
+input[type=text],input[type=email],input[type=tel],input[type=date],input[type=number],select.form-select,textarea.fta{
+padding:.48rem .82rem;border:1.5px solid #c8dede;border-radius:8px;font-size:.85rem;color:var(--xtd);background:#fff;outline:none;transition:border-color .2s;font-family:inherit;width:100%}
+input:focus,select.form-select:focus,textarea.fta:focus{border-color:var(--tl)}
+input[readonly]{background:#f4f9f9;color:var(--xtm)}
+textarea.fta{resize:vertical;min-height:85px}
+.ma{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eef4f4}
+.age-hint{font-size:.72rem;color:var(--xtl);margin-top:2px}
+.age-calc{font-size:.72rem;color:var(--go);font-weight:600;margin-top:2px}
+
+/* EMAIL MODAL */
+.em-toolbar{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-bottom:.8rem}
+.seg-btn{padding:.28rem .75rem;border-radius:20px;border:1.5px solid #c8dede;background:#fff;font-size:.75rem;cursor:pointer;transition:all .15s;font-weight:500;color:var(--xtm)}
+.seg-btn:hover,.seg-btn.active{background:var(--td);color:#fff;border-color:var(--td)}
+.em-chk-area{max-height:300px;overflow-y:auto;border:1.5px solid #c8dede;border-radius:10px;background:var(--mbg)}
+.em-row{display:flex;align-items:center;gap:.7rem;padding:.45rem .9rem;border-bottom:1px solid #dde8e8;cursor:pointer;transition:background .12s}
+.em-row:last-child{border-bottom:none}
+.em-row:hover{background:#e0eeed}
+.em-row input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--td)}
+.em-name{flex:1;font-size:.84rem;font-weight:600}
+.em-sub{font-size:.74rem;color:var(--xtl)}
+.em-grp{font-size:.73rem;padding:1px 7px;border-radius:8px;background:#d0e8e8;color:var(--td);white-space:nowrap}
+.em-count{font-size:.78rem;color:var(--xtl);margin:.5rem 0 .3rem;padding:0 .2rem}
+.divider{border:none;border-top:1px solid #e0eded;margin:.85rem 0}
+
+/* HISTORY */
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.hcard{background:#fff;border-radius:12px;padding:1rem 1.2rem;box-shadow:var(--sh);cursor:pointer;transition:box-shadow .18s,transform .18s;border-left:4px solid var(--tl)}
+.hcard:hover{box-shadow:var(--shl);transform:translateY(-2px)}
+.hc-tue{border-left-color:var(--bl)}.hc-thu{border-left-color:var(--go)}
+.hc-future{border-left-color:#c8dede;opacity:.6;cursor:default}
+.hc-today{border-left-color:var(--or);box-shadow:0 0 0 2px var(--ob),var(--sh)}
+.hc-top{display:flex;justify-content:space-between;align-items:flex-start}
+.hc-day{font-size:.69rem;text-transform:uppercase;letter-spacing:.8px;color:var(--xtl);font-weight:600}
+.hc-date{font-size:1rem;font-weight:700;color:var(--td);margin-top:2px}
+.hc-sess{font-size:.79rem;color:var(--xtm);margin-top:3px}
+.hc-tag{font-size:.69rem;font-weight:700;padding:2px 8px;border-radius:10px}
+.t-tue{background:var(--blb);color:var(--bl)}.t-thu{background:var(--gb);color:var(--go)}
+.t-today{background:var(--ob);color:var(--or)}.t-future{background:#eef4f4;color:var(--xtl)}
+.pb-wrap{background:#e0eded;border-radius:10px;height:7px;margin:.75rem 0 .3rem;overflow:hidden}
+.pb{height:100%;border-radius:10px;background:var(--tl);transition:width .4s}
+.pb.good{background:var(--go)}.pb.mid{background:var(--or)}.pb.low{background:var(--rb)}
+.hc-nums{display:flex;justify-content:space-between;font-size:.74rem;color:var(--xtl)}
+.hc-nums strong{color:var(--td)}
+.mh{font-size:.82rem;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:1px;padding:.4rem 0 .6rem;margin-top:.8rem;border-bottom:2px solid #dde8e8;margin-bottom:.8rem;grid-column:1/-1}
+.dm-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.8rem}
+.dm-row{display:flex;align-items:center;gap:7px;padding:.4rem .6rem;border-radius:8px;background:var(--mc)}
+.dm-row.present{background:var(--gb)}.dm-name{font-size:.79rem;font-weight:600;flex:1}
+
+/* ARCHIVE */
+.archive-row{display:flex;align-items:center;gap:.8rem;padding:.6rem .9rem;background:var(--mc);border-radius:8px;margin-bottom:.45rem}
+
+/* TOAST */
+#toast{position:fixed;bottom:2rem;right:2rem;background:var(--td);color:#fff;padding:.75rem 1.3rem;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:var(--shl);opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none;max-width:380px}
+#toast.show{opacity:1;transform:translateY(0)}
+
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--xtl)}
+.empty-state .icon{font-size:2.5rem;margin-bottom:.5rem}
+.tbl-footer{padding:.7rem 1.2rem;font-size:.78rem;color:var(--xtl);border-top:1px solid #eef4f4;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+
+/* EMAIL FALLBACK */
+#emailFallback{display:none;margin-top:.8rem}
+.copy-row{display:flex;gap:.5rem;align-items:center}
+.copy-field{flex:1;font-size:.78rem;background:#f4f9f9;cursor:text;font-family:monospace}
+.fallback-hint{font-size:.73rem;color:var(--xtl);margin-top:.4rem}
+
+footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border-top:1px solid #dde8e8;margin-top:2rem}
+
+@media(max-width:768px){
+  td:nth-child(4),th:nth-child(4){display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .fg{grid-template-columns:1fr}.fgrp.full{grid-column:1}
+  .dm-grid{grid-template-columns:1fr}
+  .nav-tab{padding:.55rem .85rem;font-size:.78rem}
+  .page{padding:1.2rem 1rem 4rem}
+  header{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="hbrand">
+    <div class="hlogo">🥋</div>
+    <div>
+      <div class="htitle">Esbjerg Shuri-Ryu Karate</div>
+      <div class="hsub">Medlemsstyring &amp; Fremmøde</div>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <div class="hdate" id="headerDate"></div>
+    <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
+    <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦 Arkiv</button>
+    <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="nav-tabs">
+  <div class="nav-tab active" onclick="switchTab('training')" id="tab-training">🥋 Dagens træning</div>
+  <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
+  <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
+</nav>
+
+<!-- ══ PAGE: TRAINING ══ -->
+<div class="page active" id="page-training">
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
+    <div class="stat-card"><div class="si si-b">✅</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
+    <div class="stat-card"><div class="si si-c">❌</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
+    <div class="stat-card"><div class="si si-b">💰</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
+    <div class="stat-card"><div class="si si-d">⚠️</div><div><div class="sv" id="s5">0</div><div class="sl">Ikke betalt</div></div></div>
+  </div>
+
+  <!-- Dato-bar -->
+  <div class="date-bar">
+    <label>📅 Træningsdato</label>
+    <input type="date" id="trainingDatePicker" onchange="onDateChange()" />
+    <div class="att-pill" id="attPill">0 til stede</div>
+    <div style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn bg btn-sm" onclick="resetAllCheckIns()">🔄 Nulstil</button>
+      <button class="btn bs btn-sm" onclick="markAllPresent()">☑️ Marker alle</button>
+      <button class="btn bp btn-sm" onclick="saveSession()">💾 Gem session</button>
+    </div>
+  </div>
+
+  <div class="sh">
+    <div class="st">🎯 Fremmødeliste</div>
+    <div class="controls">
+      <input class="sbx" type="text" id="tsearch" placeholder="🔍 Søg navn…" oninput="renderT()"/>
+      <select class="fs" id="tfc" onchange="renderT()">
+        <option value="all">Alle fremmøde</option>
+        <option value="in">Til stede</option>
+        <option value="out">Fraværende</option>
+      </select>
+      <select class="fs" id="tfp" onchange="renderT()">
+        <option value="all">Alle betalinger</option>
+        <option value="paid">Betalt</option>
+        <option value="partial">Delvis</option>
+        <option value="unpaid">Ikke betalt</option>
+        <option value="overdue">Overskredet</option>
+      </select>
+      <select class="fs" id="tfg" onchange="renderT()">
+        <option value="all">Alle grupper</option>
+        <option value="Børnehold">Børnehold</option>
+        <option value="Normal hold">Normal hold</option>
+        <option value="Avanceret">Avanceret</option>
+      </select>
+      <button class="btn bp btn-sm" onclick="openAddModal()">➕ Nyt medlem</button>
+      <button class="btn bb btn-sm" onclick="openEmailModal()">✉️ E-mail</button>
+    </div>
+  </div>
+
+  <div class="tcard">
+    <table>
+      <thead>
+        <tr>
+          <th>Til stede</th>
+          <th>Medlem</th>
+          <th>Gruppe</th>
+          <th>Køn / Alder</th>
+          <th>Bælte</th>
+          <th>Kontingent</th>
+          <th style="text-align:center">Handlinger</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-t"></tbody>
+    </table>
+    <div id="empty-t" class="empty-state" style="display:none"><div class="icon">🥋</div>Ingen resultater</div>
+    <div class="tbl-footer"><span id="tCount"></span><button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: HISTORY ══ -->
+<div class="page" id="page-history">
+  <div class="sh">
+    <div class="st">📅 Fremmødeoversigt</div>
+    <div class="controls">
+      <select class="fs" id="hYear" onchange="renderHistory()"></select>
+      <select class="fs" id="hDay" onchange="renderHistory()">
+        <option value="all">Alle dage</option>
+        <option value="2">Tirsdage</option>
+        <option value="4">Torsdage</option>
+      </select>
+    </div>
+  </div>
+  <div class="hgrid" id="hGrid"></div>
+</div>
+
+<!-- ══ PAGE: MEMBERS ══ -->
+<div class="page" id="page-members">
+  <div class="sh">
+    <div class="st">👥 Alle aktive medlemmer</div>
+    <div class="controls">
+      <input class="sbx" type="text" id="msearch" placeholder="🔍 Søg navn…" oninput="renderM()"/>
+      <select class="fs" id="mfg" onchange="renderM()">
+        <option value="all">Alle grupper</option>
+        <option value="Børnehold">Børnehold</option>
+        <option value="Normal hold">Normal hold</option>
+        <option value="Avanceret">Avanceret</option>
+      </select>
+      <select class="fs" id="mfp" onchange="renderM()">
+        <option value="all">Alle betalinger</option>
+        <option value="paid">Betalt</option>
+        <option value="partial">Delvis</option>
+        <option value="unpaid">Ikke betalt</option>
+        <option value="overdue">Overskredet</option>
+      </select>
+      <button class="btn bp btn-sm" onclick="openAddModal()">➕ Nyt medlem</button>
+      <button class="btn bb btn-sm" onclick="openEmailModal()">✉️ E-mail</button>
+      <button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button>
+    </div>
+  </div>
+  <div class="tcard">
+    <table>
+      <thead>
+        <tr>
+          <th>Medlem</th>
+          <th>Gruppe</th>
+          <th>Køn / Alder</th>
+          <th>Bælte</th>
+          <th>Telefon</th>
+          <th>Kontingent</th>
+          <th style="text-align:center">Handlinger</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-m"></tbody>
+    </table>
+    <div id="empty-m" class="empty-state" style="display:none"><div class="icon">🥋</div>Ingen resultater</div>
+    <div class="tbl-footer"><span id="mCount"></span></div>
+  </div>
+</div>
+
+<footer>Esbjerg Shuri-Ryu Karate &nbsp;·&nbsp; Strandbygade 53, 6700 Esbjerg &nbsp;·&nbsp; holmoos@mail.dk</footer>
+<div id="toast"></div>
+
+<!-- ══ MODAL: TILFØJ / REDIGER MEDLEM ══ -->
+<div class="mbd" id="memberModal">
+  <div class="modal">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>🥋</span><span id="mTitle">Tilføj nyt medlem</span></div>
+      <button class="mclose" onclick="closeModal('memberModal')">✕</button>
+    </div>
+    <div class="fg">
+      <div class="fgrp"><label>Fornavn *</label><input type="text" id="fFN" placeholder="Lars"/></div>
+      <div class="fgrp"><label>Efternavn *</label><input type="text" id="fLN" placeholder="Jensen"/></div>
+      <div class="fgrp full"><label>E-mail</label><input type="email" id="fEM" placeholder="lars@mail.dk"/></div>
+      <div class="fgrp"><label>Telefon</label><input type="tel" id="fPH" placeholder="12 34 56 78"/></div>
+      <div class="fgrp"><label>Køn</label>
+        <select class="form-select" id="fGE">
+          <option value="">Ukendt</option>
+          <option value="M">Mand (M)</option>
+          <option value="K">Kvinde (K)</option>
+        </select>
+      </div>
+      <div class="fgrp"><label>Fødselsdato</label><input type="date" id="fBD" oninput="updateAgePreview()"/></div>
+      <div class="fgrp">
+        <label>Alder</label>
+        <input type="number" id="fAGE" placeholder="f.eks. 12" min="0" max="120"/>
+        <div class="age-hint" id="ageHint">Udfyld fødselsdato for automatisk beregning</div>
+        <div class="age-calc" id="ageCalc" style="display:none"></div>
+      </div>
+      <div class="fgrp"><label>Bæltegrad</label>
+        <select class="form-select" id="fBT">
+          <option>10. Kyu (Hvidt)</option>
+          <option>9. Kyu (1 Snip)</option>
+          <option>8. Kyu (2 Snip)</option>
+          <option>7. Kyu (Gult)</option>
+          <option>6. Kyu (Blåt)</option>
+          <option>5. Kyu (Grønt)</option>
+          <option>4. Kyu (Violet)</option>
+          <option>3. Kyu (Brunt)</option>
+          <option>2. Kyu (Brunt + 1 Snip)</option>
+          <option>1. Kyu (Brunt + 2 Snip)</option>
+          <option>1. Dan (Sort)</option><option>2. Dan (Sort)</option><option>3. Dan (Sort)</option>
+        </select>
+      </div>
+      <div class="fgrp"><label>Gruppe</label>
+        <select class="form-select" id="fGRP">
+          <option value="Børnehold">Børnehold (B)</option>
+          <option value="Normal hold">Normal hold (J)</option>
+          <option value="Avanceret">Avanceret (S)</option>
+        </select>
+      </div>
+      <div class="fgrp"><label>Betalingsstatus</label>
+        <select class="form-select" id="fPAY">
+          <option value="paid">Betalt</option>
+          <option value="partial">Delvis betalt</option>
+          <option value="unpaid">Ikke betalt</option>
+          <option value="overdue">Overskredet</option>
+        </select>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('memberModal')">Annuller</button>
+      <button class="btn bp" onclick="saveMember()">💾 Gem</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EMAIL ══ -->
+<div class="mbd" id="emailModal">
+  <div class="modal modal-lg">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>✉️</span><span>Send e-mail til medlemmer</span></div>
+      <button class="mclose" onclick="closeModal('emailModal')">✕</button>
+    </div>
+    <div style="font-size:.8rem;font-weight:700;margin-bottom:.5rem;color:var(--xtm);text-transform:uppercase;letter-spacing:.5px">Hurtigvalg:</div>
+    <div class="em-toolbar">
+      <button class="seg-btn" onclick="emailQuick('all')">Alle</button>
+      <button class="seg-btn" onclick="emailQuick('none')">Ingen</button>
+      <button class="seg-btn" onclick="emailQuick('unpaid')">Ikke betalt</button>
+      <button class="seg-btn" onclick="emailQuick('partial')">Delvis betalt</button>
+      <button class="seg-btn" onclick="emailQuick('overdue')">Overskredet</button>
+      <button class="seg-btn" onclick="emailQuick('absent')">Fraværende i dag</button>
+      <button class="seg-btn" onclick="emailQuick('present')">Til stede i dag</button>
+      <button class="seg-btn" onclick="emailQuick('Børnehold')">Børnehold</button>
+      <button class="seg-btn" onclick="emailQuick('Normal hold')">Normal hold</button>
+      <button class="seg-btn" onclick="emailQuick('Avanceret')">Avanceret</button>
+    </div>
+    <div class="em-count" id="emCount"></div>
+    <div class="em-chk-area" id="emList"></div>
+    <hr class="divider"/>
+    <div class="fg">
+      <div class="fgrp full"><label>Emne</label><input type="text" id="eSub" placeholder="f.eks. Husk kontingent for 2026"/></div>
+      <div class="fgrp full"><label>Besked (valgfrit — åbner dit e-mailprogram)</label><textarea class="fta" id="eBody" placeholder="Skriv din besked her…"></textarea></div>
+    </div>
+    <div id="emailFallback">
+      <div style="font-size:.78rem;font-weight:700;color:var(--xtm);margin-bottom:.4rem">📋 Kopier adresser til Outlook / Gmail (BCC):</div>
+      <div class="copy-row">
+        <input type="text" id="emailCopyField" readonly class="copy-field"/>
+        <button class="btn bs btn-sm" onclick="copyEmails()">📋 Kopier</button>
+      </div>
+      <div class="fallback-hint">Indsæt i BCC-feltet — så modtagerne ikke ser hinandens adresser.</div>
+    </div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('emailModal')">Luk</button>
+      <button class="btn bg" onclick="showEmailFallback()">📋 Kopier adresser</button>
+      <button class="btn bb" onclick="sendEmails()">✉️ Åbn e-mailprogram</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: ARKIV ══ -->
+<div class="mbd" id="archiveModal">
+  <div class="modal modal-lg">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>📦</span><span>Arkiverede medlemmer</span></div>
+      <button class="mclose" onclick="closeModal('archiveModal')">✕</button>
+    </div>
+    <div id="archiveList"></div>
+    <div class="ma"><button class="btn bg" onclick="closeModal('archiveModal')">Luk</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: HISTORIK DETALJE ══ -->
+<div class="mbd" id="hdModal">
+  <div class="modal modal-lg">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>📅</span><span id="hdTitle"></span></div>
+      <button class="mclose" onclick="closeModal('hdModal')">✕</button>
+    </div>
+    <div id="hdContent"></div>
+    <div class="ma"><button class="btn bg" onclick="closeModal('hdModal')">Luk</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: INDSTILLINGER ══ -->
+<div class="mbd" id="settingsModal">
+  <div class="modal">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>⚙️</span><span>Indstillinger</span></div>
+      <button class="mclose" onclick="closeModal('settingsModal')">✕</button>
+    </div>
+    <div class="fg">
+      <div class="fgrp full">
+        <label>Admin notifikations-e-mail</label>
+        <input type="email" id="setAdminEmail" placeholder="admin@karate.dk"/>
+        <div class="age-hint">Modtager notifikation ved nyt medlem</div>
+      </div>
+      <div class="fgrp full">
+        <label>Klub e-mail (afsender)</label>
+        <input type="email" id="setClubEmail" placeholder="holmoos@mail.dk"/>
+      </div>
+      <div class="fgrp full">
+        <label>Google Script URL (deling mellem enheder)</label>
+        <input type="url" id="setScriptUrl" placeholder="https://script.google.com/macros/s/.../exec"/>
+        <div class="age-hint">Lad feltet stå tomt for at bruge appen offline uden deling</div>
+      </div>
+    </div>
+    <div style="margin-top:1.2rem;padding:.9rem;background:var(--mbg);border-radius:8px;font-size:.8rem;color:var(--xtm);line-height:1.5" id="settingsInfo">
+      💡 <strong>Offline:</strong> Data gemmes lokalt. Tilføj en Script URL for at dele data mellem enheder.
+    </div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('settingsModal')">Luk</button>
+      <button class="btn bp" onclick="saveSettings()">💾 Gem</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   KONSTANTER
+════════════════════════════════════════ */
+const BC = {
+  '10. Kyu (Hvidt)':'#e8e8e8',
+  '9. Kyu (1 Snip)':'#e0e0e0',
+  '8. Kyu (2 Snip)':'#d0d0d0',
+  '7. Kyu (Gult)':'#f7e040',
+  '6. Kyu (Blåt)':'#2980b9',
+  '5. Kyu (Grønt)':'#27ae60',
+  '4. Kyu (Violet)':'#8e44ad',
+  '3. Kyu (Brunt)':'#8d5524',
+  '2. Kyu (Brunt + 1 Snip)':'#7a4820',
+  '1. Kyu (Brunt + 2 Snip)':'#6b3d18',
+  '1. Dan (Sort)':'#212121','2. Dan (Sort)':'#161616','3. Dan (Sort)':'#0a0a0a'
+};
+const DA_D = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+const DA_M = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
+const GRP_AV = {Børnehold:'av-boern',Normalhold:'av-junior','Normal hold':'av-junior',Avanceret:'av-senior'};
+const GRP_CHIP = {Børnehold:'grp-b','Normal hold':'grp-j',Avanceret:'grp-s'};
+
+/* ════════════════════════════════════════
+   STARTDATA — 65 MEDLEMMER
+   Grupper: Børnehold (B·550kr), Normal hold (J·650kr), Avanceret (S·850kr)
+════════════════════════════════════════ */
+const SEED = [
+// ── Børnehold ─────────────────────────────────────────
+{id:1,  firstName:'August',       lastName:'Jensen',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
+{id:2,  firstName:'Birke Carlo',  lastName:'Schütt Haahr',        email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
+{id:3,  firstName:'Ella',         lastName:'Smedegaard',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
+{id:4,  firstName:'Emma',         lastName:'Frellsen',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
+{id:5,  firstName:'Filip',        lastName:'Vujovic',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
+{id:6,  firstName:'Frederik',     lastName:'Jakobsen',            email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:10,birthdate:''},
+{id:7,  firstName:'Henry',        lastName:'Breinbjerg',          email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
+{id:8,  firstName:'Ibrahim',      lastName:'Zacharias',           email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
+{id:9,  firstName:'Illia',        lastName:'Polozhko',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
+{id:10, firstName:'Jamie',        lastName:'Damkjær',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
+{id:11, firstName:'Johan',        lastName:'Solhaug Sørensen',    email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
+{id:12, firstName:'Loui',         lastName:'Just Carlsen',        email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
+{id:13, firstName:'Lærke',        lastName:'Lønborg Nørgaard',    email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:10,birthdate:''},
+{id:14, firstName:'Magne',        lastName:'Falk',                email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
+{id:15, firstName:'Maria',        lastName:'Pawlowicz',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:8, birthdate:''},
+{id:16, firstName:'Mathilde',     lastName:'Sloth',               email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:null,birthdate:''},
+{id:17, firstName:'Nessa',        lastName:'Uldahl',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
+{id:18, firstName:'Oliver',       lastName:'Thuesen',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
+{id:19, firstName:'Olivia',       lastName:'Thuesen',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:10,birthdate:''},
+{id:20, firstName:'Sara Asta',    lastName:'Madsen',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:11,birthdate:''},
+{id:21, firstName:'Sofie',        lastName:'Frellsen',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:6, birthdate:''},
+{id:22, firstName:'Sophia Isabella',lastName:'Atay',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
+{id:23, firstName:'Sonja',        lastName:'Puggaard Sørensen',   email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:10,birthdate:''},
+{id:24, firstName:'Theo',         lastName:'Nørsten',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
+{id:25, firstName:'Theo',         lastName:'Sønderskov Kristensen',email:'',phone:'',belt:'9 kyu',payment:'unpaid', betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
+{id:26, firstName:'Tobias',       lastName:'Rømer Sørensen',      email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
+// ── Normal hold ───────────────────────────────────────
+{id:27, firstName:'Adam',         lastName:'Melonik',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:12,birthdate:''},
+{id:28, firstName:'Casandra',     lastName:'Mikkelsen',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'K',age:11,birthdate:''},
+{id:29, firstName:'Charles',      lastName:'Vind',                email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:15,birthdate:''},
+{id:30, firstName:'Emil',         lastName:'Weber',               email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:31, firstName:'Fabian',       lastName:'Barslev Saers',       email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:13,birthdate:''},
+{id:32, firstName:'Giacomo',      lastName:'Skyttehave',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:13,birthdate:''},
+{id:33, firstName:'Karoline',     lastName:'Klarskov',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'K',age:11,birthdate:''},
+{id:34, firstName:'Matilde',      lastName:'Sloth',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'K',age:10,birthdate:''},
+{id:35, firstName:'Matvii',       lastName:'Diduk',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:36, firstName:'Nord',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:325,  group:'Normal hold',checkedIn:false,gender:'M',age:13,birthdate:''},
+{id:37, firstName:'Sejr',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:15,birthdate:''},
+{id:38, firstName:'Selma',        lastName:'Wang Kristensen',     email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'K',age:13,birthdate:''},
+{id:39, firstName:'Smilte',       lastName:'Vesciunas',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'K',age:12,birthdate:''},
+{id:40, firstName:'Stipe',        lastName:'Nicpay',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:660,  group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:41, firstName:'Valdemar',     lastName:'Friis Holm',          email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:42, firstName:'Villads',      lastName:'Dalby',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:12,birthdate:''},
+{id:43, firstName:'William',      lastName:'Hutchinson',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:12,birthdate:''},
+{id:44, firstName:'William',      lastName:'Myrup',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:45, firstName:'Magne',        lastName:'Waskönig',            email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:10,birthdate:''},
+// ── Avanceret ─────────────────────────────────────────
+{id:46, firstName:'Anahita',      lastName:'Mashura',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:null,birthdate:''},
+{id:47, firstName:'Bardur',       lastName:'Vendelbo',            email:'bardur.vendelbo@gmail.com',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:51,birthdate:''},
+{id:48, firstName:'Bjarne',       lastName:'Moos',                email:'holmoos@mail.dk',phone:'',belt:'1 dan',payment:'partial',betaltBeløb:100,group:'Avanceret',checkedIn:false,gender:'M',age:71,birthdate:''},
+{id:49, firstName:'Emma',         lastName:'Steensbeck',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'K',age:22,birthdate:''},
+{id:50, firstName:'Jens Chr.',    lastName:'Højland',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:57,birthdate:''},
+{id:51, firstName:'Jesper',       lastName:'Steenbeck',           email:'jesper@steensbeckfoto.dk',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:52,birthdate:''},
+{id:52, firstName:'Jonas',        lastName:'Holm',                email:'jonasholm@gmail.com',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:39,birthdate:''},
+{id:53, firstName:'Josefine',     lastName:'Fjeldsted Nielsen',   email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:16,birthdate:''},
+{id:54, firstName:'Kamile',       lastName:'Jasinskaite',         email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:null,birthdate:''},
+{id:55, firstName:'Kim',          lastName:'Nielsen',             email:'kim@newsong.dk',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:49,birthdate:''},
+{id:56, firstName:'Malte Aske',   lastName:'Lavendt',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:22,birthdate:''},
+{id:57, firstName:'Maria',        lastName:'Muff Olesen',         email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'K',age:43,birthdate:''},
+{id:58, firstName:'Michael B.',   lastName:'Jørgensen',           email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:43,birthdate:''},
+{id:59, firstName:'Mikkel',       lastName:'Bach Lautrup',        email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:17,birthdate:''},
+{id:60, firstName:'Nana Sophie',  lastName:'Holm',                email:'nana.sophie.holm@gmail.com',phone:'',belt:'9 kyu',payment:'partial',betaltBeløb:750,group:'Avanceret',checkedIn:false,gender:'K',age:33,birthdate:''},
+{id:61, firstName:'Peter',        lastName:'Bigum Schmidt',       email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'M',age:45,birthdate:''},
+{id:62, firstName:'Peter',        lastName:'Wang Kristensen',     email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'M',age:52,birthdate:''},
+{id:63, firstName:'Rasmus',       lastName:'Vestergaard',         email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'M',age:37,birthdate:''},
+{id:64, firstName:'Storm',        lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:637,  group:'Avanceret',checkedIn:false,gender:'M',age:16,birthdate:''},
+{id:65, firstName:'Peter',        lastName:'Christensen',         email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:425,  group:'Avanceret',checkedIn:false,gender:'M',age:null,birthdate:''},
+];
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+let members=[], sessions=[], editingId=null, nextId=200, cloudLoaded=false;
+let config={adminEmail:'', clubEmail:'holmoos@mail.dk', scriptUrl:'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec'};
+let currentTrainingDate = new Date().toISOString().slice(0,10);
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function calcAge(bd){
+  if(!bd)return null;
+  const t=new Date(),b=new Date(bd+'T12:00:00');
+  let a=t.getFullYear()-b.getFullYear();
+  if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate())) a--;
+  return a;
+}
+function getAge(m){ return m.birthdate?calcAge(m.birthdate):(m.age!=null?m.age:null); }
+function ageStr(m){ const a=getAge(m); return a===null?'—':a+' år'+(m.birthdate?'':''); }
+function inits(m){ return ((m.firstName||'')[0]||'')+((m.lastName||'')[0]||''); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso)return'';
+  const d=new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function avClass(g){
+  return g==='Børnehold'?'av-boern':g==='Normal hold'?'av-junior':'av-senior';
+}
+function grpChip(g){
+  const cls=GRP_CHIP[g]||'grp-s';
+  const label=g==='Børnehold'?'Børnehold':g==='Normal hold'?'Normal hold':'Avanceret';
+  return `<span class="grp-chip ${cls}">${label}</span>`;
+}
+
+function payBadge(m){
+  const p=m.payment;
+  if(p==='paid')    return `<span class="amt-badge amt-paid">✅ Betalt</span>`;
+  if(p==='partial') return `<span class="amt-badge amt-partial">⚠️ Delvis betalt</span>`;
+  if(p==='overdue') return `<span class="amt-badge amt-overdue">🔴 Overskredet</span>`;
+  return `<span class="amt-badge amt-unpaid">❌ Ikke betalt</span>`;
+}
+function gCell(m){
+  const g=m.gender;
+  const lbl=g==='M'?'<span class="gm">♂ Mand</span>':g==='K'?'<span class="gk">♀ Kvinde</span>':'<span style="color:var(--xtl);font-size:.78rem">—</span>';
+  return `<div>${lbl}</div><div style="font-size:.75rem;color:var(--xtl);margin-top:1px">${ageStr(m)}</div>`;
+}
+
+/* ════════════════════════════════════════
+   PERSISTENCE
+════════════════════════════════════════ */
+function load(){
+  try{
+    const m=localStorage.getItem('kk2_members');
+    const s=localStorage.getItem('kk2_sessions');
+    const c=localStorage.getItem('kk2_config');
+    members =m?JSON.parse(m):JSON.parse(JSON.stringify(SEED));
+    sessions=s?JSON.parse(s):[];
+    // Migrer gamle bæltenavne til kyu/dan
+    const beltMap={
+      'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)',
+      'Gult':'7. Kyu (Gult)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)',
+      'Orange':'7. Kyu (Gult)','7 kyu':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)',
+      'Grønt':'5. Kyu (Grønt)','6 kyu':'6. Kyu (Blåt)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)',
+      'Blåt':'6. Kyu (Blåt)','5 kyu':'5. Kyu (Grønt)','5. kyu (Blåt)':'5. Kyu (Grønt)',
+      '4 kyu':'4. Kyu (Violet)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)',
+      'Brunt':'3. Kyu (Brunt)','3 kyu':'3. Kyu (Brunt)','3. kyu (Brunt)':'3. Kyu (Brunt)',
+      '2 kyu':'2. Kyu (Brunt + 1 Snip)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)',
+      '1 kyu':'1. Kyu (Brunt + 2 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)',
+      'Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)',
+      '1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'
+    };
+    members.forEach(mb=>{if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];});
+    if(c) config=Object.assign(config,JSON.parse(c));
+    config.scriptUrl='https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
+    nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
+  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; }
+}
+function save(){
+  config._savedAt=Date.now();
+  localStorage.setItem('kk2_members',JSON.stringify(members));
+  localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
+  localStorage.setItem('kk2_config',JSON.stringify(config));
+  if(cloudLoaded) pushToCloud();
+}
+function setSyncStatus(s){
+  const el=document.getElementById('syncStatus');
+  if(!el)return;
+  if(!config.scriptUrl){el.style.display='none';return;}
+  el.style.display='';
+  if(s==='loading'){el.textContent='⏳ Synkroniserer...';el.style.color='#fff';}
+  else if(s==='ok'){el.textContent='☁️ Synkroniseret';el.style.color='#7ecece';}
+  else{el.textContent='⚠️ Offline';el.style.color='#fcd34d';}
+}
+function pushToCloud(){
+  const url=config.scriptUrl;
+  if(!url)return;
+  setSyncStatus('loading');
+  fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({members,sessions,_savedAt:config._savedAt})
+  })
+  .then(r=>r.json())
+  .then(d=>{if(d.ok)setSyncStatus('ok');else setSyncStatus('error');})
+  .catch(()=>{
+    // Fallback: no-cors (kan ikke læse svar, men data sendes)
+    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({members,sessions,_savedAt:config._savedAt})})
+      .then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
+  });
+}
+function loadFromCloud(onDone){
+  const url=config.scriptUrl;
+  if(!url){if(onDone)onDone(false);return;}
+  setSyncStatus('loading');
+  const cb='_gs'+Date.now();
+  const s=document.createElement('script');
+  let timer;
+  const cleanup=()=>{clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);};
+  window[cb]=function(d){
+    cleanup();
+    if(d.ok&&d.members&&d.members.length>0){
+      members=d.members;
+      sessions=d.sessions||[];
+      const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
+      members.forEach(mb=>{if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];});
+      localStorage.setItem('kk2_members',JSON.stringify(members));
+      localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
+      nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
+      cloudLoaded=true;
+      setSyncStatus('ok');
+    }else if(d.ok){
+      cloudLoaded=true;
+      setSyncStatus('ok');
+    }else{setSyncStatus('error');}
+    if(onDone)onDone(true);
+  };
+  s.onerror=()=>{cleanup();setSyncStatus('error');if(onDone)onDone(false);};
+  timer=setTimeout(()=>{cleanup();setSyncStatus('error');showToast('⚠️ Google svarede ikke — tjek Apps Script er redeployeret med ny version');if(onDone)onDone(false);},10000);
+  s.src=url+'?callback='+cb+'&t='+Date.now();
+  document.body.appendChild(s);
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  const now=new Date();
+  document.getElementById('headerDate').textContent=
+    now.toLocaleDateString('da-DK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Date picker init
+  document.getElementById('trainingDatePicker').value=currentTrainingDate;
+
+  // Load existing check-ins for today from sessions if available
+  loadCheckInsForDate(currentTrainingDate);
+
+  // Year selector for history
+  const ys=document.getElementById('hYear'),cy=now.getFullYear();
+  for(let y=cy-1;y<=cy+1;y++){
+    const o=document.createElement('option');
+    o.value=y;o.textContent=y;if(y===cy)o.selected=true;
+    ys.appendChild(o);
+  }
+
+  // Settings pre-fill
+  document.getElementById('setAdminEmail').value=config.adminEmail||'';
+  document.getElementById('setClubEmail').value=config.clubEmail||'holmoos@mail.dk';
+  document.getElementById('setScriptUrl').value=config.scriptUrl||'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
+
+  document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
+  if(config.scriptUrl){
+    loadFromCloud(()=>{
+      loadCheckInsForDate(currentTrainingDate);
+      renderAll();
+    });
+  } else {
+    loadCheckInsForDate(currentTrainingDate);
+    renderAll();
+  }
+});
+
+function renderAll(){ renderT(); renderM(); updateStats(); }
+
+/* ════════════════════════════════════════
+   TABS
+════════════════════════════════════════ */
+function switchTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='history') renderHistory();
+}
+
+/* ════════════════════════════════════════
+   STATS
+════════════════════════════════════════ */
+function updateStats(){
+  const act=members.filter(m=>!m.archived);
+  document.getElementById('s1').textContent=act.length;
+  document.getElementById('s2').textContent=act.filter(m=>m.checkedIn).length;
+  document.getElementById('s3').textContent=act.filter(m=>!m.checkedIn).length;
+  document.getElementById('s4').textContent=act.filter(m=>m.payment==='paid').length;
+  document.getElementById('s5').textContent=act.filter(m=>m.payment==='unpaid'||m.payment==='overdue').length;
+  // Attendance pill
+  const ci=act.filter(m=>m.checkedIn).length;
+  const pill=document.getElementById('attPill');
+  pill.textContent=ci+' / '+act.length+' til stede';
+  pill.className='att-pill'+(ci<act.length/2?' low':'');
+}
+
+/* ════════════════════════════════════════
+   TRAINING DATE PICKER
+════════════════════════════════════════ */
+function onDateChange(){
+  const newDate=document.getElementById('trainingDatePicker').value;
+  if(!newDate)return;
+  // Save current check-ins before switching
+  if(members.filter(m=>m.checkedIn).length>0){
+    const ids=members.filter(m=>m.checkedIn).map(m=>m.id);
+    const idx=sessions.findIndex(s=>s.date===currentTrainingDate);
+    const e={date:currentTrainingDate,name:'Træning',presentIds:ids};
+    if(idx>=0)sessions[idx]=e;else sessions.push(e);
+    save();
+  }
+  currentTrainingDate=newDate;
+  loadCheckInsForDate(currentTrainingDate);
+  renderAll();
+}
+function loadCheckInsForDate(date){
+  const sess=sessions.find(s=>s.date===date);
+  members.forEach(m=>{ m.checkedIn=sess?sess.presentIds.includes(m.id):false; });
+}
+
+/* ════════════════════════════════════════
+   RENDER: TRAINING PAGE
+════════════════════════════════════════ */
+function renderT(){
+  const body=document.getElementById('tbody-t');
+  const q=document.getElementById('tsearch').value.toLowerCase();
+  const fc=document.getElementById('tfc').value;
+  const fp=document.getElementById('tfp').value;
+  const fg=document.getElementById('tfg').value;
+  body.innerHTML='';let vis=0;
+  members.forEach(m=>{
+    if(m.archived)return;
+    const nm=(m.firstName+' '+m.lastName).toLowerCase();
+    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
+    if(fc!=='all'&&((fc==='in')!==m.checkedIn))return;
+    if(fp!=='all'&&m.payment!==fp)return;
+    if(fg!=='all'&&m.group!==fg)return;
+    vis++;
+    const bc=BC[m.belt]||'#ccc';
+    const tr=document.createElement('tr');
+    tr.dataset.id=m.id;
+    tr.innerHTML=`
+      <td style="text-align:center">
+        <label class="toggle" title="${m.checkedIn?'Til stede':'Fraværende'}">
+          <input type="checkbox" ${m.checkedIn?'checked':''} onchange="toggleCI(${m.id},this.checked)"/>
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td><div class="mrow">
+        <div class="av ${avClass(m.group)}">${inits(m)}</div>
+        <div><div class="mn">${m.firstName} ${m.lastName}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div></div>
+      </div></td>
+      <td>${grpChip(m.group)}</td>
+      <td>${gCell(m)}</td>
+      <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
+      <td>${payBadge(m)}</td>
+      <td style="text-align:center;white-space:nowrap">
+        <button class="btn bg btn-sm" onclick="openEditModal(${m.id})" title="Rediger">✏️</button>
+        <button class="btn bg btn-sm" onclick="archiveMember(${m.id})" style="margin-left:3px;color:var(--or);border-color:#e0c070" title="Arkivér">📦</button>
+        <button class="btn bdr btn-sm" onclick="confirmDelete(${m.id})" style="margin-left:3px" title="Slet">🗑</button>
+      </td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('empty-t').style.display=vis?'none':'block';
+  document.getElementById('tCount').textContent=`${vis} af ${members.filter(m=>!m.archived).length} aktive medlemmer`;
+  updateStats();
+}
+
+/* ════════════════════════════════════════
+   RENDER: MEMBERS PAGE
+════════════════════════════════════════ */
+function renderM(){
+  const body=document.getElementById('tbody-m');
+  const q=document.getElementById('msearch').value.toLowerCase();
+  const fg=document.getElementById('mfg').value;
+  const fp=document.getElementById('mfp').value;
+  body.innerHTML='';let vis=0;
+  members.forEach(m=>{
+    if(m.archived)return;
+    const nm=(m.firstName+' '+m.lastName).toLowerCase();
+    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
+    if(fg!=='all'&&m.group!==fg)return;
+    if(fp!=='all'&&m.payment!==fp)return;
+    vis++;
+    const bc=BC[m.belt]||'#ccc';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><div class="mrow">
+        <div class="av ${avClass(m.group)}">${inits(m)}</div>
+        <div><div class="mn">${m.firstName} ${m.lastName}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div></div>
+      </div></td>
+      <td>${grpChip(m.group)}</td>
+      <td>${gCell(m)}</td>
+      <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
+      <td style="font-size:.82rem">${m.phone||'<span style="color:var(--xtl)">—</span>'}</td>
+      <td>${payBadge(m)}</td>
+      <td style="text-align:center;white-space:nowrap">
+        <button class="btn bg btn-sm" onclick="openEditModal(${m.id})" title="Rediger">✏️</button>
+        <button class="btn bg btn-sm" onclick="archiveMember(${m.id})" style="margin-left:3px;color:var(--or);border-color:#e0c070" title="Arkivér">📦</button>
+        <button class="btn bdr btn-sm" onclick="confirmDelete(${m.id})" style="margin-left:3px" title="Slet">🗑</button>
+      </td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('empty-m').style.display=vis?'none':'block';
+  document.getElementById('mCount').textContent=`${vis} af ${members.filter(m=>!m.archived).length} aktive medlemmer`;
+}
+
+/* ════════════════════════════════════════
+   RENDER: HISTORY
+════════════════════════════════════════ */
+function renderHistory(){
+  const grid=document.getElementById('hGrid');
+  const year=parseInt(document.getElementById('hYear').value);
+  const df=document.getElementById('hDay').value;
+  const td=new Date();td.setHours(0,0,0,0);
+  grid.innerHTML='';
+  const dates=[];
+  const d=new Date(year,0,1);
+  while(d.getFullYear()===year){
+    const dw=d.getDay();
+    if((dw===2||dw===4)&&(df==='all'||String(dw)===df)) dates.push(new Date(d));
+    d.setDate(d.getDate()+1);
+  }
+  let curM=-1;
+  dates.forEach(date=>{
+    const isFut=date>td,isToday=date.getTime()===td.getTime();
+    const ds=date.toISOString().slice(0,10),dw=date.getDay();
+    const saved=sessions.find(s=>s.date===ds);
+    if(date.getMonth()!==curM){
+      curM=date.getMonth();
+      const mh=document.createElement('div');
+      mh.className='mh';
+      mh.textContent=DA_M[curM].charAt(0).toUpperCase()+DA_M[curM].slice(1)+' '+year;
+      grid.appendChild(mh);
+    }
+    const total=members.filter(m=>!m.archived).length;
+    const present=saved?saved.presentIds.length:0;
+    const pct=total>0&&saved?Math.round(present/total*100):0;
+    const card=document.createElement('div');
+    let cc='hcard';
+    if(isToday)cc+=' hc-today';else if(isFut)cc+=' hc-future';else if(dw===2)cc+=' hc-tue';else cc+=' hc-thu';
+    card.className=cc;
+    const tag=isToday?'<span class="hc-tag t-today">I dag</span>':isFut?'<span class="hc-tag t-future">Kommende</span>':dw===2?'<span class="hc-tag t-tue">Tirsdag</span>':'<span class="hc-tag t-thu">Torsdag</span>';
+    let pbcls='pb';if(pct>=70)pbcls+=' good';else if(pct>=40)pbcls+=' mid';else if(!isFut&&saved)pbcls+=' low';
+    card.innerHTML=`
+      <div class="hc-top">
+        <div>
+          <div class="hc-day">${DA_D[dw]}</div>
+          <div class="hc-date">${date.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}</div>
+        </div>${tag}
+      </div>
+      ${!isFut&&saved?`<div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
+      <div class="hc-nums"><span>Til stede: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>`:
+      `<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">${isFut?'Kommende træning':'Ingen data gemt endnu'}</div>`}`;
+    if(!isFut) card.addEventListener('click',()=>openHD(ds,date,saved));
+    grid.appendChild(card);
+  });
+}
+
+function openHD(ds,dateObj,saved){
+  document.getElementById('hdTitle').textContent=fmtDate(ds);
+  const c=document.getElementById('hdContent');
+  if(!saved){c.innerHTML='<p style="color:var(--xtl);padding:1rem 0">Ingen fremmødedata for denne dato.</p>';openModal('hdModal');return;}
+  const ps=new Set(saved.presentIds);
+  const pm=members.filter(m=>ps.has(m.id));
+  const am=members.filter(m=>!m.archived&&!ps.has(m.id));
+  c.innerHTML=`<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
+    <span class="badge bgg">Til stede: ${pm.length}</span>
+    <span class="badge bgx">Fraværende: ${am.length}</span>
+  </div>
+  <div class="dm-grid">
+    ${pm.map(m=>`<div class="dm-row present"><div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.7rem">${inits(m)}</div><span class="dm-name">${m.firstName} ${m.lastName}</span>✅</div>`).join('')}
+    ${am.map(m=>`<div class="dm-row"><div class="av" style="width:28px;height:28px;font-size:.7rem;background:var(--xtl)">${inits(m)}</div><span class="dm-name">${m.firstName} ${m.lastName}</span>❌</div>`).join('')}
+  </div>`;
+  openModal('hdModal');
+}
+
+/* ════════════════════════════════════════
+   CHECK-IN
+════════════════════════════════════════ */
+function toggleCI(id,val){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  m.checkedIn=val;save();
+  showToast(val?`✅ ${m.firstName} ${m.lastName} mødt op`:`❌ ${m.firstName} ${m.lastName} fjernet`);
+  updateStats();
+}
+function resetAllCheckIns(){
+  if(!confirm('Nulstil fremmøde for alle?'))return;
+  members.forEach(m=>m.checkedIn=false);save();renderAll();showToast('🔄 Nulstillet');
+}
+function markAllPresent(){
+  members.filter(m=>!m.archived).forEach(m=>m.checkedIn=true);save();renderAll();showToast('☑️ Alle markeret til stede');
+}
+function saveSession(){
+  const ds=currentTrainingDate;
+  const ids=members.filter(m=>m.checkedIn).map(m=>m.id);
+  const idx=sessions.findIndex(s=>s.date===ds);
+  const e={date:ds,name:'Træning',presentIds:ids};
+  if(idx>=0)sessions[idx]=e;else sessions.push(e);
+  save();showToast(`💾 Session gemt (${fmtDate(ds)}) — ${ids.length} til stede`);
+}
+
+/* ════════════════════════════════════════
+   CRUD — TILFØJ / REDIGER
+════════════════════════════════════════ */
+function openAddModal(){
+  editingId=null;
+  document.getElementById('mTitle').textContent='Tilføj nyt medlem';
+  ['fFN','fLN','fEM','fPH'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fGE').value='';
+  document.getElementById('fBD').value='';
+  document.getElementById('fAGE').value='';
+  document.getElementById('fBT').value='10. Kyu (Hvidt)';
+  document.getElementById('fPAY').value='paid';
+  document.getElementById('fGRP').value='Normal hold';
+  document.getElementById('fAGE').readOnly=false;
+  document.getElementById('ageHint').style.display='';
+  document.getElementById('ageCalc').style.display='none';
+  openModal('memberModal');
+}
+function openEditModal(id){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  editingId=id;
+  document.getElementById('mTitle').textContent='Rediger — '+m.firstName+' '+m.lastName;
+  document.getElementById('fFN').value=m.firstName;
+  document.getElementById('fLN').value=m.lastName;
+  document.getElementById('fEM').value=m.email||'';
+  document.getElementById('fPH').value=m.phone||'';
+  document.getElementById('fGE').value=m.gender||'';
+  document.getElementById('fBD').value=m.birthdate||'';
+  document.getElementById('fAGE').value=m.birthdate?calcAge(m.birthdate):(m.age!=null?m.age:'');
+  document.getElementById('fBT').value=m.belt;
+  document.getElementById('fPAY').value=m.payment;
+  document.getElementById('fGRP').value=m.group||'Normal hold';
+  updateAgePreview();
+  openModal('memberModal');
+}
+function updateAgePreview(){
+  const bd=document.getElementById('fBD').value;
+  const hint=document.getElementById('ageHint'),calc=document.getElementById('ageCalc'),af=document.getElementById('fAGE');
+  if(bd){
+    const a=calcAge(bd);af.value=a;af.readOnly=true;
+    hint.style.display='none';calc.style.display='';calc.textContent='✅ Beregnet: '+a+' år';
+  } else {
+    af.readOnly=false;hint.style.display='';calc.style.display='none';
+  }
+}
+function saveMember(){
+  const fn=document.getElementById('fFN').value.trim(),ln=document.getElementById('fLN').value.trim();
+  if(!fn||!ln){alert('Fornavn og efternavn er påkrævet.');return;}
+  const bd=document.getElementById('fBD').value;
+  const data={
+    firstName:fn,lastName:ln,
+    email:document.getElementById('fEM').value.trim(),
+    phone:document.getElementById('fPH').value.trim(),
+    gender:document.getElementById('fGE').value,
+    birthdate:bd,
+    age:bd?null:(parseInt(document.getElementById('fAGE').value)||null),
+    belt:document.getElementById('fBT').value,
+    payment:document.getElementById('fPAY').value,
+    group:document.getElementById('fGRP').value,
+  };
+  if(editingId){
+    const i=members.findIndex(x=>x.id===editingId);
+    members[i]={...members[i],...data};
+    showToast('✏️ '+fn+' '+ln+' opdateret');
+  } else {
+    members.push({id:nextId++,checkedIn:false,...data});
+    showToast('✅ '+fn+' '+ln+' oprettet');
+  }
+  save();closeModal('memberModal');renderAll();
+}
+
+/* ════════════════════════════════════════
+   ARKIVÉR & SLET
+════════════════════════════════════════ */
+function archiveMember(id){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  m.archived=true;save();renderAll();
+  showToast('📦 '+m.firstName+' '+m.lastName+' arkiveret — gendan via 📦 Arkiv i toppen');
+}
+function confirmDelete(id){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  if(!window.confirm('Slet '+m.firstName+' '+m.lastName+' permanent?\n\nDette kan ikke fortrydes.'))return;
+  members=members.filter(x=>x.id!==id);save();renderAll();
+  showToast('🗑 '+m.firstName+' '+m.lastName+' slettet permanent');
+}
+function openArchiveModal(){
+  const ark=members.filter(m=>m.archived);
+  const list=document.getElementById('archiveList');
+  if(!ark.length){
+    list.innerHTML='<p style="color:var(--xtl);padding:1rem 0;text-align:center">Ingen arkiverede medlemmer.</p>';
+  } else {
+    list.innerHTML=ark.map(m=>`
+      <div class="archive-row">
+        <div class="av ${avClass(m.group)}" style="background:var(--xtl)">${inits(m)}</div>
+        <div style="flex:1">
+          <div class="mn">${m.firstName} ${m.lastName}</div>
+          <div class="me">${m.group} · ${payBadge(m)}</div>
+        </div>
+        <button class="btn bs btn-sm" onclick="restoreMember(${m.id})">↩️ Gendan</button>
+        <button class="btn bdr btn-sm" onclick="confirmDelete(${m.id});closeModal('archiveModal')" style="margin-left:3px">🗑</button>
+      </div>`).join('');
+  }
+  openModal('archiveModal');
+}
+function restoreMember(id){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  m.archived=false;save();renderAll();openArchiveModal();showToast('✅ '+m.firstName+' '+m.lastName+' gendannet');
+}
+
+/* ════════════════════════════════════════
+   EMAIL MODAL
+════════════════════════════════════════ */
+function openEmailModal(){
+  buildEmailList(members.filter(m=>!m.archived));
+  document.getElementById('eSub').value='';
+  document.getElementById('eBody').value='';
+  document.getElementById('emailFallback').style.display='none';
+  openModal('emailModal');
+}
+function buildEmailList(subset){
+  const list=document.getElementById('emList');
+  list.innerHTML='';
+  members.filter(m=>!m.archived).forEach(m=>{
+    const checked=subset.includes(m)?'checked':'';
+    const div=document.createElement('div');
+    div.className='em-row';
+    div.innerHTML=`
+      <input type="checkbox" id="ec-${m.id}" ${checked} onchange="updateEmailCount()"/>
+      <div style="flex:1">
+        <div class="em-name">${m.firstName} ${m.lastName}</div>
+        <div class="em-sub">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>
+      </div>
+      <span class="em-grp">${m.group}</span>
+      ${payBadge(m)}`;
+    div.addEventListener('click',e=>{
+      if(e.target.tagName==='INPUT')return;
+      const cb=div.querySelector('input');cb.checked=!cb.checked;updateEmailCount();
+    });
+    list.appendChild(div);
+  });
+  updateEmailCount();
+}
+function emailQuick(seg){
+  const act=members.filter(m=>!m.archived);
+  let subset;
+  if(seg==='all')subset=act;
+  else if(seg==='none')subset=[];
+  else if(seg==='unpaid')subset=act.filter(m=>m.payment==='unpaid');
+  else if(seg==='partial')subset=act.filter(m=>m.payment==='partial');
+  else if(seg==='overdue')subset=act.filter(m=>m.payment==='overdue');
+  else if(seg==='absent')subset=act.filter(m=>!m.checkedIn);
+  else if(seg==='present')subset=act.filter(m=>m.checkedIn);
+  else subset=act.filter(m=>m.group===seg);
+  act.forEach(m=>{const cb=document.getElementById('ec-'+m.id);if(cb)cb.checked=subset.includes(m);});
+  updateEmailCount();
+}
+function updateEmailCount(){
+  const checked=members.filter(m=>{const cb=document.getElementById('ec-'+m.id);return cb&&cb.checked;});
+  const withEmail=checked.filter(m=>m.email);
+  document.getElementById('emCount').textContent=`${checked.length} valgt · ${withEmail.length} med e-mailadresse · ${checked.length-withEmail.length} mangler e-mail`;
+}
+function getCheckedRecipients(){ return members.filter(m=>{const cb=document.getElementById('ec-'+m.id);return cb&&cb.checked&&m.email;}); }
+function sendEmails(){
+  const rec=getCheckedRecipients();
+  if(!rec.length){alert('Ingen af de valgte har en e-mailadresse registreret.');return;}
+  const emails=rec.map(m=>m.email).join(',');
+  const subject=encodeURIComponent(document.getElementById('eSub').value||'Besked fra Esbjerg Shuri-Ryu Karate');
+  const body=encodeURIComponent(document.getElementById('eBody').value||'');
+  const a=document.createElement('a');
+  a.href=`mailto:?bcc=${encodeURIComponent(emails)}&subject=${subject}&body=${body}`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  showToast(`✉️ Åbner e-mailprogram med ${rec.length} modtagere`);
+  setTimeout(showEmailFallback,1500);
+}
+function showEmailFallback(){
+  const rec=getCheckedRecipients();if(!rec.length)return;
+  document.getElementById('emailCopyField').value=rec.map(m=>m.email).join('; ');
+  document.getElementById('emailFallback').style.display='block';
+}
+function copyEmails(){
+  const f=document.getElementById('emailCopyField');
+  navigator.clipboard.writeText(f.value).then(()=>showToast('📋 E-mailadresser kopieret!')).catch(()=>{
+    f.select();document.execCommand('copy');showToast('📋 Kopieret!');
+  });
+}
+
+/* ════════════════════════════════════════
+   EXCEL EKSPORT (SpreadsheetML — åbner i Excel)
+════════════════════════════════════════ */
+function exportToExcel(){
+  const payLabel=p=>p==='paid'?'Betalt':p==='partial'?'Delvis betalt':p==='overdue'?'Overskredet':'Ikke betalt';
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const cell=(v,type='String')=>`<Cell><Data ss:Type="${type}">${esc(v)}</Data></Cell>`;
+  const hcell=v=>`<Cell ss:StyleID="h"><Data ss:Type="String">${esc(v)}</Data></Cell>`;
+  const headers=['Fornavn','Efternavn','E-mail','Telefon','Køn','Alder','Fødselsdato','Gruppe','Bæltegrad','Betalingsstatus','Til stede i dag'];
+  let rows=`<Row>${headers.map(hcell).join('')}</Row>\n`;
+  members.filter(m=>!m.archived).forEach(m=>{
+    const a=getAge(m);
+    rows+=`<Row>
+      ${cell(m.firstName)}${cell(m.lastName)}${cell(m.email||'')}${cell(m.phone||'')}
+      ${cell(m.gender||'')}${a!=null?cell(a,'Number'):cell('')}${cell(m.birthdate||'')}
+      ${cell(m.group||'')}${cell(m.belt)}${cell(payLabel(m.payment))}${cell(m.checkedIn?'Ja':'Nej')}
+    </Row>\n`;
+  });
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Styles>
+<Style ss:ID="h">
+<Font ss:Bold="1" ss:Color="#FFFFFF"/>
+<Interior ss:Color="#2C4A4A" ss:Pattern="Solid"/>
+</Style>
+</Styles>
+<Worksheet ss:Name="Medlemmer">
+<Table>${rows}</Table>
+</Worksheet>
+</Workbook>`;
+  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='karate-medlemmer-'+today()+'.xls';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📊 Eksporteret — åbn karate-medlemmer-'+today()+'.xls i Excel');
+}
+
+/* ════════════════════════════════════════
+   INDSTILLINGER
+════════════════════════════════════════ */
+function saveSettings(){
+  config.adminEmail=document.getElementById('setAdminEmail').value.trim();
+  config.clubEmail=document.getElementById('setClubEmail').value.trim();
+  config.scriptUrl=document.getElementById('setScriptUrl').value.trim();
+  save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
+  if(config.scriptUrl) loadFromCloud();
+}
+
+/* ════════════════════════════════════════
+   MODALER
+════════════════════════════════════════ */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
