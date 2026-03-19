@@ -275,6 +275,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <input type="date" id="trainingDatePicker" onchange="onDateChange()" />
     <div class="att-pill" id="attPill">0 til stede</div>
     <div style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn bg btn-sm" onclick="refreshFromCloud()">🔃 Opdater</button>
       <button class="btn bg btn-sm" onclick="resetAllCheckIns()">🔄 Nulstil</button>
       <button class="btn bs btn-sm" onclick="markAllPresent()">☑️ Marker alle</button>
       <button class="btn bp btn-sm" onclick="saveSession()">💾 Gem session</button>
@@ -838,6 +839,26 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 function renderAll(){ renderT(); renderM(); updateStats(); }
+
+function refreshFromCloud(){
+  if(!config.scriptUrl)return;
+  loadFromCloud(()=>{
+    loadCheckInsForDate(currentTrainingDate);
+    renderAll();
+    showToast('🔃 Fremmøde opdateret fra cloud');
+  });
+}
+
+// Auto-refresh hvert 30. sekund på træningssiden
+setInterval(()=>{
+  const tp=document.getElementById('page-training');
+  if(tp&&tp.classList.contains('active')&&config.scriptUrl){
+    loadFromCloud(()=>{
+      loadCheckInsForDate(currentTrainingDate);
+      renderAll();
+    });
+  }
+},30000);
 
 /* ════════════════════════════════════════
    TABS
