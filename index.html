@@ -1052,7 +1052,13 @@ function openHD(ds,dateObj,saved){
 ════════════════════════════════════════ */
 function toggleCI(id,val){
   const m=members.find(x=>x.id===id);if(!m)return;
-  m.checkedIn=val;save();
+  m.checkedIn=val;
+  // Opdater sessions med det samme, så andre enheder ser korrekt fremmøde
+  const ids=members.filter(x=>x.checkedIn).map(x=>x.id);
+  const idx=sessions.findIndex(s=>s.date===currentTrainingDate);
+  const e={date:currentTrainingDate,name:'Træning',presentIds:ids};
+  if(idx>=0)sessions[idx]=e;else sessions.push(e);
+  save();
   showToast(val?`✅ ${m.firstName} ${m.lastName} mødt op`:`❌ ${m.firstName} ${m.lastName} fjernet`);
   updateStats();
 }
