@@ -274,10 +274,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .tcard{overflow-x:auto;-webkit-overflow-scrolling:touch}
   td{padding:.6rem .75rem;font-size:.82rem}
   thead th{padding:.7rem .75rem;font-size:.7rem}
-  /* Dato-bar: wrap med 2-kolonne knapper */
-  .date-bar{flex-wrap:wrap;gap:.5rem}
-  .date-bar label{width:100%;margin-bottom:-.2rem}
-  .date-bar input[type=date]{flex:1;min-width:140px}
+  /* Dato-bar: wrap med 2-kolonne knapper, ingen overflow */
+  .date-bar{flex-wrap:wrap;gap:.5rem;box-sizing:border-box;width:100%;overflow:hidden}
+  .date-bar *{box-sizing:border-box;min-width:0}
+  .date-bar label{width:100%;margin-bottom:-.2rem;white-space:normal}
+  .date-bar input[type=date]{flex:1;min-width:120px;max-width:100%}
   .date-bar .att-pill{align-self:center}
   .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
   .sh{flex-direction:column;align-items:flex-start;gap:.6rem}
@@ -315,13 +316,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .sv{font-size:1.25rem}
   .sl{font-size:.66rem}
 
-  /* Dato-bar: fuld stacking */
-  .date-bar{flex-direction:column;align-items:stretch;gap:.45rem}
-  .date-bar label{font-weight:600}
-  .date-bar input[type=date]{width:100%;padding:.55rem .75rem;font-size:.95rem;box-sizing:border-box}
+  /* Dato-bar: fuld stacking, ingen overflow */
+  .date-bar{flex-direction:column;align-items:stretch;gap:.45rem;box-sizing:border-box;width:100%;overflow:hidden;padding:.75rem .9rem}
+  .date-bar *{box-sizing:border-box;min-width:0}
+  .date-bar label{font-weight:600;white-space:normal}
+  .date-bar input[type=date]{width:100%;padding:.55rem .75rem;font-size:.95rem}
   .date-bar .att-pill{align-self:flex-start}
   .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
-  .date-bar .date-btns .btn{width:100%;justify-content:center;font-size:.78rem;padding:.48rem .3rem}
+  .date-bar .date-btns .btn{width:100%;justify-content:center;font-size:.78rem;padding:.48rem .3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* Tabeller: horisontal scroll */
   .tcard{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
