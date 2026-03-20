@@ -2,7 +2,10 @@
 <html lang="da">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -265,80 +268,123 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .hdate{display:none}
   .page{padding:1.2rem .85rem 5rem}
   .stats-grid{grid-template-columns:1fr 1fr}
-  .nav-tab{padding:.55rem .75rem;font-size:.76rem;gap:4px}
+  .nav-tab{padding:.55rem .7rem;font-size:.75rem;gap:3px}
   .fg{grid-template-columns:1fr}.fgrp.full{grid-column:1}
   .dm-grid{grid-template-columns:1fr}
   .tcard{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  td{padding:.6rem .8rem;font-size:.82rem}
-  thead th{padding:.7rem .8rem;font-size:.7rem}
-  .date-bar{flex-wrap:wrap;gap:.6rem}
-  .date-bar>div{margin-left:0!important;width:100%}
+  td{padding:.6rem .75rem;font-size:.82rem}
+  thead th{padding:.7rem .75rem;font-size:.7rem}
+  /* Dato-bar: wrap med 2-kolonne knapper */
+  .date-bar{flex-wrap:wrap;gap:.5rem}
+  .date-bar label{width:100%;margin-bottom:-.2rem}
+  .date-bar input[type=date]{flex:1;min-width:140px}
+  .date-bar .att-pill{align-self:center}
+  .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
   .sh{flex-direction:column;align-items:flex-start;gap:.6rem}
   .controls{width:100%;flex-wrap:wrap}
   .sbx{width:100%!important}
-  .btn-sm{padding:.42rem .8rem}
+  .btn-sm{padding:.44rem .85rem}
   .modal{padding:1.4rem 1.2rem}
-  td:nth-child(4),th:nth-child(4){display:none}
+  .mbd{max-width:96vw;width:96vw}
+  /* Skjul mindst vigtige kolonner på tværs */
+  #page-training th:nth-child(4),#page-training td:nth-child(4){display:none}
+  #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
 }
 
 /* ── MOBIL (≤480px) ── */
 @media(max-width:480px){
-  .htitle{font-size:.9rem}
-  .hlogo{width:34px;height:34px;font-size:1.1rem}
-  .hdr-actions{gap:.3rem}
+  /* Header */
+  .htitle{font-size:.85rem}
+  .hlogo{width:32px;height:32px;font-size:1rem}
+  .hdr-actions{gap:.25rem}
   .hdr-actions .hdate,.hdr-actions .hsub{display:none}
-  .stats-grid{grid-template-columns:1fr 1fr;gap:.6rem}
-  .stat-card{padding:.75rem .9rem}
-  .si{width:36px;height:36px;font-size:1rem}
-  .sv{font-size:1.4rem}
-  .page{padding:1rem .7rem 5rem}
-  .nav-tabs{padding:0 .5rem;gap:2px}
-  .nav-tab{padding:.5rem .6rem;font-size:.72rem}
+  #syncStatus{display:none!important}
 
-  /* Tabeller: scroll vandret */
+  /* Tabs: scrollbar-fri horisontal scroll */
+  .nav-tabs{padding:0 .4rem;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .nav-tab{padding:.48rem .65rem;font-size:.7rem;white-space:nowrap;flex-shrink:0}
+
+  /* Sider */
+  .page{padding:.9rem .6rem 5rem}
+
+  /* Stat-tiles */
+  .stats-grid{grid-template-columns:1fr 1fr;gap:.45rem}
+  .stat-card{padding:.6rem .75rem;gap:.55rem}
+  .si{width:32px;height:32px;font-size:.88rem;flex-shrink:0}
+  .sv{font-size:1.25rem}
+  .sl{font-size:.66rem}
+
+  /* Dato-bar: fuld stacking */
+  .date-bar{flex-direction:column;align-items:stretch;gap:.45rem}
+  .date-bar label{font-weight:600}
+  .date-bar input[type=date]{width:100%;padding:.55rem .75rem;font-size:.95rem;box-sizing:border-box}
+  .date-bar .att-pill{align-self:flex-start}
+  .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
+  .date-bar .date-btns .btn{width:100%;justify-content:center;font-size:.78rem;padding:.48rem .3rem}
+
+  /* Tabeller: horisontal scroll */
   .tcard{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-  table{min-width:420px}
+  table{min-width:300px}
   td,th{white-space:nowrap}
-  td{padding:.55rem .7rem;font-size:.8rem}
-  thead th{padding:.6rem .7rem;font-size:.67rem}
+  td{padding:.5rem .55rem;font-size:.78rem}
+  thead th{padding:.55rem .55rem;font-size:.64rem}
 
-  /* Træning: skjul gruppe + bælte kolonner */
-  #page-training td:nth-child(3),#page-training th:nth-child(3){display:none}
-  #page-training td:nth-child(5),#page-training th:nth-child(5){display:none}
+  /* Træning: vis kun Toggle, Navn, Kontingent */
+  #page-training th:nth-child(3),#page-training td:nth-child(3){display:none}
+  #page-training th:nth-child(4),#page-training td:nth-child(4){display:none}
+  #page-training th:nth-child(5),#page-training td:nth-child(5){display:none}
 
-  /* Medlemmer: skjul telefon + gruppe */
-  #page-members td:nth-child(2),#page-members th:nth-child(2){display:none}
-  #page-members td:nth-child(5),#page-members th:nth-child(5){display:none}
+  /* Alle Medlemmer: vis kun Navn, Bælte, Kontingent, Handlinger */
+  #page-members th:nth-child(2),#page-members td:nth-child(2){display:none}
+  #page-members th:nth-child(3),#page-members td:nth-child(3){display:none}
+  #page-members th:nth-child(5),#page-members td:nth-child(5){display:none}
+  #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
 
-  /* Dashboard tabel: skjul bælte */
-  #page-dashboard td:nth-child(4),#page-dashboard th:nth-child(4){display:none}
+  /* Dashboard: vis Rang, Navn, Antal, Fremmøde% */
+  #page-dashboard th:nth-child(3),#page-dashboard td:nth-child(3){display:none}
+  #page-dashboard th:nth-child(4),#page-dashboard td:nth-child(4){display:none}
+  #page-dashboard th:nth-child(5),#page-dashboard td:nth-child(5){display:none}
 
   /* Kontroller stacker */
-  .controls{flex-direction:column;align-items:stretch}
+  .sh{flex-direction:column;gap:.5rem}
+  .controls{flex-direction:column;align-items:stretch;width:100%}
   .controls .fs,.controls .sbx,.controls .btn{width:100%}
   .controls .btn{text-align:center;justify-content:center}
+  .sbx{width:100%!important}
 
-  /* Dato-bar */
-  .date-bar{flex-direction:column;align-items:stretch;gap:.5rem}
-  .date-bar input[type=date]{width:100%}
-  .att-pill{width:fit-content}
-
-  /* Modaler */
-  .modal{padding:1.2rem 1rem;border-radius:12px}
-  .fg{gap:.65rem}
+  /* Modaler: bred + god padding */
+  .mbd{max-width:100vw!important;width:100vw!important;border-radius:16px 16px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;top:auto!important;transform:translateY(0)!important;max-height:92vh;overflow-y:auto}
+  .modal{padding:1.1rem .95rem 1.6rem}
+  .fg{gap:.6rem}
   .ma{flex-direction:column-reverse}
   .ma .btn{width:100%;justify-content:center}
 
-  /* History grid */
+  /* Betalingsinput */
+  .amt-wrap{gap:.2rem}
+  .amt-input{width:68px;padding:.32rem .4rem;font-size:.82rem}
+  .amt-badge{padding:.2rem .45rem;font-size:.7rem}
+
+  /* History */
   .hgrid{grid-template-columns:1fr}
 
   /* Footer */
-  footer{font-size:.68rem;padding:1rem .7rem}
+  footer{font-size:.65rem;padding:.8rem .6rem}
 
-  /* Toggle større touch-target */
-  .toggle{width:46px;height:24px}
-  .slider::before{width:18px;height:18px}
-  input:checked+.slider::before{transform:translateX(22px)}
+  /* Toggle: større touch-target */
+  .toggle{width:46px;height:25px}
+  .slider::before{width:19px;height:19px}
+  input:checked+.slider::before{transform:translateX(21px)}
+}
+
+/* ── MEGET LILLE (≤360px) ── */
+@media(max-width:360px){
+  .nav-tab{padding:.42rem .5rem;font-size:.64rem}
+  .htitle{font-size:.78rem}
+  .stats-grid{gap:.35rem}
+  .stat-card{padding:.5rem .6rem}
+  .sv{font-size:1.1rem}
+  .sl{font-size:.62rem}
 }
 
 /* DASHBOARD CHART */
@@ -414,7 +460,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <label>📅 Træningsdato</label>
     <input type="date" id="trainingDatePicker" onchange="onDateChange()" />
     <div class="att-pill" id="attPill">0 til stede</div>
-    <div style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
+    <div class="date-btns" style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn bg btn-sm" onclick="refreshFromCloud()">🔃 Opdater</button>
       <button class="btn bg btn-sm" onclick="resetAllCheckIns()">🔄 Nulstil</button>
       <button class="btn bs btn-sm" onclick="markAllPresent()">☑️ Marker alle</button>
@@ -1204,13 +1250,15 @@ function refreshFromCloud(){
   });
 }
 
-// Auto-refresh hvert 30. sekund på træningssiden
+// Auto-refresh hvert 30. sekund på træningssiden (springer over hvis allerede i gang)
+let _autoRefreshing=false;
 setInterval(()=>{
   const tp=document.getElementById('page-training');
-  if(tp&&tp.classList.contains('active')&&config.scriptUrl){
-    loadFromCloud(()=>{
-      loadCheckInsForDate(currentTrainingDate);
-      renderAll();
+  if(tp&&tp.classList.contains('active')&&config.scriptUrl&&!_autoRefreshing){
+    _autoRefreshing=true;
+    loadFromCloud(ok=>{
+      _autoRefreshing=false;
+      if(ok){ loadCheckInsForDate(currentTrainingDate); renderAll(); }
     });
   }
 },30000);
@@ -1280,6 +1328,9 @@ function renderT(){
   const fc=document.getElementById('tfc').value;
   const fp=document.getElementById('tfp').value;
   const fg=document.getElementById('tfg').value;
+  // Beregn streak for alle aktive én gang (undgår gentagne opkald per række)
+  const _streakCache={};
+  members.filter(m=>!m.archived&&m.status!=='passiv').forEach(m=>{ _streakCache[m.id]=calcStreak(m.id); });
   body.innerHTML='';let vis=0;
   members.forEach(m=>{
     if(m.archived)return;
@@ -1287,11 +1338,11 @@ function renderT(){
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
     if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
     if(fc!=='all'&&((fc==='in')!==m.checkedIn))return;
-    if(fp!=='all'&&m.payment!==fp)return;
+    if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return;
     if(fg!=='all'&&m.group!==fg)return;
     vis++;
     const bc=BC[m.belt]||'#ccc';
-    const streak=calcStreak(m.id);
+    const streak=_streakCache[m.id]||0;
     const streakBadge=streak>=2?`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`:'';
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
@@ -1309,7 +1360,7 @@ function renderT(){
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
-      <td>${payBadge(m)}</td>`;
+      <td data-col="payment">${payBadge(m)}</td>`;
     body.appendChild(tr);
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
@@ -1333,7 +1384,7 @@ function renderM(){
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
     if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
     if(fg!=='all'&&m.group!==fg)return;
-    if(fp!=='all'&&m.payment!==fp)return;
+    if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return;
     if(fr!=='all'&&(m.role||'Medlem')!==fr)return;
     if(fst!=='all'&&(m.status||'aktiv')!==fst)return;
     vis++;
@@ -1354,7 +1405,7 @@ function renderM(){
       <td style="font-size:.8rem;color:var(--xtm)">
         ${(()=>{const dur=durationStr(m);if(dur==='—')return '<span style="color:var(--xtl)">—</span>';const raw=String(m.startDate).slice(0,10);const d=new Date(raw+'T12:00:00');const dateStr=isNaN(d.getTime())?'':d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});return `<div style="font-weight:600">${dur}</div>${dateStr?`<div style="font-size:.7rem;color:var(--xtl)">${dateStr}</div>`:''}`;})()}
       </td>
-      <td>
+      <td data-col="payment">
         ${payBadge(m)}
         <div class="amt-wrap">
           <input type="number" class="amt-input" value="${Number(m.betaltBeløb)||0}"
@@ -1436,30 +1487,45 @@ function updatePaymentSummary(){
 }
 
 const _amtTimers={};
+const _amtPending={};
+// Gem ufærdige beløbsændringer hvis siden lukkes midt i debounce
+window.addEventListener('beforeunload',()=>{
+  const ids=Object.keys(_amtPending);
+  if(!ids.length)return;
+  ids.forEach(id=>{
+    clearTimeout(_amtTimers[id]);
+    const m=members.find(x=>x.id===Number(id));
+    if(!m)return;
+    m.betaltBeløb=Math.max(0,Number(_amtPending[id])||0);
+    m.payment=calcPaymentStatus(m);
+  });
+  save();
+});
 function onAmountChange(id,val){
   clearTimeout(_amtTimers[id]);
+  _amtPending[id]=val; // track til beforeunload
   _amtTimers[id]=setTimeout(()=>{
+    delete _amtPending[id];
     const m=members.find(x=>x.id===id);
     if(!m)return;
-    m.betaltBeløb=Number(val)||0;
+    m.betaltBeløb=Math.max(0,Number(val)||0);
     m.payment=calcPaymentStatus(m);
     save();
-    // Opdater badge i Alle Medlemmer (kolonneindex 5 = kontingent)
+    // Opdater badge i Alle Medlemmer
     const rowM=document.querySelector(`#tbody-m tr[data-id="${id}"]`);
     if(rowM){
-      const tds=rowM.querySelectorAll('td');
-      const td=tds[5];
+      const td=rowM.querySelector('td[data-col="payment"]');
       if(td){
         const amtWrap=td.querySelector('.amt-wrap');
         td.innerHTML=payBadge(m);
         if(amtWrap) td.appendChild(amtWrap);
       }
     }
-    // Opdater badge i Dagens træning (kolonneindex 5 = payBadge)
+    // Opdater badge i Dagens træning
     const rowT=document.querySelector(`#tbody-t tr[data-id="${id}"]`);
     if(rowT){
-      const tds=rowT.querySelectorAll('td');
-      if(tds[5]) tds[5].innerHTML=payBadge(m);
+      const td=rowT.querySelector('td[data-col="payment"]');
+      if(td) td.innerHTML=payBadge(m);
     }
     updateMemberStats();
     updatePaymentSummary();
@@ -1766,10 +1832,12 @@ function renderDashboard(){
       if(diff!==0) return diff;
       return BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt); // tiebreak: bælte
     }
-    // rang (default): flest træninger øverst, bælte som tiebreak
-    const diff=(counts[b.id]-counts[a.id])*d;
-    if(diff!==0) return diff;
-    return BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt);
+    // rang (default): bæltegrad øverst, anciennitet som tiebreak
+    const beltDiff=(BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt))*d;
+    if(beltDiff!==0) return beltDiff;
+    const mA=memberDurationMonths(a)??-1;
+    const mB=memberDurationMonths(b)??-1;
+    return (mB-mA)*d;
   });
   // Opdater header-pile
   ['rang','baelte','anc','antal','pct'].forEach(c=>{
@@ -1782,6 +1850,9 @@ function renderDashboard(){
   const topC=topM?counts[topM.id]:0;
   document.getElementById('db-topname').textContent=topM?topM.firstName+' '+topM.lastName:'—';
   document.getElementById('db-topcount').textContent=topC;
+  // Beregn streak for alle aktive én gang
+  const _dbStreakCache={};
+  rows.forEach(m=>{ _dbStreakCache[m.id]=calcStreak(m.id); });
   let vis=0;
   rows.forEach((m,i)=>{
     const c=counts[m.id]||0;
@@ -1793,7 +1864,7 @@ function renderDashboard(){
     else if(c>=25) milestone='<span class="db-milestone db-ms-gold">🥇 25+</span>';
     else if(c>=10) milestone='<span class="db-milestone db-ms-silver">🏅 10+</span>';
     else if(c>=5) milestone='<span class="db-milestone db-ms-bronze">🎖️ 5+</span>';
-    const streak=calcStreak(m.id);
+    const streak=_dbStreakCache[m.id]||0;
     let streakBadge='';
     if(streak>=2) streakBadge=`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`;
     const tr=document.createElement('tr');
@@ -2078,9 +2149,9 @@ function emailQuick(seg){
   let subset;
   if(seg==='all')subset=act;
   else if(seg==='none')subset=[];
-  else if(seg==='unpaid')subset=act.filter(m=>m.payment==='unpaid');
-  else if(seg==='partial')subset=act.filter(m=>m.payment==='partial');
-  else if(seg==='overdue')subset=act.filter(m=>m.payment==='overdue');
+  else if(seg==='unpaid')subset=act.filter(m=>effectivePaymentStatus(m)==='unpaid');
+  else if(seg==='partial')subset=act.filter(m=>effectivePaymentStatus(m)==='partial');
+  else if(seg==='overdue')subset=act.filter(m=>effectivePaymentStatus(m)==='overdue');
   else if(seg==='absent')subset=act.filter(m=>!m.checkedIn);
   else if(seg==='present')subset=act.filter(m=>m.checkedIn);
   else subset=act.filter(m=>m.group===seg);
@@ -2121,41 +2192,75 @@ function copyEmails(){
    EXCEL EKSPORT (SpreadsheetML — åbner i Excel)
 ════════════════════════════════════════ */
 function exportToExcel(){
-  const payLabel=p=>p==='paid'?'Betalt':p==='partial'?'Delvis betalt':p==='overdue'?'Overskredet':'Ikke betalt';
   const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const cell=(v,type='String')=>`<Cell><Data ss:Type="${type}">${esc(v)}</Data></Cell>`;
+  const pLabel=p=>p==='paid'?'Betalt ✓':p==='partial'?'Delvis betalt':p==='overdue'?'Overskredet':'Ikke betalt';
+  const cell=(v,type='String',sid='')=>`<Cell${sid?` ss:StyleID="${sid}"`:''}><Data ss:Type="${type}">${esc(v)}</Data></Cell>`;
   const hcell=v=>`<Cell ss:StyleID="h"><Data ss:Type="String">${esc(v)}</Data></Cell>`;
-  const headers=['Fornavn','Efternavn','E-mail','Telefon','Køn','Alder','Fødselsdato','Rolle','Gruppe','Bæltegrad','Betalingsstatus','Til stede i dag'];
-  let rows=`<Row>${headers.map(hcell).join('')}</Row>\n`;
-  members.filter(m=>!m.archived).forEach(m=>{
-    const a=getAge(m);
-    rows+=`<Row>
-      ${cell(m.firstName)}${cell(m.lastName)}${cell(m.email||'')}${cell(m.phone||'')}
-      ${cell(m.gender||'')}${a!=null?cell(a,'Number'):cell('')}${cell(m.birthdate||'')}
-      ${cell(m.role||'Medlem')}${cell(m.group||'')}${cell(m.belt)}${cell(payLabel(m.payment))}${cell(m.checkedIn?'Ja':'Nej')}
-    </Row>\n`;
+
+  const headers=['Fornavn','Efternavn','E-mail','Telefon','Køn','Alder','Fødselsdato','Startdato','Anciennitet','Rolle','Gruppe','Bæltegrad','Forventet (kr)','Indbetalt (kr)','Betalingsstatus','Fremmøde %','Medlemsstatus'];
+  const colWidths=[90,110,180,95,45,45,90,90,105,80,105,130,100,90,120,80,80];
+
+  const totalSess=sessions.length;
+
+  const buildSheet=(list)=>{
+    let out=`<Row ss:AutoFitHeight="1">${headers.map(hcell).join('')}</Row>\n`;
+    list.forEach((m,i)=>{
+      const even=i%2===1;
+      const base=even?'ev':'';
+      const ps=effectivePaymentStatus(m);
+      const pSid=ps==='paid'?'paid':ps==='partial'?'partial':ps==='overdue'?'overdue':'unpaid';
+      const age=getAge(m);
+      const exp=getExpectedAmount(m);
+      const paid=Number(m.betaltBeløb)||0;
+      const cnt=sessions.filter(s=>(s.presentIds||[]).includes(m.id)).length;
+      const pct=totalSess>0?Math.round(cnt/totalSess*100):0;
+      out+=`<Row>
+        ${cell(m.firstName,'String',base)}${cell(m.lastName,'String',base)}
+        ${cell(m.email||'','String',base)}${cell(m.phone||'','String',base)}
+        ${cell(m.gender||'','String',base)}${age!=null?cell(age,'Number',base):cell('','String',base)}
+        ${cell(m.birthdate||'','String',base)}${cell(m.startDate||'','String',base)}
+        ${cell(durationStr(m),'String',base)}${cell(m.role||'Medlem','String',base)}
+        ${cell(m.group||'','String',base)}${cell(m.belt,'String',base)}
+        ${cell(exp,'Number',base)}${cell(paid,'Number',base)}
+        ${cell(pLabel(ps),'String',pSid)}
+        ${cell(pct,'Number',base)}${cell(m.status==='passiv'?'Passiv':'Aktiv','String',base)}
+      </Row>\n`;
+    });
+    return out;
+  };
+
+  const cols=colWidths.map(w=>`<Column ss:Width="${w}"/>`).join('');
+  const freeze=`<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions>`;
+
+  const active=members.filter(m=>!m.archived);
+  const groups=['Børnehold','Normal hold','Avanceret'];
+
+  let sheets=`<Worksheet ss:Name="Alle"><Table>${cols}${buildSheet(active)}</Table>${freeze}</Worksheet>\n`;
+  groups.forEach(g=>{
+    const sub=active.filter(m=>m.group===g);
+    if(sub.length) sheets+=`<Worksheet ss:Name="${g}"><Table>${cols}${buildSheet(sub)}</Table>${freeze}</Worksheet>\n`;
   });
+
   const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">
 <Styles>
-<Style ss:ID="h">
-<Font ss:Bold="1" ss:Color="#FFFFFF"/>
-<Interior ss:Color="#2C4A4A" ss:Pattern="Solid"/>
-</Style>
+  <Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#2C4A4A" ss:Pattern="Solid"/><Alignment ss:Vertical="Bottom"/></Style>
+  <Style ss:ID="ev"><Interior ss:Color="#F2F6F5" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="paid"><Interior ss:Color="#D4EDDA" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#155724"/></Style>
+  <Style ss:ID="partial"><Interior ss:Color="#FFF3CD" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#856404"/></Style>
+  <Style ss:ID="unpaid"><Interior ss:Color="#F8D7DA" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#721C24"/></Style>
+  <Style ss:ID="overdue"><Interior ss:Color="#F1B0B7" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#491217"/></Style>
 </Styles>
-<Worksheet ss:Name="Medlemmer">
-<Table>${rows}</Table>
-</Worksheet>
-</Workbook>`;
-  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+${sheets}</Workbook>`;
+
+  const blob=new Blob(['\uFEFF'+xml],{type:'application/vnd.ms-excel;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='karate-medlemmer-'+today()+'.xls';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('📊 Eksporteret — åbn karate-medlemmer-'+today()+'.xls i Excel');
+  showToast('📊 Eksporteret — karate-medlemmer-'+today()+'.xls');
 }
 
 /* ════════════════════════════════════════
