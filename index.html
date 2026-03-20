@@ -904,11 +904,6 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <div class="age-hint">Lad feltet stå tomt for at bruge appen offline uden deling</div>
       </div>
       <div class="fgrp full">
-        <label>🔐 Adgangskode ved opstart</label>
-        <input type="text" id="setAppPin" placeholder="Efterlad tom = ingen låseskærm" autocomplete="new-password"/>
-        <div class="age-hint">Skriv en ny kode for at ændre den. Alle med adgang til denne enhed skal indtaste koden ved næste åbning.</div>
-      </div>
-      <div class="fgrp full">
         <label>💰 Kontingentsatser (pr. halvår)</label>
         <div style="display:grid;grid-template-columns:1fr auto auto;gap:.5rem .75rem;align-items:center;margin-top:.4rem">
           <span style="font-size:.83rem;color:var(--xtm)">🧒 6–10 år</span>
@@ -1249,20 +1244,18 @@ function loadFromCloud(onDone){
    INIT
 ════════════════════════════════════════ */
 /* ── LOCK SCREEN LOGIC ── */
+const APP_PIN='260187';
 function lockSubmit(){
   const input=document.getElementById('lockInput');
   const errEl=document.getElementById('lockErr');
-  const val=input.value;
-  // If no PIN is configured, unlock immediately
-  if(!config.appPin){ unlockApp(); return; }
-  if(val===config.appPin){
+  if(input.value===APP_PIN){
     unlockApp();
   } else {
     errEl.textContent='Forkert adgangskode – prøv igen';
     input.value='';
     const box=document.querySelector('.lock-box');
     box.classList.remove('lock-shake');
-    void box.offsetWidth; // reflow to restart animation
+    void box.offsetWidth;
     box.classList.add('lock-shake');
     input.focus();
   }
@@ -1275,16 +1268,11 @@ function unlockApp(){
   if(!_appInited){ _appInited=true; initApp(); }
 }
 function checkLock(){
-  // load() already called before this — config is available
-  if(!config.appPin){
-    document.getElementById('lockScreen').classList.add('hidden');
-    return false;
-  }
   if(sessionStorage.getItem('kk2_unlocked')==='1'){
     document.getElementById('lockScreen').classList.add('hidden');
     return false;
   }
-  setTimeout(()=>document.getElementById('lockInput').focus(), 50);
+  setTimeout(()=>document.getElementById('lockInput').focus(),50);
   return true;
 }
 
@@ -1334,8 +1322,6 @@ function initApp(){
   document.getElementById('rAge16plus').value=r.age16plus??850;
 
   document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
-  document.getElementById('setAppPin').value=''; // never prefill PIN field
-
   if(config.scriptUrl){
     loadFromCloud(()=>{
       loadCheckInsForDate(currentTrainingDate);
@@ -2413,16 +2399,6 @@ function saveSettings(){
     age10_15: Number(document.getElementById('rAge10_15').value)||650,
     age16plus:Number(document.getElementById('rAge16plus').value)||850
   };
-  const newPin=document.getElementById('setAppPin').value.trim();
-  if(newPin){
-    config.appPin=newPin;
-    // Invalidate current session so the new PIN takes effect next time
-    sessionStorage.removeItem('kk2_unlocked');
-    showToast('🔐 Adgangskode opdateret — kræves ved næste åbning');
-  } else if(document.getElementById('setAppPin').value===''){
-    // Field was left empty — keep existing PIN unchanged
-  }
-  document.getElementById('setAppPin').value=''; // clear field after saving
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
   renderM();
   if(config.scriptUrl) loadFromCloud();
