@@ -204,7 +204,12 @@ textarea.fta{resize:vertical;min-height:85px}
 .mh{font-size:.82rem;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:1px;padding:.4rem 0 .6rem;margin-top:.8rem;border-bottom:2px solid #dde8e8;margin-bottom:.8rem;grid-column:1/-1}
 .dm-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.8rem}
 .dm-row{display:flex;align-items:center;gap:7px;padding:.4rem .6rem;border-radius:8px;background:var(--mc)}
-.dm-row.present{background:var(--gb)}.dm-name{font-size:.79rem;font-weight:600;flex:1}
+.dm-row.present{background:var(--gb)}
+.dm-row.unpaid{background:#fde8e8}
+.dm-section{grid-column:1/-1;display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;border-radius:8px;font-weight:700;font-size:.82rem;margin-top:.3rem}
+.dm-section.paid{background:#e8f8ee;color:#1a7a3f}
+.dm-section.unpaid{background:#fde8e8;color:#c0392b}
+.dm-name{font-size:.79rem;font-weight:600;flex:1}
 
 /* ROLE BADGE */
 .role-chip{display:inline-block;padding:.13rem .5rem;border-radius:5px;font-size:.68rem;font-weight:700;letter-spacing:.2px;margin-top:3px}
@@ -288,15 +293,18 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .btn-sm{padding:.44rem .85rem}
   .modal{padding:1.4rem 1.2rem}
   .mbd{max-width:96vw;width:96vw}
-  /* Skjul mindst vigtige kolonner på tværs */
+  /* Skjul mindst vigtige kolonner på tablet */
   #page-training th:nth-child(4),#page-training td:nth-child(4){display:none}
   #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
+  /* Horisontal tabel-scroll */
+  .tcard{overflow:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:480px}
 }
 
 /* ── MOBIL (≤480px) ── */
 @media(max-width:480px){
-  /* Forhindre horisontal overflow globalt på mobil */
-  html,body{overflow-x:hidden;max-width:100vw}
+  /* Forhindre horisontal overflow — kun html, ikke body (body-scroll skal fungere i iOS) */
+  html{overflow-x:hidden}
 
   /* Header */
   .htitle{font-size:.85rem}
@@ -338,20 +346,17 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .date-bar .date-btns .btn{width:100%;justify-content:center;font-size:.78rem;padding:.48rem .3rem}
 
   /* Tabeller: horisontal scroll */
-  .tcard{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-  table{min-width:300px}
+  .tcard{overflow:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+  table{min-width:320px}
   td,th{white-space:nowrap}
   td{padding:.5rem .55rem;font-size:.78rem}
   thead th{padding:.55rem .55rem;font-size:.64rem}
 
-  /* Træning: vis kun Toggle, Navn, Kontingent */
+  /* Træning: skjul kun Gruppe(3) — vis Toggle, Navn, Køn/Alder, Bælte, Kontingent */
   #page-training th:nth-child(3),#page-training td:nth-child(3){display:none}
-  #page-training th:nth-child(4),#page-training td:nth-child(4){display:none}
-  #page-training th:nth-child(5),#page-training td:nth-child(5){display:none}
 
-  /* Alle Medlemmer: skjul Gruppe(2), Køn/Alder(3), Telefon(6) — vis Navn, Bælte, Score, Anciennitet, Kontingent, Handlinger */
+  /* Alle Medlemmer: skjul Gruppe(2) og Telefon(6) — Køn/Alder vises, tabel scroller horisontalt */
   #page-members th:nth-child(2),#page-members td:nth-child(2){display:none}
-  #page-members th:nth-child(3),#page-members td:nth-child(3){display:none}
   #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
 
   /* Dashboard: vis Rang, Navn, Antal, Fremmøde% */
@@ -528,7 +533,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="stat-card"><div class="si si-b">✅</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
     <div class="stat-card"><div class="si si-c">❌</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
     <div class="stat-card"><div class="si si-b">💰</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
-    <div class="stat-card"><div class="si si-d">⚠️</div><div><div class="sv" id="s5">0</div><div class="sl">Ikke betalt</div></div></div>
+    <div class="stat-card"><div class="si si-d">⚠️</div><div><div class="sv" id="s5">0</div><div class="sl">Mangler betaling</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
   </div>
 
   <!-- Dato-bar -->
@@ -1455,8 +1460,13 @@ function updateStats(){
   document.getElementById('s1').textContent=act.length;
   document.getElementById('s2').textContent=act.filter(m=>m.checkedIn).length;
   document.getElementById('s3').textContent=act.filter(m=>!m.checkedIn).length;
-  document.getElementById('s4').textContent=act.filter(m=>effectivePaymentStatus(m)==='paid').length;
-  document.getElementById('s5').textContent=act.filter(m=>effectivePaymentStatus(m)!=='paid').length;
+  const _paid=act.filter(m=>effectivePaymentStatus(m)==='paid').length;
+  const _partial=act.filter(m=>effectivePaymentStatus(m)==='partial').length;
+  const _unpaid=act.filter(m=>['unpaid','overdue'].includes(effectivePaymentStatus(m))).length;
+  document.getElementById('s4').textContent=_paid;
+  document.getElementById('s5').textContent=_partial+_unpaid;
+  const sub=document.getElementById('s5sub');
+  if(sub) sub.textContent=_partial>0?`${_partial} delvist · ${_unpaid} ubetalt`:'';
   // Attendance pill (kun aktive tæller)
   const ci=act.filter(m=>m.checkedIn).length;
   const pill=document.getElementById('attPill');
@@ -2082,13 +2092,13 @@ function openHD(ds,dateObj,saved){
   const pm=members.filter(m=>ps.has(m.id));
   const am=members.filter(m=>!m.archived&&!ps.has(m.id));
   window._hdData={pm,am};
-  window._hdSplit=false;
-  renderHDContent(c,pm,am,false);
+  window._hdSplit=true;
+  renderHDContent(c,pm,am,true);
   openModal('hdModal');
 }
 
 function renderHDContent(c,pm,am,split){
-  const row=(m,present)=>`<div class="dm-row ${present?'present':''}">
+  const row=(m,present,variant='')=>`<div class="dm-row ${present?'present':''} ${variant}">
     <div class="av ${present?avClass(m.group):''}" style="width:28px;height:28px;font-size:.7rem${present?'':';background:var(--xtl)'}">${inits(m)}</div>
     <span class="dm-name">${m.firstName} ${m.lastName}</span>
     ${payBadge(m)}
@@ -2098,13 +2108,13 @@ function renderHDContent(c,pm,am,split){
   if(!split){
     grid=pm.map(m=>row(m,true)).join('')+am.map(m=>row(m,false)).join('');
   } else {
-    const paid=pm.filter(m=>m.payment==='paid');
-    const notPaid=pm.filter(m=>m.payment!=='paid');
+    const paid=pm.filter(m=>effectivePaymentStatus(m)==='paid');
+    const notPaid=pm.filter(m=>effectivePaymentStatus(m)!=='paid');
     grid=`
-      <div style="font-weight:700;color:#27ae60;padding:.4rem 0 .2rem">💚 Betalt – ${paid.length} fremmødte</div>
-      ${paid.length?paid.map(m=>row(m,true)).join(''):'<div style="color:var(--xtl);font-size:.8rem;padding:.2rem 0 .6rem">Ingen</div>'}
-      <div style="font-weight:700;color:#e67e22;padding:.8rem 0 .2rem">🟠 Ikke betalt – ${notPaid.length} fremmødte</div>
-      ${notPaid.length?notPaid.map(m=>row(m,true)).join(''):'<div style="color:var(--xtl);font-size:.8rem;padding:.2rem 0">Ingen</div>'}`;
+      <div class="dm-section paid">💚 Betalt <span style="background:#c8f0d8;color:#1a7a3f;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${paid.length} fremmødte</span></div>
+      ${paid.length?paid.map(m=>row(m,true,''))  .join(''):'<div style="grid-column:1/-1;color:var(--xtl);font-size:.8rem;padding:.3rem .7rem">Ingen</div>'}
+      <div class="dm-section unpaid" style="margin-top:.4rem">🔴 Ikke betalt <span style="background:#f9c0c0;color:#c0392b;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${notPaid.length} fremmødte</span></div>
+      ${notPaid.length?notPaid.map(m=>row(m,true,'unpaid')).join(''):'<div style="grid-column:1/-1;color:var(--xtl);font-size:.8rem;padding:.3rem .7rem">Ingen</div>'}`;
   }
   c.innerHTML=`
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem;align-items:center">
