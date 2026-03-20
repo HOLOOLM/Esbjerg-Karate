@@ -354,6 +354,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
   /* Træning: skjul kun Gruppe(3) — vis Toggle, Navn, Køn/Alder, Bælte, Kontingent */
   #page-training th:nth-child(3),#page-training td:nth-child(3){display:none}
+  /* Gendan Alder(4) som tablet-reglen skjulte */
+  #page-training th:nth-child(4),#page-training td:nth-child(4){display:table-cell}
 
   /* Alle Medlemmer: skjul Gruppe(2) og Telefon(6) — Køn/Alder vises, tabel scroller horisontalt */
   #page-members th:nth-child(2),#page-members td:nth-child(2){display:none}
@@ -2010,7 +2012,9 @@ function renderDashboard(){
       if(diff!==0) return diff;
       return BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt); // tiebreak: bælte
     }
-    // rang (default): bæltegrad øverst, anciennitet som tiebreak
+    // rang (default): antal fremmøder øverst, bælte som tiebreak, anciennitet som 2. tiebreak
+    const antalDiff=(counts[b.id]-counts[a.id])*d;
+    if(antalDiff!==0) return antalDiff;
     const beltDiff=(BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt))*d;
     if(beltDiff!==0) return beltDiff;
     const mA=memberDurationMonths(a)??-1;
