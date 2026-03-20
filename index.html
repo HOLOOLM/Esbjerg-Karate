@@ -301,9 +301,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   /* Header */
   .htitle{font-size:.85rem}
   .hlogo{width:32px;height:32px;font-size:1rem}
-  .hdr-actions{gap:.25rem}
+  /* Header komprimering */
+  .hbrand{flex:1 1 auto;min-width:0;overflow:hidden}
+  .htitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hdr-actions{gap:.25rem;flex-shrink:0}
   .hdr-actions .hdate,.hdr-actions .hsub{display:none}
-  #syncStatus{font-size:.68rem;padding:.15rem .45rem}
+  .hdr-lbl{display:none}
+  #syncStatus{font-size:.68rem;padding:.2rem .45rem;white-space:nowrap}
+  #trainingDatePicker{width:148px!important;max-width:148px!important;min-width:0!important;flex:none!important}
 
   /* Tabs: scrollbar-fri horisontal scroll */
   .nav-tabs{padding:0 .4rem;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -326,7 +331,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   /* Første linje: label + dato side om side */
   .date-bar label{font-weight:600;white-space:nowrap;font-size:.78rem}
   .date-bar .date-row{display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap}
-  .date-bar input[type=date]{font-size:16px!important;-webkit-appearance:none;appearance:none;padding:.42rem .55rem;border:1.5px solid #c8dede;border-radius:8px;background:#fff;color:var(--xtd);width:150px!important;max-width:150px!important;min-width:0!important;flex:0 0 150px!important}
+  .date-bar input[type=date]{font-size:16px!important;-webkit-appearance:textfield;appearance:textfield;padding:.42rem .55rem;border:1.5px solid #c8dede;border-radius:8px;background:#fff;color:var(--xtd);width:148px!important;max-width:148px!important;min-width:0!important;flex:0 0 148px!important;overflow:hidden}
   .date-bar .att-pill{flex-shrink:0}
   /* Knapper i 2x2 grid */
   .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
@@ -440,7 +445,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="hdr-actions">
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
-    <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦 Arkiv</button>
+    <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
   </div>
 </header>
@@ -1124,9 +1129,10 @@ function setSyncStatus(s){
   if(!el)return;
   if(!config.scriptUrl){el.style.display='none';return;}
   el.style.display='';
-  if(s==='loading'){el.textContent='⏳ Synkroniserer...';el.style.color='#fff';}
-  else if(s==='ok'){el.textContent='☁️ Synkroniseret';el.style.color='#7ecece';}
-  else{el.textContent='⚠️ Offline';el.style.color='#fcd34d';}
+  const narrow=window.innerWidth<=480;
+  if(s==='loading'){el.textContent=narrow?'⏳':'⏳ Synkroniserer...';el.style.color='#fff';}
+  else if(s==='ok'){el.textContent=narrow?'☁️':'☁️ Synkroniseret';el.style.color='#7ecece';}
+  else{el.textContent=narrow?'⚠️':'⚠️ Offline';el.style.color='#fcd34d';}
 }
 function pushToCloud(){
   const url=config.scriptUrl;
@@ -1196,7 +1202,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     now.toLocaleDateString('da-DK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   // Date picker init
-  document.getElementById('trainingDatePicker').value=currentTrainingDate;
+  const _dp=document.getElementById('trainingDatePicker');
+  _dp.value=currentTrainingDate;
+  // Force width via inline style — overcomes WKWebView (Messenger) minimum-width quirk
+  function _fixDpWidth(){
+    _dp.style.cssText=(_dp.getAttribute('style')||'')+
+      ';width:148px!important;max-width:148px!important;min-width:0px!important;flex:none!important';
+  }
+  _fixDpWidth();
+  // Re-apply after a tick in case the browser resets it on first render
+  setTimeout(_fixDpWidth,50);
+  setTimeout(_fixDpWidth,300);
 
   // Load existing check-ins for today from sessions if available
   loadCheckInsForDate(currentTrainingDate);
