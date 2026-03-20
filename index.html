@@ -515,9 +515,37 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
+    <button class="btn bg btn-sm" onclick="openQuickSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Hurtigsøg">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
   </div>
 </header>
+
+<!-- QUICK SEARCH OVERLAY -->
+<div id="qsOverlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,30,30,.55);backdrop-filter:blur(3px)" onclick="if(event.target===this)closeQuickSearch()">
+  <div style="background:#fff;border-radius:0 0 16px 16px;padding:1rem 1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:center;gap:.7rem">
+      <span style="font-size:1.3rem">🔍</span>
+      <input id="qsInput" type="text" placeholder="Søg navn, bælte, telefon…"
+        style="flex:1;border:none;outline:none;font-size:1rem;padding:.3rem 0;color:#1a3a3a"
+        oninput="renderQS()" autocomplete="off"/>
+      <button onclick="closeQuickSearch()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#888;padding:0 .2rem">✕</button>
+    </div>
+  </div>
+  <div id="qsResults" style="padding:.8rem 1rem;max-height:65vh;overflow-y:auto"></div>
+</div>
+
+<!-- NOTES MODAL -->
+<div class="mbd" id="notesModal">
+  <div class="modal">
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">📝 Træningsnoter</div>
+    <div style="font-size:.82rem;color:var(--xtl);margin-bottom:.8rem" id="notesModalDate"></div>
+    <textarea id="notesInput" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.88rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv noter til dagens træning…"></textarea>
+    <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
+      <button class="btn bg btn-sm" onclick="closeModal('notesModal')">Annuller</button>
+      <button class="btn bp btn-sm" onclick="saveTrainingNote()">💾 Gem note</button>
+    </div>
+  </div>
+</div>
 
 <!-- TABS -->
 <nav class="nav-tabs">
@@ -529,6 +557,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 <!-- ══ PAGE: TRAINING ══ -->
 <div class="page active" id="page-training">
+
+  <!-- Fødselsdag-banner -->
+  <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
   <div class="stats-grid">
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
@@ -548,8 +579,13 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="btn bg btn-sm" onclick="refreshFromCloud()">🔃 Opdater</button>
       <button class="btn bg btn-sm" onclick="resetAllCheckIns()">🔄 Nulstil</button>
       <button class="btn bs btn-sm" onclick="markAllPresent()">☑️ Marker alle</button>
+      <button class="btn bg btn-sm" onclick="openNotesModal()">📝 Note</button>
       <button class="btn bp btn-sm" onclick="saveSession()">💾 Gem session</button>
     </div>
+  </div>
+  <div id="trainingNoteDisplay" style="display:none;background:#fffde7;border:1px solid #ffe082;border-radius:8px;padding:.5rem .9rem;margin-top:.4rem;font-size:.82rem;color:#795548">
+    📝 <span id="trainingNoteText"></span>
+    <button onclick="openNotesModal()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:#888;margin-left:.4rem">✏️ rediger</button>
   </div>
 
   <div class="sh">
@@ -618,7 +654,25 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </select>
     </div>
   </div>
+  <div style="margin-bottom:.8rem">
+    <button class="btn bg btn-sm" onclick="openNotesOverview()">📝 Se alle noter</button>
+  </div>
   <div class="hgrid" id="hGrid"></div>
+</div>
+
+<!-- ══ MODAL: NOTER OVERSIGT ══ -->
+<div class="mbd" id="notesOverviewModal">
+  <div class="modal modal-lg">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>📝</span><span>Træningsnoter</span></div>
+      <button class="mclose" onclick="closeModal('notesOverviewModal')">✕</button>
+    </div>
+    <div id="notesOverviewContent"></div>
+    <div class="ma" style="justify-content:space-between">
+      <button class="btn bs btn-sm" onclick="exportNotesToExcel()">📊 Eksporter til Excel</button>
+      <button class="btn bg" onclick="closeModal('notesOverviewModal')">Luk</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ PAGE: MEMBERS ══ -->
@@ -715,6 +769,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <span class="cl-item cl-red">&lt;40%</span>
     </div>
     <div id="db-chart"></div>
+    <div id="bestDayInfo" style="margin-top:.8rem;font-size:.8rem;color:var(--xtm)"></div>
   </div>
 
   <div class="sh">
@@ -1297,6 +1352,181 @@ function loadFromCloud(onDone){
 /* ════════════════════════════════════════
    INIT
 ════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   SWIPE TO CHECK IN/OUT
+════════════════════════════════════════ */
+function addSwipeCI(tr, id){
+  let startX=0, startY=0, active=false;
+  tr.addEventListener('touchstart',e=>{
+    startX=e.touches[0].clientX; startY=e.touches[0].clientY; active=true;
+    tr.style.transition='none';
+  },{passive:true});
+  tr.addEventListener('touchmove',e=>{
+    if(!active)return;
+    const dx=e.touches[0].clientX-startX;
+    const dy=Math.abs(e.touches[0].clientY-startY);
+    if(dy>25){active=false;tr.style.transform='';tr.style.background='';return;}
+    tr.style.transform=`translateX(${Math.min(Math.max(dx,-90),90)*0.35}px)`;
+    tr.style.background=dx>40?'rgba(46,204,113,.18)':dx<-40?'rgba(231,76,60,.1)':'';
+  },{passive:true});
+  tr.addEventListener('touchend',e=>{
+    if(!active)return; active=false;
+    const dx=e.changedTouches[0].clientX-startX;
+    const dy=Math.abs(e.changedTouches[0].clientY-startY);
+    tr.style.transition='all .2s'; tr.style.transform=''; tr.style.background='';
+    if(dy>25)return;
+    if(dx>60) toggleCI(id,true);
+    else if(dx<-60) toggleCI(id,false);
+  },{passive:true});
+}
+
+/* ════════════════════════════════════════
+   QUICK SEARCH
+════════════════════════════════════════ */
+function openQuickSearch(){
+  document.getElementById('qsOverlay').style.display='block';
+  setTimeout(()=>document.getElementById('qsInput').focus(),60);
+  renderQS();
+}
+function closeQuickSearch(){
+  document.getElementById('qsOverlay').style.display='none';
+  document.getElementById('qsInput').value='';
+}
+function renderQS(){
+  const q=document.getElementById('qsInput').value.toLowerCase().trim();
+  const el=document.getElementById('qsResults');
+  if(!q){el.innerHTML='<div style="color:#888;font-size:.85rem;text-align:center;padding:1.5rem">Begynd at skrive for at søge…</div>';return;}
+  const res=members.filter(m=>{
+    if(m.archived)return false;
+    const nm=(m.firstName+' '+m.lastName).toLowerCase();
+    return nm.includes(q)||(m.email||'').toLowerCase().includes(q)||(m.belt||'').toLowerCase().includes(q)||(m.phone||'').includes(q);
+  });
+  if(!res.length){el.innerHTML='<div style="color:#888;font-size:.85rem;text-align:center;padding:1.5rem">Ingen resultater</div>';return;}
+  el.innerHTML=res.map(m=>{
+    const bc=BC[m.belt]||'#ccc';
+    const eps=effectivePaymentStatus(m);
+    const payColor=eps==='paid'?'#16a34a':eps==='partial'?'#d97706':'#dc2626';
+    const payLabel=eps==='paid'?'✅ Betalt':eps==='partial'?'⚡ Delvis':'❌ Ikke betalt';
+    return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer" onclick="closeQuickSearch();openEditModal(${m.id})">
+      <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${inits(m)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}</div>
+        <div style="font-size:.74rem;color:#666">${m.phone||'ingen tlf.'} · ${m.email||'ingen e-mail'}</div>
+        <div style="font-size:.73rem;margin-top:2px"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);display:inline-block;vertical-align:middle"></span> ${m.belt}</div>
+      </div>
+      <div style="font-size:.78rem;font-weight:700;color:${payColor};flex-shrink:0">${payLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   TRAINING NOTES
+════════════════════════════════════════ */
+function openNotesModal(){
+  const sess=sessions.find(s=>s.date===currentTrainingDate);
+  document.getElementById('notesInput').value=(sess&&sess.note)||'';
+  const d=new Date(currentTrainingDate+'T12:00:00');
+  document.getElementById('notesModalDate').textContent=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  openModal('notesModal');
+}
+function saveTrainingNote(){
+  const note=document.getElementById('notesInput').value.trim();
+  let sess=sessions.find(s=>s.date===currentTrainingDate);
+  if(!sess){sess={date:currentTrainingDate,name:'Træning',presentIds:[]};sessions.push(sess);}
+  sess.note=note;
+  save(); pushToCloud(); updateNoteDisplay();
+  closeModal('notesModal');
+  showToast('📝 Note gemt');
+}
+function updateNoteDisplay(){
+  const sess=sessions.find(s=>s.date===currentTrainingDate);
+  const note=sess&&sess.note;
+  const el=document.getElementById('trainingNoteDisplay');
+  if(!el)return;
+  if(note){el.style.display='block';document.getElementById('trainingNoteText').textContent=note;}
+  else el.style.display='none';
+}
+
+/* ════════════════════════════════════════
+   BIRTHDAY REMINDERS
+════════════════════════════════════════ */
+function getBirthdays(days=7){
+  const today=new Date(); today.setHours(0,0,0,0);
+  return members.filter(m=>{
+    if(m.archived||m.status==='passiv'||!m.birthdate)return false;
+    const raw=String(m.birthdate).slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(raw))return false;
+    const bd=new Date(raw+'T12:00:00');
+    if(isNaN(bd.getTime()))return false;
+    const bday=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
+    if(bday<today) bday.setFullYear(today.getFullYear()+1);
+    return Math.round((bday-today)/86400000)<=days;
+  }).map(m=>{
+    const today2=new Date(); today2.setHours(0,0,0,0);
+    const bd=new Date(String(m.birthdate).slice(0,10)+'T12:00:00');
+    const bday=new Date(today2.getFullYear(),bd.getMonth(),bd.getDate());
+    if(bday<today2) bday.setFullYear(today2.getFullYear()+1);
+    const diff=Math.round((bday-today2)/86400000);
+    const age=today2.getFullYear()-bd.getFullYear()+(diff===0&&bday.getTime()===today2.getTime()?0:0)+1;
+    return {...m,_daysUntil:diff,_age:today2.getFullYear()-bd.getFullYear()+(diff===0?0:0)+(bday.getFullYear()>today2.getFullYear()?1:0)};
+  }).sort((a,b)=>a._daysUntil-b._daysUntil);
+}
+function birthdayBadge(m){
+  if(!m.birthdate)return '';
+  const raw=String(m.birthdate).slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(raw))return '';
+  const bd=new Date(raw+'T12:00:00');
+  if(isNaN(bd.getTime()))return '';
+  const today=new Date(); today.setHours(0,0,0,0);
+  const bday=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
+  if(bday<today) bday.setFullYear(today.getFullYear()+1);
+  const diff=Math.round((bday-today)/86400000);
+  if(diff>7)return '';
+  if(diff===0) return ' <span title="Tillykke med fødselsdagen! 🎂" style="font-size:.85rem">🎂</span>';
+  return ` <span title="Fødselsdag om ${diff} dag${diff===1?'':'e'}" style="font-size:.78rem;color:#d97706">🎂${diff}d</span>`;
+}
+function updateBirthdayBanner(){
+  const bds=getBirthdays(7);
+  const el=document.getElementById('birthdayBanner');
+  if(!el)return;
+  if(!bds.length){el.style.display='none';return;}
+  el.style.display='block';
+  document.getElementById('birthdayList').innerHTML=bds.map(m=>{
+    const lbl=m._daysUntil===0?'🎉 <strong>I dag!</strong>':m._daysUntil===1?'i morgen':`om ${m._daysUntil} dage`;
+    return `<strong>${m.firstName} ${m.lastName}</strong> har fødselsdag ${lbl}`;
+  }).join(' &nbsp;·&nbsp; ');
+}
+
+/* ════════════════════════════════════════
+   FREMMØDE TREND + BEDSTE DAG
+════════════════════════════════════════ */
+function memberTrend(memberId, allSessions){
+  const sorted=[...allSessions].sort((a,b)=>b.date>a.date?1:-1);
+  if(sorted.length<5)return '';
+  const r=sorted.slice(0,4).filter(s=>(s.presentIds||[]).includes(memberId)).length/4;
+  const p=sorted.slice(4,8).filter(s=>(s.presentIds||[]).includes(memberId)).length/Math.min(4,sorted.slice(4,8).length||1);
+  if(r>p+0.15)return '<span style="color:#16a34a;font-size:.8rem;margin-left:3px">↑</span>';
+  if(r<p-0.15)return '<span style="color:#dc2626;font-size:.8rem;margin-left:3px">↓</span>';
+  return '';
+}
+function updateBestDayInfo(){
+  const el=document.getElementById('bestDayInfo');
+  if(!el)return;
+  const DAYS=['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
+  const totals=[0,0,0,0,0,0,0], cnts=[0,0,0,0,0,0,0];
+  sessions.forEach(s=>{
+    if(!s.date)return;
+    const d=new Date(s.date+'T12:00:00');
+    if(isNaN(d.getTime()))return;
+    const dow=d.getDay();
+    totals[dow]+=(s.presentIds||[]).length; cnts[dow]++;
+  });
+  let best=-1, bestAvg=0;
+  for(let i=0;i<7;i++){if(cnts[i]>0&&totals[i]/cnts[i]>bestAvg){bestAvg=totals[i]/cnts[i];best=i;}}
+  if(best===-1){el.textContent='';return;}
+  el.innerHTML=`📅 Bedste fremmødedag: <strong>${DAYS[best]}</strong> — gennemsnit <strong>${Math.round(bestAvg)}</strong> til stede (${cnts[best]} træninger)`;
+}
+
 /* ── LOCK SCREEN LOGIC ── */
 const APP_PIN='260187';
 function lockSubmit(){
@@ -1394,7 +1624,7 @@ function initApp(){
   }
 }
 
-function renderAll(){ renderT(); renderM(); updateStats(); }
+function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); }
 
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
@@ -1496,6 +1726,7 @@ function onDateChange(){
 function loadCheckInsForDate(date){
   const sess=sessions.find(s=>s.date===date);
   members.forEach(m=>{ m.checkedIn=sess?sess.presentIds.includes(m.id):false; });
+  updateNoteDisplay();
 }
 
 /* ════════════════════════════════════════
@@ -1523,6 +1754,7 @@ function renderT(){
     const bc=BC[m.belt]||'#ccc';
     const streak=_streakCache[m.id]||0;
     const streakBadge=streak>=2?`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`:'';
+    const bdBadge=birthdayBadge(m);
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
     tr.innerHTML=`
@@ -1534,13 +1766,14 @@ function renderT(){
       </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${inits(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${bdBadge}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
       <td data-col="payment">${payBadge(m)}</td>`;
     body.appendChild(tr);
+    addSwipeCI(tr, m.id);
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
   updateStats();
@@ -1768,7 +2001,8 @@ function renderHistory(){
         </div>${tag}
       </div>
       ${!isFut&&!isCancelled&&saved?`<div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
-      <div class="hc-nums"><span>Til stede: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>`:
+      <div class="hc-nums"><span>Til stede: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>
+      ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082">📝 ${saved.note}</div>`:''}`:
       !isFut&&!isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:''}
       ${!isFut?`<button class="hc-cancel-btn${isCancelled?' active':''}" onclick="event.stopPropagation();toggleCancelled('${ds}')">${isCancelled?'↩️ Gendan træning':'🚫 Markér som aflyst'}</button>`:''}`;
     if(!isFut&&!isCancelled) card.addEventListener('click',()=>openHD(ds,date,saved));
@@ -2060,11 +2294,12 @@ function renderDashboard(){
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
       <td style="font-size:.8rem;color:var(--xtm)">${m.startDate?`<span style="font-weight:600">${durationStr(m)}</span>`:'<span style="color:var(--xtl)">—</span>'}</td>
       <td style="font-weight:700;color:var(--td)">${c} <span style="font-size:.75rem;font-weight:400;color:var(--xtl)">/ ${totalSess}</span></td>
-      <td><div>${pct}%</div><div class="db-att-bar"><div class="db-att-fill" style="width:${pct}%"></div></div></td>`;
+      <td><div>${pct}%${memberTrend(m.id,sessions)}</div><div class="db-att-bar"><div class="db-att-fill" style="width:${pct}%"></div></div></td>`;
     body.appendChild(tr);
     vis++;
   });
   document.getElementById('empty-db').style.display=vis?'none':'block';
+  updateBestDayInfo();
 }
 
 function exportAttendance(){
@@ -2097,11 +2332,12 @@ function openHD(ds,dateObj,saved){
   const am=members.filter(m=>!m.archived&&!ps.has(m.id));
   window._hdData={pm,am};
   window._hdSplit=true;
-  renderHDContent(c,pm,am,true);
+  window._hdDate=ds;
+  renderHDContent(c,pm,am,true,saved.note||'');
   openModal('hdModal');
 }
 
-function renderHDContent(c,pm,am,split){
+function renderHDContent(c,pm,am,split,note=''){
   const row=(m,present,variant='')=>`<div class="dm-row ${present?'present':''} ${variant}">
     <div class="av ${present?avClass(m.group):''}" style="width:28px;height:28px;font-size:.7rem${present?'':';background:var(--xtl)'}">${inits(m)}</div>
     <span class="dm-name">${m.firstName} ${m.lastName}</span>
@@ -2120,7 +2356,16 @@ function renderHDContent(c,pm,am,split){
       <div class="dm-section unpaid" style="margin-top:.4rem">🔴 Ikke betalt <span style="background:#f9c0c0;color:#c0392b;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${notPaid.length} fremmødte</span></div>
       ${notPaid.length?notPaid.map(m=>row(m,true,'unpaid')).join(''):'<div style="grid-column:1/-1;color:var(--xtl);font-size:.8rem;padding:.3rem .7rem">Ingen</div>'}`;
   }
+  const noteHtml=note
+    ?`<div style="background:#fffde7;border:1px solid #ffe082;border-radius:8px;padding:.5rem .9rem;margin-bottom:.8rem;font-size:.82rem;color:#795548">
+        📝 <strong>Note:</strong> ${note}
+        <button onclick="openHDNoteModal()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:#888;margin-left:.4rem">✏️ rediger</button>
+      </div>`
+    :`<div style="margin-bottom:.6rem">
+        <button class="btn bg btn-sm" onclick="openHDNoteModal()" style="font-size:.76rem">📝 Tilføj note til denne træning</button>
+      </div>`;
   c.innerHTML=`
+    ${noteHtml}
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem;align-items:center">
       <span class="badge bgg">Til stede: ${pm.length}</span>
       <span class="badge bgx">Fraværende: ${am.length}</span>
@@ -2133,7 +2378,79 @@ function renderHDContent(c,pm,am,split){
 
 function toggleHDSplit(){
   window._hdSplit=!window._hdSplit;
-  renderHDContent(document.getElementById('hdContent'),window._hdData.pm,window._hdData.am,window._hdSplit);
+  const sess=sessions.find(s=>s.date===window._hdDate);
+  renderHDContent(document.getElementById('hdContent'),window._hdData.pm,window._hdData.am,window._hdSplit,sess&&sess.note||'');
+}
+function exportNotesToExcel(){
+  const withNotes=sessions
+    .filter(s=>s.note&&s.note.trim())
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  if(!withNotes.length){showToast('Ingen noter at eksportere');return;}
+  const cell=v=>`<Cell ss:StyleID="s1"><Data ss:Type="String">${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</Data></Cell>`;
+  const hdr=v=>`<Cell ss:StyleID="hdr"><Data ss:Type="String">${v}</Data></Cell>`;
+  const rows=withNotes.map(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    const dateStr=isNaN(d.getTime())?s.date:d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const present=(s.presentIds||[]).length;
+    const total=actMembers().length;
+    const pct=total>0?Math.round(present/total*100):0;
+    return `<Row>${cell(dateStr)}${cell(s.date)}${cell(present)}${cell(total)}${cell(pct+'%')}${cell(s.note)}</Row>`;
+  }).join('');
+  const xml=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Styles>
+    <Style ss:ID="hdr"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2C6E6E" ss:Pattern="Solid"/><Alignment ss:WrapText="1"/></Style>
+    <Style ss:ID="s1"><Alignment ss:WrapText="1" ss:Vertical="Top"/></Style>
+  </Styles>
+  <Worksheet ss:Name="Træningsnoter">
+    <Table>
+      <Column ss:Width="180"/><Column ss:Width="100"/><Column ss:Width="80"/><Column ss:Width="80"/><Column ss:Width="80"/><Column ss:Width="350"/>
+      <Row>${hdr('Dato')}${hdr('ISO dato')}${hdr('Til stede')}${hdr('Total')}${hdr('Fremmøde %')}${hdr('Note')}</Row>
+      ${rows}
+    </Table>
+    <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+      <FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane>
+    </WorksheetOptions>
+  </Worksheet>
+</Workbook>`;
+  const bom='\uFEFF';
+  const blob=new Blob([bom+xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='træningsnoter.xls'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 Noter eksporteret til Excel');
+}
+
+function openNotesOverview(){
+  const withNotes=sessions
+    .filter(s=>s.note&&s.note.trim())
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('notesOverviewContent');
+  if(!withNotes.length){
+    el.innerHTML='<p style="color:var(--xtl);padding:1rem 0;text-align:center">Ingen noter endnu.</p>';
+  } else {
+    el.innerHTML=withNotes.map(s=>{
+      const d=new Date(s.date+'T12:00:00');
+      const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const present=(s.presentIds||[]).length;
+      return `<div style="padding:.8rem 0;border-bottom:1px solid #e8f0f0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
+          <div style="font-weight:700;font-size:.88rem;color:var(--td)">${dateStr}</div>
+          <span class="badge bgg" style="font-size:.72rem">${present} til stede</span>
+        </div>
+        <div style="font-size:.83rem;color:#5d4037;background:#fffde7;border-radius:7px;padding:.4rem .7rem;border:1px solid #ffe082">📝 ${s.note}</div>
+      </div>`;
+    }).join('');
+  }
+  openModal('notesOverviewModal');
+}
+
+function openHDNoteModal(){
+  if(window._hdDate) currentTrainingDate=window._hdDate;
+  closeModal('hdModal');
+  openNotesModal();
 }
 
 /* ════════════════════════════════════════
@@ -2486,7 +2803,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 let _assessMemberId=null, _assessRatings={}, _editingAssessmentId=null;
 
 function latestAssessmentAvg(memberId){
-  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length)return null;
   let ratings={};
   try{ratings=JSON.parse(sorted[0].ratings||'{}');}catch(e){}
@@ -2498,7 +2815,7 @@ function latestAssessmentAvg(memberId){
 function scoreCell(memberId){
   const avg=latestAssessmentAvg(memberId);
   if(avg===null)return '<span style="color:var(--xtl)">—</span>';
-  const color=avg>=4?'#16a34a':avg>=3?'#d97706':'#dc2626';
+  const color=avg>=4?'#16a34a':avg>=2?'#d97706':'#dc2626';
   return `<span style="font-weight:700;color:${color};font-size:.88rem">★ ${avg.toFixed(1)}</span>`;
 }
 
@@ -2596,8 +2913,19 @@ function saveAssessment(){
   showToast(existing?'✅ Vurdering opdateret':'✅ Vurdering gemt');
 }
 
+function deleteAssessment(assessmentId, memberId){
+  if(!confirm('Slet denne vurdering? Det kan ikke fortrydes.'))return;
+  assessments=assessments.filter(a=>a.id!==assessmentId);
+  save(); pushToCloud();
+  renderAssessmentHistory(memberId);
+  // Opdater score-celle i tabellen
+  const rowM=document.querySelector(`#tbody-m tr[data-id="${memberId}"]`);
+  if(rowM){const td=rowM.querySelector('td[style*="text-align:center"]');if(td)td.innerHTML=scoreCell(memberId);}
+  showToast('🗑 Vurdering slettet');
+}
+
 function renderAssessmentHistory(memberId){
-  const hist=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>b.date.localeCompare(a.date));
+  const hist=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const el=document.getElementById('assessHistory');
   if(!hist.length){el.innerHTML='';return;}
   el.innerHTML='<div style="font-weight:700;font-size:.85rem;color:var(--t2);margin-bottom:.5rem">Tidligere vurderinger</div>'+
@@ -2615,7 +2943,10 @@ function renderAssessmentHistory(memberId){
       return `<div class="assess-history-item">
         <div class="assess-history-date" style="display:flex;justify-content:space-between;align-items:center">
           <span>${a.date}${beltLabel}</span>
-          <button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>
+          <div style="display:flex;gap:.3rem">
+            <button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>
+            <button class="btn bdr btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="deleteAssessment(${a.id},${memberId})">🗑</button>
+          </div>
         </div>
         ${starsHtml||'<div style="font-size:.8rem;color:var(--t2);font-style:italic">Ingen ratings</div>'}
         ${commentHtml}
