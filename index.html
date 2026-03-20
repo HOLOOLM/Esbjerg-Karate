@@ -1357,33 +1357,6 @@ function loadFromCloud(onDone){
 /* ════════════════════════════════════════
    INIT
 ════════════════════════════════════════ */
-/* ════════════════════════════════════════
-   SWIPE TO CHECK IN/OUT
-════════════════════════════════════════ */
-function addSwipeCI(tr, id){
-  let startX=0, startY=0, active=false;
-  tr.addEventListener('touchstart',e=>{
-    startX=e.touches[0].clientX; startY=e.touches[0].clientY; active=true;
-    tr.style.transition='none';
-  },{passive:true});
-  tr.addEventListener('touchmove',e=>{
-    if(!active)return;
-    const dx=e.touches[0].clientX-startX;
-    const dy=Math.abs(e.touches[0].clientY-startY);
-    if(dy>25){active=false;tr.style.transform='';tr.style.background='';return;}
-    tr.style.transform=`translateX(${Math.min(Math.max(dx,-90),90)*0.35}px)`;
-    tr.style.background=dx>40?'rgba(46,204,113,.18)':dx<-40?'rgba(231,76,60,.1)':'';
-  },{passive:true});
-  tr.addEventListener('touchend',e=>{
-    if(!active)return; active=false;
-    const dx=e.changedTouches[0].clientX-startX;
-    const dy=Math.abs(e.changedTouches[0].clientY-startY);
-    tr.style.transition='all .2s'; tr.style.transform=''; tr.style.background='';
-    if(dy>25)return;
-    if(dx>60) toggleCI(id,true);
-    else if(dx<-60) toggleCI(id,false);
-  },{passive:true});
-}
 
 /* ════════════════════════════════════════
    QUICK SEARCH
@@ -1778,7 +1751,6 @@ function renderT(){
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
       <td data-col="payment">${payBadge(m)}</td>`;
     body.appendChild(tr);
-    addSwipeCI(tr, m.id);
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
   updateStats();
