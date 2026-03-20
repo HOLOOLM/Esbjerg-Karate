@@ -462,11 +462,25 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .lock-err{margin-top:.7rem;font-size:.82rem;color:var(--rb);min-height:1.2em;font-weight:500}
 @keyframes lockShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 .lock-shake{animation:lockShake .35s ease}
+/* VURDERING / ASSESSMENT */
+.assess-skill-row{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid #f0f4f4}
+.assess-skill-row:last-child{border-bottom:none}
+.assess-skill-name{flex:1;font-size:.88rem;color:var(--t1)}
+.assess-stars{display:flex;gap:.15rem}
+.assess-stars span{font-size:1.4rem;cursor:pointer;color:#d1d5db;line-height:1;transition:color .1s}
+.assess-stars span.on{color:#f59e0b}
+.assess-stars span:hover,.assess-stars span:hover~span{color:#fcd34d}
+.assess-history-item{background:#f8fafb;border:1px solid #e8f0f0;border-radius:10px;padding:.7rem .9rem;margin-bottom:.6rem}
+.assess-history-date{font-size:.78rem;font-weight:700;color:var(--t2);margin-bottom:.4rem}
+.assess-history-skill{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.15rem 0}
+.assess-history-stars{color:#f59e0b;letter-spacing:.05rem}
+.assess-history-comment{font-size:.8rem;color:var(--t2);margin-top:.4rem;font-style:italic}
 </style>
 </head>
 <body>
 
 <!-- ══ LOCK SCREEN ══ -->
+<style>body > *:not(#lockScreen){visibility:hidden}</style>
 <div id="lockScreen">
   <div class="lock-box">
     <div class="lock-logo">🥋</div>
@@ -646,6 +660,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
           <th>Gruppe</th>
           <th>Køn / Alder</th>
           <th>Bælte</th>
+          <th>Score</th>
           <th>Telefon</th>
           <th>Anciennitet</th>
           <th>Kontingent</th>
@@ -857,6 +872,27 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </div>
 
 
+<!-- ══ MODAL: VURDERING ══ -->
+<div class="mbd" id="assessmentModal">
+  <div class="modal modal-lg">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>📋</span><span id="assessMemberName">Vurdering</span></div>
+      <button class="mclose" onclick="closeModal('assessmentModal')">✕</button>
+    </div>
+    <div id="assessBeltBar" style="margin-bottom:1rem"></div>
+    <div id="assessSkillList"></div>
+    <div style="margin-top:.8rem">
+      <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Kommentar (valgfri)</label>
+      <textarea id="assessComment" placeholder="Skriv en kommentar..." rows="3" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem;resize:vertical"></textarea>
+    </div>
+    <div class="ma" style="margin-top:1rem">
+      <button class="btn bg" onclick="closeModal('assessmentModal')">Luk</button>
+      <button class="btn bp" onclick="saveAssessment()">💾 Gem vurdering</button>
+    </div>
+    <div id="assessHistory" style="margin-top:1.2rem"></div>
+  </div>
+</div>
+
 <!-- ══ MODAL: ARKIV ══ -->
 <div class="mbd" id="archiveModal">
   <div class="modal modal-lg">
@@ -1034,7 +1070,8 @@ const SEED = [
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let members=[], sessions=[], cancelledDates=[], editingId=null, nextId=200, cloudLoaded=false;
+let members=[], sessions=[], cancelledDates=[], assessments=[], pensum={};
+let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
 let dbSort={col:'rang', dir:'asc'};
 let config={adminEmail:'', clubEmail:'holmoos@mail.dk', scriptUrl:'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec',
   rates:{age6_10:550, age10_15:650, age16plus:850}};
@@ -1162,13 +1199,17 @@ function load(){
     if(c) config=Object.assign(config,JSON.parse(c));
     config.scriptUrl='https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
     nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
-  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; }
+    const av=localStorage.getItem('kk2_assessments');
+    assessments=av?JSON.parse(av):[];
+    nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
+  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; }
 }
 function save(){
   config._savedAt=Date.now();
   localStorage.setItem('kk2_members',JSON.stringify(members));
   localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
   localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
+  localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
   localStorage.setItem('kk2_config',JSON.stringify(config));
   if(cloudLoaded) pushToCloud();
 }
@@ -1189,14 +1230,14 @@ function pushToCloud(){
   fetch(url,{
     method:'POST',
     headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({members,sessions,cancelledDates,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,assessments,_savedAt:config._savedAt})
   })
   .then(r=>r.json())
   .then(d=>{if(d.ok)setSyncStatus('ok');else setSyncStatus('error');})
   .catch(()=>{
     // Fallback: no-cors (kan ikke læse svar, men data sendes)
     fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({members,sessions,cancelledDates,_savedAt:config._savedAt})})
+      body:JSON.stringify({members,sessions,cancelledDates,assessments,_savedAt:config._savedAt})})
       .then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
   });
 }
@@ -1225,6 +1266,10 @@ function loadFromCloud(onDone){
       localStorage.setItem('kk2_members',JSON.stringify(members));
       localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
       nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
+      assessments=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date}));
+      nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
+      localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
+      pensum=d.pensum||{};
       cloudLoaded=true;
       setSyncStatus('ok');
       migratePaymentToAuto();
@@ -1265,11 +1310,18 @@ function unlockApp(){
   sessionStorage.setItem('kk2_unlocked','1');
   document.getElementById('lockScreen').classList.add('hidden');
   document.getElementById('lockInput').value='';
+  // Remove the visibility blocker style
+  document.querySelectorAll('style').forEach(s=>{
+    if(s.textContent.includes('visibility:hidden'))s.remove();
+  });
   if(!_appInited){ _appInited=true; initApp(); }
 }
 function checkLock(){
   if(sessionStorage.getItem('kk2_unlocked')==='1'){
     document.getElementById('lockScreen').classList.add('hidden');
+    document.querySelectorAll('style').forEach(s=>{
+      if(s.textContent.includes('visibility:hidden'))s.remove();
+    });
     return false;
   }
   setTimeout(()=>document.getElementById('lockInput').focus(),50);
@@ -1513,6 +1565,7 @@ function renderM(){
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
+      <td style="text-align:center">${scoreCell(m.id)}</td>
       <td style="font-size:.82rem">${m.phone||'<span style="color:var(--xtl)">—</span>'}</td>
       <td style="font-size:.8rem;color:var(--xtm)">
         ${(()=>{const dur=durationStr(m);if(dur==='—')return '<span style="color:var(--xtl)">—</span>';const raw=String(m.startDate).slice(0,10);const d=new Date(raw+'T12:00:00');const dateStr=isNaN(d.getTime())?'':d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});return `<div style="font-weight:600">${dur}</div>${dateStr?`<div style="font-size:.7rem;color:var(--xtl)">${dateStr}</div>`:''}`;})()}
@@ -1528,6 +1581,7 @@ function renderM(){
       </td>
       <td style="text-align:center;white-space:nowrap">
         <button class="btn bg btn-sm" onclick="openEditModal(${m.id})" title="Rediger">✏️</button>
+        <button class="btn bg btn-sm" onclick="openAssessmentModal(${m.id})" style="margin-left:3px" title="Vurdering">📋</button>
         <button class="btn bg btn-sm" onclick="archiveMember(${m.id})" style="margin-left:3px;color:var(--or);border-color:#e0c070" title="Arkivér">📦</button>
         <button class="btn bdr btn-sm" onclick="confirmDelete(${m.id})" style="margin-left:3px" title="Slet">🗑</button>
       </td>`;
@@ -2409,6 +2463,149 @@ function saveSettings(){
 ════════════════════════════════════════ */
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ════════════════════════════════════════
+   VURDERING (ASSESSMENT)
+════════════════════════════════════════ */
+let _assessMemberId=null, _assessRatings={}, _editingAssessmentId=null;
+
+function latestAssessmentAvg(memberId){
+  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length)return null;
+  let ratings={};
+  try{ratings=JSON.parse(sorted[0].ratings||'{}');}catch(e){}
+  const vals=Object.values(ratings).map(Number).filter(v=>v>0);
+  if(!vals.length)return null;
+  return vals.reduce((s,v)=>s+v,0)/vals.length;
+}
+
+function scoreCell(memberId){
+  const avg=latestAssessmentAvg(memberId);
+  if(avg===null)return '<span style="color:var(--xtl)">—</span>';
+  const color=avg>=4?'#16a34a':avg>=3?'#d97706':'#dc2626';
+  return `<span style="font-weight:700;color:${color};font-size:.88rem">★ ${avg.toFixed(1)}</span>`;
+}
+
+function openAssessmentModal(memberId, editAssessmentId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m)return;
+  _assessMemberId=memberId;
+  _editingAssessmentId=editAssessmentId||null;
+
+  const existing=_editingAssessmentId!=null?assessments.find(a=>a.id===_editingAssessmentId):null;
+  _assessRatings=existing?JSON.parse(existing.ratings||'{}'):{};
+
+  document.getElementById('assessMemberName').textContent=m.firstName+' '+m.lastName;
+
+  // Bæltebadge + dato
+  const _BC={'10. Kyu (Hvidt)':'#f5f5f5','9. Kyu (1 Snip)':'#f5f5f5','8. Kyu (2 Snip)':'#f5f5f5','7. Kyu (Gult)':'#fff176','6. Kyu (Blåt)':'#90caf9','5. Kyu (Grønt)':'#a5d6a7','4. Kyu (Violet)':'#ce93d8','3. Kyu (Brunt)':'#bcaaa4','2. Kyu (Brunt + 1 Snip)':'#a1887f','1. Kyu (Brunt + 2 Snip)':'#8d6e63','1. Dan (Sort)':'#424242','2. Dan (Sort)':'#212121','3. Dan (Sort)':'#121212'};
+  const beltForDisplay=existing?existing.belt:m.belt;
+  const bg=_BC[beltForDisplay]||'#e0e0e0';
+  const fg=(bg==='#424242'||bg==='#212121'||bg==='#121212')?'#fff':'#333';
+  const dateLabel=existing?existing.date:new Date().toISOString().slice(0,10);
+  document.getElementById('assessBeltBar').innerHTML=
+    `<span style="display:inline-block;padding:.25rem .75rem;border-radius:20px;background:${bg};color:${fg};font-size:.82rem;font-weight:700;border:1px solid rgba(0,0,0,.12)">${beltForDisplay||'Ukendt bælte'}</span>
+     <span style="font-size:.78rem;color:var(--t2);margin-left:.5rem">${existing?'Redigerer: '+dateLabel:'Ny vurdering: '+new Date().toLocaleDateString('da-DK')}</span>
+     ${existing?`<button class="btn bg btn-sm" style="margin-left:.5rem;font-size:.72rem" onclick="openAssessmentModal(${memberId})">+ Ny vurdering</button>`:''}`;
+
+  // Pensum-liste (brug bæltet fra vurderingen ved redigering, ellers nuværende bælte)
+  const beltKey=existing?existing.belt:m.belt;
+  const skills=pensum[beltKey]||[];
+  const skillList=document.getElementById('assessSkillList');
+  if(!skills.length){
+    skillList.innerHTML='<p style="color:var(--t2);font-size:.85rem;font-style:italic">Ingen pensum defineret for dette bælte. Tilføj krav i "Pensum"-fanen i Google Sheets.</p>';
+  } else {
+    skillList.innerHTML=skills.map(skill=>{
+      const cur=_assessRatings[skill]||0;
+      return `<div class="assess-skill-row">
+        <span class="assess-skill-name">${skill}</span>
+        <div class="assess-stars" id="stars-${CSS.escape(skill)}">
+          ${[1,2,3,4,5].map(i=>`<span data-skill="${skill.replace(/"/g,'&quot;')}" data-val="${i}" onclick="setStarRating(this)" title="${i}" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('assessComment').value=existing?existing.comment||'':'';
+  document.querySelector('#assessmentModal .btn.bp').textContent=existing?'💾 Opdater vurdering':'💾 Gem vurdering';
+  renderAssessmentHistory(memberId);
+  openModal('assessmentModal');
+}
+
+function setStarRating(el){
+  const skill=el.dataset.skill;
+  const val=Number(el.dataset.val);
+  _assessRatings[skill]=val;
+  // Opdater stjerner
+  const container=el.closest('.assess-stars');
+  container.querySelectorAll('span').forEach(s=>{
+    s.textContent=Number(s.dataset.val)<=val?'★':'☆';
+    s.classList.toggle('on',Number(s.dataset.val)<=val);
+  });
+}
+
+function saveAssessment(){
+  const m=members.find(x=>x.id===_assessMemberId);
+  if(!m)return;
+  const existing=_editingAssessmentId!=null?assessments.find(a=>a.id===_editingAssessmentId):null;
+  const beltKey=existing?existing.belt:m.belt;
+  const skills=pensum[beltKey]||[];
+  if(skills.length && !Object.keys(_assessRatings).length){
+    showToast('⚠️ Giv mindst én rating før du gemmer');
+    return;
+  }
+  const comment=document.getElementById('assessComment').value.trim();
+  if(existing){
+    existing.ratings=JSON.stringify(_assessRatings);
+    existing.comment=comment;
+  } else {
+    assessments.push({
+      id:nextAssessmentId++,
+      memberId:_assessMemberId,
+      date:new Date().toISOString().slice(0,10),
+      belt:m.belt,
+      ratings:JSON.stringify(_assessRatings),
+      comment
+    });
+  }
+  save();
+  renderM();
+  const memberId=_assessMemberId;
+  _editingAssessmentId=null;
+  _assessRatings={};
+  document.getElementById('assessComment').value='';
+  document.querySelectorAll('.assess-stars span').forEach(s=>{s.textContent='☆';s.classList.remove('on');});
+  document.querySelector('#assessmentModal .btn.bp').textContent='💾 Gem vurdering';
+  renderAssessmentHistory(memberId);
+  showToast(existing?'✅ Vurdering opdateret':'✅ Vurdering gemt');
+}
+
+function renderAssessmentHistory(memberId){
+  const hist=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('assessHistory');
+  if(!hist.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="font-weight:700;font-size:.85rem;color:var(--t2);margin-bottom:.5rem">Tidligere vurderinger</div>'+
+    hist.map(a=>{
+      let ratings={};
+      try{ratings=JSON.parse(a.ratings||'{}');}catch(e){}
+      const skills=Object.keys(ratings);
+      const starsHtml=skills.map(sk=>{
+        const v=ratings[sk]||0;
+        const filled='★'.repeat(v)+'☆'.repeat(5-v);
+        return `<div class="assess-history-skill"><span>${sk}</span><span class="assess-history-stars">${filled}</span></div>`;
+      }).join('');
+      const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
+      const beltLabel=a.belt?`<span style="font-size:.72rem;font-weight:600;opacity:.7;margin-left:.5rem">${a.belt}</span>`:'';
+      return `<div class="assess-history-item">
+        <div class="assess-history-date" style="display:flex;justify-content:space-between;align-items:center">
+          <span>${a.date}${beltLabel}</span>
+          <button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>
+        </div>
+        ${starsHtml||'<div style="font-size:.8rem;color:var(--t2);font-style:italic">Ingen ratings</div>'}
+        ${commentHtml}
+      </div>`;
+    }).join('');
+}
 
 /* ════════════════════════════════════════
    TOAST
