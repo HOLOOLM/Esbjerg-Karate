@@ -297,15 +297,13 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 @media(max-width:480px){
   /* Forhindre horisontal overflow globalt på mobil */
   html,body{overflow-x:hidden;max-width:100vw}
-  *{max-width:100%;box-sizing:border-box}
-  input,select,button,textarea{max-width:100%}
 
   /* Header */
   .htitle{font-size:.85rem}
   .hlogo{width:32px;height:32px;font-size:1rem}
   .hdr-actions{gap:.25rem}
   .hdr-actions .hdate,.hdr-actions .hsub{display:none}
-  #syncStatus{display:none!important}
+  #syncStatus{font-size:.68rem;padding:.15rem .45rem}
 
   /* Tabs: scrollbar-fri horisontal scroll */
   .nav-tabs{padding:0 .4rem;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -328,7 +326,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   /* Første linje: label + dato side om side */
   .date-bar label{font-weight:600;white-space:nowrap;font-size:.78rem}
   .date-bar .date-row{display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap}
-  .date-bar input[type=date]{font-size:16px;-webkit-appearance:none;appearance:none;padding:.42rem .55rem;border:1.5px solid #c8dede;border-radius:8px;background:#fff;color:var(--xtd);flex-shrink:1;min-width:0;max-width:160px}
+  .date-bar input[type=date]{font-size:16px!important;-webkit-appearance:none;appearance:none;padding:.42rem .55rem;border:1.5px solid #c8dede;border-radius:8px;background:#fff;color:var(--xtd);width:150px!important;max-width:150px!important;min-width:0!important;flex:0 0 150px!important}
   .date-bar .att-pill{flex-shrink:0}
   /* Knapper i 2x2 grid */
   .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
