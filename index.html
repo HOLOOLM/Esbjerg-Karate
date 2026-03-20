@@ -474,7 +474,6 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="date-row">
       <label>📅 Træningsdato</label>
       <input type="date" id="trainingDatePicker" onchange="onDateChange()" />
-      <div class="att-pill" id="attPill">0 til stede</div>
     </div>
     <div class="date-btns" style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn bg btn-sm" onclick="refreshFromCloud()">🔃 Opdater</button>
@@ -524,7 +523,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <tbody id="tbody-t"></tbody>
     </table>
     <div id="empty-t" class="empty-state" style="display:none"><div class="icon">🥋</div>Ingen resultater</div>
-    <div class="tbl-footer"><span id="tCount"></span><button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button></div>
+    <div class="tbl-footer"><button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button></div>
   </div>
 </div>
 
@@ -1319,8 +1318,7 @@ function updateStats(){
   // Attendance pill (kun aktive tæller)
   const ci=act.filter(m=>m.checkedIn).length;
   const pill=document.getElementById('attPill');
-  pill.textContent=ci+' / '+act.length+' til stede';
-  pill.className='att-pill'+(ci<act.length/2?' low':'');
+  if(pill){pill.textContent=ci+' / '+act.length+' til stede';pill.className='att-pill'+(ci<act.length/2?' low':'');}
 }
 
 /* ════════════════════════════════════════
@@ -1391,7 +1389,6 @@ function renderT(){
     body.appendChild(tr);
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
-  document.getElementById('tCount').textContent=`${vis} af ${actMembers().length} aktive medlemmer`;
   updateStats();
 }
 
