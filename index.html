@@ -349,10 +349,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-training th:nth-child(4),#page-training td:nth-child(4){display:none}
   #page-training th:nth-child(5),#page-training td:nth-child(5){display:none}
 
-  /* Alle Medlemmer: vis kun Navn, Bælte, Kontingent, Handlinger */
+  /* Alle Medlemmer: skjul Gruppe(2), Køn/Alder(3), Telefon(6) — vis Navn, Bælte, Score, Anciennitet, Kontingent, Handlinger */
   #page-members th:nth-child(2),#page-members td:nth-child(2){display:none}
   #page-members th:nth-child(3),#page-members td:nth-child(3){display:none}
-  #page-members th:nth-child(5),#page-members td:nth-child(5){display:none}
   #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
 
   /* Dashboard: vis Rang, Navn, Antal, Fremmøde% */
@@ -1202,6 +1201,8 @@ function load(){
     const av=localStorage.getItem('kk2_assessments');
     assessments=av?JSON.parse(av):[];
     nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
+    const pv=localStorage.getItem('kk2_pensum');
+    pensum=pv?JSON.parse(pv):{};
   }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; }
 }
 function save(){
@@ -1270,6 +1271,7 @@ function loadFromCloud(onDone){
       nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
       pensum=d.pensum||{};
+      localStorage.setItem('kk2_pensum',JSON.stringify(pensum));
       cloudLoaded=true;
       setSyncStatus('ok');
       migratePaymentToAuto();
