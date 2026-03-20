@@ -1316,7 +1316,12 @@ function loadFromCloud(onDone){
     cleanup();
     if(d.ok&&d.members&&d.members.length>0){
       members=d.members;
+      const _prevSessions=sessions;
       sessions=(d.sessions||[]).map(s=>({...s,date:s.date?String(s.date).slice(0,10):s.date}));
+      // Bevar lokale noter hvis cloud-versionen ikke har dem endnu (race condition ved POST→GET)
+      sessions.forEach(s=>{
+        if(!s.note){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
+      });
       cancelledDates=(d.cancelledDates||[]).map(x=>String(x).slice(0,10));
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
       const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
@@ -2002,7 +2007,7 @@ function renderHistory(){
       </div>
       ${!isFut&&!isCancelled&&saved?`<div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
       <div class="hc-nums"><span>Til stede: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>
-      ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082">📝 ${saved.note}</div>`:''}`:
+      ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${saved.note}</div>`:''}`:
       !isFut&&!isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:''}
       ${!isFut?`<button class="hc-cancel-btn${isCancelled?' active':''}" onclick="event.stopPropagation();toggleCancelled('${ds}')">${isCancelled?'↩️ Gendan træning':'🚫 Markér som aflyst'}</button>`:''}`;
     if(!isFut&&!isCancelled) card.addEventListener('click',()=>openHD(ds,date,saved));
