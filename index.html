@@ -33,7 +33,10 @@ header{background:linear-gradient(135deg,var(--td) 0%,#1a3030 100%);color:#fff;p
 .hdr-actions{display:flex;gap:.5rem;align-items:center}
 
 /* TABS */
-.nav-tabs{background:var(--tm);display:flex;padding:0 2rem;gap:4px;overflow-x:auto}
+.nav-tabs-wrap{position:relative;background:var(--tm)}
+.nav-tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,transparent,var(--tm));pointer-events:none;opacity:1;transition:opacity .25s;z-index:2}
+.nav-tabs-wrap.scrolled-end::after{opacity:0}
+.nav-tabs{background:transparent;display:flex;padding:0 2rem;gap:4px;overflow-x:auto}
 .nav-tab{padding:.72rem 1.4rem;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;display:flex;align-items:center;gap:7px;user-select:none;white-space:nowrap;flex-shrink:0}
 .nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
 .nav-tab.active{color:#fff;border-bottom-color:#7ecece}
@@ -491,7 +494,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .assess-history-comment{font-size:.8rem;color:var(--t2);margin-top:.4rem;font-style:italic}
 .score-wrap{position:relative;display:inline-block;cursor:pointer}
 .score-tip{display:none;position:fixed;background:#fff;border:1px solid #e0eded;border-radius:12px;padding:.7rem .9rem;min-width:210px;max-width:270px;box-shadow:0 6px 24px rgba(0,0,0,.13);z-index:9999;pointer-events:none;text-align:left}
-@media(hover:hover){.score-wrap:hover .score-tip{display:block}}
+@media(hover:hover){.score-wrap:hover .score-tip{display:block!important}}
 .score-tip-hdr{font-size:.7rem;font-weight:700;color:var(--xtl);margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid #edf2f2}
 .score-tip-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.12rem 0;font-size:.75rem}
 .score-tip-skill{color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -565,12 +568,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </div>
 
 <!-- TABS -->
-<nav class="nav-tabs">
+<div class="nav-tabs-wrap">
+<nav class="nav-tabs" id="mainNavTabs">
   <div class="nav-tab active" onclick="switchTab('training')" id="tab-training">🥋 Dagens træning</div>
   <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
   <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
 </nav>
+</div>
 
 <!-- ══ PAGE: TRAINING ══ -->
 <div class="page active" id="page-training">
@@ -1311,7 +1316,12 @@ function payBadge(m){
 }
 function gCell(m){
   const g=m.gender;
-  const lbl=g==='M'?'<span class="gm">♂ Mand</span>':g==='K'?'<span class="gk">♀ Kvinde</span>':'<span style="color:var(--xtl);font-size:.78rem">—</span>';
+  const age=getAge(m);
+  const under18=age!==null&&age<18;
+  let lbl;
+  if(g==='M') lbl=under18?'<span class="gm">♂ Dreng</span>':'<span class="gm">♂ Mand</span>';
+  else if(g==='K') lbl=under18?'<span class="gk">♀ Pige</span>':'<span class="gk">♀ Dame</span>';
+  else lbl='<span style="color:var(--xtl);font-size:.78rem">—</span>';
   return `<div>${lbl}</div><div style="font-size:.75rem;color:var(--xtl);margin-top:1px">${ageStr(m)}</div>`;
 }
 
@@ -1705,13 +1715,8 @@ function initApp(){
   // Load existing check-ins for today from sessions if available
   loadCheckInsForDate(currentTrainingDate);
 
-  // Year selector for history
-  const ys=document.getElementById('hYear'),cy=now.getFullYear();
-  for(let y=cy-1;y<=cy+1;y++){
-    const o=document.createElement('option');
-    o.value=y;o.textContent=y;if(y===cy)o.selected=true;
-    ys.appendChild(o);
-  }
+  // Year selector for history — bygges dynamisk og opdateres efter cloud-sync
+  rebuildHistoryYearSelector();
 
   // Settings pre-fill
   document.getElementById('setAdminEmail').value=config.adminEmail||'';
@@ -1760,6 +1765,7 @@ function migratePaymentToAuto(){
 function refreshFromCloud(){
   if(!config.scriptUrl)return;
   loadFromCloud(()=>{
+    rebuildHistoryYearSelector();
     loadCheckInsForDate(currentTrainingDate);
     renderAll();
     showToast('🔃 Fremmøde opdateret fra cloud');
@@ -2070,9 +2076,23 @@ function onAmountChange(id,val){
 /* ════════════════════════════════════════
    RENDER: HISTORY
 ════════════════════════════════════════ */
+function rebuildHistoryYearSelector(){
+  const ys=document.getElementById('hYear');
+  if(!ys) return;
+  const cy=new Date().getFullYear();
+  const fromSessions=[...new Set(sessions.map(s=>s.date?s.date.slice(0,4):null).filter(Boolean))];
+  const allYears=new Set(fromSessions);
+  // Altid inkluder cy-1, cy og cy+1 som minimum
+  for(let y=cy-1;y<=cy+1;y++) allYears.add(String(y));
+  const sorted=[...allYears].sort();
+  const prev=ys.value;
+  ys.innerHTML=sorted.map(y=>`<option value="${y}">${y}</option>`).join('');
+  ys.value=sorted.includes(prev)?prev:String(cy);
+}
+
 function renderHistory(){
   const grid=document.getElementById('hGrid');
-  const year=parseInt(document.getElementById('hYear').value);
+  const year=parseInt(document.getElementById('hYear').value)||new Date().getFullYear();
   const df=document.getElementById('hDay').value;
   const period=document.getElementById('hPeriod').value;
   const td=new Date();td.setHours(0,0,0,0);
@@ -2128,9 +2148,18 @@ function renderHistory(){
       mh.textContent=DA_M[curM].charAt(0).toUpperCase()+DA_M[curM].slice(1)+' '+year;
       grid.appendChild(mh);
     }
-    const total=actMembers(ds).length;
+    const allAct=actMembers(ds);
+    const total=allAct.length;
     const present=saved?saved.presentIds.length:0;
     const pct=total>0&&saved?Math.round(present/total*100):0;
+    // Opdel på Børnehold vs. resten
+    const boernIds=new Set(allAct.filter(m=>m.group==='Børnehold').map(m=>m.id));
+    const voksenIds=new Set(allAct.filter(m=>m.group!=='Børnehold').map(m=>m.id));
+    const boernTotal=boernIds.size, voksenTotal=voksenIds.size;
+    const boernPresent=saved?(saved.presentIds||[]).filter(id=>boernIds.has(id)).length:0;
+    const voksenPresent=saved?(saved.presentIds||[]).filter(id=>voksenIds.has(id)).length:0;
+    const boernPct=boernTotal>0&&saved?Math.round(boernPresent/boernTotal*100):0;
+    const voksenPct=voksenTotal>0&&saved?Math.round(voksenPresent/voksenTotal*100):0;
     const isCancelled=cancelledDates.includes(ds);
     const card=document.createElement('div');
     let cc='hcard';
@@ -2153,8 +2182,25 @@ function renderHistory(){
           <div class="hc-date">${date.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}</div>
         </div>${tag}
       </div>
-      ${!isCancelled&&saved?`<div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
-      <div class="hc-nums"><span>Til stede: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>
+      ${!isCancelled&&saved?`
+      <div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
+      <div class="hc-nums"><span>Samlet: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>
+      <div style="display:flex;gap:.6rem;margin-top:.55rem;flex-wrap:wrap">
+        ${boernTotal>0?`<div style="flex:1;min-width:120px;background:#eff6ff;border-radius:8px;padding:.4rem .6rem;border:1px solid #bfdbfe">
+          <div style="font-size:.68rem;font-weight:700;color:#1d4ed8;margin-bottom:.25rem">🧒 Børnehold</div>
+          <div style="display:flex;align-items:center;gap:.4rem">
+            <div style="flex:1;height:5px;background:#dbeafe;border-radius:3px;overflow:hidden"><div style="height:100%;width:${boernPct}%;background:${boernPct>=70?'#2563eb':boernPct>=40?'#60a5fa':'#93c5fd'};border-radius:3px"></div></div>
+            <span style="font-size:.72rem;font-weight:700;color:#1d4ed8;white-space:nowrap">${boernPresent}/${boernTotal} · ${boernPct}%</span>
+          </div>
+        </div>`:''}
+        ${voksenTotal>0?`<div style="flex:1;min-width:120px;background:#f0fdf4;border-radius:8px;padding:.4rem .6rem;border:1px solid #bbf7d0">
+          <div style="font-size:.68rem;font-weight:700;color:#15803d;margin-bottom:.25rem">🥋 Voksne</div>
+          <div style="display:flex;align-items:center;gap:.4rem">
+            <div style="flex:1;height:5px;background:#dcfce7;border-radius:3px;overflow:hidden"><div style="height:100%;width:${voksenPct}%;background:${voksenPct>=70?'#16a34a':voksenPct>=40?'#4ade80':'#86efac'};border-radius:3px"></div></div>
+            <span style="font-size:.72rem;font-weight:700;color:#15803d;white-space:nowrap">${voksenPresent}/${voksenTotal} · ${voksenPct}%</span>
+          </div>
+        </div>`:''}
+      </div>
       ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${saved.note}</div>`:''}`:
       !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:''}
       <button class="hc-cancel-btn${isCancelled?' active':''}" onclick="event.stopPropagation();toggleCancelled('${ds}')">${isCancelled?'↩️ Gendan træning':'🚫 Markér som aflyst'}</button>`;
@@ -3162,6 +3208,20 @@ function toggleScoreTip(e,wrap){
 }
 // Luk tips ved klik udenfor
 document.addEventListener('click',()=>document.querySelectorAll('.score-tip').forEach(t=>t.style.display='none'));
+
+// Tab scroll-gradient: skjul højre fade når man er nået til enden
+(function(){
+  const nav=document.getElementById('mainNavTabs');
+  const wrap=nav&&nav.parentElement;
+  if(!nav||!wrap)return;
+  const check=()=>{
+    const atEnd=nav.scrollLeft+nav.clientWidth>=nav.scrollWidth-4;
+    wrap.classList.toggle('scrolled-end',atEnd);
+  };
+  nav.addEventListener('scroll',check,{passive:true});
+  window.addEventListener('resize',check);
+  check();
+})();
 function scoreCell(memberId){
   const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
