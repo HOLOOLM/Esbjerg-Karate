@@ -541,17 +541,17 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </header>
 
 <!-- QUICK SEARCH OVERLAY -->
-<div id="qsOverlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,30,30,.55);backdrop-filter:blur(3px)" onclick="if(event.target===this)closeQuickSearch()">
-  <div style="background:#fff;border-radius:0 0 16px 16px;padding:1rem 1.2rem;box-shadow:0 8px 32px rgba(0,0,0,.25)">
-    <div style="display:flex;align-items:center;gap:.7rem">
+<div id="qsOverlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,30,30,.6);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeQuickSearch()">
+  <div style="background:#fff;border-radius:0 0 18px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:80vh">
+    <div style="padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;border-bottom:1.5px solid #e8f0f0;flex-shrink:0">
       <span style="font-size:1.3rem">🔍</span>
-      <input id="qsInput" type="text" placeholder="Søg navn, bælte, telefon…"
-        style="flex:1;border:none;outline:none;font-size:1rem;padding:.3rem 0;color:#1a3a3a"
+      <input id="qsInput" type="text" placeholder="Søg navn, bælte, tlf., årgang, betalt, mand, dreng…"
+        style="flex:1;border:none;outline:none;font-size:1rem;padding:.3rem 0;color:#1a3a3a;background:transparent"
         oninput="renderQS()" autocomplete="off"/>
-      <button onclick="closeQuickSearch()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#888;padding:0 .2rem">✕</button>
+      <button onclick="closeQuickSearch()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;padding:0 .2rem;line-height:1">✕</button>
     </div>
+    <div id="qsResults" style="padding:.5rem 1rem 1rem;overflow-y:auto;background:#fff;border-radius:0 0 18px 18px"></div>
   </div>
-  <div id="qsResults" style="padding:.8rem 1rem;max-height:65vh;overflow-y:auto"></div>
 </div>
 
 <!-- NOTES MODAL -->
@@ -645,6 +645,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
           <th>Køn / Alder</th>
           <th>Bælte</th>
           <th>Kontingent</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="tbody-t"></tbody>
@@ -1500,8 +1501,27 @@ function renderQS(){
   if(!q){el.innerHTML='<div style="color:#888;font-size:.85rem;text-align:center;padding:1.5rem">Begynd at skrive for at søge…</div>';return;}
   const res=members.filter(m=>{
     if(m.archived)return false;
+    // Basistjek — fejler aldrig
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
-    return nm.includes(q)||(m.email||'').toLowerCase().includes(q)||(m.belt||'').toLowerCase().includes(q)||(m.phone||'').includes(q);
+    const belt=(m.belt||'').toLowerCase();
+    const phone=(m.phone||'');
+    const email=(m.email||'').toLowerCase();
+    const birthYear=m.birthdate?String(m.birthdate).slice(0,4):'';
+    if(nm.includes(q)||belt.includes(q)||phone.includes(q)||email.includes(q)||birthYear.includes(q)) return true;
+    // Køn-label
+    try{
+      const age=getAge(m);
+      const under18=age!==null&&age<18;
+      const gLbl=m.gender==='M'?(under18?'dreng':'mand'):m.gender==='K'?(under18?'pige':'dame'):'';
+      if(gLbl.includes(q)) return true;
+    }catch(e){}
+    // Betalingsstatus — særskilt try-catch så den ikke blokerer resten
+    try{
+      const eps=effectivePaymentStatus(m);
+      const payLbl=eps==='paid'?'betalt':eps==='partial'?'delvis betalt':'ikke betalt';
+      if(payLbl.includes(q)) return true;
+    }catch(e){}
+    return false;
   });
   if(!res.length){el.innerHTML='<div style="color:#888;font-size:.85rem;text-align:center;padding:1.5rem">Ingen resultater</div>';return;}
   el.innerHTML=res.map(m=>{
@@ -1509,14 +1529,15 @@ function renderQS(){
     const eps=effectivePaymentStatus(m);
     const payColor=eps==='paid'?'#16a34a':eps==='partial'?'#d97706':'#dc2626';
     const payLabel=eps==='paid'?'✅ Betalt':eps==='partial'?'⚡ Delvis':'❌ Ikke betalt';
-    return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer" onclick="closeQuickSearch();openEditModal(${m.id})">
+    const passivBadge=m.status==='passiv'?'<span style="font-size:.65rem;background:#f3f4f6;color:#6b7280;border-radius:4px;padding:1px 5px;font-weight:600;margin-left:4px">Passiv</span>':'';
+    return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer;opacity:${m.status==='passiv'?.6:1}" onclick="closeQuickSearch();openEditModal(${m.id})">
       <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${inits(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}</div>
+        <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}${passivBadge}</div>
         <div style="font-size:.74rem;color:#666">${m.phone||'ingen tlf.'} · ${m.email||'ingen e-mail'}</div>
         <div style="font-size:.73rem;margin-top:2px"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);display:inline-block;vertical-align:middle"></span> ${m.belt}</div>
       </div>
-      <div style="font-size:.78rem;font-weight:700;color:${payColor};flex-shrink:0">${payLabel}</div>
+      <div style="font-size:.78rem;font-weight:700;color:${payColor};flex-shrink:0">${m.status==='passiv'?'':payLabel}</div>
     </div>`;
   }).join('');
 }
@@ -1899,7 +1920,10 @@ function renderT(){
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
-      <td data-col="payment">${payBadge(m)}</td>`;
+      <td data-col="payment">${payBadge(m)}</td>
+      <td style="text-align:center">
+        <button class="btn bg btn-sm" onclick="openAssessmentModal(${m.id})" title="Vurdering" style="padding:.25rem .5rem;font-size:.8rem">📋</button>
+      </td>`;
     body.appendChild(tr);
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
