@@ -489,9 +489,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .assess-history-skill{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.15rem 0}
 .assess-history-stars{color:#f59e0b;letter-spacing:.05rem}
 .assess-history-comment{font-size:.8rem;color:var(--t2);margin-top:.4rem;font-style:italic}
-.score-wrap{position:relative;display:inline-block}
+.score-wrap{position:relative;display:inline-block;cursor:pointer}
 .score-tip{display:none;position:fixed;background:#fff;border:1px solid #e0eded;border-radius:12px;padding:.7rem .9rem;min-width:210px;max-width:270px;box-shadow:0 6px 24px rgba(0,0,0,.13);z-index:9999;pointer-events:none;text-align:left}
-.score-wrap:hover .score-tip{display:block}
+@media(hover:hover){.score-wrap:hover .score-tip{display:block}}
 .score-tip-hdr{font-size:.7rem;font-weight:700;color:var(--xtl);margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid #edf2f2}
 .score-tip-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.12rem 0;font-size:.75rem}
 .score-tip-skill{color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -760,6 +760,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="stat-card"><div class="si si-b">🆕</div><div><div class="sv" id="db-newmembers">0</div><div class="sl" id="db-newmembers-lbl">Nye elever</div></div></div>
     <div class="stat-card"><div class="si si-d">👋</div><div><div class="sv" id="db-stopmembers">0</div><div class="sl" id="db-stopmembers-lbl">Stoppede elever</div></div></div>
   </div>
+
+  <!-- Holdoversigt -->
+  <div id="db-groups-box" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem"></div>
 
   <!-- Medlemsudvikling vækst-box -->
   <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
@@ -1752,7 +1755,6 @@ function migratePaymentToAuto(){
   });
   config.paymentMigrated=true;
   save(); pushToCloud();
-  showToast('✅ Betalingsstatus sat til auto-beregning for alle');
 }
 
 function refreshFromCloud(){
@@ -2489,6 +2491,22 @@ function renderDashboard(){
     const ed=m.endDate||(edVault[String(m.id)])||'';
     return ed&&ed.startsWith(yrStr);
   });
+  // Holdoversigt
+  const grpColors={'Børnehold':'#3b82f6','Normal hold':'#10b981','Avanceret':'#8b5cf6'};
+  const grpIcons={'Børnehold':'🧒','Normal hold':'🥋','Avanceret':'⭐'};
+  const grpCounts={};
+  act.forEach(m=>{const g=m.group||'Andet';grpCounts[g]=(grpCounts[g]||0)+1;});
+  const grpBox=document.getElementById('db-groups-box');
+  grpBox.innerHTML=Object.entries(grpCounts).sort((a,b)=>b[1]-a[1]).map(([g,n])=>{
+    const col=grpColors[g]||'#6b7280';
+    const icon=grpIcons[g]||'👥';
+    return `<div style="background:#fff;border-radius:12px;box-shadow:var(--sh);padding:.75rem 1.1rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid ${col};flex:1;min-width:140px">
+      <span style="font-size:1.5rem">${icon}</span>
+      <div><div style="font-size:1.6rem;font-weight:800;color:${col};line-height:1">${n}</div>
+      <div style="font-size:.72rem;color:var(--xtl);font-weight:600;margin-top:2px">${g}</div></div>
+    </div>`;
+  }).join('');
+
   document.getElementById('db-newmembers').textContent=newInYear.length;
   document.getElementById('db-stopmembers').textContent=stopInYear.length;
   document.getElementById('db-newmembers-lbl').textContent='Nye elever ('+yrStr+')';
@@ -3121,25 +3139,29 @@ function latestAssessmentAvg(memberId){
   return vals.reduce((s,v)=>s+v,0)/vals.length;
 }
 
-function posScoreTip(e){
-  const wrap=e.currentTarget;
-  const tip=wrap.querySelector('.score-tip');
-  if(!tip)return;
+function posScoreTip(wrap,tip){
   const r=wrap.getBoundingClientRect();
-  // Start over det hoverede element
   tip.style.top='auto';tip.style.bottom='auto';tip.style.left='auto';tip.style.right='auto';
-  // Placer til venstre for center, over elementet
+  const tipH=230;
   let left=r.left;
-  let top=r.top-8;
-  // Tjek om der er plads i toppen
-  const tipH=220; // estimeret højde
-  if(top-tipH<8) top=r.bottom+8; else top=r.top-tipH-4;
-  // Tjek højre kant
+  let top=r.top-tipH-4;
+  if(top<8) top=r.bottom+8;
   if(left+270>window.innerWidth-8) left=window.innerWidth-278;
   if(left<8) left=8;
   tip.style.left=left+'px';
   tip.style.top=top+'px';
 }
+function toggleScoreTip(e,wrap){
+  e.stopPropagation();
+  const tip=wrap.querySelector('.score-tip');
+  if(!tip)return;
+  const isOpen=tip.style.display==='block';
+  // Luk alle andre tips
+  document.querySelectorAll('.score-tip').forEach(t=>t.style.display='none');
+  if(!isOpen){tip.style.display='block';posScoreTip(wrap,tip);}
+}
+// Luk tips ved klik udenfor
+document.addEventListener('click',()=>document.querySelectorAll('.score-tip').forEach(t=>t.style.display='none'));
 function scoreCell(memberId){
   const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
@@ -3166,7 +3188,7 @@ function scoreCell(memberId){
     <div class="score-tip-avg" style="color:${color}">★ Gennemsnit: ${avg.toFixed(1)} / 5</div>
   </div>`;
 
-  return `<div class="score-wrap" onmouseenter="posScoreTip(event)" style="cursor:default">
+  return `<div class="score-wrap" onclick="toggleScoreTip(event,this)">
     <span style="font-weight:700;color:${color};font-size:.88rem">★ ${avg.toFixed(1)}</span>
     ${tip}
   </div>`;
