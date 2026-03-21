@@ -174,18 +174,29 @@ textarea.fta{resize:vertical;min-height:85px}
 .age-calc{font-size:.72rem;color:var(--go);font-weight:600;margin-top:2px}
 
 /* EMAIL MODAL */
-.em-toolbar{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-bottom:.8rem}
-.seg-btn{padding:.28rem .75rem;border-radius:20px;border:1.5px solid #c8dede;background:#fff;font-size:.75rem;cursor:pointer;transition:all .15s;font-weight:500;color:var(--xtm)}
-.seg-btn:hover,.seg-btn.active{background:var(--td);color:#fff;border-color:var(--td)}
-.em-chk-area{max-height:300px;overflow-y:auto;border:1.5px solid #c8dede;border-radius:10px;background:var(--mbg)}
-.em-row{display:flex;align-items:center;gap:.7rem;padding:.45rem .9rem;border-bottom:1px solid #dde8e8;cursor:pointer;transition:background .12s}
+.em-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.85rem}
+.em-tab{padding:.4rem 1rem;border-radius:22px;border:2px solid #c8dede;background:#f9fafb;font-size:.82rem;font-weight:600;cursor:pointer;color:#4b5563;transition:all .15s}
+.em-tab:hover{border-color:#6d9eeb;color:#1d4ed8}
+.em-tab.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.em-chk-area{max-height:320px;overflow-y:auto;border:1.5px solid #c8dede;border-radius:12px;background:var(--mbg);margin-bottom:.8rem}
+.em-row{display:flex;align-items:center;gap:.8rem;padding:.55rem 1rem;border-bottom:1px solid #e5eded;cursor:pointer;transition:background .1s;user-select:none}
 .em-row:last-child{border-bottom:none}
-.em-row:hover{background:#e0eeed}
-.em-row input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--td)}
-.em-name{flex:1;font-size:.84rem;font-weight:600}
-.em-sub{font-size:.74rem;color:var(--xtl)}
-.em-grp{font-size:.73rem;padding:1px 7px;border-radius:8px;background:#d0e8e8;color:var(--td);white-space:nowrap}
-.em-count{font-size:.78rem;color:var(--xtl);margin:.5rem 0 .3rem;padding:0 .2rem}
+.em-row:hover{background:#eef6f6}
+.em-row.em-selected{background:#eff6ff}
+.em-row input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:#1d4ed8;flex-shrink:0}
+.em-name{font-size:.86rem;font-weight:600;color:var(--t1)}
+.em-email{font-size:.74rem;color:var(--xtl)}
+.em-grp{font-size:.71rem;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1d4ed8;white-space:nowrap;font-weight:600}
+.em-noemail{font-size:.71rem;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#dc2626;white-space:nowrap;font-weight:600}
+.em-count{font-size:.8rem;color:var(--xtl);font-weight:500}
+.em-copy-box{background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem}
+.em-copy-label{font-size:.75rem;font-weight:700;color:#0369a1;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em}
+.em-copy-row{display:flex;gap:.5rem;align-items:center}
+.copy-field{flex:1;border:1.5px solid #bae6fd;border-radius:8px;padding:.5rem .7rem;font-size:.78rem;background:#fff;color:#0c4a6e;font-family:monospace}
+.fallback-hint{font-size:.72rem;color:#0369a1;margin-top:.45rem}
+.seg-btn{padding:.28rem .75rem;border-radius:20px;border:1.5px solid #c8dede;background:#fff;font-size:.75rem;cursor:pointer;transition:all .15s;font-weight:600;color:var(--xtm)}
+.seg-btn:hover{background:#e0eeed;border-color:#6d9eeb}
+.em-icon-btn{font-size:1rem;padding:.3rem .65rem;letter-spacing:0}
 .divider{border:none;border-top:1px solid #e0eded;margin:.85rem 0}
 
 /* HISTORY */
@@ -518,6 +529,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .meeting-card-accent{width:6px;flex-shrink:0}
 .meeting-card-accent.upcoming{background:linear-gradient(180deg,#7c3aed,#a78bfa)}
 .meeting-card-accent.past{background:linear-gradient(180deg,#6b7280,#9ca3af)}
+.meeting-card-accent.extra{background:linear-gradient(180deg,#0ea5e9,#38bdf8)}
+.meeting-card-accent.activity{background:linear-gradient(180deg,#10b981,#34d399)}
+.bm-type-btn{padding:.45rem 1rem;border-radius:8px;border:2px solid #d1d5db;background:#f9fafb;font-size:.82rem;font-weight:600;cursor:pointer;color:#374151;transition:all .15s}
+.bm-type-btn:hover{border-color:#a78bfa;background:#f5f3ff;color:#6d28d9}
+.bm-type-btn.active{border-color:#6d28d9;background:#ede9fe;color:#6d28d9}
 .meeting-card-body{flex:1;padding:1.1rem 1.3rem;min-width:0}
 .meeting-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
 .meeting-date-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;padding:.25rem .65rem;border-radius:20px;white-space:nowrap}
@@ -526,14 +542,47 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .meeting-date-badge.today{background:#fef9c3;color:#854d0e}
 .meeting-title{font-size:1rem;font-weight:700;color:var(--t1);margin:.3rem 0 .2rem}
 .meeting-attendees{font-size:.78rem;color:var(--xtl);margin-bottom:.5rem}
-.meeting-preview{font-size:.78rem;color:var(--t2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
+.meeting-preview{font-size:.78rem;color:var(--t2);line-height:1.6;max-height:4.8em;overflow:hidden;position:relative}
+.meeting-preview::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1.4em;background:linear-gradient(transparent,#fff)}
+.meeting-preview ol,.meeting-preview ul{padding-left:1.2rem;margin:0}
+.meeting-preview li{margin-bottom:.15rem}
 .meeting-actions{display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap}
 .meeting-empty{text-align:center;padding:3rem 1rem;color:var(--xtl)}
 .meeting-empty .me-icon{font-size:3rem;margin-bottom:.5rem}
 .bm-section{margin-bottom:1.2rem}
 .bm-section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--xtl);margin-bottom:.4rem}
-.bm-section-body{font-size:.88rem;color:var(--t1);line-height:1.6;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:.7rem .9rem;border:1px solid #e8f0f0}
+.bm-section-body{font-size:.88rem;color:var(--t1);line-height:1.7;background:#f8fafc;border-radius:8px;padding:.7rem .9rem;border:1px solid #e8f0f0}
+.bm-section-body ol,.bm-section-body ul{padding-left:1.4rem;margin:0}
+.bm-section-body li{margin-bottom:.25rem}
 @media(max-width:600px){.board-stats-row{grid-template-columns:1fr 1fr}.board-hero{padding:1.2rem}.board-hero h2{font-size:1.1rem}}
+
+/* GLOBAL SEARCH FULL OVERLAY */
+#globalSearchOverlay{display:none;position:fixed;inset:0;z-index:10001;background:rgba(10,30,30,.65);backdrop-filter:blur(4px);overflow-y:auto;padding:3rem 1rem 2rem}
+.gs-box{background:#fff;border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.3);max-width:680px;margin:0 auto;overflow:hidden;animation:slideUp .2s ease}
+.gs-input-row{display:flex;align-items:center;gap:.7rem;padding:1rem 1.2rem;border-bottom:2px solid #e8f0f0;background:#f9fdfb}
+.gs-input-row input{flex:1;border:none;outline:none;font-size:1.05rem;background:transparent;color:#1a3a3a}
+.gs-results{padding:.5rem 0 1rem;max-height:60vh;overflow-y:auto}
+.gs-group-hdr{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--xtl);padding:.6rem 1.2rem .3rem;margin-top:.4rem}
+.gs-item{display:flex;align-items:center;gap:.75rem;padding:.6rem 1.2rem;cursor:pointer;transition:background .12s;border-radius:0}
+.gs-item:hover{background:var(--mc)}
+.gs-item-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.gs-item-main{flex:1;min-width:0}
+.gs-item-title{font-weight:600;font-size:.88rem;color:var(--xtd)}
+.gs-item-sub{font-size:.74rem;color:var(--xtl);margin-top:1px}
+.gs-no-results{text-align:center;padding:2.5rem 1rem;color:var(--xtl);font-size:.88rem}
+
+/* ATTENDANCE MINI CHART */
+.att-mini-squares{display:flex;gap:3px;flex-wrap:wrap;margin-top:.4rem}
+.att-sq{width:18px;height:18px;border-radius:3px;display:inline-block;cursor:default;position:relative}
+.att-sq.present{background:#27ae60}
+.att-sq.absent{background:#e0eded}
+
+/* BACKUP SECTION */
+.backup-section{margin-top:1rem;padding:1rem;background:#f0faf5;border-radius:10px;border:1px solid #bbf7d0}
+.backup-section h4{font-size:.82rem;font-weight:700;color:#16a34a;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem}
+.restore-section{margin-top:.8rem;padding:1rem;background:#fff7ed;border-radius:10px;border:1px solid #fed7aa}
+.restore-section h4{font-size:.82rem;font-weight:700;color:#c2410c;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem}
+.restore-warning{font-size:.75rem;color:#9a3412;margin-bottom:.6rem;line-height:1.4}
 </style>
 </head>
 <body>
@@ -568,7 +617,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
-    <button class="btn bg btn-sm" onclick="openQuickSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Hurtigsøg">🔍</button>
+    <button class="btn bg btn-sm" onclick="openGlobalSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Global søgning">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
   </div>
 </header>
@@ -584,6 +633,22 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button onclick="closeQuickSearch()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;padding:0 .2rem;line-height:1">✕</button>
     </div>
     <div id="qsResults" style="padding:.5rem 1rem 1rem;overflow-y:auto;background:#fff;border-radius:0 0 18px 18px"></div>
+  </div>
+</div>
+
+<!-- GLOBAL SEARCH OVERLAY -->
+<div id="globalSearchOverlay" onclick="if(event.target===this)closeGlobalSearch()">
+  <div class="gs-box">
+    <div class="gs-input-row">
+      <span style="font-size:1.3rem;flex-shrink:0">🔍</span>
+      <input id="gsInput" type="text" placeholder="Søg medlemmer, sessioner, noter…" autocomplete="off"
+        oninput="renderGlobalSearch()"
+        onkeydown="if(event.key==='Escape')closeGlobalSearch()"/>
+      <button onclick="closeGlobalSearch()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#aaa;padding:0;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div class="gs-results" id="gsResults">
+      <div class="gs-no-results" style="color:var(--xtl)">Begynd at skrive for at søge…</div>
+    </div>
   </div>
 </div>
 
@@ -607,7 +672,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
   <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
-  <div class="nav-tab" onclick="switchTab('board')" id="tab-board">🏛️ Bestyrelse</div>
+  <div class="nav-tab" onclick="switchTab('board')" id="tab-board">📒 Interne notater</div>
 </nav>
 </div>
 
@@ -649,7 +714,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="controls">
       <input class="sbx" type="text" id="tsearch" placeholder="🔍 Søg navn…" oninput="renderT()"/>
       <select class="fs" id="tfc" onchange="renderT()">
-        <option value="all">Alle fremmøde</option>
+        <option value="all">Alle</option>
         <option value="in">Til stede</option>
         <option value="out">Fraværende</option>
       </select>
@@ -762,7 +827,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option value="overdue">Overskredet</option>
       </select>
       <button class="btn bp btn-sm" onclick="openAddModal()">➕ Nyt medlem</button>
-      <button class="btn bb btn-sm" onclick="openEmailModal()">✉️ E-mail</button>
+      <button class="btn bb btn-sm em-icon-btn" onclick="openEmailModal()" title="Send e-mail til medlemmer">✉️</button>
       <button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button>
     </div>
   </div>
@@ -823,6 +888,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
   <!-- Longest streak banner -->
   <div id="db-streak-banner" style="display:none;margin-bottom:1.2rem"></div>
+
+  <!-- Fødselsdagsoverblik -->
+  <div id="db-birthday-card" style="display:none;margin-bottom:1.2rem"></div>
 
   <!-- Medlemsudvikling vækst-box -->
   <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
@@ -923,19 +991,20 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ PAGE: BESTYRELSE ══ -->
 <div class="page" id="page-board">
   <div class="board-hero">
-    <h2>Esbjerg Shuri-Ryu Karate — Bestyrelse</h2>
-    <p>Bestyrelsesmøder, referater og beslutninger</p>
+    <h2>Esbjerg Shuri-Ryu Karate — Interne notater</h2>
+    <p>Bestyrelsesmøder, ekstra træninger, aktiviteter og referater</p>
   </div>
   <div class="board-stats-row">
-    <div class="board-stat"><div class="bsv" id="brd-total">0</div><div class="bsl">Møder i alt</div></div>
-    <div class="board-stat"><div class="bsv" id="brd-year">0</div><div class="bsl">Møder i år</div></div>
-    <div class="board-stat" style="border-top-color:#10b981"><div class="bsv" style="color:#10b981" id="brd-next">—</div><div class="bsl">Næste møde</div></div>
+    <div class="board-stat"><div class="bsv" id="brd-total">0</div><div class="bsl">Bestyrelsesmøder i alt</div></div>
+    <div class="board-stat"><div class="bsv" id="brd-year">0</div><div class="bsl">Bestyrelsesmøder i år</div></div>
+    <div class="board-stat" style="border-top-color:#10b981"><div class="bsv" style="color:#10b981" id="brd-next">—</div><div class="bsl">Næste bestyrelsesmøde</div></div>
   </div>
   <div id="brd-days-banner" style="display:none;align-items:center;border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.2rem"></div>
   <div class="sh">
-    <div class="st">🗓️ Bestyrelsesmøder</div>
+    <div class="st">🗓️ Alle noter</div>
     <div class="controls">
-      <button class="btn bp" onclick="openBoardModal()">+ Nyt møde</button>
+      <button class="btn bb em-icon-btn" onclick="openEmailModal()" title="Send e-mail til medlemmer">✉️</button>
+      <button class="btn bp" onclick="openBoardModal()">+ Ny notat</button>
     </div>
   </div>
   <div id="boardMeetingsList"></div>
@@ -945,11 +1014,19 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <div class="mbd" id="boardModal">
   <div class="modal" style="max-width:580px">
     <div class="mh">
-      <div class="mtitle-left"><span>🏛️</span><span id="boardModalTitle">Nyt bestyrelsesmøde</span></div>
+      <div class="mtitle-left"><span id="boardModalIcon">🏛️</span><span id="boardModalTitle">Ny notat</span></div>
       <button class="mclose" onclick="closeModal('boardModal')">✕</button>
     </div>
-    <div class="fgrp"><label>Dato for møde</label><input type="date" id="bmDate"/></div>
-    <div class="fgrp"><label>Mødetitel</label><input type="text" id="bmTitle" placeholder="f.eks. Bestyrelsesmøde marts 2026"/></div>
+    <div class="fgrp">
+      <label>Type</label>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button type="button" class="bm-type-btn active" id="bmt-board" onclick="setBoardType('Bestyrelsesmøde')">🏛️ Bestyrelsesmøde</button>
+        <button type="button" class="bm-type-btn" id="bmt-extra" onclick="setBoardType('Ekstra træning')">🥋 Ekstra træning</button>
+        <button type="button" class="bm-type-btn" id="bmt-act" onclick="setBoardType('Aktivitet')">🎯 Aktivitet</button>
+      </div>
+    </div>
+    <div class="fgrp"><label>Dato</label><input type="date" id="bmDate"/></div>
+    <div class="fgrp"><label>Titel</label><input type="text" id="bmTitle" placeholder="f.eks. Bestyrelsesmøde marts 2026"/></div>
     <div class="fgrp"><label>Deltagere</label><input type="text" id="bmAttendees" placeholder="f.eks. Jonas Holm, Lars Hansen, Marie Nielsen"/></div>
     <div class="fgrp"><label>Dagsorden</label><textarea id="bmAgenda" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="1. Godkendelse af referat&#10;2. Økonomi&#10;3. Kommende stævner&#10;4. Eventuelt"></textarea></div>
     <div class="fgrp"><label>Referat / noter</label><textarea id="bmNotes" rows="6" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv referat og beslutninger her…"></textarea></div>
@@ -1062,6 +1139,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <div class="age-hint" id="fPAY_hint"></div>
       </div>
     </div>
+    <div id="memberAttendanceSection" style="display:none;margin-top:1rem;padding:.85rem 1rem;background:#f0faf5;border-radius:10px;border:1px solid #bbf7d0"></div>
     <div class="ma">
       <button class="btn bg" onclick="closeModal('memberModal')">Annuller</button>
       <button class="btn bp" onclick="saveMember()">💾 Gem</button>
@@ -1073,40 +1151,76 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <div class="mbd" id="emailModal">
   <div class="modal modal-lg">
     <div class="mtitle">
-      <div class="mtitle-left"><span>✉️</span><span>Send e-mail til medlemmer</span></div>
+      <div class="mtitle-left"><span>✉️</span><span>E-mailliste</span></div>
       <button class="mclose" onclick="closeModal('emailModal')">✕</button>
     </div>
-    <div style="font-size:.8rem;font-weight:700;margin-bottom:.5rem;color:var(--xtm);text-transform:uppercase;letter-spacing:.5px">Hurtigvalg:</div>
-    <div class="em-toolbar">
-      <button class="seg-btn" onclick="emailQuick('all')">Alle</button>
-      <button class="seg-btn" onclick="emailQuick('none')">Ingen</button>
-      <button class="seg-btn" onclick="emailQuick('unpaid')">Ikke betalt</button>
-      <button class="seg-btn" onclick="emailQuick('partial')">Delvis betalt</button>
-      <button class="seg-btn" onclick="emailQuick('overdue')">Overskredet</button>
-      <button class="seg-btn" onclick="emailQuick('absent')">Fraværende i dag</button>
-      <button class="seg-btn" onclick="emailQuick('present')">Til stede i dag</button>
-      <button class="seg-btn" onclick="emailQuick('Børnehold')">Børnehold</button>
-      <button class="seg-btn" onclick="emailQuick('Basis-hold')">Basis-hold</button>
-      <button class="seg-btn" onclick="emailQuick('Avanceret')">Avanceret</button>
+
+    <!-- Hold-filter tabs -->
+    <div class="em-tabs">
+      <button class="em-tab active" id="emtab-all"      onclick="setEmailGroup('all')">Alle hold</button>
+      <button class="em-tab"        id="emtab-born"     onclick="setEmailGroup('Børnehold')">🧒 Børnehold</button>
+      <button class="em-tab"        id="emtab-basis"    onclick="setEmailGroup('Basis-hold')">🥋 Basis-hold</button>
+      <button class="em-tab"        id="emtab-avan"     onclick="setEmailGroup('Avanceret')">⭐ Avanceret</button>
     </div>
-    <div class="em-count" id="emCount"></div>
-    <div class="em-chk-area" id="emList"></div>
-    <hr class="divider"/>
-    <div class="fg">
-      <div class="fgrp full"><label>Emne</label><input type="text" id="eSub" placeholder="f.eks. Husk kontingent for 2026"/></div>
-      <div class="fgrp full"><label>Besked (valgfrit — åbner dit e-mailprogram)</label><textarea class="fta" id="eBody" placeholder="Skriv din besked her…"></textarea></div>
-    </div>
-    <div id="emailFallback">
-      <div style="font-size:.78rem;font-weight:700;color:var(--xtm);margin-bottom:.4rem">📋 Kopier adresser til Outlook / Gmail (BCC):</div>
-      <div class="copy-row">
-        <input type="text" id="emailCopyField" readonly class="copy-field"/>
-        <button class="btn bs btn-sm" onclick="copyEmails()">📋 Kopier</button>
+
+    <!-- Bæltefilter + vælg alle/ingen -->
+    <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem">
+      <select id="emAgeFilter" onchange="buildEmailList()" style="border:1.5px solid #c8dede;border-radius:8px;padding:.3rem .6rem;font-size:.78rem;color:var(--t2);background:#fff;cursor:pointer;min-width:110px">
+        <option value="">Alle aldre</option>
+        <option value="under18">Under 18 år</option>
+        <option value="18plus">18 år og over</option>
+      </select>
+      <select id="emBeltFilter" onchange="buildEmailList()" style="border:1.5px solid #c8dede;border-radius:8px;padding:.3rem .6rem;font-size:.78rem;color:var(--t2);background:#fff;cursor:pointer;flex:1;min-width:140px">
+        <option value="">Alle bælter</option>
+        <option>10. Kyu (Hvidt)</option>
+        <option>9. Kyu (1 Snip)</option>
+        <option>8. Kyu (2 Snip)</option>
+        <option>7. Kyu (Gult)</option>
+        <option>6. Kyu (Blåt)</option>
+        <option>5. Kyu (Grønt)</option>
+        <option>4. Kyu (Violet)</option>
+        <option>3. Kyu (Brunt)</option>
+        <option>2. Kyu (Brunt + 1 Snip)</option>
+        <option>1. Kyu (Brunt + 2 Snip)</option>
+        <option>1. Dan (Sort)</option>
+        <option>2. Dan (Sort)</option>
+        <option>3. Dan (Sort)</option>
+      </select>
+      <div class="em-count" id="emCount" style="margin:0;flex:1"></div>
+      <div style="display:flex;gap:.4rem">
+        <button class="seg-btn" onclick="emailSelectVisible(true)">✓ Alle</button>
+        <button class="seg-btn" onclick="emailSelectVisible(false)">✗ Ingen</button>
       </div>
-      <div class="fallback-hint">Indsæt i BCC-feltet — så modtagerne ikke ser hinandens adresser.</div>
     </div>
+
+    <!-- Medlemsliste -->
+    <div class="em-chk-area" id="emList"></div>
+
+    <!-- Kopier-felt — altid synligt -->
+    <div class="em-copy-box">
+      <div class="em-copy-label">📋 E-mailadresser (BCC-klar)</div>
+      <div class="em-copy-row">
+        <input type="text" id="emailCopyField" readonly class="copy-field" placeholder="Vælg medlemmer ovenfor…"/>
+        <button class="btn bp" onclick="copyEmails()" id="emCopyBtn">Kopier</button>
+      </div>
+      <div class="fallback-hint">Indsæt i BCC-feltet i Outlook eller Gmail — modtagerne ser ikke hinanden.</div>
+    </div>
+
+    <!-- Emne + besked (vises kun når åbnet fra et notat) -->
+    <div id="emMessageBox" style="display:none">
+      <div style="font-size:.75rem;font-weight:700;color:var(--xtm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">✉️ E-mailindhold</div>
+      <div class="fgrp" style="margin-bottom:.5rem">
+        <label style="font-size:.78rem">Emne</label>
+        <input type="text" id="eSub" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.5rem .7rem;font-size:.85rem;box-sizing:border-box"/>
+      </div>
+      <div class="fgrp" style="margin-bottom:.3rem">
+        <label style="font-size:.78rem">Besked</label>
+        <textarea id="eBody" rows="8" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.6rem .7rem;font-size:.82rem;resize:vertical;font-family:inherit;box-sizing:border-box;line-height:1.5"></textarea>
+      </div>
+    </div>
+
     <div class="ma">
       <button class="btn bg" onclick="closeModal('emailModal')">Luk</button>
-      <button class="btn bg" onclick="showEmailFallback()">📋 Kopier adresser</button>
       <button class="btn bb" onclick="sendEmails()">✉️ Åbn e-mailprogram</button>
     </div>
   </div>
@@ -1237,6 +1351,24 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div style="font-size:.78rem;color:#bf360c;margin-bottom:.6rem">Nulstiller <strong>betalt beløb</strong> og <strong>betalingsstatus</strong> for alle aktive medlemmer. Kan ikke fortrydes.</div>
       <button class="btn btn-sm" style="background:#e65100;color:#fff;border:none" onclick="resetHalvaar()">🔄 Start nyt halvår</button>
     </div>
+
+    <!-- Backup & Gendannelse -->
+    <div style="margin-top:1rem;border-top:2px solid #e8f0f0;padding-top:1rem">
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--xtl);margin-bottom:.7rem">💾 Backup &amp; Gendannelse</div>
+      <div class="backup-section">
+        <h4>💾 Download backup</h4>
+        <div style="font-size:.75rem;color:#166534;margin-bottom:.6rem">Eksporter alle data (medlemmer, sessioner, notater m.m.) som en JSON-fil til sikker opbevaring.</div>
+        <button class="btn btn-sm bs" onclick="downloadBackup()">⬇️ Download backup</button>
+      </div>
+      <div class="restore-section">
+        <h4>📂 Gendan fra fil</h4>
+        <div class="restore-warning">⚠️ <strong>Advarsel:</strong> Gendannelse overskriver alle nuværende data (medlemmer, sessioner, notater og indstillinger). Denne handling kan ikke fortrydes.</div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <input type="file" id="restoreFileInput" accept=".json" style="font-size:.78rem;flex:1;min-width:0" onchange="handleRestoreFile(this)"/>
+        </div>
+      </div>
+    </div>
+
     <div class="ma">
       <button class="btn bg" onclick="closeModal('settingsModal')">Luk</button>
       <button class="btn bp" onclick="saveSettings()">💾 Gem</button>
@@ -1355,6 +1487,29 @@ let config={adminEmail:'', clubEmail:'holmoos@mail.dk', scriptUrl:'https://scrip
 function localDate(d){
   const x=d||new Date();
   return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+}
+function parseDateSafe(val){
+  // Håndterer alle datoformater robust — returnerer Date-objekt eller null
+  if(!val) return null;
+  const s=String(val).trim();
+  // Standard YYYY-MM-DD
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]),12,0,0);
+  // DD/MM/YYYY
+  const m2=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m2) return new Date(parseInt(m2[3]),parseInt(m2[2])-1,parseInt(m2[1]),12,0,0);
+  return null;
+}
+function formatDateDK(val, opts){
+  const d=parseDateSafe(val);
+  if(!d) return 'Ukendt dato';
+  return d.toLocaleDateString('da-DK', opts||{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function normDateStr(val){
+  // Returnerer altid 'YYYY-MM-DD' streng eller ''
+  const d=parseDateSafe(val);
+  if(!d) return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 let currentTrainingDate = localDate();
 
@@ -1495,6 +1650,7 @@ function load(){
     pensum=pv?JSON.parse(pv):{};
     const bv=localStorage.getItem('kk2_board');
     boardMeetings=bv?JSON.parse(bv):[];
+    boardMeetings.forEach(b=>{ b.date=normDateStr(b.date); });
     nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
   }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; }
 }
@@ -1591,8 +1747,18 @@ function loadFromCloud(onDone){
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
       pensum=d.pensum||{};
       localStorage.setItem('kk2_pensum',JSON.stringify(pensum));
-      if(d.boardMeetings&&d.boardMeetings.length>0){
-        boardMeetings=d.boardMeetings.map(b=>({...b,date:b.date?String(b.date).slice(0,10):b.date}));
+      // Bestyrelse: hent fra Sheets KUN hvis svaret eksplicit indeholder boardMeetings
+      // (undefined = gammelt apps-script uden boardMeetings support → bevar lokale data)
+      if(Array.isArray(d.boardMeetings)){
+        boardMeetings=d.boardMeetings.map(b=>({
+          ...b,
+          date:normDateStr(b.date),
+          type:b.type?String(b.type):'Bestyrelsesmøde',
+          title:b.title?String(b.title):'',
+          attendees:b.attendees?String(b.attendees):'',
+          agenda:b.agenda?String(b.agenda):'',
+          notes:b.notes?String(b.notes):''
+        }));
         nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
         localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
       }
@@ -1672,6 +1838,117 @@ function renderQS(){
       <div style="font-size:.78rem;font-weight:700;color:${payColor};flex-shrink:0">${m.status==='passiv'?'':payLabel}</div>
     </div>`;
   }).join('');
+}
+
+/* ════════════════════════════════════════
+   GLOBAL SØGNING
+════════════════════════════════════════ */
+function openGlobalSearch(){
+  const overlay=document.getElementById('globalSearchOverlay');
+  overlay.style.display='block';
+  setTimeout(()=>{ const inp=document.getElementById('gsInput'); if(inp){ inp.value=''; inp.focus(); } },60);
+  renderGlobalSearch();
+}
+function closeGlobalSearch(){
+  document.getElementById('globalSearchOverlay').style.display='none';
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    const ov=document.getElementById('globalSearchOverlay');
+    if(ov&&ov.style.display==='block') closeGlobalSearch();
+  }
+});
+function renderGlobalSearch(){
+  const q=(document.getElementById('gsInput').value||'').toLowerCase().trim();
+  const el=document.getElementById('gsResults');
+  if(!q){ el.innerHTML='<div class="gs-no-results">Begynd at skrive for at søge…</div>'; return; }
+
+  let html='';
+  let totalResults=0;
+
+  // 1. Medlemmer
+  const mRes=members.filter(m=>{
+    if(m.archived) return false;
+    const nm=(m.firstName+' '+m.lastName).toLowerCase();
+    const belt=(m.belt||'').toLowerCase();
+    const email=(m.email||'').toLowerCase();
+    const grp=(m.group||'').toLowerCase();
+    return nm.includes(q)||belt.includes(q)||email.includes(q)||grp.includes(q);
+  }).slice(0,8);
+  if(mRes.length){
+    totalResults+=mRes.length;
+    html+=`<div class="gs-group-hdr">👥 Medlemmer (${mRes.length})</div>`;
+    html+=mRes.map(m=>{
+      const bc=BC[m.belt]||'#ccc';
+      const passivBadge=m.status==='passiv'?'<span style="font-size:.65rem;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 5px;margin-left:4px">Passiv</span>':'';
+      return `<div class="gs-item" onclick="closeGlobalSearch();switchTab('members');setTimeout(()=>openEditModal(${m.id}),80)">
+        <div class="gs-item-icon" style="background:var(--mbg)">${(() => { const cl=avClass(m.group); return `<div class="av ${cl}" style="width:30px;height:30px;font-size:.7rem">${inits(m)}</div>`; })()}</div>
+        <div class="gs-item-main">
+          <div class="gs-item-title">${m.firstName} ${m.lastName}${passivBadge}</div>
+          <div class="gs-item-sub"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);width:16px;height:5px;display:inline-block;vertical-align:middle;margin-right:3px"></span>${m.belt} · ${m.group}</div>
+        </div>
+        <span style="font-size:.72rem;color:var(--xtl)">→</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 2. Sessioner / træninger
+  const sRes=sessions.filter(s=>{
+    if(!s.date) return false;
+    const dateStr=(s.date||'').toLowerCase();
+    const note=(s.note||'').toLowerCase();
+    const dkDate=new Date(s.date+'T12:00:00').toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toLowerCase();
+    return dateStr.includes(q)||note.includes(q)||dkDate.includes(q);
+  }).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  if(sRes.length){
+    totalResults+=sRes.length;
+    html+=`<div class="gs-group-hdr">📅 Træninger (${sRes.length})</div>`;
+    html+=sRes.map(s=>{
+      const d=new Date(s.date+'T12:00:00');
+      const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const noteSnippet=s.note?`<span style="color:var(--xtl)"> · 📝 ${s.note.slice(0,50)}${s.note.length>50?'…':''}</span>`:'';
+      return `<div class="gs-item" onclick="closeGlobalSearch();switchTab('history')">
+        <div class="gs-item-icon" style="background:#e8f0ff;border-radius:8px">📅</div>
+        <div class="gs-item-main">
+          <div class="gs-item-title">${dateStr}</div>
+          <div class="gs-item-sub">${(s.presentIds||[]).length} til stede${noteSnippet}</div>
+        </div>
+        <span style="font-size:.72rem;color:var(--xtl)">→</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 3. Interne notater / bestyrelsesmøder
+  const bRes=boardMeetings.filter(b=>{
+    const title=(b.title||'').toLowerCase();
+    const notes=(b.notes||'').toLowerCase();
+    const agenda=(b.agenda||'').toLowerCase();
+    const attendees=(b.attendees||'').toLowerCase();
+    const type=(b.type||'').toLowerCase();
+    return title.includes(q)||notes.includes(q)||agenda.includes(q)||attendees.includes(q)||type.includes(q);
+  }).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  if(bRes.length){
+    totalResults+=bRes.length;
+    html+=`<div class="gs-group-hdr">📒 Interne notater (${bRes.length})</div>`;
+    html+=bRes.map(b=>{
+      const ti=boardTypeInfo(b.type||'Bestyrelsesmøde');
+      const dateStr=b.date?new Date(b.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}):'';
+      return `<div class="gs-item" onclick="closeGlobalSearch();switchTab('board');setTimeout(()=>openBoardDetail(${b.id}),80)">
+        <div class="gs-item-icon" style="background:${ti.bg};border-radius:8px;font-size:1rem">${ti.icon}</div>
+        <div class="gs-item-main">
+          <div class="gs-item-title">${b.title||ti.label}</div>
+          <div class="gs-item-sub">${ti.label}${dateStr?' · '+dateStr:''}</div>
+        </div>
+        <span style="font-size:.72rem;color:var(--xtl)">→</span>
+      </div>`;
+    }).join('');
+  }
+
+  if(!totalResults){
+    el.innerHTML=`<div class="gs-no-results">Ingen resultater for "<strong>${q}</strong>"</div>`;
+    return;
+  }
+  el.innerHTML=html;
 }
 
 /* ════════════════════════════════════════
@@ -1776,6 +2053,75 @@ function updateBirthdayBanner(){
     else lbl=`<span style="color:#94a3b8">fyldte ${m._age} for ${Math.abs(m._diff)} dage siden</span>`;
     return `<strong>${m.firstName} ${m.lastName}</strong> ${lbl}`;
   }).join(' &nbsp;·&nbsp; ');
+}
+
+/* ════════════════════════════════════════
+   DASHBOARD FØDSELSDAG WIDGET
+════════════════════════════════════════ */
+function renderDashboardBirthdays(){
+  const card=document.getElementById('db-birthday-card');
+  if(!card) return;
+  const today=new Date(); today.setHours(0,0,0,0);
+  // Find members with birthday in the next 14 days (0..14)
+  const upcoming=members.filter(m=>{
+    if(m.archived||m.status==='passiv'||!m.birthdate) return false;
+    const raw=String(m.birthdate).slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return false;
+    const bd=new Date(raw+'T12:00:00');
+    if(isNaN(bd.getTime())) return false;
+    for(let y=today.getFullYear();y<=today.getFullYear()+1;y++){
+      const bday=new Date(y,bd.getMonth(),bd.getDate());
+      const diff=Math.round((bday-today)/86400000);
+      if(diff>=0&&diff<=14) return true;
+    }
+    return false;
+  }).map(m=>{
+    const bd=new Date(String(m.birthdate).slice(0,10)+'T12:00:00');
+    let bestDiff=999, bestAge=0;
+    for(let y=today.getFullYear();y<=today.getFullYear()+1;y++){
+      const bday=new Date(y,bd.getMonth(),bd.getDate());
+      const diff=Math.round((bday-today)/86400000);
+      if(diff>=0&&diff<bestDiff){ bestDiff=diff; bestAge=y-bd.getFullYear(); }
+    }
+    return {...m,_diff:bestDiff,_age:bestAge};
+  }).sort((a,b)=>a._diff-b._diff);
+
+  if(!upcoming.length){
+    card.style.display='block';
+    card.innerHTML=`<div style="background:#fff;border-radius:14px;box-shadow:var(--sh);padding:1rem 1.4rem;border-left:4px solid #2dd4bf;display:flex;align-items:center;gap:1rem">
+      <div style="font-size:1.6rem">🎂</div>
+      <div style="flex:1">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#14b8a6;margin-bottom:2px">Kommende fødselsdage</div>
+        <div style="font-size:.85rem;color:var(--xtl)">Ingen fødselsdage de næste 14 dage</div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const rows=upcoming.map(m=>{
+    const bc=BC[m.belt]||'#ccc';
+    const beltBadge=`<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:10px;background:${bc};color:${bc==='#f7e040'||bc==='#e8e8e8'||bc==='#e0e0e0'||bc==='#d0d0d0'?'#333':'#fff'};border:1px solid rgba(0,0,0,.1)">${m.belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim()}</span>`;
+    let when;
+    if(m._diff===0) when='<strong style="color:#16a34a">I dag! 🎉</strong>';
+    else if(m._diff===1) when='<span style="color:#d97706">I morgen</span>';
+    else when=`<span style="color:#2c4a4a">Om ${m._diff} dage</span>`;
+    const dateObj=new Date(String(m.birthdate).slice(0,10)+'T12:00:00');
+    const dateStr=dateObj.toLocaleDateString('da-DK',{day:'numeric',month:'long'});
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid #f0f9f7">
+      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${inits(m)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName} <span style="font-size:.75rem;color:var(--xtl);font-weight:400">fylder ${m._age}</span></div>
+        <div style="font-size:.74rem;color:var(--xtl);margin-top:1px">${dateStr} · ${beltBadge}</div>
+      </div>
+      <div style="font-size:.82rem;flex-shrink:0">${when}</div>
+    </div>`;
+  }).join('');
+
+  card.style.display='block';
+  card.innerHTML=`<div style="background:#fff;border-radius:14px;box-shadow:var(--sh);padding:1.2rem 1.5rem;border-left:4px solid #2dd4bf">
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#14b8a6;margin-bottom:.8rem;display:flex;align-items:center;gap:.4rem">🎂 Kommende fødselsdage (næste 14 dage) <span style="background:#ccfbf1;color:#0d9488;border-radius:10px;padding:1px 8px;font-size:.68rem">${upcoming.length}</span></div>
+    <div>${rows}</div>
+  </div>`;
 }
 
 /* ════════════════════════════════════════
@@ -2098,13 +2444,32 @@ function renderM(){
     vis++;
     const isPassive=(m.status==='passiv');
     const bc=BC[m.belt]||'#ccc';
+    // Beregn fraværsadvarsel for aktive (ikke passive) medlemmer
+    let absWarning='';
+    if(!isPassive){
+      const todayMs=new Date().setHours(0,0,0,0);
+      // Find seneste session hvor dette medlem var til stede
+      const attendedSessions=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
+      let daysSinceLastAttendance=null;
+      if(attendedSessions.length>0){
+        const latestDate=attendedSessions.map(s=>s.date).sort().pop();
+        const latestMs=new Date(latestDate+'T12:00:00').setHours(0,0,0,0);
+        daysSinceLastAttendance=Math.round((todayMs-latestMs)/86400000);
+      } else if(m.startDate){
+        const startMs=new Date(m.startDate+'T12:00:00').setHours(0,0,0,0);
+        daysSinceLastAttendance=Math.round((todayMs-startMs)/86400000);
+      }
+      if(daysSinceLastAttendance!==null&&daysSinceLastAttendance>=30){
+        absWarning=`<span title="Ikke set i ${daysSinceLastAttendance} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`;
+      }
+    }
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
     if(isPassive)tr.className='passive-row';
     tr.innerHTML=`
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${inits(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
@@ -2844,6 +3209,9 @@ function renderDashboard(){
     streakBanner.style.display='none';
   }
 
+  // Fødselsdagsoverblik på dashboard
+  renderDashboardBirthdays();
+
   let vis=0;
   rows.forEach((m,i)=>{
     const c=counts[m.id]||0;
@@ -3088,6 +3456,8 @@ function openAddModal(){
   document.getElementById('fAGE').readOnly=false;
   document.getElementById('ageHint').style.display='';
   document.getElementById('ageCalc').style.display='none';
+  const _attSec=document.getElementById('memberAttendanceSection');
+  if(_attSec) _attSec.style.display='none';
   openModal('memberModal');
 }
 function openEditModal(id){
@@ -3118,6 +3488,7 @@ function openEditModal(id){
   document.getElementById('fCN').value=m.contactName||'';
   document.getElementById('fCP').value=m.contactPhone||'';
   updateAgePreview();
+  renderMemberAttendanceSection(id);
   openModal('memberModal');
 }
 function updateAgePreview(){
@@ -3160,6 +3531,64 @@ function saveMember(){
     showToast('✅ '+fn+' '+ln+' oprettet');
   }
   save();closeModal('memberModal');renderAll();
+}
+
+/* ════════════════════════════════════════
+   FREMMØDEHISTORIK — MEMBER MODAL
+════════════════════════════════════════ */
+function renderMemberAttendanceSection(memberId){
+  const el=document.getElementById('memberAttendanceSection');
+  if(!el) return;
+  const m=members.find(x=>x.id===memberId);
+  if(!m){ el.style.display='none'; return; }
+
+  // Sessions where this member was active (check startDate/endDate window)
+  const allSorted=[...sessions].filter(s=>s.date).sort((a,b)=>a.date<b.date?-1:1);
+  const attended=new Set(sessions.filter(s=>(s.presentIds||[]).includes(memberId)&&s.date).map(s=>s.date));
+  const total=allSorted.length;
+  const totalAttended=attended.size;
+
+  // Last seen
+  const attendedDates=[...attended].sort();
+  const lastSeenDate=attendedDates.length?attendedDates[attendedDates.length-1]:null;
+  const lastSeenStr=lastSeenDate?new Date(lastSeenDate+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}):'Aldrig set';
+
+  // Last 12 sessions mini chart
+  const last12=allSorted.slice(-12);
+  const squares=last12.map(s=>{
+    const p=attended.has(s.date);
+    const d=new Date(s.date+'T12:00:00');
+    const dateStr=d.toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
+    return `<span class="att-sq ${p?'present':'absent'}" title="${dateStr}: ${p?'Til stede':'Fraværende'}"></span>`;
+  }).join('');
+
+  // Last 3 months attendance %
+  const now=new Date(); now.setHours(0,0,0,0);
+  const threeMonthsAgo=new Date(now); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth()-3);
+  const tmaStr=localDate(threeMonthsAgo);
+  const recent3Sess=allSorted.filter(s=>s.date>=tmaStr);
+  const recent3Attended=recent3Sess.filter(s=>attended.has(s.date)).length;
+  const pct3=recent3Sess.length>0?Math.round(recent3Attended/recent3Sess.length*100):null;
+
+  el.style.display='block';
+  el.innerHTML=`
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#16a34a;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem">📊 Fremmødehistorik</div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
+      <div style="background:#fff;border-radius:8px;padding:.45rem .75rem;border:1px solid #d1fae5;flex:1;min-width:90px;text-align:center">
+        <div style="font-size:1.2rem;font-weight:800;color:#16a34a;line-height:1">${totalAttended}</div>
+        <div style="font-size:.65rem;color:var(--xtl);margin-top:2px">Træninger i alt</div>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:.45rem .75rem;border:1px solid #d1fae5;flex:1;min-width:90px;text-align:center">
+        <div style="font-size:1.2rem;font-weight:800;color:${pct3===null?'var(--xtl)':pct3>=70?'#16a34a':pct3>=40?'#d97706':'#dc2626'};line-height:1">${pct3===null?'—':pct3+'%'}</div>
+        <div style="font-size:.65rem;color:var(--xtl);margin-top:2px">Seneste 3 mdr.</div>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:.45rem .75rem;border:1px solid #d1fae5;flex:2;min-width:130px">
+        <div style="font-size:.72rem;font-weight:600;color:var(--xtm)">Sidst set</div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--td);margin-top:2px">${lastSeenStr}</div>
+      </div>
+    </div>
+    <div style="font-size:.68rem;color:var(--xtl);margin-bottom:.3rem">Seneste ${last12.length} træninger (grøn = til stede)</div>
+    <div class="att-mini-squares">${squares}</div>`;
 }
 
 /* ════════════════════════════════════════
@@ -3256,79 +3685,221 @@ function restoreMember(id){
 /* ════════════════════════════════════════
    EMAIL MODAL
 ════════════════════════════════════════ */
-function openEmailModal(){
-  buildEmailList(members.filter(m=>!m.archived));
-  document.getElementById('eSub').value='';
-  document.getElementById('eBody').value='';
-  document.getElementById('emailFallback').style.display='none';
+let _emailGroup='all';
+let _emailSubject='';
+let _emailBody='';
+
+function openEmailModal(preGroup){
+  _emailGroup=preGroup||'all';
+  _emailSubject='';
+  _emailBody='';
+  document.getElementById('emMessageBox').style.display='none';
+  const bf=document.getElementById('emBeltFilter');
+  if(bf) bf.value='';
+  const af=document.getElementById('emAgeFilter');
+  if(af) af.value='';
+  renderEmailTabs();
+  buildEmailList();
   openModal('emailModal');
 }
-function buildEmailList(subset){
+
+function emailFromBoard(id){
+  const b=boardMeetings.find(x=>x.id===id);
+  if(!b) return;
+  const type=b.type||'Bestyrelsesmøde';
+  const ti=boardTypeInfo(type);
+  const dateStr=b.date?formatDateDK(b.date,{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';
+
+  // Byg emne
+  let subject='';
+  if(type==='Bestyrelsesmøde') subject=`Referat: ${b.title||'Bestyrelsesmøde'}${dateStr?' — '+dateStr:''}`;
+  else if(type==='Ekstra træning') subject=`${b.title||'Ekstra træning'}${dateStr?' — '+dateStr:''}`;
+  else subject=`${b.title||'Aktivitet'}${dateStr?' — '+dateStr:''}`;
+
+  // Byg brødtekst
+  let body='';
+  const greeting='Kære alle,\n\n';
+  const sign='\n\nMed venlig hilsen\nEsbjerg Shuri-Ryu Karate';
+
+  if(type==='Bestyrelsesmøde'){
+    body=greeting;
+    if(b.notes){
+      body+=`Hermed fremsendes referat fra bestyrelsesmøde afholdt ${dateStr||b.date}.\n\n`;
+      if(b.attendees) body+=`Deltagere: ${b.attendees}\n\n`;
+      if(b.agenda) body+=`Dagsorden:\n${b.agenda}\n\n`;
+      body+=`Referat:\n${b.notes}`;
+    } else {
+      body+=`Vi afholder bestyrelsesmøde ${dateStr||b.date}.`;
+      if(b.attendees) body+=`\n\nDeltagere: ${b.attendees}`;
+      if(b.agenda) body+=`\n\nDagsorden:\n${b.agenda}`;
+    }
+    body+=sign;
+
+  } else if(type==='Ekstra træning'){
+    body=greeting;
+    body+=`Vi afholder ekstra træning ${dateStr||b.date}.`;
+    if(b.agenda) body+=`\n\n${b.agenda}`;
+    if(b.notes) body+=`\n\n${b.notes}`;
+    if(b.attendees) body+=`\n\nDeltagere: ${b.attendees}`;
+    body+=sign;
+
+  } else { // Aktivitet
+    body=greeting;
+    body+=`Vi har planlagt følgende aktivitet: ${b.title||'Aktivitet'}`;
+    if(dateStr) body+=`\nDato: ${dateStr}`;
+    if(b.agenda) body+=`\n\n${b.agenda}`;
+    if(b.notes) body+=`\n\n${b.notes}`;
+    if(b.attendees) body+=`\n\nDeltagere: ${b.attendees}`;
+    body+=sign;
+  }
+
+  _emailSubject=subject;
+  _emailBody=body;
+  _emailGroup='all';
+
+  // Åbn modal med besked-felterne vist og udfyldt
+  renderEmailTabs();
+  buildEmailList();
+  const msgBox=document.getElementById('emMessageBox');
+  msgBox.style.display='block';
+  document.getElementById('eSub').value=subject;
+  document.getElementById('eBody').value=body;
+  openModal('emailModal');
+}
+
+function setEmailGroup(group){
+  _emailGroup=group;
+  renderEmailTabs();
+  buildEmailList();
+}
+
+function renderEmailTabs(){
+  const map={all:'emtab-all','Børnehold':'emtab-born','Basis-hold':'emtab-basis','Avanceret':'emtab-avan'};
+  Object.keys(map).forEach(g=>{
+    const el=document.getElementById(map[g]);
+    if(el) el.classList.toggle('active', g===_emailGroup);
+  });
+}
+
+function beltBadgeEM(belt){
+  const bg=BC[belt]||'#e5e7eb';
+  // Mørke bælter → hvid tekst
+  const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
+  const txt=dark.includes(bg)?'#fff':'#1a1a1a';
+  // Kort bæltenavn
+  const short=belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim()||belt;
+  return `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:10px;background:${bg};color:${txt};white-space:nowrap;border:1px solid rgba(0,0,0,.08)"><span style="width:8px;height:8px;border-radius:50%;background:${bg};border:1.5px solid rgba(0,0,0,.18);display:inline-block;flex-shrink:0"></span>${short}</span>`;
+}
+
+function getEmailVisible(){
+  const beltFilter=(document.getElementById('emBeltFilter')||{}).value||'';
+  const ageFilter=(document.getElementById('emAgeFilter')||{}).value||'';
+  const act=members.filter(m=>!m.archived&&m.status!=='passiv');
+  let visible=_emailGroup==='all'?act:act.filter(m=>m.group===_emailGroup);
+  if(beltFilter) visible=visible.filter(m=>m.belt===beltFilter);
+  if(ageFilter==='under18') visible=visible.filter(m=>{ const a=getAge(m); return a!==null&&a<18; });
+  if(ageFilter==='18plus')  visible=visible.filter(m=>{ const a=getAge(m); return a!==null&&a>=18; });
+  return visible;
+}
+function buildEmailList(){
+  const visible=getEmailVisible();
+  // Sorter: med email øverst → bælterang → navn
+  const beltOrder=Object.keys(BC);
+  visible.sort((a,b)=>{
+    if(!!a.email!==!!b.email) return a.email?-1:1;
+    const ra=beltOrder.indexOf(a.belt), rb=beltOrder.indexOf(b.belt);
+    if(ra!==rb) return rb-ra; // højeste bælte øverst
+    return (a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da');
+  });
   const list=document.getElementById('emList');
   list.innerHTML='';
-  members.filter(m=>!m.archived).forEach(m=>{
-    const checked=subset.includes(m)?'checked':'';
+  if(!visible.length){
+    list.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--xtl);font-size:.85rem">Ingen aktive medlemmer i denne gruppe</div>`;
+    updateEmailCount(); return;
+  }
+  const grpColors={'Børnehold':'background:#fef9c3;color:#854d0e','Basis-hold':'background:#dbeafe;color:#1d4ed8','Avanceret':'background:#f3e8ff;color:#7c3aed'};
+  visible.forEach(m=>{
     const div=document.createElement('div');
     div.className='em-row';
+    div.dataset.id=m.id;
+    const grpStyle=grpColors[m.group]||'background:#e5e7eb;color:#374151';
     div.innerHTML=`
-      <input type="checkbox" id="ec-${m.id}" ${checked} onchange="updateEmailCount()"/>
-      <div style="flex:1">
-        <div class="em-name">${m.firstName} ${m.lastName}</div>
-        <div class="em-sub">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>
+      <input type="checkbox" id="ec-${m.id}" ${m.email?'':'disabled title="Ingen e-mail registreret"'} onchange="updateEmailCount()"/>
+      <div style="flex:1;min-width:0">
+        <div class="em-name">${m.firstName} ${m.lastName}<span style="font-size:.72rem;font-weight:400;color:var(--xtl);margin-left:.4rem">${getAge(m)!==null?getAge(m)+' år':''}</span></div>
+        <div class="em-email">${m.email||'<span style="color:#dc2626">Ingen e-mailadresse</span>'}</div>
       </div>
-      <span class="em-grp">${m.group}</span>
-      ${payBadge(m)}`;
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0">
+        ${m.belt?beltBadgeEM(m.belt):''}
+        ${_emailGroup==='all'?`<span class="em-grp" style="${grpStyle}">${m.group}</span>`:''}
+      </div>`;
     div.addEventListener('click',e=>{
-      if(e.target.tagName==='INPUT')return;
-      const cb=div.querySelector('input');cb.checked=!cb.checked;updateEmailCount();
+      if(e.target.tagName==='INPUT'||!m.email) return;
+      const cb=document.getElementById('ec-'+m.id);
+      cb.checked=!cb.checked;
+      div.classList.toggle('em-selected',cb.checked);
+      updateEmailCount();
     });
     list.appendChild(div);
   });
   updateEmailCount();
 }
-function emailQuick(seg){
-  const act=members.filter(m=>!m.archived);
-  let subset;
-  if(seg==='all')subset=act;
-  else if(seg==='none')subset=[];
-  else if(seg==='unpaid')subset=act.filter(m=>effectivePaymentStatus(m)==='unpaid');
-  else if(seg==='partial')subset=act.filter(m=>effectivePaymentStatus(m)==='partial');
-  else if(seg==='overdue')subset=act.filter(m=>effectivePaymentStatus(m)==='overdue');
-  else if(seg==='absent')subset=act.filter(m=>!m.checkedIn);
-  else if(seg==='present')subset=act.filter(m=>m.checkedIn);
-  else subset=act.filter(m=>m.group===seg);
-  act.forEach(m=>{const cb=document.getElementById('ec-'+m.id);if(cb)cb.checked=subset.includes(m);});
+
+function emailSelectVisible(select){
+  const visible=getEmailVisible();
+  visible.forEach(m=>{
+    const cb=document.getElementById('ec-'+m.id);
+    const row=document.querySelector(`.em-row[data-id="${m.id}"]`);
+    if(cb&&m.email){ cb.checked=select; if(row) row.classList.toggle('em-selected',select); }
+  });
   updateEmailCount();
 }
+
 function updateEmailCount(){
-  const checked=members.filter(m=>{const cb=document.getElementById('ec-'+m.id);return cb&&cb.checked;});
+  const act=members.filter(m=>!m.archived&&m.status!=='passiv');
+  const checked=act.filter(m=>{ const cb=document.getElementById('ec-'+m.id); return cb&&cb.checked; });
   const withEmail=checked.filter(m=>m.email);
-  document.getElementById('emCount').textContent=`${checked.length} valgt · ${withEmail.length} med e-mailadresse · ${checked.length-withEmail.length} mangler e-mail`;
+  const countEl=document.getElementById('emCount');
+  if(countEl){
+    if(withEmail.length){
+      countEl.innerHTML=`<strong style="color:#1d4ed8">${withEmail.length}</strong> valgt med e-mail`+(checked.length>withEmail.length?` · <span style="color:#dc2626">${checked.length-withEmail.length} mangler e-mail</span>`:'');
+    } else { countEl.textContent='Ingen valgt endnu'; }
+  }
+  const emails=withEmail.map(m=>m.email).join('; ');
+  const field=document.getElementById('emailCopyField');
+  if(field) field.value=emails;
+  const btn=document.getElementById('emCopyBtn');
+  if(btn) btn.disabled=!emails;
 }
+
 function getCheckedRecipients(){ return members.filter(m=>{const cb=document.getElementById('ec-'+m.id);return cb&&cb.checked&&m.email;}); }
+
 function sendEmails(){
   const rec=getCheckedRecipients();
   if(!rec.length){alert('Ingen af de valgte har en e-mailadresse registreret.');return;}
-  const emails=rec.map(m=>m.email).join(',');
-  const subject=encodeURIComponent(document.getElementById('eSub').value||'Besked fra Esbjerg Shuri-Ryu Karate');
-  const body=encodeURIComponent(document.getElementById('eBody').value||'');
+  const subEl=document.getElementById('eSub');
+  const bodyEl=document.getElementById('eBody');
+  const subject=subEl?subEl.value.trim():'';
+  const body=bodyEl?bodyEl.value.trim():'';
+  let href=`mailto:?bcc=${encodeURIComponent(rec.map(m=>m.email).join(','))}`;
+  if(subject) href+=`&subject=${encodeURIComponent(subject)}`;
+  if(body) href+=`&body=${encodeURIComponent(body)}`;
   const a=document.createElement('a');
-  a.href=`mailto:?bcc=${encodeURIComponent(emails)}&subject=${subject}&body=${body}`;
+  a.href=href;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   showToast(`✉️ Åbner e-mailprogram med ${rec.length} modtagere`);
-  setTimeout(showEmailFallback,1500);
 }
-function showEmailFallback(){
-  const rec=getCheckedRecipients();if(!rec.length)return;
-  document.getElementById('emailCopyField').value=rec.map(m=>m.email).join('; ');
-  document.getElementById('emailFallback').style.display='block';
-}
+
 function copyEmails(){
   const f=document.getElementById('emailCopyField');
-  navigator.clipboard.writeText(f.value).then(()=>showToast('📋 E-mailadresser kopieret!')).catch(()=>{
-    f.select();document.execCommand('copy');showToast('📋 Kopieret!');
-  });
+  if(!f||!f.value){showToast('Ingen e-mailadresser valgt');return;}
+  navigator.clipboard.writeText(f.value)
+    .then(()=>showToast('📋 E-mailadresser kopieret!'))
+    .catch(()=>{f.select();document.execCommand('copy');showToast('📋 Kopieret!');});
 }
+
+function showEmailFallback(){} // bagudkompatibilitet
+function emailQuick(seg){ setEmailGroup(seg==='none'?'all':seg); }
 
 /* ════════════════════════════════════════
    EXCEL EKSPORT (SpreadsheetML — åbner i Excel)
@@ -3434,6 +4005,79 @@ function saveSettings(){
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
   renderM(); renderHistory();
   if(config.scriptUrl) loadFromCloud();
+}
+
+/* ════════════════════════════════════════
+   BACKUP & GENDANNELSE
+════════════════════════════════════════ */
+function downloadBackup(){
+  const date=localDate();
+  const backup={
+    _backupDate:date,
+    _version:1,
+    members:members,
+    sessions:sessions,
+    cancelledDates:cancelledDates,
+    assessments:assessments,
+    boardMeetings:boardMeetings,
+    config:config
+  };
+  try {
+    const vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}');
+    backup.endDates=vault;
+  } catch(e){}
+  const json=JSON.stringify(backup,null,2);
+  const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`karate-backup-${date}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('💾 Backup downloadet: karate-backup-'+date+'.json');
+}
+
+function handleRestoreFile(input){
+  const file=input.files&&input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.members||!Array.isArray(data.members)){
+        alert('Ugyldig backup-fil: mangler "members"-felt.');
+        input.value='';
+        return;
+      }
+      const memberCount=data.members.length;
+      const sessionCount=(data.sessions||[]).length;
+      const confirmed=confirm(
+        `Gendan fra backup?\n\nFilen indeholder:\n• ${memberCount} medlemmer\n• ${sessionCount} sessioner\n• Backupdato: ${data._backupDate||'Ukendt'}\n\n⚠️ Dette overskriver ALLE nuværende data og kan ikke fortrydes.\n\nEr du sikker?`
+      );
+      if(!confirmed){ input.value=''; return; }
+      // Restore data
+      if(data.members)   { members=data.members; localStorage.setItem('kk2_members',JSON.stringify(members)); }
+      if(data.sessions)  { sessions=data.sessions; localStorage.setItem('kk2_sessions',JSON.stringify(sessions)); }
+      if(data.cancelledDates){ cancelledDates=data.cancelledDates; localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates)); }
+      if(data.assessments){ assessments=data.assessments; localStorage.setItem('kk2_assessments',JSON.stringify(assessments)); }
+      if(data.boardMeetings){ boardMeetings=data.boardMeetings; localStorage.setItem('kk2_board',JSON.stringify(boardMeetings)); }
+      if(data.config){ config=Object.assign(config,data.config); localStorage.setItem('kk2_config',JSON.stringify(config)); }
+      if(data.endDates){ localStorage.setItem('kk2_endDates',JSON.stringify(data.endDates)); }
+      nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
+      nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
+      nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
+      input.value='';
+      closeModal('settingsModal');
+      renderAll();
+      if(document.getElementById('page-history').classList.contains('active')) renderHistory();
+      if(document.getElementById('page-board').classList.contains('active')) renderBoard();
+      showToast('✅ Data gendannet fra backup — '+memberCount+' medlemmer, '+sessionCount+' sessioner');
+    } catch(err){
+      alert('Fejl ved indlæsning af backup-fil: '+err.message);
+      input.value='';
+    }
+  };
+  reader.readAsText(file);
 }
 
 /* ════════════════════════════════════════
@@ -3686,18 +4330,19 @@ function showToast(msg){
 function renderBoard(){
   const today=localDate();
   const thisYear=today.slice(0,4);
-  const sorted=[...boardMeetings].sort((a,b)=>b.date.localeCompare(a.date));
-  const upcoming=boardMeetings.filter(b=>b.date>=today);
+  // Kun bestyrelsesmøder tæller i stats og "dage siden"-banner
+  const bmOnly=boardMeetings.filter(b=>(b.type||'Bestyrelsesmøde')==='Bestyrelsesmøde');
+  const upcoming=bmOnly.filter(b=>b.date&&b.date>=today);
   const nextMeeting=upcoming.sort((a,b)=>a.date.localeCompare(b.date))[0];
-  const inYear=boardMeetings.filter(b=>b.date&&b.date.startsWith(thisYear));
+  const inYear=bmOnly.filter(b=>b.date&&b.date.startsWith(thisYear));
 
-  // Stats
-  document.getElementById('brd-total').textContent=boardMeetings.length;
+  // Stats — kun bestyrelsesmøder
+  document.getElementById('brd-total').textContent=bmOnly.length;
   document.getElementById('brd-year').textContent=inYear.length;
   const brdNext=document.getElementById('brd-next');
   if(nextMeeting && nextMeeting.date){
-    const nd=new Date(nextMeeting.date+'T12:00:00');
-    if(!isNaN(nd.getTime())){
+    const nd=parseDateSafe(nextMeeting.date);
+    if(nd){
       brdNext.textContent=nd.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
       brdNext.style.fontSize='1rem';
     } else {
@@ -3709,12 +4354,13 @@ function renderBoard(){
     brdNext.style.fontSize='1.8rem';
   }
 
-  // Dage siden sidste møde
-  const pastMeetings=boardMeetings.filter(b=>b.date<today).sort((a,b)=>b.date.localeCompare(a.date));
+  // Dage siden sidste bestyrelsesmøde
+  const pastMeetings=bmOnly.filter(b=>b.date&&b.date<today).sort((a,b)=>b.date.localeCompare(a.date));
   const lastMeeting=pastMeetings[0];
   const daysBanner=document.getElementById('brd-days-banner');
   if(lastMeeting){
-    const diff=Math.round((new Date(today+'T12:00:00')-new Date(lastMeeting.date+'T12:00:00'))/(1000*60*60*24));
+    const ldSafe=parseDateSafe(lastMeeting.date);
+    const diff=ldSafe?Math.round((parseDateSafe(today)-ldSafe)/(1000*60*60*24)):0;
     let col='#16a34a', bg='#f0fdf4', border='#bbf7d0', icon='✅', phrase='We are on track — keep up the good work!';
     if(diff>150){col='#dc2626';bg='#fef2f2';border='#fecaca';icon='🚨';phrase='KRITISK: Det er alt for længe siden! Et bestyrelsesmøde skal planlægges og afholdes øjeblikkeligt.';}
     else if(diff>=90){col='#d97706';bg='#fffbeb';border='#fde68a';icon='⚠️';phrase='Det er ved at være tid — få planlagt næste bestyrelsesmøde snart.';}
@@ -3726,21 +4372,21 @@ function renderBoard(){
       <div style="min-width:0">
         <div style="font-size:.78rem;font-weight:700;color:${col}">${icon} Dage siden sidste møde</div>
         <div style="font-size:.75rem;color:${col};opacity:.85;margin-top:2px;font-style:italic">${phrase}</div>
-        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">Seneste: <strong>${lastMeeting.title||'Bestyrelsesmøde'}</strong> · ${new Date(lastMeeting.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}</div>
+        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">Seneste: <strong>${lastMeeting.title||'Bestyrelsesmøde'}</strong> · ${formatDateDK(lastMeeting.date,{day:'numeric',month:'long',year:'numeric'})}</div>
       </div>`;
   } else {
     daysBanner.style.display='none';
   }
 
   const container=document.getElementById('boardMeetingsList');
-  if(sorted.length===0){
+  if(boardMeetings.length===0){
     container.innerHTML=`<div class="meeting-empty"><div class="me-icon">📋</div><div style="font-weight:600;margin-bottom:.3rem">Ingen møder endnu</div><div style="font-size:.82rem">Tryk "+ Nyt møde" for at tilføje det første bestyrelsesmøde</div></div>`;
     return;
   }
 
-  // Gruppér i Kommende og Tidligere
-  const futArr=sorted.filter(b=>b.date>=today);
-  const pastArr=sorted.filter(b=>b.date<today);
+  // Kommende: stigende (nærmeste øverst), Tidligere: faldende (nyeste øverst)
+  const futArr=boardMeetings.filter(b=>b.date&&b.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  const pastArr=boardMeetings.filter(b=>!b.date||b.date<today).sort((a,b)=>b.date.localeCompare(a.date));
 
   let html='';
   if(futArr.length){
@@ -3755,32 +4401,75 @@ function renderBoard(){
   container.innerHTML=html;
 }
 
+function formatBoardPreview(text){
+  // Konverter tekst til pæn HTML med linjeskift bevaret
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(!lines.length) return '';
+  // Tjek om det ligner en nummereret liste (starter med tal+. eller tal+))
+  const isNumbered=lines.every(l=>/^\d+[\.\)]/.test(l));
+  if(isNumbered){
+    return '<ol>'+lines.map(l=>`<li>${l.replace(/^\d+[\.\)]\s*/,'')}</li>`).join('')+'</ol>';
+  }
+  // Tjek om det ligner bullets (starter med - eller •)
+  const isBullet=lines.every(l=>/^[-•*]/.test(l));
+  if(isBullet){
+    return '<ul>'+lines.map(l=>`<li>${l.replace(/^[-•*]\s*/,'')}</li>`).join('')+'</ul>';
+  }
+  // Ellers: bevar linjeskift som <br>
+  return lines.join('<br>');
+}
+function formatBoardText(text){
+  // Fuld formatering til detail-visning (ingen max-height)
+  if(!text) return '';
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(!lines.length) return '';
+  const isNumbered=lines.every(l=>/^\d+[\.\)]/.test(l));
+  if(isNumbered){
+    return '<ol style="padding-left:1.3rem;line-height:1.8">'+lines.map(l=>`<li>${l.replace(/^\d+[\.\)]\s*/,'')}</li>`).join('')+'</ol>';
+  }
+  const isBullet=lines.every(l=>/^[-•*]/.test(l));
+  if(isBullet){
+    return '<ul style="padding-left:1.3rem;line-height:1.8">'+lines.map(l=>`<li>${l.replace(/^[-•*]\s*/,'')}</li>`).join('')+'</ul>';
+  }
+  return lines.join('<br>');
+}
+function boardTypeInfo(type){
+  if(type==='Ekstra træning') return {icon:'🥋',accentBase:'extra',color:'#0ea5e9',bg:'#e0f2fe',label:'Ekstra træning'};
+  if(type==='Aktivitet')      return {icon:'🎯',accentBase:'activity',color:'#10b981',bg:'#d1fae5',label:'Aktivitet'};
+  return                              {icon:'🏛️',accentBase:'',color:'#6d28d9',bg:'#ede9fe',label:'Bestyrelsesmøde'};
+}
 function boardCard(b,today){
-  const isToday=b.date===today;
-  const isFut=b.date>today;
+  const type=b.type||'Bestyrelsesmøde';
+  const ti=boardTypeInfo(type);
+  const safeDate=normDateStr(b.date);
+  const isToday=safeDate===today;
+  const isFut=safeDate>today;
   const cls=isToday?'today':isFut?'upcoming':'past';
-  const accentCls=isFut||isToday?'upcoming':'past';
-  const d=b.date?new Date(b.date+'T12:00:00'):null;
-  const dateStr=d&&!isNaN(d.getTime())?d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Ukendt dato';
+  const accentCls=ti.accentBase||(isFut||isToday?'upcoming':'past');
+  const dateStr=safeDate?formatDateDK(safeDate):'Ukendt dato';
   const badgeLabel=isToday?'📅 I dag':isFut?'🔜 '+dateStr:'📁 '+dateStr;
-  const previewText=b.agenda||(b.notes?b.notes.slice(0,120):'Ingen dagsorden');
+  const rawPreview=b.agenda||(b.notes||'');
+  const previewHtml=rawPreview?formatBoardPreview(rawPreview):'';
   const attendeeHtml=b.attendees?`<div class="meeting-attendees">👥 ${b.attendees}</div>`:'';
+  const typeBadge=`<span style="font-size:.68rem;background:${ti.bg};color:${ti.color};border-radius:10px;padding:.15rem .55rem;font-weight:700">${ti.icon} ${ti.label}</span>`;
   return `<div class="meeting-card">
     <div class="meeting-card-accent ${accentCls}"></div>
     <div class="meeting-card-body">
       <div class="meeting-card-header">
         <div><span class="meeting-date-badge ${cls}">${badgeLabel}</span>
-          <div class="meeting-title">${b.title||'Bestyrelsesmøde'}</div>
+          <div class="meeting-title">${b.title||ti.label}</div>
           ${attendeeHtml}
         </div>
         <div class="meeting-actions" style="margin-top:0">
           <button class="btn bp btn-sm" onclick="openBoardDetail(${b.id})">📋 Åbn</button>
+          <button class="btn bb btn-sm" onclick="emailFromBoard(${b.id})" title="Send e-mail om dette notat">✉️</button>
           <button class="btn bs btn-sm" onclick="openBoardModal(${b.id})">✏️</button>
           <button class="btn bg btn-sm" onclick="deleteBoardMeeting(${b.id})">🗑</button>
         </div>
       </div>
-      ${previewText?`<div class="meeting-preview">${previewText}</div>`:''}
-      <div style="display:flex;gap:.5rem;margin-top:.7rem">
+      ${previewHtml?`<div class="meeting-preview">${previewHtml}</div>`:''}
+      <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
+        ${typeBadge}
         ${b.notes?`<span style="font-size:.68rem;background:#f0fdf4;color:#16a34a;border-radius:10px;padding:.15rem .55rem;font-weight:600">✅ Referat</span>`:`<span style="font-size:.68rem;background:#fff7ed;color:#c2410c;border-radius:10px;padding:.15rem .55rem;font-weight:600">⏳ Mangler referat</span>`}
         ${b.agenda?`<span style="font-size:.68rem;background:#ede9fe;color:#6d28d9;border-radius:10px;padding:.15rem .55rem;font-weight:600">📋 Dagsorden</span>`:''}
       </div>
@@ -3788,24 +4477,38 @@ function boardCard(b,today){
   </div>`;
 }
 
+let _boardType='Bestyrelsesmøde';
+function setBoardType(type){
+  _boardType=type;
+  document.querySelectorAll('.bm-type-btn').forEach(btn=>btn.classList.remove('active'));
+  const map={'Bestyrelsesmøde':'bmt-board','Ekstra træning':'bmt-extra','Aktivitet':'bmt-act'};
+  const btn=document.getElementById(map[type]);
+  if(btn) btn.classList.add('active');
+  const icons={'Bestyrelsesmøde':'🏛️','Ekstra træning':'🥋','Aktivitet':'🎯'};
+  document.getElementById('boardModalIcon').textContent=icons[type]||'📋';
+}
 function openBoardModal(id=null){
   editingBoardId=id;
   const b=id?boardMeetings.find(x=>x.id===id):null;
-  document.getElementById('boardModalTitle').textContent=b?'Rediger møde':'Nyt bestyrelsesmøde';
+  document.getElementById('boardModalTitle').textContent=b?'Rediger notat':'Ny notat';
   document.getElementById('bmDate').value=b?b.date:localDate();
   document.getElementById('bmTitle').value=b?b.title:'';
   document.getElementById('bmAttendees').value=b?b.attendees:'';
   document.getElementById('bmAgenda').value=b?b.agenda:'';
   document.getElementById('bmNotes').value=b?b.notes:'';
+  setBoardType(b?b.type||'Bestyrelsesmøde':'Bestyrelsesmøde');
   openModal('boardModal');
 }
 
 function saveBoardMeeting(){
-  const date=document.getElementById('bmDate').value;
+  const rawDate=document.getElementById('bmDate').value||'';
+  const date=normDateStr(rawDate)||normDateStr(String(rawDate).slice(0,10));
   const title=document.getElementById('bmTitle').value.trim();
   if(!date||!title){alert('Dato og titel er påkrævet.');return;}
   const data={
-    date,title,
+    date,
+    type:_boardType,
+    title,
     attendees:document.getElementById('bmAttendees').value.trim(),
     agenda:document.getElementById('bmAgenda').value.trim(),
     notes:document.getElementById('bmNotes').value.trim()
@@ -3813,10 +4516,10 @@ function saveBoardMeeting(){
   if(editingBoardId){
     const i=boardMeetings.findIndex(x=>x.id===editingBoardId);
     boardMeetings[i]={...boardMeetings[i],...data};
-    showToast('✅ Møde opdateret');
+    showToast('✅ Notat opdateret');
   } else {
     boardMeetings.push({id:nextBoardId++,...data});
-    showToast('✅ Møde oprettet');
+    showToast('✅ Notat oprettet');
   }
   save();
   closeModal('boardModal');
@@ -3835,10 +4538,15 @@ function deleteBoardMeeting(id){
 function openBoardDetail(id){
   const b=boardMeetings.find(x=>x.id===id);
   if(!b) return;
-  const d=new Date(b.date+'T12:00:00');
-  const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('bdTitle').textContent=b.title||'Mødereferat';
+  const dateStr=formatDateDK(b.date);
+  const type=b.type||'Bestyrelsesmøde';
+  const ti=boardTypeInfo(type);
+  document.getElementById('bdTitle').textContent=b.title||type;
   document.getElementById('boardDetailContent').innerHTML=`
+    <div class="bm-section">
+      <div class="bm-section-label">📋 Type</div>
+      <div class="bm-section-body"><span style="background:${ti.bg};color:${ti.color};padding:.2rem .7rem;border-radius:10px;font-weight:700;font-size:.85rem">${ti.icon} ${ti.label}</span></div>
+    </div>
     <div class="bm-section">
       <div class="bm-section-label">📅 Dato</div>
       <div class="bm-section-body">${dateStr}</div>
@@ -3849,11 +4557,11 @@ function openBoardDetail(id){
     </div>`:''}
     ${b.agenda?`<div class="bm-section">
       <div class="bm-section-label">📋 Dagsorden</div>
-      <div class="bm-section-body">${b.agenda}</div>
+      <div class="bm-section-body">${formatBoardText(b.agenda)}</div>
     </div>`:''}
     ${b.notes?`<div class="bm-section">
       <div class="bm-section-label">📝 Referat / noter</div>
-      <div class="bm-section-body">${b.notes}</div>
+      <div class="bm-section-body">${formatBoardText(b.notes)}</div>
     </div>`:`<div style="text-align:center;padding:1rem;color:var(--xtl);font-size:.85rem">⏳ Ingen referat endnu</div>`}
   `;
   document.getElementById('bdEditBtn').onclick=()=>{closeModal('boardDetailModal');openBoardModal(id);};
@@ -3864,33 +4572,36 @@ function openBoardDetail(id){
 function exportBoardToPDF(id){
   const b=boardMeetings.find(x=>x.id===id);
   if(!b) return;
-  const d=new Date(b.date+'T12:00:00');
-  const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const dateStr=formatDateDK(b.date);
+  const type=b.type||'Bestyrelsesmøde';
+  const ti=boardTypeInfo(type);
   const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"/>
-  <title>${b.title||'Bestyrelsesmøde'}</title>
+  <title>${b.title||type}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a2e;padding:40px 50px;max-width:800px;margin:0 auto;font-size:14px}
     .logo-row{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #312e81;padding-bottom:16px;margin-bottom:28px}
     .club-name{font-size:22px;font-weight:800;color:#312e81;line-height:1.2}
     .club-sub{font-size:11px;color:#6b7280;margin-top:3px}
-    .doc-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7c3aed;background:#ede9fe;padding:4px 12px;border-radius:20px}
+    .doc-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${ti.color};background:${ti.bg};padding:4px 12px;border-radius:20px}
     h1{font-size:20px;font-weight:800;color:#1e1b4b;margin-bottom:6px}
     .meta{font-size:12px;color:#6b7280;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid #e5e7eb}
     .section{margin-bottom:22px}
-    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#7c3aed;margin-bottom:8px}
-    .section-body{font-size:13.5px;line-height:1.75;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;white-space:pre-wrap}
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${ti.color};margin-bottom:8px}
+    .section-body{font-size:13.5px;line-height:1.75;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px}
+    .section-body ol,.section-body ul{padding-left:1.4rem;margin:0}
+    .section-body li{margin-bottom:4px}
     .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;display:flex;justify-content:space-between}
     @media print{body{padding:20px 30px}button{display:none}}
   </style></head><body>
   <div class="logo-row">
     <div><div class="club-name">Esbjerg Shuri-Ryu Karate</div><div class="club-sub">Strandbygade 53, 6700 Esbjerg · holmoos@mail.dk</div></div>
-    <div class="doc-type">Bestyrelsesmøde</div>
+    <div class="doc-type">${ti.icon} ${ti.label}</div>
   </div>
-  <h1>${b.title||'Bestyrelsesmøde'}</h1>
+  <h1>${b.title||ti.label}</h1>
   <div class="meta">📅 ${dateStr}${b.attendees?'&nbsp;&nbsp;·&nbsp;&nbsp;👥 '+b.attendees:''}</div>
-  ${b.agenda?`<div class="section"><div class="section-label">📋 Dagsorden</div><div class="section-body">${b.agenda}</div></div>`:''}
-  ${b.notes?`<div class="section"><div class="section-label">📝 Referat og beslutninger</div><div class="section-body">${b.notes}</div></div>`:'<div style="color:#9ca3af;font-style:italic;padding:12px 0">Referat ikke udfyldt endnu.</div>'}
+  ${b.agenda?`<div class="section"><div class="section-label">📋 Dagsorden</div><div class="section-body">${formatBoardText(b.agenda)}</div></div>`:''}
+  ${b.notes?`<div class="section"><div class="section-label">📝 Referat og noter</div><div class="section-body">${formatBoardText(b.notes)}</div></div>`:'<div style="color:#9ca3af;font-style:italic;padding:12px 0">Ingen referat endnu.</div>'}
   <div class="footer"><span>Esbjerg Shuri-Ryu Karate &copy; ${new Date().getFullYear()}</span><span>Dokument genereret ${new Date().toLocaleDateString('da-DK')}</span></div>
   <script>window.onload=()=>{window.print();}<\/script>
   </body></html>`;
