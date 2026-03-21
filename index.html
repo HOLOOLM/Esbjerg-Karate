@@ -504,6 +504,36 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .score-tip-stars{color:#f59e0b;letter-spacing:.04em;flex-shrink:0;font-size:.8rem}
 .score-tip-comment{margin-top:.4rem;font-size:.72rem;color:#888;font-style:italic;padding-top:.35rem;border-top:1px solid #edf2f2;white-space:normal}
 .score-tip-avg{font-size:.72rem;font-weight:700;margin-top:.4rem;padding-top:.35rem;border-top:1px solid #edf2f2}
+/* ── BESTYRELSE ── */
+.board-hero{background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4c1d95 100%);border-radius:16px;padding:2rem 2.2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.board-hero::before{content:'🏛️';position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.12;line-height:1}
+.board-hero h2{margin:0 0 .3rem;font-size:1.4rem;font-weight:800}
+.board-hero p{margin:0;opacity:.75;font-size:.88rem}
+.board-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.board-stat{background:#fff;border-radius:12px;padding:1rem 1.2rem;box-shadow:var(--sh);text-align:center;border-top:3px solid #6d28d9}
+.board-stat .bsv{font-size:1.8rem;font-weight:800;color:#6d28d9;line-height:1}
+.board-stat .bsl{font-size:.72rem;color:var(--xtl);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.meeting-card{background:#fff;border-radius:14px;box-shadow:var(--sh);margin-bottom:1rem;overflow:hidden;transition:box-shadow .18s;display:flex}
+.meeting-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.13)}
+.meeting-card-accent{width:6px;flex-shrink:0}
+.meeting-card-accent.upcoming{background:linear-gradient(180deg,#7c3aed,#a78bfa)}
+.meeting-card-accent.past{background:linear-gradient(180deg,#6b7280,#9ca3af)}
+.meeting-card-body{flex:1;padding:1.1rem 1.3rem;min-width:0}
+.meeting-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.meeting-date-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;padding:.25rem .65rem;border-radius:20px;white-space:nowrap}
+.meeting-date-badge.upcoming{background:#ede9fe;color:#6d28d9}
+.meeting-date-badge.past{background:#f3f4f6;color:#6b7280}
+.meeting-date-badge.today{background:#fef9c3;color:#854d0e}
+.meeting-title{font-size:1rem;font-weight:700;color:var(--t1);margin:.3rem 0 .2rem}
+.meeting-attendees{font-size:.78rem;color:var(--xtl);margin-bottom:.5rem}
+.meeting-preview{font-size:.78rem;color:var(--t2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
+.meeting-actions{display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap}
+.meeting-empty{text-align:center;padding:3rem 1rem;color:var(--xtl)}
+.meeting-empty .me-icon{font-size:3rem;margin-bottom:.5rem}
+.bm-section{margin-bottom:1.2rem}
+.bm-section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--xtl);margin-bottom:.4rem}
+.bm-section-body{font-size:.88rem;color:var(--t1);line-height:1.6;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:.7rem .9rem;border:1px solid #e8f0f0}
+@media(max-width:600px){.board-stats-row{grid-template-columns:1fr 1fr}.board-hero{padding:1.2rem}.board-hero h2{font-size:1.1rem}}
 </style>
 </head>
 <body>
@@ -577,6 +607,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
   <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
+  <div class="nav-tab" onclick="switchTab('board')" id="tab-board">🏛️ Bestyrelse</div>
 </nav>
 </div>
 
@@ -632,7 +663,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <select class="fs" id="tfg" onchange="renderT()">
         <option value="all">Alle grupper</option>
         <option value="Børnehold">Børnehold</option>
-        <option value="Normal hold">Normal hold</option>
+        <option value="Basis-hold">Basis-hold</option>
         <option value="Avanceret">Avanceret</option>
       </select>
     </div>
@@ -709,7 +740,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <select class="fs" id="mfg" onchange="renderM()">
         <option value="all">Alle grupper</option>
         <option value="Børnehold">Børnehold</option>
-        <option value="Normal hold">Normal hold</option>
+        <option value="Basis-hold">Basis-hold</option>
         <option value="Avanceret">Avanceret</option>
       </select>
       <select class="fs" id="mfstatus" onchange="renderM()">
@@ -757,6 +788,23 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div id="empty-m" class="empty-state" style="display:none"><div class="icon">🥋</div>Ingen resultater</div>
     <div class="tbl-footer"><span id="mCount"></span></div>
   </div>
+
+  <!-- Passive medlemmer sektion -->
+  <div id="passiveSection" style="display:none;margin-top:1.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;background:#f1f5f9;border-radius:12px 12px 0 0;border:1px solid #e2e8f0;cursor:pointer;user-select:none" onclick="togglePassiveSection()">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span style="font-size:1rem">💤</span>
+        <span style="font-weight:700;font-size:.88rem;color:#475569">Passive medlemmer</span>
+        <span id="passiveCount" style="background:#e2e8f0;color:#64748b;font-size:.72rem;font-weight:700;padding:.1rem .55rem;border-radius:10px">0</span>
+      </div>
+      <span id="passiveChevron" style="color:#94a3b8;font-size:.85rem;transition:transform .2s">▼</span>
+    </div>
+    <div id="passiveList" style="display:none;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;background:#fff;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <tbody id="tbody-passive"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- ══ PAGE: DASHBOARD ══ -->
@@ -772,6 +820,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
   <!-- Holdoversigt -->
   <div id="db-groups-box" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem"></div>
+
+  <!-- Longest streak banner -->
+  <div id="db-streak-banner" style="display:none;margin-bottom:1.2rem"></div>
 
   <!-- Medlemsudvikling vækst-box -->
   <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
@@ -814,7 +865,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <select class="fs" id="dbGroup" onchange="renderDashboard()">
           <option value="all">Alle grupper</option>
           <option value="Børnehold">Børnehold</option>
-          <option value="Normal hold">Normal hold</option>
+          <option value="Basis-hold">Basis-hold</option>
           <option value="Avanceret">Avanceret</option>
         </select>
       </div>
@@ -840,7 +891,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <select class="fs" id="dbMGroup" onchange="renderDashboard()">
         <option value="all">Alle grupper</option>
         <option value="Børnehold">Børnehold</option>
-        <option value="Normal hold">Normal hold</option>
+        <option value="Basis-hold">Basis-hold</option>
         <option value="Avanceret">Avanceret</option>
       </select>
       <button class="btn bs btn-sm" onclick="exportAttendance()">📊 Eksporter Excel</button>
@@ -866,6 +917,62 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <tbody id="tbody-db"></tbody>
     </table>
     <div id="empty-db" class="empty-state" style="display:none"><div class="icon">📊</div>Ingen data endnu</div>
+  </div>
+</div>
+
+<!-- ══ PAGE: BESTYRELSE ══ -->
+<div class="page" id="page-board">
+  <div class="board-hero">
+    <h2>Esbjerg Shuri-Ryu Karate — Bestyrelse</h2>
+    <p>Bestyrelsesmøder, referater og beslutninger</p>
+  </div>
+  <div class="board-stats-row">
+    <div class="board-stat"><div class="bsv" id="brd-total">0</div><div class="bsl">Møder i alt</div></div>
+    <div class="board-stat"><div class="bsv" id="brd-year">0</div><div class="bsl">Møder i år</div></div>
+    <div class="board-stat" style="border-top-color:#10b981"><div class="bsv" style="color:#10b981" id="brd-next">—</div><div class="bsl">Næste møde</div></div>
+  </div>
+  <div id="brd-days-banner" style="display:none;align-items:center;border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.2rem"></div>
+  <div class="sh">
+    <div class="st">🗓️ Bestyrelsesmøder</div>
+    <div class="controls">
+      <button class="btn bp" onclick="openBoardModal()">+ Nyt møde</button>
+    </div>
+  </div>
+  <div id="boardMeetingsList"></div>
+</div>
+
+<!-- ══ MODAL: BESTYRELSESMØDE OPRET/REDIGER ══ -->
+<div class="mbd" id="boardModal">
+  <div class="modal" style="max-width:580px">
+    <div class="mh">
+      <div class="mtitle-left"><span>🏛️</span><span id="boardModalTitle">Nyt bestyrelsesmøde</span></div>
+      <button class="mclose" onclick="closeModal('boardModal')">✕</button>
+    </div>
+    <div class="fgrp"><label>Dato for møde</label><input type="date" id="bmDate"/></div>
+    <div class="fgrp"><label>Mødetitel</label><input type="text" id="bmTitle" placeholder="f.eks. Bestyrelsesmøde marts 2026"/></div>
+    <div class="fgrp"><label>Deltagere</label><input type="text" id="bmAttendees" placeholder="f.eks. Jonas Holm, Lars Hansen, Marie Nielsen"/></div>
+    <div class="fgrp"><label>Dagsorden</label><textarea id="bmAgenda" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="1. Godkendelse af referat&#10;2. Økonomi&#10;3. Kommende stævner&#10;4. Eventuelt"></textarea></div>
+    <div class="fgrp"><label>Referat / noter</label><textarea id="bmNotes" rows="6" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv referat og beslutninger her…"></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('boardModal')">Annuller</button>
+      <button class="btn bp" onclick="saveBoardMeeting()">💾 Gem møde</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: BESTYRELSESMØDE DETALJE ══ -->
+<div class="mbd" id="boardDetailModal">
+  <div class="modal" style="max-width:620px">
+    <div class="mh">
+      <div class="mtitle-left"><span>🏛️</span><span id="bdTitle">Mødereferat</span></div>
+      <button class="mclose" onclick="closeModal('boardDetailModal')">✕</button>
+    </div>
+    <div id="boardDetailContent"></div>
+    <div class="mf" style="flex-wrap:wrap">
+      <button class="btn bg" onclick="closeModal('boardDetailModal')">Luk</button>
+      <button class="btn bs" id="bdEditBtn" onclick="">✏️ Rediger</button>
+      <button class="btn" style="background:#6d28d9;color:#fff" id="bdPdfBtn" onclick="">📄 Eksportér PDF</button>
+    </div>
   </div>
 </div>
 
@@ -898,6 +1005,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div class="fgrp"><label>Afslutningsdato <span style="font-weight:400;color:var(--xtl)">(sættes automatisk ved arkivering)</span></label><input type="date" id="fED"/>
         <div class="age-hint">Bruges til historisk nøjagtighed i fremmødestatistik</div>
       </div>
+      <div class="fgrp" style="margin-top:.5rem;padding-top:.75rem;border-top:1px solid #e8f0f0">
+        <label style="color:var(--tm);font-weight:700">👨‍👩‍👦 Kontaktperson <span style="font-weight:400;color:var(--xtl)">(forælder/værge)</span></label>
+      </div>
+      <div class="fgrp"><label>Kontaktnavn</label><input type="text" id="fCN" placeholder="f.eks. Lars Hansen"/></div>
+      <div class="fgrp"><label>Kontakttelefon</label><input type="tel" id="fCP" placeholder="f.eks. 22334455"/></div>
       <div class="fgrp">
         <label>Alder</label>
         <input type="number" id="fAGE" placeholder="f.eks. 12" min="0" max="120"/>
@@ -922,7 +1034,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div class="fgrp"><label>Gruppe</label>
         <select class="form-select" id="fGRP">
           <option value="Børnehold">Børnehold (B)</option>
-          <option value="Normal hold">Normal hold (J)</option>
+          <option value="Basis-hold">Basis-hold (J)</option>
           <option value="Avanceret">Avanceret (S)</option>
         </select>
       </div>
@@ -974,7 +1086,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="seg-btn" onclick="emailQuick('absent')">Fraværende i dag</button>
       <button class="seg-btn" onclick="emailQuick('present')">Til stede i dag</button>
       <button class="seg-btn" onclick="emailQuick('Børnehold')">Børnehold</button>
-      <button class="seg-btn" onclick="emailQuick('Normal hold')">Normal hold</button>
+      <button class="seg-btn" onclick="emailQuick('Basis-hold')">Basis-hold</button>
       <button class="seg-btn" onclick="emailQuick('Avanceret')">Avanceret</button>
     </div>
     <div class="em-count" id="emCount"></div>
@@ -1011,6 +1123,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div id="assessBeltBar" style="margin-bottom:1rem"></div>
     <div id="assessSkillList"></div>
     <div style="margin-top:.8rem">
+      <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Bedømt af</label>
+      <input id="assessorName" type="text" placeholder="f.eks. Jonas Holm" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem"/>
+    </div>
+    <div style="margin-top:.6rem">
       <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Kommentar (valgfri)</label>
       <textarea id="assessComment" placeholder="Skriv en kommentar..." rows="3" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem;resize:vertical"></textarea>
     </div>
@@ -1147,12 +1263,12 @@ const BC = {
 };
 const DA_D = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
 const DA_M = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
-const GRP_AV = {Børnehold:'av-boern',Normalhold:'av-junior','Normal hold':'av-junior',Avanceret:'av-senior'};
-const GRP_CHIP = {Børnehold:'grp-b','Normal hold':'grp-j',Avanceret:'grp-s'};
+const GRP_AV = {Børnehold:'av-boern',Normalhold:'av-junior','Basis-hold':'av-junior',Avanceret:'av-senior'};
+const GRP_CHIP = {Børnehold:'grp-b','Basis-hold':'grp-j',Avanceret:'grp-s'};
 
 /* ════════════════════════════════════════
    STARTDATA — 65 MEDLEMMER
-   Grupper: Børnehold (B·550kr), Normal hold (J·650kr), Avanceret (S·850kr)
+   Grupper: Børnehold (B·550kr), Basis-hold (J·650kr), Avanceret (S·850kr)
 ════════════════════════════════════════ */
 const SEED = [
 // ── Børnehold ─────────────────────────────────────────
@@ -1182,26 +1298,26 @@ const SEED = [
 {id:24, firstName:'Theo',         lastName:'Nørsten',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
 {id:25, firstName:'Theo',         lastName:'Sønderskov Kristensen',email:'',phone:'',belt:'9 kyu',payment:'unpaid', betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
 {id:26, firstName:'Tobias',       lastName:'Rømer Sørensen',      email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-// ── Normal hold ───────────────────────────────────────
-{id:27, firstName:'Adam',         lastName:'Melonik',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:12,birthdate:''},
-{id:28, firstName:'Casandra',     lastName:'Mikkelsen',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'K',age:11,birthdate:''},
-{id:29, firstName:'Charles',      lastName:'Vind',                email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:15,birthdate:''},
-{id:30, firstName:'Emil',         lastName:'Weber',               email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:31, firstName:'Fabian',       lastName:'Barslev Saers',       email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:13,birthdate:''},
-{id:32, firstName:'Giacomo',      lastName:'Skyttehave',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:13,birthdate:''},
-{id:33, firstName:'Karoline',     lastName:'Klarskov',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'K',age:11,birthdate:''},
-{id:34, firstName:'Matilde',      lastName:'Sloth',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'K',age:10,birthdate:''},
-{id:35, firstName:'Matvii',       lastName:'Diduk',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:36, firstName:'Nord',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:325,  group:'Normal hold',checkedIn:false,gender:'M',age:13,birthdate:''},
-{id:37, firstName:'Sejr',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:15,birthdate:''},
-{id:38, firstName:'Selma',        lastName:'Wang Kristensen',     email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'K',age:13,birthdate:''},
-{id:39, firstName:'Smilte',       lastName:'Vesciunas',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'K',age:12,birthdate:''},
-{id:40, firstName:'Stipe',        lastName:'Nicpay',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:660,  group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:41, firstName:'Valdemar',     lastName:'Friis Holm',          email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:42, firstName:'Villads',      lastName:'Dalby',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:12,birthdate:''},
-{id:43, firstName:'William',      lastName:'Hutchinson',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:12,birthdate:''},
-{id:44, firstName:'William',      lastName:'Myrup',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Normal hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:45, firstName:'Magne',        lastName:'Waskönig',            email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Normal hold',checkedIn:false,gender:'M',age:10,birthdate:''},
+// ── Basis-hold ───────────────────────────────────────
+{id:27, firstName:'Adam',         lastName:'Melonik',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:12,birthdate:''},
+{id:28, firstName:'Casandra',     lastName:'Mikkelsen',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'K',age:11,birthdate:''},
+{id:29, firstName:'Charles',      lastName:'Vind',                email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:15,birthdate:''},
+{id:30, firstName:'Emil',         lastName:'Weber',               email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:31, firstName:'Fabian',       lastName:'Barslev Saers',       email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:13,birthdate:''},
+{id:32, firstName:'Giacomo',      lastName:'Skyttehave',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:13,birthdate:''},
+{id:33, firstName:'Karoline',     lastName:'Klarskov',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'K',age:11,birthdate:''},
+{id:34, firstName:'Matilde',      lastName:'Sloth',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'K',age:10,birthdate:''},
+{id:35, firstName:'Matvii',       lastName:'Diduk',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:36, firstName:'Nord',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:325,  group:'Basis-hold',checkedIn:false,gender:'M',age:13,birthdate:''},
+{id:37, firstName:'Sejr',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:15,birthdate:''},
+{id:38, firstName:'Selma',        lastName:'Wang Kristensen',     email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'K',age:13,birthdate:''},
+{id:39, firstName:'Smilte',       lastName:'Vesciunas',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'K',age:12,birthdate:''},
+{id:40, firstName:'Stipe',        lastName:'Nicpay',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:660,  group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:41, firstName:'Valdemar',     lastName:'Friis Holm',          email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:42, firstName:'Villads',      lastName:'Dalby',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:12,birthdate:''},
+{id:43, firstName:'William',      lastName:'Hutchinson',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:12,birthdate:''},
+{id:44, firstName:'William',      lastName:'Myrup',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
+{id:45, firstName:'Magne',        lastName:'Waskönig',            email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:10,birthdate:''},
 // ── Avanceret ─────────────────────────────────────────
 {id:46, firstName:'Anahita',      lastName:'Mashura',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:null,birthdate:''},
 {id:47, firstName:'Bardur',       lastName:'Vendelbo',            email:'bardur.vendelbo@gmail.com',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:51,birthdate:''},
@@ -1228,7 +1344,8 @@ const SEED = [
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let members=[], sessions=[], cancelledDates=[], assessments=[], pensum={};
+let members=[], sessions=[], cancelledDates=[], assessments=[], pensum={}, boardMeetings=[];
+let nextBoardId=1, editingBoardId=null;
 let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
 let dbSort={col:'rang', dir:'asc'};
 let dbSessionFilter='regular'; // 'regular' | 'extra' | 'total'
@@ -1261,7 +1378,7 @@ function fmtDate(iso){
   return d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
 function avClass(g){
-  return g==='Børnehold'?'av-boern':g==='Normal hold'?'av-junior':'av-senior';
+  return g==='Børnehold'?'av-boern':g==='Basis-hold'?'av-junior':'av-senior';
 }
 function roleChip(r){
   const cls=r==='Instruktør'?'role-i':r==='Hjælpetræner'?'role-h':'role-m';
@@ -1269,7 +1386,7 @@ function roleChip(r){
 }
 function grpChip(g){
   const cls=GRP_CHIP[g]||'grp-s';
-  const label=g==='Børnehold'?'Børnehold':g==='Normal hold'?'Normal hold':'Avanceret';
+  const label=g==='Børnehold'?'Børnehold':g==='Basis-hold'?'Basis-hold':'Avanceret';
   return `<span class="grp-chip ${cls}">${label}</span>`;
 }
 
@@ -1357,6 +1474,8 @@ function load(){
     };
     members.forEach(mb=>{
       if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];
+      // Omdøb "Normal hold" → "Basis-hold"
+      if(mb.group==='Normal hold') mb.group='Basis-hold';
       // Normaliser datofelter til YYYY-MM-DD (renser evt. ISO-strenge fra Google Sheets)
       if(mb.birthdate) mb.birthdate=String(mb.birthdate).slice(0,10);
       if(mb.startDate) mb.startDate=String(mb.startDate).slice(0,10);
@@ -1374,7 +1493,10 @@ function load(){
     nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
     const pv=localStorage.getItem('kk2_pensum');
     pensum=pv?JSON.parse(pv):{};
-  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; }
+    const bv=localStorage.getItem('kk2_board');
+    boardMeetings=bv?JSON.parse(bv):[];
+    nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
+  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; }
 }
 function save(){
   config._savedAt=Date.now();
@@ -1382,6 +1504,7 @@ function save(){
   localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
   localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
   localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
+  localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
   localStorage.setItem('kk2_config',JSON.stringify(config));
   if(cloudLoaded) pushToCloud();
 }
@@ -1406,14 +1529,13 @@ function pushToCloud(){
   fetch(url,{
     method:'POST',
     headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({members,sessions,cancelledDates,assessments,endDates:vault,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,assessments,boardMeetings,endDates:vault,_savedAt:config._savedAt})
   })
   .then(r=>r.json())
   .then(d=>{if(d.ok)setSyncStatus('ok');else setSyncStatus('error');})
   .catch(()=>{
-    // Fallback: no-cors (kan ikke læse svar, men data sendes)
     fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({members,sessions,cancelledDates,assessments,_savedAt:config._savedAt})})
+      body:JSON.stringify({members,sessions,cancelledDates,assessments,boardMeetings,_savedAt:config._savedAt})})
       .then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
   });
 }
@@ -1433,6 +1555,8 @@ function loadFromCloud(onDone){
       const _prevStartDates={};
       members.forEach(m=>{ if(m.endDate)_prevEndDates[m.id]=m.endDate; if(m.startDate)_prevStartDates[m.id]=m.startDate; });
       members=d.members;
+      // Omdøb "Normal hold" → "Basis-hold" i Sheets-data
+      members.forEach(mb=>{ if(mb.group==='Normal hold') mb.group='Basis-hold'; });
       const _prevSessions=sessions;
       sessions=(d.sessions||[]).map(s=>({...s,date:s.date?String(s.date).slice(0,10):s.date}));
       // Bevar lokale noter + sessioner der endnu ikke er synket til Sheets
@@ -1467,6 +1591,11 @@ function loadFromCloud(onDone){
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
       pensum=d.pensum||{};
       localStorage.setItem('kk2_pensum',JSON.stringify(pensum));
+      if(d.boardMeetings&&d.boardMeetings.length>0){
+        boardMeetings=d.boardMeetings.map(b=>({...b,date:b.date?String(b.date).slice(0,10):b.date}));
+        nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
+        localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
+      }
       cloudLoaded=true;
       setSyncStatus('ok');
       migratePaymentToAuto();
@@ -1558,11 +1687,19 @@ function openNotesModal(){
 function saveTrainingNote(){
   const note=document.getElementById('notesInput').value.trim();
   let sess=sessions.find(s=>s.date===currentTrainingDate);
+  // Hvis note er tom og der allerede findes en note — spørg før sletning
+  if(!note && sess && sess.note){
+    if(!confirm('Noten er tom — vil du slette den eksisterende note?')) return;
+  }
+  // Hvis note er tom og der ingen session er, gem ingenting
+  if(!note && (!sess || !sess.presentIds || !sess.presentIds.length)) {
+    closeModal('notesModal'); return;
+  }
   if(!sess){sess={date:currentTrainingDate,name:'Træning',presentIds:[]};sessions.push(sess);}
   sess.note=note;
   save(); pushToCloud(); updateNoteDisplay();
   closeModal('notesModal');
-  showToast('📝 Note gemt');
+  showToast(note?'📝 Note gemt':'🗑 Note slettet');
 }
 function updateNoteDisplay(){
   const sess=sessions.find(s=>s.date===currentTrainingDate);
@@ -1819,6 +1956,7 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='history') renderHistory();
   if(tab==='dashboard') renderDashboard();
+  if(tab==='board') renderBoard();
 }
 
 /* ════════════════════════════════════════
@@ -1944,14 +2082,19 @@ function renderM(){
   const fr=document.getElementById('mfr').value;
   const fst=document.getElementById('mfstatus').value;
   body.innerHTML='';let vis=0;
+
+  // Passive sektion
+  renderPassiveMembers(q,fg,fr);
+
   members.forEach(m=>{
     if(m.archived)return;
+    if(m.status==='passiv')return; // håndteres i passiv-sektion
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
     if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
     if(fg!=='all'&&m.group!==fg)return;
     if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return;
     if(fr!=='all'&&(m.role||'Medlem')!==fr)return;
-    if(fst!=='all'&&(m.status||'aktiv')!==fst)return;
+    if(fst==='passiv')return; // hvis filter er "kun passive", vis ingen aktive
     vis++;
     const isPassive=(m.status==='passiv');
     const bc=BC[m.belt]||'#ccc';
@@ -1992,6 +2135,59 @@ function renderM(){
   document.getElementById('mCount').textContent='';
   updateMemberStats();
   updatePaymentSummary();
+}
+
+let _passiveOpen=false;
+function togglePassiveSection(){
+  _passiveOpen=!_passiveOpen;
+  document.getElementById('passiveList').style.display=_passiveOpen?'block':'none';
+  document.getElementById('passiveChevron').style.transform=_passiveOpen?'rotate(180deg)':'rotate(0deg)';
+}
+function renderPassiveMembers(q,fg,fr){
+  const passiveAll=members.filter(m=>!m.archived&&m.status==='passiv');
+  // Filtrer efter søgning/gruppe/rolle
+  const passive=passiveAll.filter(m=>{
+    const nm=(m.firstName+' '+m.lastName).toLowerCase();
+    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q)&&!(m.belt||'').toLowerCase().includes(q))return false;
+    if(fg!=='all'&&m.group!==fg)return false;
+    if(fr!=='all'&&(m.role||'Medlem')!==fr)return false;
+    return true;
+  });
+  const sec=document.getElementById('passiveSection');
+  const tbody=document.getElementById('tbody-passive');
+  document.getElementById('passiveCount').textContent=passive.length;
+  if(passive.length===0){sec.style.display='none';return;}
+  sec.style.display='block';
+  tbody.innerHTML=passive.map(m=>{
+    const bc=BC[m.belt]||'#ccc';
+    return `<tr style="border-bottom:1px solid #f1f5f9;opacity:.85">
+      <td style="padding:.6rem .8rem">
+        <div style="display:flex;align-items:center;gap:.7rem">
+          <div class="av ${avClass(m.group)}" style="opacity:.6;flex-shrink:0">${inits(m)}</div>
+          <div>
+            <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}</div>
+            <div style="font-size:.74rem;color:var(--xtl)">${m.email||'ingen e-mail'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding:.6rem .5rem">${grpChip(m.group)}</td>
+      <td style="padding:.6rem .5rem"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.78rem">${m.belt}</span></td>
+      <td style="padding:.6rem .5rem;font-size:.78rem;color:var(--xtl)">${m.phone||'—'}</td>
+      <td style="padding:.6rem .5rem;text-align:right;white-space:nowrap">
+        <button class="btn bg btn-sm" onclick="openEditModal(${m.id})" title="Rediger">✏️</button>
+        <button class="btn bs btn-sm" style="margin-left:3px;font-size:.72rem" onclick="reactivateMember(${m.id})" title="Gør aktiv igen">▶ Aktiver</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function reactivateMember(id){
+  const m=members.find(x=>x.id===id);
+  if(!m)return;
+  if(!confirm(`Genaktivér ${m.firstName} ${m.lastName} som aktivt medlem?`))return;
+  m.status='aktiv';
+  save();
+  renderM();
+  showToast(`✅ ${m.firstName} ${m.lastName} er nu aktivt medlem igen`);
 }
 
 /* ════════════════════════════════════════
@@ -2565,8 +2761,8 @@ function renderDashboard(){
     return ed&&ed.startsWith(yrStr);
   });
   // Holdoversigt
-  const grpColors={'Børnehold':'#3b82f6','Normal hold':'#10b981','Avanceret':'#8b5cf6'};
-  const grpIcons={'Børnehold':'🧒','Normal hold':'🥋','Avanceret':'⭐'};
+  const grpColors={'Børnehold':'#3b82f6','Basis-hold':'#10b981','Avanceret':'#8b5cf6'};
+  const grpIcons={'Børnehold':'🧒','Basis-hold':'🥋','Avanceret':'⭐'};
   const grpCounts={};
   act.forEach(m=>{const g=m.group||'Andet';grpCounts[g]=(grpCounts[g]||0)+1;});
   const grpBox=document.getElementById('db-groups-box');
@@ -2605,6 +2801,49 @@ function renderDashboard(){
   // Beregn streak for alle aktive én gang
   const _dbStreakCache={};
   rows.forEach(m=>{ _dbStreakCache[m.id]=calcStreak(m.id); });
+
+  // Longest streak banner — kun én vinder, tiebreakers: sessioner i streakperiode → bæltegrad → anciennitet
+  const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+  function sessInStreakPeriod(memberId, streakWeeks){
+    const cutoff=new Date(localDate()+'T12:00:00');
+    cutoff.setDate(cutoff.getDate()-streakWeeks*7);
+    const cutStr=localDate(cutoff);
+    return sessions.filter(s=>s.date&&s.date>=cutStr&&(s.presentIds||[]).includes(memberId)).length;
+  }
+  const streakBanner=document.getElementById('db-streak-banner');
+  const streakEntries=act.map(m=>({m,s:calcStreak(m.id)})).filter(x=>x.s>=2);
+  if(streakEntries.length>0){
+    streakEntries.sort((a,b)=>{
+      if(b.s!==a.s) return b.s-a.s; // 1. Længste streak
+      const aSess=sessInStreakPeriod(a.m.id,a.s), bSess=sessInStreakPeriod(b.m.id,b.s);
+      if(bSess!==aSess) return bSess-aSess; // 2. Flest træninger i streakperioden
+      const aB=BELT_RANK[a.m.belt]??-1, bB=BELT_RANK[b.m.belt]??-1;
+      if(bB!==aB) return bB-aB; // 3. Højeste bæltegrad
+      const aSD=a.m.startDate||'9999', bSD=b.m.startDate||'9999';
+      return aSD.localeCompare(bSD); // 4. Længst anciennitet (tidligst startdato)
+    });
+    const top=streakEntries[0];
+    const weeks=top.s;
+    const flameColor=weeks>=10?'#dc2626':weeks>=5?'#ea580c':'#f97316';
+    const bg=weeks>=10?'linear-gradient(135deg,#fef2f2,#fff7ed)':weeks>=5?'linear-gradient(135deg,#fff7ed,#fffbeb)':'linear-gradient(135deg,#fffbeb,#fff)';
+    const trophy=weeks>=10?' 🏆':weeks>=5?' 💪':'';
+    streakBanner.style.display='block';
+    streakBanner.innerHTML=`<div style="background:${bg};border-radius:14px;border:1.5px solid ${flameColor}33;padding:1rem 1.3rem;display:flex;align-items:center;gap:1rem;box-shadow:0 2px 12px ${flameColor}18">
+      <div style="font-size:2.4rem;line-height:1;flex-shrink:0">🔥</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${flameColor};margin-bottom:2px">Længste fremmøde-streak</div>
+        <div style="font-weight:800;font-size:1rem;color:#1a1a2e">${top.m.firstName} ${top.m.lastName}</div>
+        <div style="font-size:.78rem;color:#6b7280;margin-top:2px">har mødt op <strong style="color:${flameColor}">${weeks} uger i træk${trophy}</strong></div>
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:2rem;font-weight:900;color:${flameColor};line-height:1">${weeks}</div>
+        <div style="font-size:.62rem;font-weight:600;color:${flameColor};opacity:.8">uger</div>
+      </div>
+    </div>`;
+  } else {
+    streakBanner.style.display='none';
+  }
+
   let vis=0;
   rows.forEach((m,i)=>{
     const c=counts[m.id]||0;
@@ -2839,11 +3078,13 @@ function openAddModal(){
   document.getElementById('fBT').value='10. Kyu (Hvidt)';
   document.getElementById('fPAY').value='';
   document.getElementById('fPAY_hint').textContent='';
-  document.getElementById('fGRP').value='Normal hold';
+  document.getElementById('fGRP').value='Basis-hold';
   document.getElementById('fROLE').value='Medlem';
   document.getElementById('fSTATUS').value='aktiv';
   document.getElementById('fSD').value='';
   document.getElementById('fED').value='';
+  document.getElementById('fCN').value='';
+  document.getElementById('fCP').value='';
   document.getElementById('fAGE').readOnly=false;
   document.getElementById('ageHint').style.display='';
   document.getElementById('ageCalc').style.display='none';
@@ -2869,11 +3110,13 @@ function openEditModal(id){
   document.getElementById('fPAY_hint').textContent=exp
     ?`Forventet: ${exp} kr · Indbetalt: ${Number(m.betaltBeløb)||0} kr · Vises som: ${effLbl}${isManual?' (manuel)':' (auto)'}`
     :'';
-  document.getElementById('fGRP').value=m.group||'Normal hold';
+  document.getElementById('fGRP').value=m.group||'Basis-hold';
   document.getElementById('fROLE').value=m.role||'Medlem';
   document.getElementById('fSTATUS').value=m.status||'aktiv';
   document.getElementById('fSD').value=m.startDate||'';
   document.getElementById('fED').value=m.endDate||'';
+  document.getElementById('fCN').value=m.contactName||'';
+  document.getElementById('fCP').value=m.contactPhone||'';
   updateAgePreview();
   openModal('memberModal');
 }
@@ -2905,6 +3148,8 @@ function saveMember(){
     status:document.getElementById('fSTATUS').value,
     startDate:document.getElementById('fSD').value||null,
     endDate:document.getElementById('fED').value||null,
+    contactName:document.getElementById('fCN').value.trim()||null,
+    contactPhone:document.getElementById('fCP').value.trim()||null,
   };
   if(editingId){
     const i=members.findIndex(x=>x.id===editingId);
@@ -3130,7 +3375,7 @@ function exportToExcel(){
   const freeze=`<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions>`;
 
   const active=members.filter(m=>!m.archived);
-  const groups=['Børnehold','Normal hold','Avanceret'];
+  const groups=['Børnehold','Basis-hold','Avanceret'];
 
   let sheets=`<Worksheet ss:Name="Alle"><Table>${cols}${buildSheet(active)}</Table>${freeze}</Worksheet>\n`;
   groups.forEach(g=>{
@@ -3268,8 +3513,10 @@ function scoreCell(memberId){
     return `<div class="score-tip-row"><span class="score-tip-skill">${skill}</span><span class="score-tip-stars">${stars}</span></div>`;
   }).join('');
   const commentHtml=latest.comment?`<div class="score-tip-comment">"${latest.comment}"</div>`:'';
+  const assessorHtml=latest.assessorName?`<div style="font-size:.68rem;color:var(--xtl);margin-top:3px">👤 ${latest.assessorName}</div>`:'';
   const tip=`<div class="score-tip">
     <div class="score-tip-hdr">📋 ${dateStr} · ${latest.belt}</div>
+    ${assessorHtml}
     ${skillRows}
     ${commentHtml}
     <div class="score-tip-avg" style="color:${color}">★ Gennemsnit: ${avg.toFixed(1)} / 5</div>
@@ -3291,6 +3538,7 @@ function openAssessmentModal(memberId, editAssessmentId){
   _assessRatings=existing?JSON.parse(existing.ratings||'{}'):{};
 
   document.getElementById('assessMemberName').textContent=m.firstName+' '+m.lastName;
+  document.getElementById('assessorName').value=existing?existing.assessorName||'':'';
 
   // Bæltebadge + dato
   const _BC={'10. Kyu (Hvidt)':'#f5f5f5','9. Kyu (1 Snip)':'#f5f5f5','8. Kyu (2 Snip)':'#f5f5f5','7. Kyu (Gult)':'#fff176','6. Kyu (Blåt)':'#90caf9','5. Kyu (Grønt)':'#a5d6a7','4. Kyu (Violet)':'#ce93d8','3. Kyu (Brunt)':'#bcaaa4','2. Kyu (Brunt + 1 Snip)':'#a1887f','1. Kyu (Brunt + 2 Snip)':'#8d6e63','1. Dan (Sort)':'#424242','2. Dan (Sort)':'#212121','3. Dan (Sort)':'#121212'};
@@ -3350,9 +3598,11 @@ function saveAssessment(){
     return;
   }
   const comment=document.getElementById('assessComment').value.trim();
+  const assessorName=document.getElementById('assessorName').value.trim();
   if(existing){
     existing.ratings=JSON.stringify(_assessRatings);
     existing.comment=comment;
+    existing.assessorName=assessorName;
   } else {
     assessments.push({
       id:nextAssessmentId++,
@@ -3360,7 +3610,8 @@ function saveAssessment(){
       date:new Date().toISOString().slice(0,10),
       belt:m.belt,
       ratings:JSON.stringify(_assessRatings),
-      comment
+      comment,
+      assessorName
     });
   }
   save();
@@ -3369,6 +3620,7 @@ function saveAssessment(){
   _editingAssessmentId=null;
   _assessRatings={};
   document.getElementById('assessComment').value='';
+  document.getElementById('assessorName').value='';
   document.querySelectorAll('.assess-stars span').forEach(s=>{s.textContent='☆';s.classList.remove('on');});
   document.querySelector('#assessmentModal .btn.bp').textContent='💾 Gem vurdering';
   renderAssessmentHistory(memberId);
@@ -3401,6 +3653,7 @@ function renderAssessmentHistory(memberId){
         return `<div class="assess-history-skill"><span>${sk}</span><span class="assess-history-stars">${filled}</span></div>`;
       }).join('');
       const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
+      const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${a.assessorName}</strong></div>`:'';
       const beltLabel=a.belt?`<span style="font-size:.72rem;font-weight:600;opacity:.7;margin-left:.5rem">${a.belt}</span>`:'';
       return `<div class="assess-history-item">
         <div class="assess-history-date" style="display:flex;justify-content:space-between;align-items:center">
@@ -3411,6 +3664,7 @@ function renderAssessmentHistory(memberId){
           </div>
         </div>
         ${starsHtml||'<div style="font-size:.8rem;color:var(--t2);font-style:italic">Ingen ratings</div>'}
+        ${assessorHtml}
         ${commentHtml}
       </div>`;
     }).join('');
@@ -3424,6 +3678,225 @@ function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
   clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ════════════════════════════════════════
+   BESTYRELSE
+════════════════════════════════════════ */
+function renderBoard(){
+  const today=localDate();
+  const thisYear=today.slice(0,4);
+  const sorted=[...boardMeetings].sort((a,b)=>b.date.localeCompare(a.date));
+  const upcoming=boardMeetings.filter(b=>b.date>=today);
+  const nextMeeting=upcoming.sort((a,b)=>a.date.localeCompare(b.date))[0];
+  const inYear=boardMeetings.filter(b=>b.date&&b.date.startsWith(thisYear));
+
+  // Stats
+  document.getElementById('brd-total').textContent=boardMeetings.length;
+  document.getElementById('brd-year').textContent=inYear.length;
+  const brdNext=document.getElementById('brd-next');
+  if(nextMeeting && nextMeeting.date){
+    const nd=new Date(nextMeeting.date+'T12:00:00');
+    if(!isNaN(nd.getTime())){
+      brdNext.textContent=nd.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
+      brdNext.style.fontSize='1rem';
+    } else {
+      brdNext.textContent='—';
+      brdNext.style.fontSize='1.8rem';
+    }
+  } else {
+    brdNext.textContent='—';
+    brdNext.style.fontSize='1.8rem';
+  }
+
+  // Dage siden sidste møde
+  const pastMeetings=boardMeetings.filter(b=>b.date<today).sort((a,b)=>b.date.localeCompare(a.date));
+  const lastMeeting=pastMeetings[0];
+  const daysBanner=document.getElementById('brd-days-banner');
+  if(lastMeeting){
+    const diff=Math.round((new Date(today+'T12:00:00')-new Date(lastMeeting.date+'T12:00:00'))/(1000*60*60*24));
+    let col='#16a34a', bg='#f0fdf4', border='#bbf7d0', icon='✅', phrase='We are on track — keep up the good work!';
+    if(diff>150){col='#dc2626';bg='#fef2f2';border='#fecaca';icon='🚨';phrase='KRITISK: Det er alt for længe siden! Et bestyrelsesmøde skal planlægges og afholdes øjeblikkeligt.';}
+    else if(diff>=90){col='#d97706';bg='#fffbeb';border='#fde68a';icon='⚠️';phrase='Det er ved at være tid — få planlagt næste bestyrelsesmøde snart.';}
+    daysBanner.style.display='flex';
+    daysBanner.style.background=bg;
+    daysBanner.style.border=`1px solid ${border}`;
+    daysBanner.innerHTML=`
+      <div style="font-size:2rem;font-weight:900;color:${col};line-height:1;margin-right:1rem;flex-shrink:0">${diff}</div>
+      <div style="min-width:0">
+        <div style="font-size:.78rem;font-weight:700;color:${col}">${icon} Dage siden sidste møde</div>
+        <div style="font-size:.75rem;color:${col};opacity:.85;margin-top:2px;font-style:italic">${phrase}</div>
+        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">Seneste: <strong>${lastMeeting.title||'Bestyrelsesmøde'}</strong> · ${new Date(lastMeeting.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>`;
+  } else {
+    daysBanner.style.display='none';
+  }
+
+  const container=document.getElementById('boardMeetingsList');
+  if(sorted.length===0){
+    container.innerHTML=`<div class="meeting-empty"><div class="me-icon">📋</div><div style="font-weight:600;margin-bottom:.3rem">Ingen møder endnu</div><div style="font-size:.82rem">Tryk "+ Nyt møde" for at tilføje det første bestyrelsesmøde</div></div>`;
+    return;
+  }
+
+  // Gruppér i Kommende og Tidligere
+  const futArr=sorted.filter(b=>b.date>=today);
+  const pastArr=sorted.filter(b=>b.date<today);
+
+  let html='';
+  if(futArr.length){
+    html+=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6d28d9;margin-bottom:.6rem;padding-left:.2rem">🔜 Kommende møder</div>`;
+    html+=futArr.map(b=>boardCard(b,today)).join('');
+  }
+  if(pastArr.length){
+    if(futArr.length) html+=`<div style="margin-top:1.2rem"></div>`;
+    html+=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:.6rem;padding-left:.2rem">🗂 Tidligere møder</div>`;
+    html+=pastArr.map(b=>boardCard(b,today)).join('');
+  }
+  container.innerHTML=html;
+}
+
+function boardCard(b,today){
+  const isToday=b.date===today;
+  const isFut=b.date>today;
+  const cls=isToday?'today':isFut?'upcoming':'past';
+  const accentCls=isFut||isToday?'upcoming':'past';
+  const d=b.date?new Date(b.date+'T12:00:00'):null;
+  const dateStr=d&&!isNaN(d.getTime())?d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Ukendt dato';
+  const badgeLabel=isToday?'📅 I dag':isFut?'🔜 '+dateStr:'📁 '+dateStr;
+  const previewText=b.agenda||(b.notes?b.notes.slice(0,120):'Ingen dagsorden');
+  const attendeeHtml=b.attendees?`<div class="meeting-attendees">👥 ${b.attendees}</div>`:'';
+  return `<div class="meeting-card">
+    <div class="meeting-card-accent ${accentCls}"></div>
+    <div class="meeting-card-body">
+      <div class="meeting-card-header">
+        <div><span class="meeting-date-badge ${cls}">${badgeLabel}</span>
+          <div class="meeting-title">${b.title||'Bestyrelsesmøde'}</div>
+          ${attendeeHtml}
+        </div>
+        <div class="meeting-actions" style="margin-top:0">
+          <button class="btn bp btn-sm" onclick="openBoardDetail(${b.id})">📋 Åbn</button>
+          <button class="btn bs btn-sm" onclick="openBoardModal(${b.id})">✏️</button>
+          <button class="btn bg btn-sm" onclick="deleteBoardMeeting(${b.id})">🗑</button>
+        </div>
+      </div>
+      ${previewText?`<div class="meeting-preview">${previewText}</div>`:''}
+      <div style="display:flex;gap:.5rem;margin-top:.7rem">
+        ${b.notes?`<span style="font-size:.68rem;background:#f0fdf4;color:#16a34a;border-radius:10px;padding:.15rem .55rem;font-weight:600">✅ Referat</span>`:`<span style="font-size:.68rem;background:#fff7ed;color:#c2410c;border-radius:10px;padding:.15rem .55rem;font-weight:600">⏳ Mangler referat</span>`}
+        ${b.agenda?`<span style="font-size:.68rem;background:#ede9fe;color:#6d28d9;border-radius:10px;padding:.15rem .55rem;font-weight:600">📋 Dagsorden</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function openBoardModal(id=null){
+  editingBoardId=id;
+  const b=id?boardMeetings.find(x=>x.id===id):null;
+  document.getElementById('boardModalTitle').textContent=b?'Rediger møde':'Nyt bestyrelsesmøde';
+  document.getElementById('bmDate').value=b?b.date:localDate();
+  document.getElementById('bmTitle').value=b?b.title:'';
+  document.getElementById('bmAttendees').value=b?b.attendees:'';
+  document.getElementById('bmAgenda').value=b?b.agenda:'';
+  document.getElementById('bmNotes').value=b?b.notes:'';
+  openModal('boardModal');
+}
+
+function saveBoardMeeting(){
+  const date=document.getElementById('bmDate').value;
+  const title=document.getElementById('bmTitle').value.trim();
+  if(!date||!title){alert('Dato og titel er påkrævet.');return;}
+  const data={
+    date,title,
+    attendees:document.getElementById('bmAttendees').value.trim(),
+    agenda:document.getElementById('bmAgenda').value.trim(),
+    notes:document.getElementById('bmNotes').value.trim()
+  };
+  if(editingBoardId){
+    const i=boardMeetings.findIndex(x=>x.id===editingBoardId);
+    boardMeetings[i]={...boardMeetings[i],...data};
+    showToast('✅ Møde opdateret');
+  } else {
+    boardMeetings.push({id:nextBoardId++,...data});
+    showToast('✅ Møde oprettet');
+  }
+  save();
+  closeModal('boardModal');
+  renderBoard();
+}
+
+function deleteBoardMeeting(id){
+  const b=boardMeetings.find(x=>x.id===id);
+  if(!confirm(`Slet mødet "${b?b.title:'dette møde'}"? Det kan ikke fortrydes.`)) return;
+  boardMeetings=boardMeetings.filter(x=>x.id!==id);
+  save();
+  renderBoard();
+  showToast('🗑 Møde slettet');
+}
+
+function openBoardDetail(id){
+  const b=boardMeetings.find(x=>x.id===id);
+  if(!b) return;
+  const d=new Date(b.date+'T12:00:00');
+  const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('bdTitle').textContent=b.title||'Mødereferat';
+  document.getElementById('boardDetailContent').innerHTML=`
+    <div class="bm-section">
+      <div class="bm-section-label">📅 Dato</div>
+      <div class="bm-section-body">${dateStr}</div>
+    </div>
+    ${b.attendees?`<div class="bm-section">
+      <div class="bm-section-label">👥 Deltagere</div>
+      <div class="bm-section-body">${b.attendees}</div>
+    </div>`:''}
+    ${b.agenda?`<div class="bm-section">
+      <div class="bm-section-label">📋 Dagsorden</div>
+      <div class="bm-section-body">${b.agenda}</div>
+    </div>`:''}
+    ${b.notes?`<div class="bm-section">
+      <div class="bm-section-label">📝 Referat / noter</div>
+      <div class="bm-section-body">${b.notes}</div>
+    </div>`:`<div style="text-align:center;padding:1rem;color:var(--xtl);font-size:.85rem">⏳ Ingen referat endnu</div>`}
+  `;
+  document.getElementById('bdEditBtn').onclick=()=>{closeModal('boardDetailModal');openBoardModal(id);};
+  document.getElementById('bdPdfBtn').onclick=()=>exportBoardToPDF(id);
+  openModal('boardDetailModal');
+}
+
+function exportBoardToPDF(id){
+  const b=boardMeetings.find(x=>x.id===id);
+  if(!b) return;
+  const d=new Date(b.date+'T12:00:00');
+  const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"/>
+  <title>${b.title||'Bestyrelsesmøde'}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a2e;padding:40px 50px;max-width:800px;margin:0 auto;font-size:14px}
+    .logo-row{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #312e81;padding-bottom:16px;margin-bottom:28px}
+    .club-name{font-size:22px;font-weight:800;color:#312e81;line-height:1.2}
+    .club-sub{font-size:11px;color:#6b7280;margin-top:3px}
+    .doc-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7c3aed;background:#ede9fe;padding:4px 12px;border-radius:20px}
+    h1{font-size:20px;font-weight:800;color:#1e1b4b;margin-bottom:6px}
+    .meta{font-size:12px;color:#6b7280;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid #e5e7eb}
+    .section{margin-bottom:22px}
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#7c3aed;margin-bottom:8px}
+    .section-body{font-size:13.5px;line-height:1.75;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;white-space:pre-wrap}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;display:flex;justify-content:space-between}
+    @media print{body{padding:20px 30px}button{display:none}}
+  </style></head><body>
+  <div class="logo-row">
+    <div><div class="club-name">Esbjerg Shuri-Ryu Karate</div><div class="club-sub">Strandbygade 53, 6700 Esbjerg · holmoos@mail.dk</div></div>
+    <div class="doc-type">Bestyrelsesmøde</div>
+  </div>
+  <h1>${b.title||'Bestyrelsesmøde'}</h1>
+  <div class="meta">📅 ${dateStr}${b.attendees?'&nbsp;&nbsp;·&nbsp;&nbsp;👥 '+b.attendees:''}</div>
+  ${b.agenda?`<div class="section"><div class="section-label">📋 Dagsorden</div><div class="section-body">${b.agenda}</div></div>`:''}
+  ${b.notes?`<div class="section"><div class="section-label">📝 Referat og beslutninger</div><div class="section-body">${b.notes}</div></div>`:'<div style="color:#9ca3af;font-style:italic;padding:12px 0">Referat ikke udfyldt endnu.</div>'}
+  <div class="footer"><span>Esbjerg Shuri-Ryu Karate &copy; ${new Date().getFullYear()}</span><span>Dokument genereret ${new Date().toLocaleDateString('da-DK')}</span></div>
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+  const w=window.open('','_blank','width=850,height=1100');
+  w.document.write(html);
+  w.document.close();
 }
 </script>
 </body>
