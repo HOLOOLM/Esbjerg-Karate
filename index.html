@@ -243,6 +243,8 @@ textarea.fta{resize:vertical;min-height:85px}
 /* CANCELLED */
 .hc-cancelled{border-left-color:#94a3b8!important;opacity:.75}
 .hc-cancelled .hc-date{text-decoration:line-through;color:var(--xtl)}
+.hc-extra{border-left-color:#7c3aed!important}
+.t-extra{background:#ede9fe;color:#6d28d9}
 .hc-cancel-btn{margin-top:.7rem;width:100%;padding:.3rem .6rem;border-radius:7px;border:1.5px solid #c8dede;background:#fff;font-size:.73rem;font-weight:600;cursor:pointer;color:var(--xtm);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
 .hc-cancel-btn:hover{background:var(--rbb);border-color:var(--rb);color:var(--rb)}
 .hc-cancel-btn.active{background:var(--rbb);border-color:var(--rb);color:var(--rb)}
@@ -293,12 +295,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .btn-sm{padding:.44rem .85rem}
   .modal{padding:1.4rem 1.2rem}
   .mbd{max-width:96vw;width:96vw}
-  /* Skjul mindst vigtige kolonner på tablet */
-  #page-training th:nth-child(4),#page-training td:nth-child(4){display:none}
-  #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
-  /* Horisontal tabel-scroll */
+  /* Horisontal tabel-scroll — ingen kolonner skjult */
   .tcard{overflow:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:480px}
+  #page-training table{min-width:560px}
+  #page-members table{min-width:820px}
+  #page-dashboard table{min-width:640px}
 }
 
 /* ── MOBIL (≤480px) ── */
@@ -345,26 +346,25 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .date-bar .date-btns{margin-left:0!important;width:100%!important;display:grid!important;grid-template-columns:1fr 1fr;gap:.4rem}
   .date-bar .date-btns .btn{width:100%;justify-content:center;font-size:.78rem;padding:.48rem .3rem}
 
-  /* Tabeller: horisontal scroll */
+  /* Tabeller: horisontal scroll — alle kolonner synlige */
   .tcard{overflow:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-  table{min-width:320px}
   td,th{white-space:nowrap}
   td{padding:.5rem .55rem;font-size:.78rem}
   thead th{padding:.55rem .55rem;font-size:.64rem}
+  #page-training table{min-width:500px}
+  #page-members table{min-width:780px}
+  #page-dashboard table{min-width:580px}
 
-  /* Træning: skjul kun Gruppe(3) — vis Toggle, Navn, Køn/Alder, Bælte, Kontingent */
-  #page-training th:nth-child(3),#page-training td:nth-child(3){display:none}
-  /* Gendan Alder(4) som tablet-reglen skjulte */
-  #page-training th:nth-child(4),#page-training td:nth-child(4){display:table-cell}
+  /* Dashboard: stats-grid 2 kolonner (3 rækker af 2) */
+  .stats-grid{grid-template-columns:1fr 1fr;gap:.45rem}
 
-  /* Alle Medlemmer: skjul Gruppe(2) og Telefon(6) — Køn/Alder vises, tabel scroller horisontalt */
-  #page-members th:nth-child(2),#page-members td:nth-child(2){display:none}
-  #page-members th:nth-child(6),#page-members td:nth-child(6){display:none}
+  /* Dashboard: graf scroller horisontalt ved mange søjler */
+  .chart-bars{min-width:320px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .chart-col{min-width:28px}
 
-  /* Dashboard: vis Rang, Navn, Antal, Fremmøde% */
-  #page-dashboard th:nth-child(3),#page-dashboard td:nth-child(3){display:none}
-  #page-dashboard th:nth-child(4),#page-dashboard td:nth-child(4){display:none}
-  #page-dashboard th:nth-child(5),#page-dashboard td:nth-child(5){display:none}
+  /* Vækst-box: stabler vertikalt på mobil */
+  #db-growth-card > div{flex-direction:column;align-items:flex-start!important;gap:.8rem}
+  #db-growth-card > div > div:last-child{align-self:stretch;flex-direction:row;justify-content:center;padding:.4rem 0}
 
   /* Kontroller stacker */
   .sh{flex-direction:column;gap:.5rem}
@@ -421,6 +421,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .cl-item{font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:5px;color:var(--xtm)}
 .cl-item::before{content:'';display:inline-block;width:12px;height:12px;border-radius:3px}
 .cl-green::before{background:var(--go)}.cl-orange::before{background:var(--or)}.cl-red::before{background:var(--rb)}
+.db-sess-toggle{display:inline-flex;border-radius:8px;overflow:hidden;border:1.5px solid #b0c8c8;background:#f0f5f5}
+.db-stbtn{padding:.3rem .9rem;font-size:.78rem;font-weight:600;border:none;border-right:1px solid #b0c8c8;background:transparent;color:#4a6060;cursor:pointer;transition:background .15s,color .15s}
+.db-stbtn:last-child{border-right:none}
+.db-stbtn.active{background:#2c6e6e;color:#fff}
+.db-chart-filter-banner{display:flex;align-items:center;gap:.6rem;background:#e8f4fd;border:1px solid #93c5fd;border-radius:8px;padding:.5rem .9rem;font-size:.82rem;color:#1e40af;margin:.6rem 0}
+.chart-col.clickable{cursor:pointer}
+.chart-col.clickable:hover .chart-bar{opacity:.8}
+.chart-col.chart-selected .chart-bar{outline:2.5px solid #1e40af;outline-offset:2px}
 .db-rank{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:.78rem;font-weight:700;background:#e0eded;color:var(--xtm)}
 .th-sort{cursor:pointer;user-select:none;white-space:nowrap}
 .th-sort:hover{color:#fff;opacity:.85}
@@ -481,6 +489,15 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .assess-history-skill{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.15rem 0}
 .assess-history-stars{color:#f59e0b;letter-spacing:.05rem}
 .assess-history-comment{font-size:.8rem;color:var(--t2);margin-top:.4rem;font-style:italic}
+.score-wrap{position:relative;display:inline-block}
+.score-tip{display:none;position:fixed;background:#fff;border:1px solid #e0eded;border-radius:12px;padding:.7rem .9rem;min-width:210px;max-width:270px;box-shadow:0 6px 24px rgba(0,0,0,.13);z-index:9999;pointer-events:none;text-align:left}
+.score-wrap:hover .score-tip{display:block}
+.score-tip-hdr{font-size:.7rem;font-weight:700;color:var(--xtl);margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid #edf2f2}
+.score-tip-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.12rem 0;font-size:.75rem}
+.score-tip-skill{color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-tip-stars{color:#f59e0b;letter-spacing:.04em;flex-shrink:0;font-size:.8rem}
+.score-tip-comment{margin-top:.4rem;font-size:.72rem;color:#888;font-style:italic;padding-top:.35rem;border-top:1px solid #edf2f2;white-space:normal}
+.score-tip-avg{font-size:.72rem;font-weight:700;margin-top:.4rem;padding-top:.35rem;border-top:1px solid #edf2f2}
 </style>
 </head>
 <body>
@@ -649,8 +666,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </select>
       <select class="fs" id="hDay" onchange="renderHistory()">
         <option value="all">Alle dage</option>
-        <option value="2">Tirsdage</option>
-        <option value="4">Torsdage</option>
+        <option value="extra">Kun ekstra</option>
       </select>
     </div>
   </div>
@@ -739,8 +755,36 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="stats-grid" style="margin-bottom:1.5rem">
     <div class="stat-card"><div class="si si-b">📅</div><div><div class="sv" id="db-sessions">0</div><div class="sl">Registrerede træninger</div></div></div>
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="db-avgatt">0</div><div class="sl">Gns. fremmøde</div></div></div>
-    <div class="stat-card"><div class="si si-b">🏆</div><div><div class="sv" id="db-topname">—</div><div class="sl">Mest fremmødt</div></div></div>
+    <div class="stat-card"><div class="si si-b">🏆</div><div style="min-width:0"><div class="sv" id="db-topname" style="font-size:.95rem;font-weight:700;line-height:1.2;word-break:break-word">—</div><div class="sl">Mest fremmødt</div></div></div>
     <div class="stat-card"><div class="si si-d">📈</div><div><div class="sv" id="db-topcount">0</div><div class="sl">Flest gange</div></div></div>
+    <div class="stat-card"><div class="si si-b">🆕</div><div><div class="sv" id="db-newmembers">0</div><div class="sl" id="db-newmembers-lbl">Nye elever</div></div></div>
+    <div class="stat-card"><div class="si si-d">👋</div><div><div class="sv" id="db-stopmembers">0</div><div class="sl" id="db-stopmembers-lbl">Stoppede elever</div></div></div>
+  </div>
+
+  <!-- Medlemsudvikling vækst-box -->
+  <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
+    <div id="db-growth-card" class="tcard" style="padding:1.1rem 1.4rem;border-left:4px solid #16a34a;background:linear-gradient(135deg,#f0faf5 0%,#fff 60%)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--xtl);margin-bottom:.5rem">Medlemsudvikling <span id="db-growth-year">2026</span></div>
+          <div style="display:flex;gap:1.8rem">
+            <div style="display:flex;flex-direction:column;align-items:center;background:#f0fdf4;border-radius:10px;padding:.45rem .85rem;border:1px solid #bbf7d0">
+              <span style="font-size:1.5rem;font-weight:800;color:#16a34a;line-height:1" id="db-growth-new">+0</span>
+              <span style="font-size:.65rem;color:#16a34a;font-weight:600;margin-top:2px">nye elever</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;background:#fef2f2;border-radius:10px;padding:.45rem .85rem;border:1px solid #fecaca">
+              <span style="font-size:1.5rem;font-weight:800;color:#dc2626;line-height:1" id="db-growth-stop">−0</span>
+              <span style="font-size:.65rem;color:#dc2626;font-weight:600;margin-top:2px">stoppede</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:80px">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--xtl);margin-bottom:2px">Nettovækst</div>
+          <div id="db-growth-net" style="font-size:2.8rem;font-weight:900;line-height:1;color:#16a34a">+0</div>
+          <div id="db-growth-arrow" style="font-size:1.2rem;line-height:1">📈</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="tcard" style="padding:1.5rem;margin-bottom:2rem">
@@ -775,6 +819,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="sh">
     <div class="st">🥋 Fremmøde pr. medlem</div>
     <div class="controls">
+      <div class="db-sess-toggle" id="dbSessToggle">
+        <button id="dbToggleReg" class="db-stbtn active" onclick="setDbSessionFilter('regular')">📅 Tirs/Tors</button>
+        <button id="dbToggleExtra" class="db-stbtn" onclick="setDbSessionFilter('extra')">⭐ Ekstra</button>
+        <button id="dbToggleTotal" class="db-stbtn" onclick="setDbSessionFilter('total')">📊 Total</button>
+      </div>
       <input class="sbx" type="text" id="db-search" placeholder="🔍 Søg navn…" oninput="renderDashboard()"/>
       <select class="fs" id="dbMGroup" onchange="renderDashboard()">
         <option value="all">Alle grupper</option>
@@ -784,6 +833,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </select>
       <button class="btn bs btn-sm" onclick="exportAttendance()">📊 Eksporter Excel</button>
     </div>
+  </div>
+  <div id="dbChartFilterBanner" style="display:none" class="db-chart-filter-banner">
+    🔍 Filtreret på: <strong id="dbChartFilterLabel"></strong>
+    <button onclick="clearDbChartFilter()" style="margin-left:auto;background:none;border:1px solid #93c5fd;border-radius:6px;padding:.1rem .6rem;cursor:pointer;color:#1e40af;font-size:.78rem">✕ Ryd filter</button>
   </div>
   <div class="tcard">
     <table>
@@ -829,6 +882,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div class="fgrp"><label>Fødselsdato</label><input type="date" id="fBD" oninput="updateAgePreview()"/></div>
       <div class="fgrp"><label>Startdato (første træning)</label><input type="date" id="fSD"/>
         <div class="age-hint">Bruges til at beregne anciennitet</div>
+      </div>
+      <div class="fgrp"><label>Afslutningsdato <span style="font-weight:400;color:var(--xtl)">(sættes automatisk ved arkivering)</span></label><input type="date" id="fED"/>
+        <div class="age-hint">Bruges til historisk nøjagtighed i fremmødestatistik</div>
       </div>
       <div class="fgrp">
         <label>Alder</label>
@@ -966,6 +1022,22 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   </div>
 </div>
 
+<!-- ══ MODAL: AFSLUTNINGSDATO ══ -->
+<div class="mbd" id="endDateModal">
+  <div class="modal" style="max-width:380px">
+    <div class="mtitle">
+      <div class="mtitle-left">📅 <span id="endDateModalTitle">Afslutningsdato</span></div>
+      <button class="mclose" onclick="closeModal('endDateModal')">✕</button>
+    </div>
+    <p style="font-size:.88rem;color:var(--xtm);margin:.2rem 0 1rem">Hvornår stoppede medlemmet? Bruges til historisk nøjagtighed i fremmødestatistik.</p>
+    <div class="fgrp"><label>Afslutningsdato</label><input type="date" id="endDateInput"/></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('endDateModal')">Annuller</button>
+      <button class="btn bp" onclick="confirmEndDate()">✅ Bekræft</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL: HISTORIK DETALJE ══ -->
 <div class="mbd" id="hdModal">
   <div class="modal modal-lg">
@@ -999,6 +1071,19 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <label>Google Script URL (deling mellem enheder)</label>
         <input type="url" id="setScriptUrl" placeholder="https://script.google.com/macros/s/.../exec"/>
         <div class="age-hint">Lad feltet stå tomt for at bruge appen offline uden deling</div>
+      </div>
+      <div class="fgrp full">
+        <label>📅 Faste træningsdage</label>
+        <div style="display:flex;gap:.5rem 1rem;flex-wrap:wrap;margin-top:.5rem">
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td1"> Mandag</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td2"> Tirsdag</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td3"> Onsdag</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td4"> Torsdag</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td5"> Fredag</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td6"> Lørdag</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;font-weight:400"><input type="checkbox" id="td0"> Søndag</label>
+        </div>
+        <div class="age-hint">Sessioner gemt på andre dage vises som "Ekstra træning"</div>
       </div>
       <div class="fgrp full">
         <label>💰 Kontingentsatser (pr. halvår)</label>
@@ -1134,8 +1219,10 @@ const SEED = [
 let members=[], sessions=[], cancelledDates=[], assessments=[], pensum={};
 let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
 let dbSort={col:'rang', dir:'asc'};
+let dbSessionFilter='regular'; // 'regular' | 'extra' | 'total'
+let dbChartFilter=null; // {ids: Set<memberId>, label: string} | null
 let config={adminEmail:'', clubEmail:'holmoos@mail.dk', scriptUrl:'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec',
-  rates:{age6_10:550, age10_15:650, age16plus:850}};
+  rates:{age6_10:550, age10_15:650, age16plus:850}, trainingDays:[2,4]};
 function localDate(d){
   const x=d||new Date();
   return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
@@ -1256,9 +1343,14 @@ function load(){
       // Normaliser datofelter til YYYY-MM-DD (renser evt. ISO-strenge fra Google Sheets)
       if(mb.birthdate) mb.birthdate=String(mb.birthdate).slice(0,10);
       if(mb.startDate) mb.startDate=String(mb.startDate).slice(0,10);
+      if(mb.endDate)   mb.endDate=String(mb.endDate).slice(0,10);
     });
+    // Populér endDate-vault fra eksisterende localStorage-data (kører ved første opstart med ny kode)
+    saveEndDateVault();
     if(c) config=Object.assign(config,JSON.parse(c));
     config.scriptUrl='https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
+    // Sikr at trainingDays altid er et gyldigt array
+    if(!Array.isArray(config.trainingDays)||!config.trainingDays.length) config.trainingDays=[2,4];
     nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
     const av=localStorage.getItem('kk2_assessments');
     assessments=av?JSON.parse(av):[];
@@ -1289,11 +1381,15 @@ function setSyncStatus(s){
 function pushToCloud(){
   const url=config.scriptUrl;
   if(!url)return;
+  // Send vault som separat endDates-felt — apps-scriptet gemmer det i Meta A3
+  // som er fuldstændig adskilt fra writeSheet og aldrig nulstilles
+  let vault={};
+  try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
   setSyncStatus('loading');
   fetch(url,{
     method:'POST',
     headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({members,sessions,cancelledDates,assessments,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,assessments,endDates:vault,_savedAt:config._savedAt})
   })
   .then(r=>r.json())
   .then(d=>{if(d.ok)setSyncStatus('ok');else setSyncStatus('error');})
@@ -1315,22 +1411,37 @@ function loadFromCloud(onDone){
   window[cb]=function(d){
     cleanup();
     if(d.ok&&d.members&&d.members.length>0){
+      // Gem lokale endDates + startDates inden cloud overskriver (cloud kan mangle kolonnen)
+      const _prevEndDates={};
+      const _prevStartDates={};
+      members.forEach(m=>{ if(m.endDate)_prevEndDates[m.id]=m.endDate; if(m.startDate)_prevStartDates[m.id]=m.startDate; });
       members=d.members;
       const _prevSessions=sessions;
       sessions=(d.sessions||[]).map(s=>({...s,date:s.date?String(s.date).slice(0,10):s.date}));
-      // Bevar lokale noter hvis cloud-versionen ikke har dem endnu (race condition ved POST→GET)
+      // Bevar lokale noter + sessioner der endnu ikke er synket til Sheets
       sessions.forEach(s=>{
         if(!s.note){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
+      });
+      // Tilføj lokale sessioner der ikke findes i Sheets endnu
+      _prevSessions.forEach(ps=>{
+        if(ps.presentIds&&ps.presentIds.length>0&&!sessions.find(s=>s.date===ps.date))
+          sessions.push(ps);
       });
       cancelledDates=(d.cancelledDates||[]).map(x=>String(x).slice(0,10));
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
       const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
       members.forEach(mb=>{
         if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];
-        // Normaliser datofelter til YYYY-MM-DD (Google Sheets kan returnere ISO-strenge)
+        // Normaliser datofelter til YYYY-MM-DD
         if(mb.birthdate) mb.birthdate=String(mb.birthdate).slice(0,10);
         if(mb.startDate) mb.startDate=String(mb.startDate).slice(0,10);
+        if(mb.endDate)   mb.endDate=String(mb.endDate).slice(0,10);
+        // Bevar lokal endDate/startDate hvis cloud ikke har dem (kolonnen ikke oprettet endnu i Sheets)
+        if(!mb.endDate   && _prevEndDates[mb.id])   mb.endDate=_prevEndDates[mb.id];
+        if(!mb.startDate && _prevStartDates[mb.id]) mb.startDate=_prevStartDates[mb.id];
       });
+      applyEndDateVault(); // gendan vault-endDates på members der stadig mangler dem
+      saveEndDateVault();  // gem opdaterede endDates tilbage i vault (additiv — sletter aldrig)
       localStorage.setItem('kk2_members',JSON.stringify(members));
       localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
       nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
@@ -1428,7 +1539,7 @@ function updateNoteDisplay(){
 /* ════════════════════════════════════════
    BIRTHDAY REMINDERS
 ════════════════════════════════════════ */
-function getBirthdays(days=7){
+function getBirthdays(daysBefore=6, daysAfter=6){
   const today=new Date(); today.setHours(0,0,0,0);
   return members.filter(m=>{
     if(m.archived||m.status==='passiv'||!m.birthdate)return false;
@@ -1436,18 +1547,27 @@ function getBirthdays(days=7){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(raw))return false;
     const bd=new Date(raw+'T12:00:00');
     if(isNaN(bd.getTime()))return false;
-    const bday=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
-    if(bday<today) bday.setFullYear(today.getFullYear()+1);
-    return Math.round((bday-today)/86400000)<=days;
+    // Tjek denne og næste år
+    for(let y=today.getFullYear();y<=today.getFullYear()+1;y++){
+      const bday=new Date(y,bd.getMonth(),bd.getDate());
+      const diff=Math.round((bday-today)/86400000);
+      if(diff>=-daysBefore&&diff<=daysAfter) return true;
+    }
+    return false;
   }).map(m=>{
-    const today2=new Date(); today2.setHours(0,0,0,0);
     const bd=new Date(String(m.birthdate).slice(0,10)+'T12:00:00');
-    const bday=new Date(today2.getFullYear(),bd.getMonth(),bd.getDate());
-    if(bday<today2) bday.setFullYear(today2.getFullYear()+1);
-    const diff=Math.round((bday-today2)/86400000);
-    const age=today2.getFullYear()-bd.getFullYear()+(diff===0&&bday.getTime()===today2.getTime()?0:0)+1;
-    return {...m,_daysUntil:diff,_age:today2.getFullYear()-bd.getFullYear()+(diff===0?0:0)+(bday.getFullYear()>today2.getFullYear()?1:0)};
-  }).sort((a,b)=>a._daysUntil-b._daysUntil);
+    // Find nærmeste forekomst (fortid eller fremtid)
+    let bestDiff=999, bestAge=0;
+    for(let y=today.getFullYear()-1;y<=today.getFullYear()+1;y++){
+      const bday=new Date(y,bd.getMonth(),bd.getDate());
+      const diff=Math.round((bday-today)/86400000);
+      if(Math.abs(diff)<Math.abs(bestDiff)){
+        bestDiff=diff;
+        bestAge=y-bd.getFullYear();
+      }
+    }
+    return {...m,_diff:bestDiff,_age:bestAge};
+  }).sort((a,b)=>a._diff-b._diff);
 }
 function birthdayBadge(m){
   if(!m.birthdate)return '';
@@ -1456,22 +1576,31 @@ function birthdayBadge(m){
   const bd=new Date(raw+'T12:00:00');
   if(isNaN(bd.getTime()))return '';
   const today=new Date(); today.setHours(0,0,0,0);
-  const bday=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
-  if(bday<today) bday.setFullYear(today.getFullYear()+1);
-  const diff=Math.round((bday-today)/86400000);
-  if(diff>7)return '';
-  if(diff===0) return ' <span title="Tillykke med fødselsdagen! 🎂" style="font-size:.85rem">🎂</span>';
-  return ` <span title="Fødselsdag om ${diff} dag${diff===1?'':'e'}" style="font-size:.78rem;color:#d97706">🎂${diff}d</span>`;
+  let bestDiff=999;
+  for(let y=today.getFullYear()-1;y<=today.getFullYear()+1;y++){
+    const bday=new Date(y,bd.getMonth(),bd.getDate());
+    const diff=Math.round((bday-today)/86400000);
+    if(Math.abs(diff)<Math.abs(bestDiff)) bestDiff=diff;
+  }
+  if(bestDiff<-6||bestDiff>6)return '';
+  if(bestDiff===0) return ' <span title="Tillykke med fødselsdagen! 🎂" style="font-size:.85rem">🎂</span>';
+  if(bestDiff>0) return ` <span title="Fødselsdag om ${bestDiff} dag${bestDiff===1?'':'e'}" style="font-size:.78rem;color:#d97706">🎂${bestDiff}d</span>`;
+  return ` <span title="Havde fødselsdag for ${Math.abs(bestDiff)} dage siden" style="font-size:.78rem;color:#94a3b8">🎂-${Math.abs(bestDiff)}d</span>`;
 }
 function updateBirthdayBanner(){
-  const bds=getBirthdays(7);
+  const bds=getBirthdays(6,6);
   const el=document.getElementById('birthdayBanner');
   if(!el)return;
   if(!bds.length){el.style.display='none';return;}
   el.style.display='block';
   document.getElementById('birthdayList').innerHTML=bds.map(m=>{
-    const lbl=m._daysUntil===0?'🎉 <strong>I dag!</strong>':m._daysUntil===1?'i morgen':`om ${m._daysUntil} dage`;
-    return `<strong>${m.firstName} ${m.lastName}</strong> har fødselsdag ${lbl}`;
+    let lbl;
+    if(m._diff===0) lbl=`🎉 <strong>I dag! (fylder ${m._age})</strong>`;
+    else if(m._diff===1) lbl=`i morgen <span style="color:#d97706">(fylder ${m._age})</span>`;
+    else if(m._diff>1) lbl=`om ${m._diff} dage <span style="color:#d97706">(fylder ${m._age})</span>`;
+    else if(m._diff===-1) lbl=`<span style="color:#94a3b8">fyldte ${m._age} i går</span>`;
+    else lbl=`<span style="color:#94a3b8">fyldte ${m._age} for ${Math.abs(m._diff)} dage siden</span>`;
+    return `<strong>${m.firstName} ${m.lastName}</strong> ${lbl}`;
   }).join(' &nbsp;·&nbsp; ');
 }
 
@@ -1589,6 +1718,8 @@ function initApp(){
   document.getElementById('rAge6_10').value=r.age6_10??550;
   document.getElementById('rAge10_15').value=r.age10_15??650;
   document.getElementById('rAge16plus').value=r.age16plus??850;
+  const td=config.trainingDays||[2,4];
+  [0,1,2,3,4,5,6].forEach(i=>{const el=document.getElementById('td'+i);if(el)el.checked=td.includes(i);});
 
   document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
   if(config.scriptUrl){
@@ -1662,7 +1793,18 @@ function switchTab(tab){
    STATS
 ════════════════════════════════════════ */
 // Aktive = ikke arkiveret OG ikke passivt medlem
-function actMembers(){ return members.filter(m=>!m.archived&&m.status!=='passiv'); }
+// atDate (valgfri, 'YYYY-MM-DD') → historisk filtrering baseret på startDate/endDate
+function actMembers(atDate){
+  if(!atDate) return members.filter(m=>!m.archived&&m.status!=='passiv');
+  const d=typeof atDate==='string'?atDate:localDate(atDate);
+  return members.filter(m=>{
+    if(m.status==='passiv') return false;
+    if(m.archived && !m.endDate) return false;       // arkiveret uden slutdato — udeluk
+    if(m.startDate && m.startDate > d) return false; // ikke startet endnu
+    if(m.endDate && m.endDate < d) return false;     // allerede stoppet
+    return true;
+  });
+}
 
 function updateStats(){
   const all=members.filter(m=>!m.archived);
@@ -1792,7 +1934,7 @@ function renderM(){
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td style="font-size:.82rem">${m.phone||'<span style="color:var(--xtl)">—</span>'}</td>
       <td style="font-size:.8rem;color:var(--xtm)">
-        ${(()=>{const dur=durationStr(m);if(dur==='—')return '<span style="color:var(--xtl)">—</span>';const raw=String(m.startDate).slice(0,10);const d=new Date(raw+'T12:00:00');const dateStr=isNaN(d.getTime())?'':d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});return `<div style="font-weight:600">${dur}</div>${dateStr?`<div style="font-size:.7rem;color:var(--xtl)">${dateStr}</div>`:''}`;})()}
+        ${(()=>{const dur=durationStr(m);if(dur==='—')return '<span style="color:var(--xtl)">—</span>';const raw=String(m.startDate).slice(0,10);const d=new Date(raw+'T12:00:00');const dateStr=isNaN(d.getTime())?'':d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});const endD=m.endDate?new Date(String(m.endDate).slice(0,10)+'T12:00:00'):null;const endStr=endD&&!isNaN(endD.getTime())?endD.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'';return `<div style="font-weight:600">${dur}</div>${dateStr?`<div style="font-size:.7rem;color:var(--xtl)">${dateStr}</div>`:''}${endStr?`<div style="font-size:.7rem;color:#c0392b;margin-top:1px">Sluttede: ${endStr}</div>`:''}`;})()}
       </td>
       <td data-col="payment">
         ${payBadge(m)}
@@ -1860,7 +2002,7 @@ function updatePaymentSummary(){
   const mangler=act
     .filter(m=>effectivePaymentStatus(m)!=='paid')
     .reduce((s,m)=>s+Math.max(0,getExpectedAmount(m)-(Number(m.betaltBeløb)||0)),0);
-  const fmt=n=>n.toLocaleString('da-DK')+' kr';
+  const fmt=n=>Math.round(n).toLocaleString('da-DK')+' kr';
   el.innerHTML=`
     <div class="pay-stat ps-exp">
       <div class="ps-icon">🎯</div>
@@ -1932,7 +2074,7 @@ function renderHistory(){
   const df=document.getElementById('hDay').value;
   const period=document.getElementById('hPeriod').value;
   const td=new Date();td.setHours(0,0,0,0);
-  // Måneds-ranges for perioder (0-baseret)
+  const trainingDays=config.trainingDays||[2,4];
   const periodMonths={
     all:[0,1,2,3,4,5,6,7,8,9,10,11],
     h1:[0,1,2,3,4,5], h2:[6,7,8,9,10,11],
@@ -1940,17 +2082,42 @@ function renderHistory(){
   };
   const allowedMonths=periodMonths[period]||periodMonths.all;
   grid.innerHTML='';
-  const dates=[];
-  const d=new Date(year,0,1);
-  while(d.getFullYear()===year){
-    const dw=d.getDay();
-    if((dw===2||dw===4)&&(df==='all'||String(dw)===df)&&allowedMonths.includes(d.getMonth())) dates.push(new Date(d));
-    d.setDate(d.getDate()+1);
+
+  // Byg sæt af planlagte datoer (konfigurerede ugedage)
+  const plannedSet=new Set();
+  if(df!=='extra'){
+    const d=new Date(year,0,1);
+    while(d.getFullYear()===year){
+      const dw=d.getDay();
+      if(trainingDays.includes(dw)&&allowedMonths.includes(d.getMonth()))
+        plannedSet.add(localDate(new Date(d)));
+      d.setDate(d.getDate()+1);
+    }
   }
+
+  // Tilføj ekstra sessioner (gemt på dage der IKKE er planlagte træningsdage)
+  const extraSet=new Set();
+  sessions.forEach(s=>{
+    if(!s.date)return;
+    const sd=new Date(s.date+'T12:00:00');
+    if(sd.getFullYear()!==year||!allowedMonths.includes(sd.getMonth()))return;
+    if(!plannedSet.has(s.date)) extraSet.add(s.date);
+  });
+
+  // Saml og sortér alle datoer — nyeste først, ingen fremtidige
+  const todayStr=localDate();
+  const allEntries=[...plannedSet,...extraSet]
+    .map(ds=>({ds,date:new Date(ds+'T12:00:00'),isExtra:extraSet.has(ds)}))
+    .filter(e=>e.ds<=todayStr)
+    .sort((a,b)=>b.ds.localeCompare(a.ds));
+
+  // Filtrer hvis kun ekstra ønskes
+  const filtered=df==='extra'?allEntries.filter(e=>e.isExtra):allEntries;
+
   let curM=-1;
-  dates.forEach(date=>{
-    const isFut=date>td,isToday=date.getTime()===td.getTime();
-    const ds=localDate(date),dw=date.getDay();
+  filtered.forEach(({ds,date,isExtra})=>{
+    const isToday=ds===todayStr;
+    const dw=date.getDay();
     const saved=sessions.find(s=>s.date===ds);
     if(date.getMonth()!==curM){
       curM=date.getMonth();
@@ -1959,17 +2126,24 @@ function renderHistory(){
       mh.textContent=DA_M[curM].charAt(0).toUpperCase()+DA_M[curM].slice(1)+' '+year;
       grid.appendChild(mh);
     }
-    const total=actMembers().length;
+    const total=actMembers(ds).length;
     const present=saved?saved.presentIds.length:0;
     const pct=total>0&&saved?Math.round(present/total*100):0;
     const isCancelled=cancelledDates.includes(ds);
     const card=document.createElement('div');
     let cc='hcard';
-    if(isCancelled)cc+=' hc-cancelled';
-    else if(isToday)cc+=' hc-today';else if(isFut)cc+=' hc-future';else if(dw===2)cc+=' hc-tue';else cc+=' hc-thu';
+    if(isCancelled) cc+=' hc-cancelled';
+    else if(isToday) cc+=' hc-today';
+    else if(isExtra) cc+=' hc-extra';
+    else if(dw===2) cc+=' hc-tue';
+    else cc+=' hc-thu';
     card.className=cc;
-    const tag=isCancelled?'<span class="hc-tag t-cancelled">🚫 Aflyst</span>':isToday?'<span class="hc-tag t-today">I dag</span>':isFut?'<span class="hc-tag t-future">Kommende</span>':dw===2?'<span class="hc-tag t-tue">Tirsdag</span>':'<span class="hc-tag t-thu">Torsdag</span>';
-    let pbcls='pb';if(pct>=70)pbcls+=' good';else if(pct>=40)pbcls+=' mid';else if(!isFut&&saved)pbcls+=' low';
+    let tag;
+    if(isCancelled) tag='<span class="hc-tag t-cancelled">🚫 Aflyst</span>';
+    else if(isToday) tag='<span class="hc-tag t-today">I dag</span>';
+    else if(isExtra) tag='<span class="hc-tag t-extra">⭐ Ekstra</span>';
+    else tag=`<span class="hc-tag ${dw===2?'t-tue':'t-thu'}">${DA_D[dw]}</span>`;
+    let pbcls='pb';if(pct>=70)pbcls+=' good';else if(pct>=40)pbcls+=' mid';else if(saved)pbcls+=' low';
     card.innerHTML=`
       <div class="hc-top">
         <div>
@@ -1977,12 +2151,12 @@ function renderHistory(){
           <div class="hc-date">${date.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}</div>
         </div>${tag}
       </div>
-      ${!isFut&&!isCancelled&&saved?`<div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
+      ${!isCancelled&&saved?`<div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
       <div class="hc-nums"><span>Til stede: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>
       ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${saved.note}</div>`:''}`:
-      !isFut&&!isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:''}
-      ${!isFut?`<button class="hc-cancel-btn${isCancelled?' active':''}" onclick="event.stopPropagation();toggleCancelled('${ds}')">${isCancelled?'↩️ Gendan træning':'🚫 Markér som aflyst'}</button>`:''}`;
-    if(!isFut&&!isCancelled) card.addEventListener('click',()=>openHD(ds,date,saved));
+      !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:''}
+      <button class="hc-cancel-btn${isCancelled?' active':''}" onclick="event.stopPropagation();toggleCancelled('${ds}')">${isCancelled?'↩️ Gendan træning':'🚫 Markér som aflyst'}</button>`;
+    if(!isCancelled) card.addEventListener('click',()=>openHD(ds,date,saved));
     grid.appendChild(card);
   });
 }
@@ -2047,6 +2221,27 @@ function calcStreak(memberId){
 /* ════════════════════════════════════════
    RENDER: DASHBOARD
 ════════════════════════════════════════ */
+function setDbSessionFilter(val){
+  dbSessionFilter=val;
+  dbChartFilter=null;
+  document.getElementById('dbToggleReg').classList.toggle('active',val==='regular');
+  document.getElementById('dbToggleExtra').classList.toggle('active',val==='extra');
+  document.getElementById('dbToggleTotal').classList.toggle('active',val==='total');
+  renderDashboard();
+}
+function clickChartBar(idx){
+  const d=window._dbChartData&&window._dbChartData[idx];
+  if(!d||!d.sessObjs||!d.sessObjs.length) return;
+  if(dbChartFilter&&dbChartFilter.barIdx===idx){ clearDbChartFilter(); return; }
+  const ids=new Set();
+  d.sessObjs.forEach(s=>(s.presentIds||[]).forEach(id=>ids.add(id)));
+  dbChartFilter={barIdx:idx,ids,label:d.lbl+' ('+d.sessions+' træning'+(d.sessions!==1?'er':'')+')'};
+  renderDashboard();
+}
+function clearDbChartFilter(){
+  dbChartFilter=null;
+  renderDashboard();
+}
 function setDbSort(col){
   if(dbSort.col===col) dbSort.dir=dbSort.dir==='asc'?'desc':'asc';
   else{dbSort.col=col;dbSort.dir=(col==='rang'||col==='baelte')?'asc':'desc';}
@@ -2066,11 +2261,30 @@ function renderDashboard(){
   const periodType=document.getElementById('dbPeriodType')?.value||'sessions';
   const act=actMembers(); // Passive tæller ikke med i fremmødestatistik
 
+  // Split sessioner i regulære (faste træningsdage) og ekstra
+  const td2=config.trainingDays||[2,4];
+  const regSessions=sessions.filter(s=>{
+    if(!s.date)return false;
+    const dw=new Date(s.date+'T12:00:00').getDay();
+    return td2.includes(dw);
+  });
+  const extraSessions=sessions.filter(s=>{
+    if(!s.date)return false;
+    const dw=new Date(s.date+'T12:00:00').getDay();
+    return !td2.includes(dw);
+  });
+
+  // Vælg aktiv sessionsliste baseret på filter
+  const allCombined=[...regSessions,...extraSessions].sort((a,b)=>a.date<b.date?-1:1);
+  const activeSessions=dbSessionFilter==='extra'?extraSessions:dbSessionFilter==='total'?allCombined:regSessions;
+  const inactiveSessions=dbSessionFilter==='extra'?regSessions:dbSessionFilter==='total'?[]:extraSessions;
+
   // Populate year selector
   const yearSel=document.getElementById('dbYear');
-  const allYears=[...new Set(sessions.map(s=>s.date?s.date.slice(0,4):null).filter(Boolean))].sort();
+  const allYears=[...new Set(activeSessions.map(s=>s.date?s.date.slice(0,4):null).filter(Boolean))].sort();
   const curYear=new Date().getFullYear();
   if(!allYears.includes(String(curYear))) allYears.push(String(curYear));
+  if(!allYears.includes(String(curYear+1))) allYears.push(String(curYear+1)); // næste år altid tilgængeligt
   const prevYearVal=yearSel.value;
   yearSel.innerHTML=allYears.map(y=>`<option value="${y}">${y}</option>`).join('');
   if(allYears.includes(prevYearVal)) yearSel.value=prevYearVal;
@@ -2078,20 +2292,25 @@ function renderDashboard(){
   const selYear=parseInt(yearSel.value)||curYear;
   yearSel.style.display=periodType==='year'?'none':'';
 
-  // Attendance counts per member (all time)
+  // Primære fremmødetæller
   const counts={};
   act.forEach(m=>{ counts[m.id]=0; });
-  sessions.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(counts[id]!==undefined)counts[id]++; }); });
+  activeSessions.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(counts[id]!==undefined)counts[id]++; }); });
+
+  // Sekundære fremmødetæller (den anden type — vises kun som badge i regular-tilstand)
+  const extraCounts={};
+  act.forEach(m=>{ extraCounts[m.id]=0; });
+  inactiveSessions.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(extraCounts[id]!==undefined)extraCounts[id]++; }); });
 
   // Stats
-  const totalSess=sessions.length;
+  const totalSess=activeSessions.length;
   document.getElementById('db-sessions').textContent=totalSess;
-  const avg=totalSess>0?Math.round(sessions.reduce((a,s)=>a+(s.presentIds||[]).length,0)/totalSess):0;
+  const avg=totalSess>0?Math.round(regSessions.reduce((a,s)=>a+(s.presentIds||[]).length,0)/totalSess):0;
   document.getElementById('db-avgatt').textContent=avg;
   // Topstat opdateres efter tabellen er sorteret — se nedenfor
 
   // Build chart data by period
-  const sorted=[...sessions].sort((a,b)=>a.date<b.date?-1:1);
+  const sorted=[...activeSessions].sort((a,b)=>a.date<b.date?-1:1);
   let chartData=[];
 
   function getGroupIds(grp){ return grp==='all'?act.map(m=>m.id):act.filter(m=>m.group===grp).map(m=>m.id); }
@@ -2109,53 +2328,57 @@ function renderDashboard(){
       const total=getTotal(grpF);
       const pct=total>0?Math.round(present/total*100):0;
       const d=new Date(s.date+'T12:00:00');
-      return {lbl:d.toLocaleDateString('da-DK',{day:'numeric',month:'short'}),present,total,pct,sessions:1};
+      return {lbl:d.toLocaleDateString('da-DK',{day:'numeric',month:'short'}),present,total,pct,sessions:1,sessObjs:[s]};
     });
   } else if(periodType==='month'){
     document.getElementById('db-chart-title').textContent=`📈 Månedlig fremmøde ${selYear}`;
     const DA_SHORT=['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
     for(let mo=0;mo<12;mo++){
       const mSess=sorted.filter(s=>s.date&&s.date.startsWith(selYear+'-'+String(mo+1).padStart(2,'0')));
-      if(mSess.length===0){chartData.push({lbl:DA_SHORT[mo],present:0,total:getTotal(grpF),pct:0,sessions:0});continue;}
+      if(mSess.length===0){chartData.push({lbl:DA_SHORT[mo],present:0,total:getTotal(grpF),pct:0,sessions:0,sessObjs:[]});continue;}
       const present=mSess.reduce((a,s)=>a+countPresent(s,grpF),0);
       const avgPres=Math.round(present/mSess.length);
       const total=getTotal(grpF);
       const pct=total>0?Math.round(avgPres/total*100):0;
-      chartData.push({lbl:DA_SHORT[mo],present:avgPres,total,pct,sessions:mSess.length});
+      chartData.push({lbl:DA_SHORT[mo],present:avgPres,total,pct,sessions:mSess.length,sessObjs:mSess});
     }
   } else if(periodType==='quarter'){
     document.getElementById('db-chart-title').textContent=`📈 Kvartalvis fremmøde ${selYear}`;
     ['Q1 (Jan-Mar)','Q2 (Apr-Jun)','Q3 (Jul-Sep)','Q4 (Okt-Dec)'].forEach((lbl,qi)=>{
       const months=[qi*3+1,qi*3+2,qi*3+3].map(m=>String(m).padStart(2,'0'));
       const qSess=sorted.filter(s=>s.date&&s.date.startsWith(selYear+'-')&&months.includes(s.date.slice(5,7)));
-      if(qSess.length===0){chartData.push({lbl:lbl.split(' ')[0],present:0,total:getTotal(grpF),pct:0,sessions:0});return;}
+      if(qSess.length===0){chartData.push({lbl:lbl.split(' ')[0],present:0,total:getTotal(grpF),pct:0,sessions:0,sessObjs:[]});return;}
       const present=qSess.reduce((a,s)=>a+countPresent(s,grpF),0);
       const avgPres=Math.round(present/qSess.length);
       const total=getTotal(grpF);
       const pct=total>0?Math.round(avgPres/total*100):0;
-      chartData.push({lbl:lbl.split(' ')[0],present:avgPres,total,pct,sessions:qSess.length});
+      chartData.push({lbl:lbl.split(' ')[0],present:avgPres,total,pct,sessions:qSess.length,sessObjs:qSess});
     });
   } else if(periodType==='halfyear'){
     document.getElementById('db-chart-title').textContent=`📈 Halvårlig fremmøde ${selYear}`;
-    [['H1 (Jan-Jun)',['01','02','03','04','05','06']],['H2 (Jul-Dec)',['07','08','09','10','11','12']]].forEach(([lbl,months])=>{
+    [['H1',['01','02','03','04','05','06']],['H2',['07','08','09','10','11','12']]].forEach(([half,months])=>{
       const hSess=sorted.filter(s=>s.date&&s.date.startsWith(selYear+'-')&&months.includes(s.date.slice(5,7)));
-      if(hSess.length===0){chartData.push({lbl:lbl.split(' ')[0],present:0,total:getTotal(grpF),pct:0,sessions:0});return;}
+      const lbl=`${half} ${selYear}`;
+      if(hSess.length===0){chartData.push({lbl,present:0,total:getTotal(grpF),pct:0,sessions:0,sessObjs:[]});return;}
       const present=hSess.reduce((a,s)=>a+countPresent(s,grpF),0);
       const avgPres=Math.round(present/hSess.length);
       const total=getTotal(grpF);
       const pct=total>0?Math.round(avgPres/total*100):0;
-      chartData.push({lbl:lbl.split(' ')[0],present:avgPres,total,pct,sessions:hSess.length});
+      chartData.push({lbl,present:avgPres,total,pct,sessions:hSess.length,sessObjs:hSess});
     });
   } else if(periodType==='year'){
-    document.getElementById('db-chart-title').textContent='📈 Årlig fremmøde (alle år)';
+    document.getElementById('db-chart-title').textContent='📈 Halvårlig fremmøde (alle år)';
     allYears.forEach(yr=>{
-      const ySess=sorted.filter(s=>s.date&&s.date.startsWith(yr+'-'));
-      if(ySess.length===0){chartData.push({lbl:yr,present:0,total:getTotal(grpF),pct:0,sessions:0});return;}
-      const present=ySess.reduce((a,s)=>a+countPresent(s,grpF),0);
-      const avgPres=Math.round(present/ySess.length);
-      const total=getTotal(grpF);
-      const pct=total>0?Math.round(avgPres/total*100):0;
-      chartData.push({lbl:yr,present:avgPres,total,pct,sessions:ySess.length});
+      [['H1',['01','02','03','04','05','06']],['H2',['07','08','09','10','11','12']]].forEach(([half,months])=>{
+        const hSess=sorted.filter(s=>s.date&&s.date.startsWith(yr+'-')&&months.includes(s.date.slice(5,7)));
+        const lbl=`${half}\n${yr}`;
+        if(hSess.length===0){chartData.push({lbl,present:0,total:getTotal(grpF),pct:0,sessions:0,sessObjs:[]});return;}
+        const present=hSess.reduce((a,s)=>a+countPresent(s,grpF),0);
+        const avgPres=Math.round(present/hSess.length);
+        const total=getTotal(grpF);
+        const pct=total>0?Math.round(avgPres/total*100):0;
+        chartData.push({lbl,present:avgPres,total,pct,sessions:hSess.length,sessObjs:hSess});
+      });
     });
   }
 
@@ -2168,7 +2391,8 @@ function renderDashboard(){
       <div class="chart-grid-line" style="bottom:${p}%">
         <div class="chart-grid-lbl">${p}%</div>
       </div>`).join('');
-    const bars=chartData.map(d=>{
+    window._dbChartData=chartData;
+    const bars=chartData.map((d,i)=>{
       const h=Math.max(d.pct,d.sessions>0?2:0);
       let color='#e0eded';
       if(d.sessions>0){
@@ -2176,12 +2400,15 @@ function renderDashboard(){
         else if(d.pct>=40)color='var(--or)';
         else color='var(--rb)';
       }
+      const isSelected=dbChartFilter&&dbChartFilter.barIdx===i;
+      const isClickable=d.sessions>0;
       const valLabel=d.sessions>0?d.present:'';
-      const tooltip=d.sessions>0?`${d.present}/${d.total} til stede (${d.pct}%) · ${d.sessions} træning${d.sessions!==1?'er':''}`:d.lbl;
-      return `<div class="chart-col" title="${tooltip}" style="--bh:${h}%">
+      const tooltip=d.sessions>0?`${d.present}/${d.total} til stede (${d.pct}%) · ${d.sessions} træning${d.sessions!==1?'er':''} — klik for at filtrere`:d.lbl;
+      const lbl=d.lbl.replace(/\n/g,'<br>');
+      return `<div class="chart-col${isClickable?' clickable':''}${isSelected?' chart-selected':''}" title="${tooltip}" style="--bh:${h}%"${isClickable?` onclick="clickChartBar(${i})"`:''}>
         ${d.sessions>0?`<span class="chart-val" style="bottom:calc(${h}% + 4px)">${valLabel}</span>`:''}
         <div class="chart-bar" style="height:${h}%;background:${color}"></div>
-        <div class="chart-lbl">${d.lbl}${d.sessions>0?`<br><span style="color:var(--tl);font-size:.58rem">${d.sessions}t</span>`:''}</div>
+        <div class="chart-lbl">${lbl}${d.sessions>0?`<br><span style="color:var(--tl);font-size:.58rem">${d.sessions}t</span>`:''}</div>
       </div>`;
     }).join('');
     chartEl.innerHTML=`<div class="chart-area">
@@ -2190,12 +2417,22 @@ function renderDashboard(){
     </div>`;
   }
 
+  // Opdater filter-banner
+  const banner=document.getElementById('dbChartFilterBanner');
+  if(dbChartFilter){
+    banner.style.display='flex';
+    document.getElementById('dbChartFilterLabel').textContent=dbChartFilter.label;
+  } else {
+    banner.style.display='none';
+  }
+
   // Member table
   const body=document.getElementById('tbody-db');
   body.innerHTML='';
   let rows=act.filter(m=>{
     if(mgrpF!=='all'&&m.group!==mgrpF)return false;
     if(q&&!(m.firstName+' '+m.lastName).toLowerCase().includes(q))return false;
+    if(dbChartFilter&&!dbChartFilter.ids.has(m.id))return false;
     return true;
   });
   const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
@@ -2243,12 +2480,44 @@ function renderDashboard(){
   const topC=topM?counts[topM.id]:0;
   document.getElementById('db-topname').textContent=topM?topM.firstName+' '+topM.lastName:'—';
   document.getElementById('db-topcount').textContent=topC;
+
+  // Nye og stoppede elever for det valgte år
+  const yrStr=String(selYear);
+  const newInYear=members.filter(m=>m.startDate&&m.startDate.startsWith(yrStr));
+  let edVault={};try{edVault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}');}catch(e){}
+  const stopInYear=members.filter(m=>{
+    const ed=m.endDate||(edVault[String(m.id)])||'';
+    return ed&&ed.startsWith(yrStr);
+  });
+  document.getElementById('db-newmembers').textContent=newInYear.length;
+  document.getElementById('db-stopmembers').textContent=stopInYear.length;
+  document.getElementById('db-newmembers-lbl').textContent='Nye elever ('+yrStr+')';
+  document.getElementById('db-stopmembers-lbl').textContent='Stoppede ('+yrStr+')';
+
+  // Vækst-box
+  const net=newInYear.length-stopInYear.length;
+  const growthBox=document.getElementById('db-growth-box');
+  const growthCard=document.getElementById('db-growth-card');
+  growthBox.style.display='';
+  const netColor=net>0?'#16a34a':net<0?'#dc2626':'#6b7280';
+  const borderColor=net>0?'#16a34a':net<0?'#dc2626':'#d1d5db';
+  const bgGrad=net>0?'linear-gradient(135deg,#f0faf5 0%,#fff 60%)':net<0?'linear-gradient(135deg,#fef2f2 0%,#fff 60%)':'linear-gradient(135deg,#f9fafb 0%,#fff 60%)';
+  growthCard.style.borderLeftColor=borderColor;
+  growthCard.style.background=bgGrad;
+  document.getElementById('db-growth-year').textContent=yrStr;
+  document.getElementById('db-growth-new').textContent='+'+newInYear.length;
+  document.getElementById('db-growth-stop').textContent='−'+stopInYear.length;
+  const netEl=document.getElementById('db-growth-net');
+  netEl.textContent=(net>0?'+':'')+net;
+  netEl.style.color=netColor;
+  document.getElementById('db-growth-arrow').textContent=net>0?'📈':net<0?'📉':'➡️';
   // Beregn streak for alle aktive én gang
   const _dbStreakCache={};
   rows.forEach(m=>{ _dbStreakCache[m.id]=calcStreak(m.id); });
   let vis=0;
   rows.forEach((m,i)=>{
     const c=counts[m.id]||0;
+    const ex=extraCounts[m.id]||0;
     const pct=totalSess>0?Math.round(c/totalSess*100):0;
     const bc=BC[m.belt]||'#ccc';
     const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
@@ -2270,7 +2539,7 @@ function renderDashboard(){
       <td>${grpChip(m.group)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
       <td style="font-size:.8rem;color:var(--xtm)">${m.startDate?`<span style="font-weight:600">${durationStr(m)}</span>`:'<span style="color:var(--xtl)">—</span>'}</td>
-      <td style="font-weight:700;color:var(--td)">${c} <span style="font-size:.75rem;font-weight:400;color:var(--xtl)">/ ${totalSess}</span></td>
+      <td style="font-weight:700;color:var(--td)">${c} <span style="font-size:.75rem;font-weight:400;color:var(--xtl)">/ ${totalSess}</span>${dbSessionFilter==='regular'&&ex>0?`<span style="font-size:.68rem;font-weight:600;color:#7c3aed;margin-left:4px">+${ex} ekstra</span>`:''}</td>
       <td><div>${pct}%${memberTrend(m.id,sessions)}</div><div class="db-att-bar"><div class="db-att-fill" style="width:${pct}%"></div></div></td>`;
     body.appendChild(tr);
     vis++;
@@ -2306,7 +2575,7 @@ function openHD(ds,dateObj,saved){
   if(!saved){c.innerHTML='<p style="color:var(--xtl);padding:1rem 0">Ingen fremmødedata for denne dato.</p>';openModal('hdModal');return;}
   const ps=new Set(saved.presentIds);
   const pm=members.filter(m=>ps.has(m.id));
-  const am=members.filter(m=>!m.archived&&!ps.has(m.id));
+  const am=actMembers(ds).filter(m=>!ps.has(m.id));
   window._hdData={pm,am};
   window._hdSplit=true;
   window._hdDate=ds;
@@ -2369,7 +2638,7 @@ function exportNotesToExcel(){
     const d=new Date(s.date+'T12:00:00');
     const dateStr=isNaN(d.getTime())?s.date:d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const present=(s.presentIds||[]).length;
-    const total=actMembers().length;
+    const total=actMembers(s.date).length;
     const pct=total>0?Math.round(present/total*100):0;
     return `<Row>${cell(dateStr)}${cell(s.date)}${cell(present)}${cell(total)}${cell(pct+'%')}${cell(s.note)}</Row>`;
   }).join('');
@@ -2433,15 +2702,20 @@ function openHDNoteModal(){
 /* ════════════════════════════════════════
    CHECK-IN
 ════════════════════════════════════════ */
+let _ciPushTimer=null;
 function toggleCI(id,val){
   const m=members.find(x=>x.id===id);if(!m)return;
   m.checkedIn=val;
-  // Opdater sessions med det samme, så andre enheder ser korrekt fremmøde
+  // Opdater sessions med det samme
   const ids=members.filter(x=>x.checkedIn).map(x=>x.id);
   const idx=sessions.findIndex(s=>s.date===currentTrainingDate);
-  const e={date:currentTrainingDate,name:'Træning',presentIds:ids};
+  const existing=idx>=0?sessions[idx]:null;
+  const e={date:currentTrainingDate,name:'Træning',presentIds:ids,note:existing?.note||''};
   if(idx>=0)sessions[idx]=e;else sessions.push(e);
   save();
+  // Debounced push til Sheets (samler hurtige check-ins)
+  clearTimeout(_ciPushTimer);
+  _ciPushTimer=setTimeout(()=>pushToCloud(),1500);
   showToast(val?`✅ ${m.firstName} ${m.lastName} mødt op`:`❌ ${m.firstName} ${m.lastName} fjernet`);
   updateStats();
 }
@@ -2478,6 +2752,7 @@ function openAddModal(){
   document.getElementById('fROLE').value='Medlem';
   document.getElementById('fSTATUS').value='aktiv';
   document.getElementById('fSD').value='';
+  document.getElementById('fED').value='';
   document.getElementById('fAGE').readOnly=false;
   document.getElementById('ageHint').style.display='';
   document.getElementById('ageCalc').style.display='none';
@@ -2507,6 +2782,7 @@ function openEditModal(id){
   document.getElementById('fROLE').value=m.role||'Medlem';
   document.getElementById('fSTATUS').value=m.status||'aktiv';
   document.getElementById('fSD').value=m.startDate||'';
+  document.getElementById('fED').value=m.endDate||'';
   updateAgePreview();
   openModal('memberModal');
 }
@@ -2537,6 +2813,7 @@ function saveMember(){
     role:document.getElementById('fROLE').value,
     status:document.getElementById('fSTATUS').value,
     startDate:document.getElementById('fSD').value||null,
+    endDate:document.getElementById('fED').value||null,
   };
   if(editingId){
     const i=members.findIndex(x=>x.id===editingId);
@@ -2552,10 +2829,54 @@ function saveMember(){
 /* ════════════════════════════════════════
    ARKIVÉR & SLET
 ════════════════════════════════════════ */
+let _endDateTargetId=null, _endDateMode='archive';
 function archiveMember(id){
   const m=members.find(x=>x.id===id);if(!m)return;
-  m.archived=true;save();renderAll();
-  showToast('📦 '+m.firstName+' '+m.lastName+' arkiveret — gendan via 📦 Arkiv i toppen');
+  _endDateTargetId=id;
+  _endDateMode='archive';
+  document.getElementById('endDateModalTitle').textContent='Hvornår stoppede '+m.firstName+' '+m.lastName+'?';
+  document.getElementById('endDateInput').value=m.endDate||localDate();
+  openModal('endDateModal');
+}
+function setEndDate(id){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  _endDateTargetId=id;
+  _endDateMode='edit';
+  document.getElementById('endDateModalTitle').textContent='Afslutningsdato — '+m.firstName+' '+m.lastName;
+  document.getElementById('endDateInput').value=m.endDate||localDate();
+  openModal('endDateModal');
+}
+function saveEndDateVault(){
+  // ADDITIV: tilføjer/opdaterer kun — sletter aldrig eksisterende entries
+  try{
+    const vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}');
+    members.forEach(m=>{ if(m.endDate) vault[m.id]=m.endDate; });
+    localStorage.setItem('kk2_endDates',JSON.stringify(vault));
+  }catch(e){}
+}
+function applyEndDateVault(){
+  // Genindlæs endDates fra vault på alle members der mangler det
+  try{
+    const vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}');
+    members.forEach(m=>{ if(!m.endDate && vault[m.id]) m.endDate=vault[m.id]; });
+  }catch(e){}
+}
+function confirmEndDate(){
+  const m=members.find(x=>x.id===_endDateTargetId);if(!m)return;
+  const d=document.getElementById('endDateInput').value;
+  m.endDate=d||localDate();
+  saveEndDateVault(); // gem i separat vault FØRSTE
+  if(_endDateMode==='archive'){
+    m.archived=true;
+    save();renderAll();pushToCloud();
+    closeModal('endDateModal');
+    showToast('📦 '+m.firstName+' '+m.lastName+' arkiveret — gendan via 📦 Arkiv i toppen');
+  } else {
+    save();renderAll();pushToCloud();
+    closeModal('endDateModal');
+    openArchiveModal();
+    showToast('📅 Afslutningsdato opdateret');
+  }
 }
 function confirmDelete(id){
   const m=members.find(x=>x.id===id);if(!m)return;
@@ -2564,27 +2885,36 @@ function confirmDelete(id){
   showToast('🗑 '+m.firstName+' '+m.lastName+' slettet permanent');
 }
 function openArchiveModal(){
+  applyEndDateVault(); // gendan endDates fra vault inden rendering
   const ark=members.filter(m=>m.archived);
   const list=document.getElementById('archiveList');
   if(!ark.length){
     list.innerHTML='<p style="color:var(--xtl);padding:1rem 0;text-align:center">Ingen arkiverede medlemmer.</p>';
   } else {
-    list.innerHTML=ark.map(m=>`
+    list.innerHTML=ark.map(m=>{
+      const endD=m.endDate?new Date(String(m.endDate).slice(0,10)+'T12:00:00'):null;
+      const endStr=endD&&!isNaN(endD.getTime())?endD.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'Ikke sat';
+      const endColor=m.endDate?'#795548':'#c0392b';
+      return `
       <div class="archive-row">
         <div class="av ${avClass(m.group)}" style="background:var(--xtl)">${inits(m)}</div>
         <div style="flex:1">
           <div class="mn">${m.firstName} ${m.lastName}</div>
           <div class="me">${m.group} · ${payBadge(m)}</div>
+          <div style="font-size:.72rem;color:${endColor};margin-top:2px">📅 Sluttede: ${endStr}</div>
         </div>
-        <button class="btn bs btn-sm" onclick="restoreMember(${m.id})">↩️ Gendan</button>
+        <button class="btn bg btn-sm" onclick="setEndDate(${m.id})" title="Rediger afslutningsdato" style="margin-left:3px">📅</button>
+        <button class="btn bs btn-sm" onclick="restoreMember(${m.id})" style="margin-left:3px">↩️ Gendan</button>
         <button class="btn bdr btn-sm" onclick="confirmDelete(${m.id});closeModal('archiveModal')" style="margin-left:3px">🗑</button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   openModal('archiveModal');
 }
 function restoreMember(id){
   const m=members.find(x=>x.id===id);if(!m)return;
-  m.archived=false;save();renderAll();openArchiveModal();showToast('✅ '+m.firstName+' '+m.lastName+' gendannet');
+  m.archived=false;m.endDate=null;
+  save();renderAll();openArchiveModal();showToast('✅ '+m.firstName+' '+m.lastName+' gendannet');
 }
 
 /* ════════════════════════════════════════
@@ -2763,8 +3093,10 @@ function saveSettings(){
     age10_15: Number(document.getElementById('rAge10_15').value)||650,
     age16plus:Number(document.getElementById('rAge16plus').value)||850
   };
+  config.trainingDays=[0,1,2,3,4,5,6].filter(i=>document.getElementById('td'+i)?.checked);
+  if(!config.trainingDays.length) config.trainingDays=[2,4]; // fallback
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
-  renderM();
+  renderM(); renderHistory();
   if(config.scriptUrl) loadFromCloud();
 }
 
@@ -2789,11 +3121,55 @@ function latestAssessmentAvg(memberId){
   return vals.reduce((s,v)=>s+v,0)/vals.length;
 }
 
+function posScoreTip(e){
+  const wrap=e.currentTarget;
+  const tip=wrap.querySelector('.score-tip');
+  if(!tip)return;
+  const r=wrap.getBoundingClientRect();
+  // Start over det hoverede element
+  tip.style.top='auto';tip.style.bottom='auto';tip.style.left='auto';tip.style.right='auto';
+  // Placer til venstre for center, over elementet
+  let left=r.left;
+  let top=r.top-8;
+  // Tjek om der er plads i toppen
+  const tipH=220; // estimeret højde
+  if(top-tipH<8) top=r.bottom+8; else top=r.top-tipH-4;
+  // Tjek højre kant
+  if(left+270>window.innerWidth-8) left=window.innerWidth-278;
+  if(left<8) left=8;
+  tip.style.left=left+'px';
+  tip.style.top=top+'px';
+}
 function scoreCell(memberId){
-  const avg=latestAssessmentAvg(memberId);
-  if(avg===null)return '<span style="color:var(--xtl)">—</span>';
+  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
+  const latest=sorted[0];
+  let ratings={};
+  try{ratings=JSON.parse(latest.ratings||'{}');}catch(e){}
+  const vals=Object.values(ratings).map(Number).filter(v=>v>0);
+  if(!vals.length)return '<span style="color:var(--xtl)">—</span>';
+  const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
   const color=avg>=4?'#16a34a':avg>=2?'#d97706':'#dc2626';
-  return `<span style="font-weight:700;color:${color};font-size:.88rem">★ ${avg.toFixed(1)}</span>`;
+
+  const _d=latest.date?new Date(String(latest.date).slice(0,10)+'T12:00:00'):null;
+  const dateStr=_d&&!isNaN(_d)?_d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):latest.date||'—';
+  const skillRows=Object.entries(ratings).map(([skill,val])=>{
+    const n=Number(val)||0;
+    const stars='★'.repeat(n)+'☆'.repeat(5-n);
+    return `<div class="score-tip-row"><span class="score-tip-skill">${skill}</span><span class="score-tip-stars">${stars}</span></div>`;
+  }).join('');
+  const commentHtml=latest.comment?`<div class="score-tip-comment">"${latest.comment}"</div>`:'';
+  const tip=`<div class="score-tip">
+    <div class="score-tip-hdr">📋 ${dateStr} · ${latest.belt}</div>
+    ${skillRows}
+    ${commentHtml}
+    <div class="score-tip-avg" style="color:${color}">★ Gennemsnit: ${avg.toFixed(1)} / 5</div>
+  </div>`;
+
+  return `<div class="score-wrap" onmouseenter="posScoreTip(event)" style="cursor:default">
+    <span style="font-weight:700;color:${color};font-size:.88rem">★ ${avg.toFixed(1)}</span>
+    ${tip}
+  </div>`;
 }
 
 function openAssessmentModal(memberId, editAssessmentId){
