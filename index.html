@@ -949,7 +949,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ PAGE: DASHBOARD ══ -->
 <div class="page" id="page-dashboard">
   <div class="stats-grid" style="margin-bottom:.75rem">
-    <div class="stat-card"><div class="si si-b">📅</div><div><div class="sv" id="db-sessions">0</div><div class="sl">Registrerede træninger</div></div></div>
+    <div class="stat-card"><div class="si si-b">📅</div><div><div class="sv" id="db-sessions">0</div><div class="sl" id="db-sessions-lbl">Registreret fast træning</div></div></div>
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="db-avgatt">0</div><div class="sl">Gns. fremmøde</div></div></div>
     <div class="stat-card"><div class="si si-b">🏆</div><div style="min-width:0"><div class="sv" id="db-topname" style="font-size:.95rem;font-weight:700;line-height:1.2;word-break:break-word">—</div><div class="sl">Mest fremmødt</div></div></div>
     <div class="stat-card"><div class="si si-d">📈</div><div><div class="sv" id="db-topcount">0</div><div class="sl">Flest gange</div></div></div>
@@ -3333,6 +3333,7 @@ function renderDashboard(){
   // Stats
   const totalSess=activeSessions.length;
   document.getElementById('db-sessions').textContent=totalSess;
+  document.getElementById('db-sessions-lbl').textContent=totalSess===1?'Registreret fast træning':'Registrerede faste træninger';
   const avg=totalSess>0?Math.round(regSessions.reduce((a,s)=>a+(s.presentIds||[]).length,0)/totalSess):0;
   document.getElementById('db-avgatt').textContent=avg;
   // Topstat opdateres efter tabellen er sorteret — se nedenfor
@@ -3488,9 +3489,13 @@ function renderDashboard(){
       if(diff!==0) return diff;
       return BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt); // tiebreak: bælte
     }
-    // rang (default): antal fremmøder øverst, bælte som tiebreak, anciennitet som 2. tiebreak
-    const antalDiff=(counts[b.id]-counts[a.id])*d;
+    // rang (default): total (fast+ekstra) → ekstra → bælte → anciennitet
+    const totalA=(counts[a.id]||0)+(extraCounts[a.id]||0);
+    const totalB=(counts[b.id]||0)+(extraCounts[b.id]||0);
+    const antalDiff=(totalB-totalA)*d;
     if(antalDiff!==0) return antalDiff;
+    const extraDiff=((extraCounts[b.id]||0)-(extraCounts[a.id]||0))*d;
+    if(extraDiff!==0) return extraDiff;
     const beltDiff=(BELT_ORDER.indexOf(b.belt)-BELT_ORDER.indexOf(a.belt))*d;
     if(beltDiff!==0) return beltDiff;
     const mA=memberDurationMonths(a)??-1;
@@ -3660,21 +3665,27 @@ function renderDashboardTop3(){
   let selMonth=card._selMonth||months[0];
   if(!months.includes(selMonth))selMonth=months[0];
   card._selMonth=selMonth;
-  // Tæl fremmøde
-  const mSessions=sessions.filter(s=>s.date&&s.date.startsWith(selMonth));
+  // Tæl fremmøde — adskil normale og ekstra sessioner
+  const td=config.trainingDays||[2,4];
+  const mSessions=sessions.filter(s=>s.date&&s.date.startsWith(selMonth)&&!cancelledDates.includes(s.date));
+  const mRegSessions=mSessions.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay()));
+  const mExtraSessions=mSessions.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay()));
   const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
-  const counts={};
-  act.forEach(m=>{counts[m.id]=0;});
-  mSessions.forEach(s=>(s.presentIds||[]).forEach(id=>{if(counts[id]!==undefined)counts[id]++;}));
+  const counts={}, regCounts={}, extraCounts={};
+  act.forEach(m=>{counts[m.id]=0; regCounts[m.id]=0; extraCounts[m.id]=0;});
+  mRegSessions.forEach(s=>(s.presentIds||[]).forEach(id=>{if(counts[id]!==undefined){counts[id]++;regCounts[id]++;}}));
+  mExtraSessions.forEach(s=>(s.presentIds||[]).forEach(id=>{if(counts[id]!==undefined){counts[id]++;extraCounts[id]++;}}));
   const today=new Date(); today.setHours(0,0,0,0);
-  // Sortering: fremmøde → bæltegrad → anciennitet
+  // Sortering: total → fast → ekstra → bæltegrad → anciennitet
   const sortTop=(list)=>list.sort((a,b)=>{
     if(counts[b.id]!==counts[a.id]) return counts[b.id]-counts[a.id];
+    if(regCounts[b.id]!==regCounts[a.id]) return regCounts[b.id]-regCounts[a.id];
+    if(extraCounts[b.id]!==extraCounts[a.id]) return extraCounts[b.id]-extraCounts[a.id];
     const ba=BELT_ORDER.indexOf(a.belt), bb=BELT_ORDER.indexOf(b.belt);
     if(bb!==ba) return bb-ba;
     const da=a.startDate?new Date(a.startDate+'T12:00:00'):today;
     const db2=b.startDate?new Date(b.startDate+'T12:00:00'):today;
-    return da-db2; // ældre = højere anciennitet
+    return da-db2;
   });
   const medals=['🥇','🥈','🥉'];
   const medalBg=['#fef9c3','#f1f5f9','#fdf4ec'];
@@ -3687,14 +3698,19 @@ function renderDashboardTop3(){
   const cols=GROUPS.map(({key,label})=>{
     const grpMembers=act.filter(m=>m.group===key);
     const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
-    const rows=top3.length?top3.map((m,i)=>{const toastMsg=`${m.firstName} ${m.lastName} \u00b7 ${counts[m.id]} ${counts[m.id]===1?'gang':'gange'}`;return `
-      <div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
+    const rows=top3.length?top3.map((m,i)=>{
+      const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0, tot=counts[m.id]||0;
+      const breakdown=ex>0?`${reg} ${reg===1?'fast':'faste'} + ${ex} ekstra`:`${reg} ${reg===1?'fast':'faste'}`;
+      const toastMsg=`${m.firstName} ${m.lastName}: ${breakdown}`;
+      const extraBadge=ex>0?`<span style="font-size:.6rem;font-weight:700;color:#7c3aed;margin-left:2px">+${ex}</span>`:'';
+      return `
+      <div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" title="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${m.firstName} ${m.lastName}">${m.firstName} ${m.lastName}</div>
+          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
         </div>
-        <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap">${counts[m.id]}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span></div>
+        <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap">${reg}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${extraBadge}</div>
       </div>`;}).join('')
       :`<div style="color:var(--xtl);font-size:.78rem;padding:.3rem 0">Ingen data</div>`;
     return `<div style="flex:1;min-width:0">
