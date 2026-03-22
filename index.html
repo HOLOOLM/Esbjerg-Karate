@@ -659,7 +659,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div style="font-size:.82rem;color:var(--xtl);margin-bottom:.8rem" id="notesModalDate"></div>
     <textarea id="notesInput" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.88rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv noter til dagens træning…"></textarea>
     <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
-      <button class="btn bg btn-sm" onclick="closeModal('notesModal')">Annuller</button>
+      <button class="btn bg btn-sm" onclick="safeCloseModal('notesModal')">Annuller</button>
       <button class="btn bp btn-sm" onclick="saveTrainingNote()">💾 Gem note</button>
     </div>
   </div>
@@ -1015,7 +1015,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="modal" style="max-width:580px">
     <div class="mh">
       <div class="mtitle-left"><span id="boardModalIcon">🏛️</span><span id="boardModalTitle">Ny notat</span></div>
-      <button class="mclose" onclick="closeModal('boardModal')">✕</button>
+      <button class="mclose" onclick="safeCloseModal('boardModal')">✕</button>
     </div>
     <div class="fgrp">
       <label>Type</label>
@@ -1031,7 +1031,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="fgrp"><label>Dagsorden</label><textarea id="bmAgenda" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="1. Godkendelse af referat&#10;2. Økonomi&#10;3. Kommende stævner&#10;4. Eventuelt"></textarea></div>
     <div class="fgrp"><label>Referat / noter</label><textarea id="bmNotes" rows="6" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv referat og beslutninger her…"></textarea></div>
     <div class="mf">
-      <button class="btn bg" onclick="closeModal('boardModal')">Annuller</button>
+      <button class="btn bg" onclick="safeCloseModal('boardModal')">Annuller</button>
       <button class="btn bp" onclick="saveBoardMeeting()">💾 Gem møde</button>
     </div>
   </div>
@@ -1061,7 +1061,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="modal">
     <div class="mtitle">
       <div class="mtitle-left"><span>🥋</span><span id="mTitle">Tilføj nyt medlem</span></div>
-      <button class="mclose" onclick="closeModal('memberModal')">✕</button>
+      <button class="mclose" onclick="safeCloseModal('memberModal')">✕</button>
     </div>
     <div class="fg">
       <div class="fgrp"><label>Fornavn *</label><input type="text" id="fFN" placeholder="Lars"/></div>
@@ -1141,7 +1141,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     </div>
     <div id="memberAttendanceSection" style="display:none;margin-top:1rem;padding:.85rem 1rem;background:#f0faf5;border-radius:10px;border:1px solid #bbf7d0"></div>
     <div class="ma">
-      <button class="btn bg" onclick="closeModal('memberModal')">Annuller</button>
+      <button class="btn bg" onclick="safeCloseModal('memberModal')">Annuller</button>
       <button class="btn bp" onclick="saveMember()">💾 Gem</button>
     </div>
   </div>
@@ -1232,7 +1232,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="modal modal-lg">
     <div class="mtitle">
       <div class="mtitle-left"><span>📋</span><span id="assessMemberName">Vurdering</span></div>
-      <button class="mclose" onclick="closeModal('assessmentModal')">✕</button>
+      <button class="mclose" onclick="safeCloseModal('assessmentModal')">✕</button>
     </div>
     <div id="assessBeltBar" style="margin-bottom:1rem"></div>
     <div id="assessSkillList"></div>
@@ -1956,7 +1956,9 @@ function renderGlobalSearch(){
 ════════════════════════════════════════ */
 function openNotesModal(){
   const sess=sessions.find(s=>s.date===currentTrainingDate);
-  document.getElementById('notesInput').value=(sess&&sess.note)||'';
+  const noteVal=(sess&&sess.note)||'';
+  document.getElementById('notesInput').value=noteVal;
+  _notesModalOriginal=noteVal;
   const d=new Date(currentTrainingDate+'T12:00:00');
   document.getElementById('notesModalDate').textContent=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   openModal('notesModal');
@@ -2236,7 +2238,7 @@ function initApp(){
   const td=config.trainingDays||[2,4];
   [0,1,2,3,4,5,6].forEach(i=>{const el=document.getElementById('td'+i);if(el)el.checked=td.includes(i);});
 
-  document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
+  document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)safeCloseModal(b.id)}));
   if(config.scriptUrl){
     loadFromCloud(()=>{
       loadCheckInsForDate(currentTrainingDate);
@@ -3458,6 +3460,13 @@ function openAddModal(){
   document.getElementById('ageCalc').style.display='none';
   const _attSec=document.getElementById('memberAttendanceSection');
   if(_attSec) _attSec.style.display='none';
+  _memberModalDirty = false;
+  setTimeout(()=>{
+    document.querySelectorAll('#memberModal input,#memberModal select,#memberModal textarea').forEach(el=>{
+      el.addEventListener('change',()=>{ _memberModalDirty=true; },{once:false});
+      el.addEventListener('input',()=>{ _memberModalDirty=true; },{once:false});
+    });
+  },50);
   openModal('memberModal');
 }
 function openEditModal(id){
@@ -3489,6 +3498,13 @@ function openEditModal(id){
   document.getElementById('fCP').value=m.contactPhone||'';
   updateAgePreview();
   renderMemberAttendanceSection(id);
+  _memberModalDirty = false;
+  setTimeout(()=>{
+    document.querySelectorAll('#memberModal input,#memberModal select,#memberModal textarea').forEach(el=>{
+      el.addEventListener('change',()=>{ _memberModalDirty=true; },{once:false});
+      el.addEventListener('input',()=>{ _memberModalDirty=true; },{once:false});
+    });
+  },50);
   openModal('memberModal');
 }
 function updateAgePreview(){
@@ -3530,7 +3546,7 @@ function saveMember(){
     members.push({id:nextId++,checkedIn:false,...data});
     showToast('✅ '+fn+' '+ln+' oprettet');
   }
-  save();closeModal('memberModal');renderAll();
+  _memberModalDirty=false; save();closeModal('memberModal');renderAll();
 }
 
 /* ════════════════════════════════════════
@@ -4086,6 +4102,37 @@ function handleRestoreFile(input){
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
+/* ---- Modal-luk-gardering: spørg ved ugemte ændringer ---- */
+let _memberModalDirty = false;
+let _notesModalOriginal = '';
+let _boardModalOriginal = '';
+
+const _MODAL_DIRTY_CHECKS = {
+  notesModal:      () => (document.getElementById('notesInput')?.value||'') !== _notesModalOriginal,
+  boardModal:      () => {
+    const cur = ['bmTitle','bmAttendees','bmAgenda','bmNotes'].map(id=>(document.getElementById(id)?.value||'')).join('|');
+    return cur !== _boardModalOriginal;
+  },
+  assessmentModal: () => (document.getElementById('assessComment')?.value||'').trim().length > 0 || Object.keys(_assessRatings||{}).length > 0,
+  memberModal:     () => _memberModalDirty
+};
+
+const _MODAL_DIRTY_LABELS = {
+  notesModal:      'træningsnotatet',
+  boardModal:      'notaten',
+  assessmentModal: 'vurderingen',
+  memberModal:     'medlemsredigeringen'
+};
+
+function safeCloseModal(id) {
+  const check = _MODAL_DIRTY_CHECKS[id];
+  if (check && check()) {
+    const label = _MODAL_DIRTY_LABELS[id] || 'notaten';
+    if (!confirm(`Er du sikker på, at du vil forlade ${label}?\nDine ændringer er ikke gemt og vil gå tabt.`)) return;
+  }
+  closeModal(id);
+}
+
 /* ════════════════════════════════════════
    VURDERING (ASSESSMENT)
 ════════════════════════════════════════ */
@@ -4497,6 +4544,7 @@ function openBoardModal(id=null){
   document.getElementById('bmAgenda').value=b?b.agenda:'';
   document.getElementById('bmNotes').value=b?b.notes:'';
   setBoardType(b?b.type||'Bestyrelsesmøde':'Bestyrelsesmøde');
+  _boardModalOriginal=[b?.title||'',b?.attendees||'',b?.agenda||'',b?.notes||''].join('|');
   openModal('boardModal');
 }
 
