@@ -233,6 +233,7 @@ textarea.fta{resize:vertical;min-height:85px}
 .role-m{background:#e0eded;color:var(--td)}
 .role-h{background:#fef3c7;color:#92400e}
 .role-i{background:var(--pub);color:var(--pu)}
+.role-k{background:#d1fae5;color:#065f46}
 .passive-chip{display:inline-block;padding:.13rem .5rem;border-radius:5px;font-size:.68rem;font-weight:700;background:#f1f5f9;color:#64748b;margin-top:3px;margin-left:3px}
 .passive-row td{opacity:.6}
 .pay-summary{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
@@ -327,13 +328,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   /* Forhindre horisontal overflow — kun html, ikke body (body-scroll skal fungere i iOS) */
   html{overflow-x:hidden}
 
-  /* Header */
-  .htitle{font-size:.85rem}
-  .hlogo{width:32px;height:32px;font-size:1rem}
-  /* Header komprimering */
-  .hbrand{flex:1 1 auto;min-width:0;overflow:hidden}
-  .htitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hdr-actions{gap:.25rem;flex-shrink:0}
+  /* Header — 2-rækkers layout på mobil */
+  header{padding:.5rem 1rem;height:auto;flex-wrap:wrap;gap:.35rem}
+  .hbrand{flex:0 0 100%;gap:8px}
+  .hlogo{width:36px;height:36px;font-size:1rem;flex-shrink:0}
+  .htitle{font-size:.88rem;white-space:normal;overflow:visible;text-overflow:clip}
+  .hdr-actions{gap:.3rem;flex-shrink:0;margin-left:auto}
   .hdr-actions .hdate,.hdr-actions .hsub{display:none}
   .hdr-lbl{display:none}
   #syncStatus{font-size:.68rem;padding:.2rem .45rem;white-space:nowrap}
@@ -611,6 +611,20 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     font-size:1.2rem;cursor:pointer;padding:0 .2rem;flex-shrink:0" title="Luk">✕</button>
 </div>
 
+<!-- ══ PRESENCE MODAL ══ -->
+<div id="presenceModal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(10,30,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
+    <div style="font-size:2rem;margin-bottom:.6rem">👤</div>
+    <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Hvem er du?</h3>
+    <p style="margin:0 0 1.2rem;color:#4a6a6a;font-size:.85rem">Så andre kan se hvem der er online</p>
+    <input id="presenceNameInput" type="text" list="presenceNameList" placeholder="Vælg eller skriv dit navn…"
+      style="width:100%;box-sizing:border-box;padding:.65rem .85rem;border:1.5px solid #d0e4e4;border-radius:10px;font-size:.95rem;outline:none;margin-bottom:1rem;color:#1a3a3a"
+      autocomplete="off" onkeydown="if(event.key==='Enter')confirmPresenceName()"/>
+    <datalist id="presenceNameList"></datalist>
+    <button onclick="confirmPresenceName()" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer">✓ Fortsæt</button>
+  </div>
+</div>
+
 <!-- ══ LOCK SCREEN ══ -->
 <style>body > *:not(#lockScreen){visibility:hidden}</style>
 <div id="lockScreen">
@@ -643,6 +657,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="hdr-actions">
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
+    <div id="presenceBar" style="display:none;font-size:.73rem;padding:.2rem .7rem;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis" title="Online brugere" onclick="showPresenceModal()"></div>
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
     <button class="btn bg btn-sm" onclick="openGlobalSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Global søgning">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
@@ -845,6 +860,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option value="Medlem">Medlem</option>
         <option value="Hjælpetræner">Hjælpetræner</option>
         <option value="Instruktør">Instruktør</option>
+        <option value="Kasserer">Kasserer</option>
       </select>
       <select class="fs" id="mfp" onchange="renderM()">
         <option value="all">Alle betalinger</option>
@@ -1164,6 +1180,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
           <option value="Medlem">Medlem</option>
           <option value="Hjælpetræner">Hjælpetræner</option>
           <option value="Instruktør">Instruktør</option>
+          <option value="Kasserer">Kasserer</option>
         </select>
       </div>
       <div class="fgrp"><label>Medlemsstatus</label>
@@ -1583,7 +1600,7 @@ function avClass(g){
   return g==='Børnehold'?'av-boern':g==='Basis-hold'?'av-junior':'av-senior';
 }
 function roleChip(r){
-  const cls=r==='Instruktør'?'role-i':r==='Hjælpetræner'?'role-h':'role-m';
+  const cls=r==='Instruktør'?'role-i':r==='Hjælpetræner'?'role-h':r==='Kasserer'?'role-k':'role-m';
   return `<span class="role-chip ${cls}">${r||'Medlem'}</span>`;
 }
 function grpChip(g){
@@ -1746,6 +1763,76 @@ function hideSyncErrBanner(reload){
   _syncErrCount=0;
   if(reload)window.location.reload();
 }
+
+/* ── PRESENCE ─────────────────────────────────────────── */
+let _myPresenceName=sessionStorage.getItem('kk2_presence_name')||'';
+let _presenceInterval=null;
+
+function showPresenceModal(){
+  const modal=document.getElementById('presenceModal');
+  if(!modal)return;
+  refreshPresenceDatalist();
+  const inp=document.getElementById('presenceNameInput');
+  if(inp){ inp.value=_myPresenceName||''; }
+  modal.style.display='flex';
+  setTimeout(()=>{ if(inp)inp.focus(); },120);
+}
+function refreshPresenceDatalist(){
+  const dl=document.getElementById('presenceNameList');
+  if(!dl)return;
+  dl.innerHTML='';
+  (members||[]).filter(m=>!m.archived&&(m.role==='Instruktør'||m.role==='Hjælpetræner'||m.role==='Kasserer')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da')).forEach(m=>{
+    const o=document.createElement('option');
+    o.value=m.firstName+' '+m.lastName;
+    dl.appendChild(o);
+  });
+}
+function confirmPresenceName(){
+  const name=(document.getElementById('presenceNameInput').value||'').trim();
+  if(!name){ showToast('Skriv venligst dit navn'); return; }
+  _myPresenceName=name;
+  sessionStorage.setItem('kk2_presence_name',name);
+  document.getElementById('presenceModal').style.display='none';
+  startPresence();
+}
+function skipPresenceName(){
+  document.getElementById('presenceModal').style.display='none';
+}
+function startPresence(){
+  if(!_myPresenceName||!config.scriptUrl)return;
+  if(_presenceInterval)clearInterval(_presenceInterval);
+  pingPresence();
+  _presenceInterval=setInterval(pingPresence,60000);
+  window.addEventListener('beforeunload',leavePresence);
+}
+function pingPresence(){
+  if(!_myPresenceName||!config.scriptUrl)return;
+  const cb='_pr'+Date.now();
+  const s=document.createElement('script');
+  let timer;
+  const cleanup=()=>{clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);};
+  window[cb]=function(d){cleanup();if(d&&d.online)updatePresenceBar(d.online);};
+  s.onerror=cleanup;
+  timer=setTimeout(cleanup,8000);
+  s.src=config.scriptUrl+'?action=presence_ping&name='+encodeURIComponent(_myPresenceName)+'&ts='+encodeURIComponent(new Date().toISOString())+'&callback='+cb+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function leavePresence(){
+  if(!_myPresenceName||!config.scriptUrl)return;
+  const s=document.createElement('script');
+  s.src=config.scriptUrl+'?action=presence_leave&name='+encodeURIComponent(_myPresenceName)+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function updatePresenceBar(names){
+  const bar=document.getElementById('presenceBar');
+  if(!bar)return;
+  if(!names||names.length===0){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  bar.style.alignItems='center';
+  bar.style.gap='.2rem';
+  bar.innerHTML=names.map(n=>`<span style="display:inline-flex;align-items:center;gap:.25rem;margin-right:.3rem"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0"></span>${n}</span>`).join('');
+  bar.title='Online: '+names.join(', ');
+}
 function pushToCloud(){
   const url=config.scriptUrl;
   if(!url)return;
@@ -1844,6 +1931,8 @@ function loadFromCloud(onDone){
       cloudLoaded=true;
       setSyncStatus('ok');
       migratePaymentToAuto();
+      // Opdater presence-datalist med nyeste roller fra cloud
+      refreshPresenceDatalist();
     }else if(d.ok){
       cloudLoaded=true;
       setSyncStatus('ok');
@@ -2266,6 +2355,11 @@ function unlockApp(){
     if(s.textContent.includes('visibility:hidden'))s.remove();
   });
   if(!_appInited){ _appInited=true; initApp(); }
+  // Vis presence-modal efter kort delay (så appen er synlig)
+  setTimeout(()=>{
+    if(_myPresenceName){ startPresence(); }
+    else { showPresenceModal(); }
+  },350);
 }
 function checkLock(){
   if(sessionStorage.getItem('kk2_unlocked')==='1'){
@@ -2287,6 +2381,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
   initApp();
+  // Allerede logget ind (session refresh) — start presence
+  setTimeout(()=>{
+    if(_myPresenceName){ startPresence(); }
+    else { showPresenceModal(); }
+  },350);
 });
 function initApp(){
   const now=new Date();
