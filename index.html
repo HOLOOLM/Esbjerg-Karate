@@ -627,9 +627,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div style="font-size:2rem;margin-bottom:.6rem">👤</div>
     <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Hvem er du?</h3>
     <p style="margin:0 0 1.2rem;color:#4a6a6a;font-size:.85rem">Så andre kan se hvem der er online</p>
-    <input id="presenceNameInput" type="text" list="presenceNameList" placeholder="Vælg eller skriv dit navn…"
-      style="width:100%;box-sizing:border-box;padding:.65rem .85rem;border:1.5px solid #d0e4e4;border-radius:10px;font-size:.95rem;outline:none;margin-bottom:1rem;color:#1a3a3a"
-      autocomplete="off" onkeydown="if(event.key==='Enter')confirmPresenceName()"/>
+    <select id="presenceNameInput"
+      style="width:100%;box-sizing:border-box;padding:.65rem .85rem;border:1.5px solid #d0e4e4;border-radius:10px;font-size:.95rem;outline:none;margin-bottom:1rem;color:#1a3a3a;background:#fff;appearance:auto">
+      <option value="">— Vælg dit navn —</option>
+    </select>
     <datalist id="presenceNameList"></datalist>
     <button onclick="confirmPresenceName()" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer">✓ Fortsæt</button>
   </div>
@@ -1686,6 +1687,12 @@ function load(){
     const cd=localStorage.getItem('kk2_cancelled');
     members =m?JSON.parse(m):JSON.parse(JSON.stringify(SEED));
     sessions=s?JSON.parse(s):[];
+    // Rens sessioner med korrupte datoer (ikke YYYY-MM-DD format)
+    sessions=sessions.filter(sess=>{
+      if(!sess.date)return false;
+      const d=String(sess.date);
+      return /^\d{4}-\d{2}-\d{2}$/.test(d)&&!isNaN(new Date(d+'T12:00:00'));
+    });
     cancelledDates=cd?JSON.parse(cd):[];
     // Migrer gamle bæltenavne til kyu/dan
     const beltMap={
@@ -1789,18 +1796,21 @@ function showPresenceModal(){
   setTimeout(()=>{ if(inp)inp.focus(); },120);
 }
 function refreshPresenceDatalist(){
-  const dl=document.getElementById('presenceNameList');
-  if(!dl)return;
-  dl.innerHTML='';
+  const sel=document.getElementById('presenceNameInput');
+  if(!sel||sel.tagName!=='SELECT')return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Vælg dit navn —</option>';
   (members||[]).filter(m=>!m.archived&&(m.role==='Instruktør'||m.role==='Hjælpetræner'||m.role==='Kasserer')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da')).forEach(m=>{
     const o=document.createElement('option');
     o.value=m.firstName+' '+m.lastName;
-    dl.appendChild(o);
+    o.textContent=m.firstName+' '+m.lastName+' ('+m.role+')';
+    sel.appendChild(o);
   });
+  if(cur)sel.value=cur;
 }
 function confirmPresenceName(){
   const name=(document.getElementById('presenceNameInput').value||'').trim();
-  if(!name){ showToast('Skriv venligst dit navn'); return; }
+  if(!name){ showToast('Vælg venligst dit navn fra listen'); return; }
   if(!config.scriptUrl){ setPresenceName(name); return; }
   // Tjek om navn allerede er online
   const btn=document.querySelector('#presenceModal button');
@@ -1831,13 +1841,13 @@ function setPresenceName(name){
   startPresence();
 }
 function showPresenceConflict(name){
-  // Skift indhold i presence-modalen til advarsel
+  const n=name.replace(/'/g,'\\\'');
   const box=document.querySelector('#presenceModal > div');
   box.innerHTML=`
     <div style="font-size:2rem;margin-bottom:.6rem">⚠️</div>
     <h3 style="margin:0 0 .5rem;color:#1a3a3a;font-size:1.05rem">${name} er allerede logget ind</h3>
     <p style="margin:0 0 1.4rem;color:#4a6a6a;font-size:.85rem">Det ser ud til at <strong>${name}</strong> allerede er aktiv på en anden enhed.<br><br>Er det dig? Du kan sagtens fortsætte — den anden session vil blive overskrevet.</p>
-    <button onclick="setPresenceName('${name}')" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:.6rem">✓ Ja, det er mig — fortsæt</button>
+    <button onclick="setPresenceName('${n}')" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:.6rem">✓ Ja, det er mig — fortsæt</button>
     <button onclick="showPresenceModal()" style="width:100%;padding:.55rem;background:#f3f4f6;border:1.5px solid #d1d5db;color:#374151;border-radius:10px;font-size:.88rem;cursor:pointer">← Vælg et andet navn</button>`;
 }
 function skipPresenceName(){
@@ -1990,11 +2000,7 @@ function loadFromCloud(onDone){
       sessions.forEach(s=>{
         if(s.note==null){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
       });
-      // Tilføj lokale sessioner der ikke findes i Sheets endnu
-      _prevSessions.forEach(ps=>{
-        if(ps.presentIds&&ps.presentIds.length>0&&!sessions.find(s=>s.date===ps.date))
-          sessions.push(ps);
-      });
+      // Google Sheets er autoritativ kilde — lokale sessions der ikke findes i Sheets slettes ikke gendannes
       cancelledDates=(d.cancelledDates||[]).map(x=>String(x).slice(0,10));
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
       const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
