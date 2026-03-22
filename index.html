@@ -298,7 +298,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .hsub{display:none}
   .hdate{display:none}
   .page{padding:1.2rem .85rem 5rem}
-  .stats-grid{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:1fr 1fr 1fr}
   .nav-tab{padding:.55rem .7rem;font-size:.75rem;gap:3px}
   .fg{grid-template-columns:1fr}.fgrp.full{grid-column:1}
   .dm-grid{grid-template-columns:1fr}
@@ -3688,7 +3688,7 @@ function renderDashboardTop3(){
     const grpMembers=act.filter(m=>m.group===key);
     const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
     const rows=top3.length?top3.map((m,i)=>`
-      <div onclick="showToast('${m.firstName} ${m.lastName} · ${counts[m.id]} gange')" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
+      <div onclick="showToast('${m.firstName} ${m.lastName} · ${counts[m.id]} ${counts[m.id]===1?\'gang\':\'gange\'}')" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
         <div style="flex:1;min-width:0">
