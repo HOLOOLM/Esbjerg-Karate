@@ -39,7 +39,8 @@ header{background:linear-gradient(135deg,var(--td) 0%,#1a3030 100%);color:#fff;p
 .nav-tabs-wrap{position:relative;background:var(--tm)}
 .nav-tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,transparent,var(--tm));pointer-events:none;opacity:1;transition:opacity .25s;z-index:2}
 .nav-tabs-wrap.scrolled-end::after{opacity:0}
-.nav-tabs{background:transparent;display:flex;padding:0 2rem;gap:4px;overflow-x:auto}
+.nav-tabs{background:transparent;display:flex;padding:0 2rem;gap:4px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
 .nav-tab{padding:.72rem 1.4rem;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;display:flex;align-items:center;gap:7px;user-select:none;white-space:nowrap;flex-shrink:0}
 .nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
 .nav-tab.active{color:#fff;border-bottom-color:#7ecece}
@@ -415,6 +416,15 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .toggle{width:46px;height:25px}
   .slider::before{width:19px;height:19px}
   input:checked+.slider::before{transform:translateX(21px)}
+}
+
+/* ── LANDSCAPE MOBIL ── */
+@media(max-height:500px) and (orientation:landscape){
+  .nav-tabs-wrap{position:sticky;top:0;z-index:90}
+  .nav-tabs{padding:0 .5rem;gap:2px}
+  .nav-tab{padding:.38rem .55rem;font-size:.68rem}
+  header{padding:.3rem .8rem}
+  .hsub{display:none}
 }
 
 /* ── MEGET LILLE (≤360px) ── */
