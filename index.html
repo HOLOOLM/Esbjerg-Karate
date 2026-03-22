@@ -1776,6 +1776,7 @@ function hideSyncErrBanner(reload){
 
 /* ── PRESENCE ─────────────────────────────────────────── */
 let _myPresenceName=sessionStorage.getItem('kk2_presence_name')||'';
+let _presenceShown=false;
 let _presenceInterval=null;
 
 function showPresenceModal(){
@@ -1887,6 +1888,7 @@ function autoLogout(){
   sessionStorage.removeItem('kk2_unlocked');
   sessionStorage.removeItem('kk2_presence_name');
   _myPresenceName='';
+  _presenceShown=false;
   updatePresenceBar([]);
   // Vis lock screen igen
   const ls=document.getElementById('lockScreen');
@@ -2002,8 +2004,9 @@ function loadFromCloud(onDone){
       cloudLoaded=true;
       setSyncStatus('ok');
       migratePaymentToAuto();
-      // Opdater presence-datalist med nyeste roller fra cloud
       refreshPresenceDatalist();
+      // Vis presence-modal første gang efter cloud-sync (data er nu opdateret)
+      if(!_presenceShown){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); }
     }else if(d.ok){
       cloudLoaded=true;
       setSyncStatus('ok');
@@ -2426,11 +2429,6 @@ function unlockApp(){
     if(s.textContent.includes('visibility:hidden'))s.remove();
   });
   if(!_appInited){ _appInited=true; initApp(); }
-  // Vis presence-modal efter kort delay (så appen er synlig)
-  setTimeout(()=>{
-    if(_myPresenceName){ startPresence(); }
-    else { showPresenceModal(); }
-  },350);
 }
 function checkLock(){
   if(sessionStorage.getItem('kk2_unlocked')==='1'){
@@ -2452,11 +2450,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
   initApp();
-  // Allerede logget ind (session refresh) — start presence
-  setTimeout(()=>{
-    if(_myPresenceName){ startPresence(); }
-    else { showPresenceModal(); }
-  },350);
 });
 function initApp(){
   startInactivityTracking();
