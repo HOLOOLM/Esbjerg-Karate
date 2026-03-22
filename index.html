@@ -611,6 +611,16 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     font-size:1.2rem;cursor:pointer;padding:0 .2rem;flex-shrink:0" title="Luk">✕</button>
 </div>
 
+<!-- ══ INAKTIVITETS-MODAL ══ -->
+<div id="inactivityModal" style="display:none;position:fixed;inset:0;z-index:9600;background:rgba(10,30,30,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:18px;padding:2rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center">
+    <div style="font-size:2.2rem;margin-bottom:.6rem">⏱️</div>
+    <h3 style="margin:0 0 .5rem;color:#1a3a3a;font-size:1.1rem">Er du stadig der?</h3>
+    <p style="margin:0 0 1.4rem;color:#4a6a6a;font-size:.88rem">Du logges automatisk ud om <strong id="inactivityCountdown" style="color:#1a5c5c;font-size:1.05rem">30</strong> sekunder pga. inaktivitet.</p>
+    <button onclick="stayLoggedIn()" style="width:100%;padding:.75rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer">✓ Jeg er her</button>
+  </div>
+</div>
+
 <!-- ══ PRESENCE MODAL ══ -->
 <div id="presenceModal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(10,30,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
@@ -1833,6 +1843,67 @@ function updatePresenceBar(names){
   bar.innerHTML=names.map(n=>`<span style="display:inline-flex;align-items:center;gap:.25rem;margin-right:.3rem"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0"></span>${n}</span>`).join('');
   bar.title='Online: '+names.join(', ');
 }
+/* ── INAKTIVITET ──────────────────────────────────────── */
+const INACTIVITY_MS=60*60*1000; // 60 minutter
+const COUNTDOWN_SECS=30;
+let _inactivityTimer=null;
+let _countdownInterval=null;
+
+function resetInactivityTimer(){
+  clearTimeout(_inactivityTimer);
+  const m=document.getElementById('inactivityModal');
+  if(m&&m.style.display!=='none') hideInactivityModal();
+  _inactivityTimer=setTimeout(showInactivityWarning,INACTIVITY_MS);
+}
+function showInactivityWarning(){
+  const m=document.getElementById('inactivityModal');
+  if(!m)return;
+  m.style.display='flex';
+  let secs=COUNTDOWN_SECS;
+  const el=document.getElementById('inactivityCountdown');
+  if(el)el.textContent=secs;
+  clearInterval(_countdownInterval);
+  _countdownInterval=setInterval(()=>{
+    secs--;
+    if(el)el.textContent=secs;
+    if(secs<=0){ clearInterval(_countdownInterval); autoLogout(); }
+  },1000);
+}
+function hideInactivityModal(){
+  const m=document.getElementById('inactivityModal');
+  if(m)m.style.display='none';
+  clearInterval(_countdownInterval);
+}
+function stayLoggedIn(){
+  hideInactivityModal();
+  resetInactivityTimer();
+}
+function autoLogout(){
+  hideInactivityModal();
+  clearTimeout(_inactivityTimer);
+  clearInterval(_countdownInterval);
+  leavePresence();
+  if(_presenceInterval){clearInterval(_presenceInterval);_presenceInterval=null;}
+  sessionStorage.removeItem('kk2_unlocked');
+  sessionStorage.removeItem('kk2_presence_name');
+  _myPresenceName='';
+  updatePresenceBar([]);
+  // Vis lock screen igen
+  const ls=document.getElementById('lockScreen');
+  if(ls)ls.classList.remove('hidden');
+  const blocker=document.createElement('style');
+  blocker.textContent='body > *:not(#lockScreen){visibility:hidden}';
+  document.head.appendChild(blocker);
+  _appInited=false;
+  setTimeout(()=>document.getElementById('lockInput')?.focus(),100);
+}
+function startInactivityTracking(){
+  ['click','keydown','touchstart','scroll'].forEach(ev=>{
+    document.addEventListener(ev,resetInactivityTimer,{passive:true});
+  });
+  resetInactivityTimer();
+}
+
 function pushToCloud(){
   const url=config.scriptUrl;
   if(!url)return;
@@ -2388,6 +2459,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   },350);
 });
 function initApp(){
+  startInactivityTracking();
   const now=new Date();
   document.getElementById('headerDate').textContent=
     now.toLocaleDateString('da-DK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
