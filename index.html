@@ -206,7 +206,8 @@ textarea.fta{resize:vertical;min-height:85px}
 .hcard{background:#fff;border-radius:12px;padding:1rem 1.2rem;box-shadow:var(--sh);cursor:pointer;transition:box-shadow .18s,transform .18s;border-left:4px solid var(--tl)}
 .hcard:hover{box-shadow:var(--shl);transform:translateY(-2px)}
 .hc-tue{border-left-color:var(--bl)}.hc-thu{border-left-color:var(--go)}
-.hc-future{border-left-color:#c8dede;opacity:.6;cursor:default}
+.hc-future{border-left-color:#c8dede;background:#f8fafc;opacity:.7;cursor:default;border-style:dashed}
+.hc-future:hover{box-shadow:var(--sh)!important;transform:none!important}
 .hc-today{border-left-color:var(--or);box-shadow:0 0 0 2px var(--ob),var(--sh)}
 .hc-top{display:flex;justify-content:space-between;align-items:flex-start}
 .hc-day{font-size:.69rem;text-transform:uppercase;letter-spacing:.8px;color:var(--xtl);font-weight:600}
@@ -843,6 +844,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option value="all">Alle dage</option>
         <option value="extra">Kun ekstra</option>
       </select>
+      <label style="display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--xtl);cursor:pointer;white-space:nowrap;padding:.3rem .6rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px">
+        <input type="checkbox" id="hShowFuture" onchange="renderHistory();if(this.checked)document.getElementById('hGrid').scrollIntoView({behavior:'smooth',block:'start'})" style="cursor:pointer;accent-color:var(--pr);width:14px;height:14px">
+        Vis kommende
+      </label>
     </div>
   </div>
   <div style="margin-bottom:.8rem">
@@ -1576,7 +1581,7 @@ const SEED = [
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let members=[], sessions=[], cancelledDates=[], assessments=[], pensum={}, boardMeetings=[];
+let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, boardMeetings=[];
 let nextBoardId=1, editingBoardId=null;
 let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
 let dbSort={col:'rang', dir:'asc'};
@@ -1719,6 +1724,8 @@ function load(){
       return /^\d{4}-\d{2}-\d{2}$/.test(d)&&!isNaN(new Date(d+'T12:00:00'));
     });
     cancelledDates=cd?JSON.parse(cd):[];
+    const cr=localStorage.getItem('kk2_cancelled_reasons');
+    cancelledReasons=cr?JSON.parse(cr):{};
     // Migrer gamle bæltenavne til kyu/dan
     const beltMap={
       'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)',
@@ -1765,6 +1772,7 @@ function save(){
   localStorage.setItem('kk2_members',JSON.stringify(members));
   localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
   localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
+  localStorage.setItem('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
   localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
   localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
   localStorage.setItem('kk2_config',JSON.stringify(config));
@@ -1986,13 +1994,13 @@ function pushToCloud(){
   fetch(url,{
     method:'POST',
     headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({members,sessions,cancelledDates,assessments,boardMeetings,endDates:vault,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,_savedAt:config._savedAt})
   })
   .then(r=>r.json())
   .then(d=>{if(d.ok)setSyncStatus('ok');else setSyncStatus('error');})
   .catch(()=>{
     fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({members,sessions,cancelledDates,assessments,boardMeetings,_savedAt:config._savedAt})})
+      body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,_savedAt:config._savedAt})})
       .then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
   });
 }
@@ -2028,6 +2036,8 @@ function loadFromCloud(onDone){
       // Google Sheets er autoritativ kilde — lokale sessions der ikke findes i Sheets slettes ikke gendannes
       cancelledDates=(d.cancelledDates||[]).map(x=>String(x).slice(0,10));
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
+      cancelledReasons=d.cancelledReasons||{};
+      localStorage.setItem('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
       const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
       members.forEach(mb=>{
         if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];
@@ -2426,11 +2436,14 @@ function checkCancellationBanner(){
 
   // Akutte advarsler med ✕
   if(urgent.length){
-    html+=urgent.map(({dt,ds,holiday,cancelled,diff})=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-        <span>⚠️ <strong>${fmtDay(dt,diff)}</strong> er aflyst${holiday?' – '+holiday:' – Manuelt aflyst'}${diff>1?` <span style="font-size:.76rem;color:#c2410c">(om ${diff} dage)</span>`:''}</span>
+    html+=urgent.map(({dt,ds,holiday,cancelled,diff})=>{
+      const cReas=cancelledReasons[ds]||'';
+      const markeretBadge=cancelled?` <span style="font-size:.72rem;background:#dcfce7;color:#15803d;border-radius:4px;padding:1px 5px;font-weight:700">✓ Markeret aflyst${cReas?' · '+cReas:''}</span>`:'';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+        <span>⚠️ <strong>${fmtDay(dt,diff)}</strong> er aflyst – ${holiday||cReas||'Manuelt aflyst'}${markeretBadge}${diff>1?` <span style="font-size:.76rem;color:#c2410c">(om ${diff} dage)</span>`:''}</span>
         <button onclick="dismissCancellationItem('${ds}')" title="Skjul" style="background:none;border:none;cursor:pointer;font-size:1rem;line-height:1;color:#c2410c;padding:0;flex-shrink:0">✕</button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
 
@@ -3193,12 +3206,18 @@ function renderHistory(){
     if(!plannedSet.has(s.date)) extraSet.add(s.date);
   });
 
-  // Saml og sortér alle datoer — nyeste først, ingen fremtidige
+  // Saml og sortér alle datoer — nyeste først
   const todayStr=localDate();
+  const showFuture=document.getElementById('hShowFuture')?.checked||false;
   const allEntries=[...plannedSet,...extraSet]
     .map(ds=>({ds,date:new Date(ds+'T12:00:00'),isExtra:extraSet.has(ds)}))
-    .filter(e=>e.ds<=todayStr)
-    .sort((a,b)=>b.ds.localeCompare(a.ds));
+    .filter(e=>showFuture?true:e.ds<=todayStr)
+    .sort((a,b)=>{
+      const af=a.ds>todayStr, bf=b.ds>todayStr;
+      if(af&&bf) return a.ds.localeCompare(b.ds);   // begge fremtid: nærmeste først
+      if(!af&&!bf) return b.ds.localeCompare(a.ds); // begge fortid: nyeste først
+      return af?-1:1;                                // fremtid før fortid
+    });
 
   // Filtrer hvis kun ekstra ønskes
   const filtered=df==='extra'?allEntries.filter(e=>e.isExtra):allEntries;
@@ -3228,16 +3247,22 @@ function renderHistory(){
     const boernPct=boernTotal>0&&saved?Math.round(boernPresent/boernTotal*100):0;
     const voksenPct=voksenTotal>0&&saved?Math.round(voksenPresent/voksenTotal*100):0;
     const isCancelled=cancelledDates.includes(ds);
+    const isFuture=ds>todayStr;
     const card=document.createElement('div');
     let cc='hcard';
-    if(isCancelled) cc+=' hc-cancelled';
+    if(isCancelled&&isFuture) cc+=' hc-future hc-cancelled';
+    else if(isCancelled) cc+=' hc-cancelled';
+    else if(isFuture) cc+=' hc-future';
     else if(isToday) cc+=' hc-today';
     else if(isExtra) cc+=' hc-extra';
     else if(dw===2) cc+=' hc-tue';
     else cc+=' hc-thu';
     card.className=cc;
     let tag;
-    if(isCancelled) tag='<span class="hc-tag t-cancelled">🚫 Aflyst</span>';
+    const cReason=cancelledReasons[ds]||'';
+    const reasonLabel=cReason?` · ${cReason}`:'';
+    if(isCancelled) tag=`<span class="hc-tag t-cancelled">🚫 Aflyst${reasonLabel}</span>`;
+    else if(isFuture) tag=`<span class="hc-tag t-future">📅 Kommende</span>`;
     else if(isToday) tag='<span class="hc-tag t-today">I dag</span>';
     else if(isExtra) tag='<span class="hc-tag t-extra">⭐ Ekstra</span>';
     else tag=`<span class="hc-tag ${dw===2?'t-tue':'t-thu'}">${DA_D[dw]}</span>`;
@@ -3249,7 +3274,9 @@ function renderHistory(){
           <div class="hc-date">${date.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'})}</div>
         </div>${tag}
       </div>
-      ${!isCancelled&&saved?`
+      ${isFuture?
+        (!isCancelled?`<div style="margin-top:.7rem;font-size:.75rem;color:#94a3b8">Planlagt træning — ingen data endnu</div>`:'')
+      :(!isCancelled&&saved?`
       <div class="pb-wrap"><div class="${pbcls}" style="width:${pct}%"></div></div>
       <div class="hc-nums"><span>Samlet: <strong>${present}/${total}</strong></span><span><strong>${pct}%</strong></span></div>
       <div style="display:flex;gap:.6rem;margin-top:.55rem;flex-wrap:wrap">
@@ -3269,9 +3296,19 @@ function renderHistory(){
         </div>`:''}
       </div>
       ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${saved.note}</div>`:''}`:
-      !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:''}
-      <button class="hc-cancel-btn${isCancelled?' active':''}" onclick="event.stopPropagation();toggleCancelled('${ds}')">${isCancelled?'↩️ Gendan træning':'🚫 Markér som aflyst'}</button>`;
-    if(!isCancelled) card.addEventListener('click',()=>openHD(ds,date,saved));
+      !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:'')}
+      ${!isCancelled?`<div style="display:flex;gap:.4rem;align-items:center;margin-top:.75rem">
+        <select id="cr-${ds}" class="fs" style="flex:1;font-size:.76rem;padding:.3rem .5rem" onclick="event.stopPropagation()">
+          <option value="">Vælg årsag…</option>
+          <option value="Helligdag">🗓 Helligdag</option>
+          <option value="Ferie">🏖 Ferie</option>
+          <option value="Andet">📌 Andet</option>
+        </select>
+        <button class="hc-cancel-btn" data-date="${ds}" onclick="event.stopPropagation();const r=document.getElementById('cr-'+this.dataset.date);if(!r||!r.value){showToast('Vælg en årsag først');return;}toggleCancelled(this.dataset.date,r.value)">🚫 Aflys</button>
+      </div>`:
+      `<button class="hc-cancel-btn active" data-date="${ds}" onclick="event.stopPropagation();toggleCancelled(this.dataset.date)">↩️ Gendan træning</button>`}
+      `;
+    if(!isCancelled&&!isFuture) card.addEventListener('click',()=>openHD(ds,date,saved));
     grid.appendChild(card);
   });
 }
@@ -3279,10 +3316,15 @@ function renderHistory(){
 /* ════════════════════════════════════════
    AFLYST / HELLIGDAG
 ════════════════════════════════════════ */
-function toggleCancelled(dateStr){
+function toggleCancelled(dateStr,reason){
   const idx=cancelledDates.indexOf(dateStr);
-  if(idx>=0) cancelledDates.splice(idx,1);
-  else cancelledDates.push(dateStr);
+  if(idx>=0){
+    cancelledDates.splice(idx,1);
+    delete cancelledReasons[dateStr];
+  } else {
+    cancelledDates.push(dateStr);
+    if(reason) cancelledReasons[dateStr]=reason;
+  }
   save();
   renderHistory();
   checkCancellationBanner();
