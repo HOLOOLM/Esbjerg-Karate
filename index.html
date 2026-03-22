@@ -953,6 +953,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="stat-card"><div class="si si-d">👋</div><div><div class="sv" id="db-stopmembers">0</div><div class="sl" id="db-stopmembers-lbl">Stoppede elever</div></div></div>
   </div>
 
+  <!-- Top 3 månedens fremmøde + Anciennitet -->
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem">
+    <div id="db-top3-card" style="flex:2;min-width:240px"></div>
+    <div id="db-seniority-card" style="flex:1;min-width:200px"></div>
+  </div>
+
   <!-- Holdoversigt -->
   <div id="db-groups-box" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem"></div>
 
@@ -960,7 +966,6 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div id="db-streak-banner" style="display:none;margin-bottom:1.2rem"></div>
 
   <!-- Fødselsdagsoverblik -->
-  <div id="db-birthday-card" style="display:none;margin-bottom:1.2rem"></div>
 
 <!-- Medlemsudvikling vækst-box -->
   <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
@@ -3593,7 +3598,6 @@ function renderDashboard(){
   }
 
   // Fødselsdagsoverblik på dashboard
-  renderDashboardBirthdays();
 
   let vis=0;
   rows.forEach((m,i)=>{
@@ -3633,8 +3637,117 @@ function renderDashboard(){
   });
   document.getElementById('empty-db').style.display=vis?'none':'block';
   updateBestDayInfo();
+  renderDashboardTop3();
+  renderDashboardSeniority();
   renderDashboardBeltDist();
   renderDashboardAbsent();
+}
+
+function renderDashboardTop3(){
+  const card=document.getElementById('db-top3-card');
+  if(!card)return;
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  const GROUPS=[{key:'Børnehold',label:'👦 Børnehold'},{key:'Basis-hold',label:'🟡 Basis-hold'},{key:'Avanceret',label:'⚫ Avanceret'}];
+  // Tilgængelige måneder
+  const monthSet=new Set();
+  sessions.forEach(s=>{if(s.date)monthSet.add(s.date.slice(0,7));});
+  const months=[...monthSet].sort().reverse();
+  if(!months.length){card.innerHTML='';return;}
+  let selMonth=card._selMonth||months[0];
+  if(!months.includes(selMonth))selMonth=months[0];
+  card._selMonth=selMonth;
+  // Tæl fremmøde
+  const mSessions=sessions.filter(s=>s.date&&s.date.startsWith(selMonth));
+  const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
+  const counts={};
+  act.forEach(m=>{counts[m.id]=0;});
+  mSessions.forEach(s=>(s.presentIds||[]).forEach(id=>{if(counts[id]!==undefined)counts[id]++;}));
+  const today=new Date(); today.setHours(0,0,0,0);
+  // Sortering: fremmøde → bæltegrad → anciennitet
+  const sortTop=(list)=>list.sort((a,b)=>{
+    if(counts[b.id]!==counts[a.id]) return counts[b.id]-counts[a.id];
+    const ba=BELT_ORDER.indexOf(a.belt), bb=BELT_ORDER.indexOf(b.belt);
+    if(bb!==ba) return bb-ba;
+    const da=a.startDate?new Date(a.startDate+'T12:00:00'):today;
+    const db2=b.startDate?new Date(b.startDate+'T12:00:00'):today;
+    return da-db2; // ældre = højere anciennitet
+  });
+  const medals=['🥇','🥈','🥉'];
+  const medalBg=['#fef9c3','#f1f5f9','#fdf4ec'];
+  const medalBorder=['#fbbf24','#94a3b8','#f97316'];
+  const monthOpts=months.map(m=>{
+    const [y,mo]=m.split('-');
+    const lbl=new Date(Number(y),Number(mo)-1,1).toLocaleDateString('da-DK',{month:'long',year:'numeric'});
+    return `<option value="${m}"${m===selMonth?' selected':''}>${lbl}</option>`;
+  }).join('');
+  const cols=GROUPS.map(({key,label})=>{
+    const grpMembers=act.filter(m=>m.group===key);
+    const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
+    const rows=top3.length?top3.map((m,i)=>`
+      <div style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem">
+        <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
+        <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+        </div>
+        <div style="font-weight:800;font-size:.95rem;color:#1a3a3a;flex-shrink:0">${counts[m.id]}<span style="font-size:.62rem;font-weight:400;color:#8aacac">x</span></div>
+      </div>`).join('')
+      :`<div style="color:var(--xtl);font-size:.78rem;padding:.3rem 0">Ingen data</div>`;
+    return `<div style="flex:1;min-width:0">
+      <div style="font-size:.75rem;font-weight:700;color:var(--xtm);margin-bottom:.5rem">${label}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+  card.innerHTML=`<div class="tcard" style="padding:1.2rem 1.4rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap">
+      <div style="font-weight:700;font-size:1rem;color:var(--t1)">🏆 Månedens top 3</div>
+      <select class="fs" style="font-size:.75rem;padding:.2rem .5rem" onchange="document.getElementById('db-top3-card')._selMonth=this.value;renderDashboardTop3()">${monthOpts}</select>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap">${cols}</div>
+  </div>`;
+}
+
+function renderDashboardSeniority(){
+  const card=document.getElementById('db-seniority-card');
+  if(!card)return;
+  const groups=['Børnehold','Basis-hold','Avanceret'];
+  const today=new Date(); today.setHours(0,0,0,0);
+  const fmtDays=days=>{
+    const y=Math.floor(days/365), mo=Math.floor((days%365)/30);
+    if(y>0&&mo>0) return `${y} år, ${mo} mdr.`;
+    if(y>0)       return `${y} år`;
+    return `${mo} mdr.`;
+  };
+  const results=groups.map(grp=>{
+    const grpMembers=members.filter(m=>m.status==='aktiv'&&!m.archived&&m.group===grp&&m.startDate);
+    if(!grpMembers.length)return null;
+    const totalDays=grpMembers.reduce((sum,m)=>sum+Math.max(0,Math.round((today-new Date(m.startDate+'T12:00:00'))/86400000)),0);
+    return {grp, label:fmtDays(Math.round(totalDays/grpMembers.length)), count:grpMembers.length, totalDays};
+  }).filter(Boolean);
+  if(!results.length){card.innerHTML='';return;}
+  // Total på tværs af alle hold
+  const allMembers=members.filter(m=>m.status==='aktiv'&&!m.archived&&m.startDate);
+  const allTotalDays=allMembers.reduce((sum,m)=>sum+Math.max(0,Math.round((today-new Date(m.startDate+'T12:00:00'))/86400000)),0);
+  const totalLabel=allMembers.length?fmtDays(Math.round(allTotalDays/allMembers.length)):'—';
+  const headerRow=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;padding:.3rem 0 .45rem;border-bottom:2px solid #e0ecec">
+      <div style="font-size:.7rem;font-weight:700;color:var(--xtl);text-transform:uppercase;letter-spacing:.04em">Hold</div>
+      <div style="font-size:.7rem;font-weight:700;color:var(--xtl);text-transform:uppercase;letter-spacing:.04em;text-align:center">Gns.</div>
+      <div style="font-size:.7rem;font-weight:700;color:var(--xtl);text-transform:uppercase;letter-spacing:.04em;text-align:right">Total</div>
+    </div>`;
+  const rows=results.map(r=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;align-items:center;padding:.45rem 0;border-bottom:1px solid #f0f5f5">
+      <div>
+        <div style="font-weight:600;font-size:.82rem;color:#1a3a3a">${r.grp}</div>
+        <div style="font-size:.68rem;color:#8aacac">${r.count} medl.</div>
+      </div>
+      <div style="font-weight:700;font-size:.82rem;color:var(--tm);text-align:center">${r.label}</div>
+      <div style="font-weight:700;font-size:.82rem;color:#2a6a6a;text-align:right">${fmtDays(r.totalDays)}</div>
+    </div>`).join('');
+  card.innerHTML=`<div class="tcard" style="padding:1.2rem 1.4rem;height:100%;box-sizing:border-box">
+    <div style="font-weight:700;font-size:1rem;color:var(--t1);margin-bottom:.8rem">⏱️ Anciennitet</div>
+    ${headerRow}${rows}
+  </div>`;
 }
 
 function renderDashboardBeltDist(){
@@ -3642,10 +3755,15 @@ function renderDashboardBeltDist(){
   if(!card)return;
   const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
   if(!act.length){card.innerHTML='';return;}
-  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
-  // Tæl pr. bælte
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','Sort (Dan)'];
+  const DAN_BELTS=['1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  // Tæl pr. bælte — slå alle dan-grader sammen til "Sort (Dan)"
   const counts={};
-  act.forEach(m=>{const b=m.belt||'Ukendt';counts[b]=(counts[b]||0)+1;});
+  act.forEach(m=>{
+    const b=m.belt||'Ukendt';
+    const key=DAN_BELTS.includes(b)?'Sort (Dan)':b;
+    counts[key]=(counts[key]||0)+1;
+  });
   // Sorter efter BELT_ORDER, ukendte bælter til sidst
   const entries=Object.entries(counts).sort((a,b)=>{
     const ia=BELT_ORDER.indexOf(a[0]), ib=BELT_ORDER.indexOf(b[0]);
@@ -3657,16 +3775,16 @@ function renderDashboardBeltDist(){
   const maxCount=Math.max(...entries.map(e=>e[1]));
   // Korte bæltenavne
   const shortName=b=>{
+    if(b==='Sort (Dan)')return 'Sort (Dan)';
     const m=b.match(/^(\d+)\.\s*(Kyu|Dan)\s*\(([^)]+)\)/);
-    if(m)return m[3]; // fx "Hvidt", "Gult", "Sort"
+    if(m)return m[3];
     return b;
   };
-  const darkBelts=['1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   const rows=entries.map(([belt,count])=>{
-    const color=BC[belt]||'#ccc';
+    const color=belt==='Sort (Dan)'?'#212121':(BC[belt]||'#ccc');
     const pct=Math.round(count/total*100);
     const barW=Math.round(count/maxCount*100);
-    const txtColor=darkBelts.includes(belt)?'#fff':
+    const txtColor=belt==='Sort (Dan)'?'#fff':
       (belt==='6. Kyu (Blåt)'||belt==='4. Kyu (Violet)'?'#fff':'#1a3a3a');
     return `<div style="display:flex;align-items:center;gap:.7rem;padding:.35rem 0;border-bottom:1px solid #f0f5f5">
       <div style="display:flex;align-items:center;gap:.4rem;min-width:110px">
@@ -3675,7 +3793,7 @@ function renderDashboardBeltDist(){
       </div>
       <div style="flex:1;background:#edf2f2;border-radius:6px;height:14px;overflow:hidden">
         <div style="height:100%;width:${barW}%;background:${color};border-radius:6px;border:1px solid rgba(0,0,0,.08);transition:width .4s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;box-sizing:border-box;min-width:${count>0?'18px':'0'}">
-          ${barW>25?`<span style="font-size:.65rem;font-weight:700;color:${txtColor}">${count}</span>`:''}
+          <span style="font-size:.65rem;font-weight:700;color:${belt==='Sort (Dan)'?'#fff':txtColor};white-space:nowrap">${count}</span>
         </div>
       </div>
       <div style="font-size:.78rem;font-weight:700;color:#2a4a4a;min-width:38px;text-align:right">${count} <span style="font-weight:400;color:#8aacac">(${pct}%)</span></div>
@@ -3712,7 +3830,8 @@ function renderDashboardAbsent(){
     const hasEmail=!!(m.email||'').trim();
     const r1date=m.rem1?new Date(m.rem1+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short'}):'';
     const r2date=m.rem2?new Date(m.rem2+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short'}):'';
-    const r1btn=!hasEmail?''
+    const noEmailBtn=`<button onclick="showToast('⚠️ Ingen e-mail registreret for ${m.firstName} — tilføj den under medlemsprofilen')" title="Ingen e-mail registreret — klik for info" style="font-size:.72rem;font-weight:700;background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;opacity:.7">✉️ Send R1</button>`;
+    const r1btn=!hasEmail?noEmailBtn
       :m.rem1
         ?`<span style="font-size:.7rem;font-weight:700;background:#dcfce7;color:#15803d;border-radius:7px;padding:3px 7px;white-space:nowrap;cursor:default" title="Påmind. 1 sendt ${r1date}">✓ R1 · ${r1date}</span>`
         :`<button onclick="sendReminder(${m.id},1)" title="Send 1. påmindelse til ${m.firstName}" style="font-size:.72rem;font-weight:700;background:#fef3c7;color:#b45309;border:1.5px solid #fcd34d;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">✉️ Send R1</button>`;
