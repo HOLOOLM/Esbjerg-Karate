@@ -1057,6 +1057,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div id="empty-db" class="empty-state" style="display:none"><div class="icon">📊</div>Ingen data endnu</div>
   </div>
 
+  <!-- Bæltefordeling -->
+  <div id="db-belt-card" style="margin-top:1.5rem"></div>
+
   <!-- Fraværskort: medlemmer ikke set i 30+ dage -->
   <div id="db-absent-card" style="display:none;margin-top:1.5rem"></div>
 </div>
@@ -3630,7 +3633,61 @@ function renderDashboard(){
   });
   document.getElementById('empty-db').style.display=vis?'none':'block';
   updateBestDayInfo();
+  renderDashboardBeltDist();
   renderDashboardAbsent();
+}
+
+function renderDashboardBeltDist(){
+  const card=document.getElementById('db-belt-card');
+  if(!card)return;
+  const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
+  if(!act.length){card.innerHTML='';return;}
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  // Tæl pr. bælte
+  const counts={};
+  act.forEach(m=>{const b=m.belt||'Ukendt';counts[b]=(counts[b]||0)+1;});
+  // Sorter efter BELT_ORDER, ukendte bælter til sidst
+  const entries=Object.entries(counts).sort((a,b)=>{
+    const ia=BELT_ORDER.indexOf(a[0]), ib=BELT_ORDER.indexOf(b[0]);
+    if(ia===-1&&ib===-1)return a[0].localeCompare(b[0]);
+    if(ia===-1)return 1; if(ib===-1)return-1;
+    return ia-ib;
+  });
+  const total=act.length;
+  const maxCount=Math.max(...entries.map(e=>e[1]));
+  // Korte bæltenavne
+  const shortName=b=>{
+    const m=b.match(/^(\d+)\.\s*(Kyu|Dan)\s*\(([^)]+)\)/);
+    if(m)return m[3]; // fx "Hvidt", "Gult", "Sort"
+    return b;
+  };
+  const darkBelts=['1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  const rows=entries.map(([belt,count])=>{
+    const color=BC[belt]||'#ccc';
+    const pct=Math.round(count/total*100);
+    const barW=Math.round(count/maxCount*100);
+    const txtColor=darkBelts.includes(belt)?'#fff':
+      (belt==='6. Kyu (Blåt)'||belt==='4. Kyu (Violet)'?'#fff':'#1a3a3a');
+    return `<div style="display:flex;align-items:center;gap:.7rem;padding:.35rem 0;border-bottom:1px solid #f0f5f5">
+      <div style="display:flex;align-items:center;gap:.4rem;min-width:110px">
+        <span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,.13);flex-shrink:0"></span>
+        <span style="font-size:.8rem;color:#2a4a4a;font-weight:600">${shortName(belt)}</span>
+      </div>
+      <div style="flex:1;background:#edf2f2;border-radius:6px;height:14px;overflow:hidden">
+        <div style="height:100%;width:${barW}%;background:${color};border-radius:6px;border:1px solid rgba(0,0,0,.08);transition:width .4s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;box-sizing:border-box;min-width:${count>0?'18px':'0'}">
+          ${barW>25?`<span style="font-size:.65rem;font-weight:700;color:${txtColor}">${count}</span>`:''}
+        </div>
+      </div>
+      <div style="font-size:.78rem;font-weight:700;color:#2a4a4a;min-width:38px;text-align:right">${count} <span style="font-weight:400;color:#8aacac">(${pct}%)</span></div>
+    </div>`;
+  }).join('');
+  card.innerHTML=`<div class="tcard" style="padding:1.2rem 1.4rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap">
+      <div style="font-weight:700;font-size:1rem;color:var(--t1)">🥋 Bæltefordeling</div>
+      <div style="font-size:.8rem;color:var(--xtm)">${total} aktive medlemmer</div>
+    </div>
+    ${rows}
+  </div>`;
 }
 
 function renderDashboardAbsent(){
