@@ -746,6 +746,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ PAGE: TRAINING ══ -->
 <div class="page active" id="page-training">
 
+  <!-- Aflysningsbanner -->
+  <div id="cancellationBanner" style="display:none;background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1.5px solid #f97316;border-radius:10px;padding:.6rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#7c2d12;display:flex;flex-direction:column;gap:.3rem"></div>
+
   <!-- Fødselsdag-banner -->
   <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
@@ -2360,6 +2363,90 @@ function updateBirthdayBanner(){
 }
 
 /* ════════════════════════════════════════
+   AFLYSNINGSBANNER
+════════════════════════════════════════ */
+function getDanishHolidays(year){
+  // Påske-algoritme (Anonymous Gregorian)
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,
+        f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
+        ii=Math.floor(c/4),k=c%4,l=(32+2*e+2*ii-h-k)%7,m2=Math.floor((a+11*h+22*l)/451);
+  const mo=Math.floor((h+l-7*m2+114)/31), dy=((h+l-7*m2+114)%31)+1;
+  const easter=new Date(year,mo-1,dy);
+  const add=(dt,n)=>{const r=new Date(dt);r.setDate(r.getDate()+n);return r;};
+  const fmt=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  const hol={};
+  hol[`${year}-01-01`]='Nytårsdag';
+  hol[fmt(add(easter,-3))]='Skærtorsdag';
+  hol[fmt(add(easter,-2))]='Langfredag';
+  hol[fmt(easter)]='Påskedag';
+  hol[fmt(add(easter,1))]='2. Påskedag';
+  hol[fmt(add(easter,39))]='Kristi Himmelfartsdag';
+  hol[fmt(add(easter,49))]='Pinsedag';
+  hol[fmt(add(easter,50))]='2. Pinsedag';
+  hol[`${year}-06-05`]='Grundlovsdag';
+  hol[`${year}-12-24`]='Juleaften';
+  hol[`${year}-12-25`]='1. Juledag';
+  hol[`${year}-12-26`]='2. Juledag';
+  hol[`${year}-12-31`]='Nytårsaften';
+  return hol;
+}
+
+function checkCancellationBanner(){
+  const banner=document.getElementById('cancellationBanner');
+  if(!banner)return;
+  const td=config.trainingDays||[2,4];
+  const today=new Date(); today.setHours(0,0,0,0);
+  const cy=today.getFullYear();
+  const holidays={...getDanishHolidays(cy),...getDanishHolidays(cy+1),...getDanishHolidays(cy+2)};
+  const dismissed=JSON.parse(sessionStorage.getItem('kk2_dismissed_cancel')||'[]');
+  const fmt=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+
+  // Scan 365 dage frem — find alle aflyste træningsdage
+  const allUpcoming=[];
+  for(let i=0;i<=365;i++){
+    const dt=new Date(today); dt.setDate(dt.getDate()+i);
+    if(!td.includes(dt.getDay())) continue;
+    const ds=fmt(dt);
+    const holiday=holidays[ds];
+    const cancelled=cancelledDates.includes(ds);
+    if(holiday||cancelled) allUpcoming.push({dt,ds,holiday,cancelled,diff:i});
+  }
+
+  // Akutte (≤14 dage, ikke afvist) + næste kommende
+  const urgent=allUpcoming.filter(x=>x.diff<=14&&!dismissed.includes(x.ds));
+  const next=allUpcoming[0]||null;
+
+  const fmtDay=(dt,diff)=>{
+    if(diff===0) return 'Dagens træning';
+    if(diff===1) return 'Morgendagens træning';
+    return 'Træning '+dt.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'});
+  };
+
+  let html='';
+
+  // Akutte advarsler med ✕
+  if(urgent.length){
+    html+=urgent.map(({dt,ds,holiday,cancelled,diff})=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+        <span>⚠️ <strong>${fmtDay(dt,diff)}</strong> er aflyst${holiday?' – '+holiday:' – Manuelt aflyst'}${diff>1?` <span style="font-size:.76rem;color:#c2410c">(om ${diff} dage)</span>`:''}</span>
+        <button onclick="dismissCancellationItem('${ds}')" title="Skjul" style="background:none;border:none;cursor:pointer;font-size:1rem;line-height:1;color:#c2410c;padding:0;flex-shrink:0">✕</button>
+      </div>`).join('');
+  }
+
+
+  if(!html){banner.style.display='none';return;}
+  banner.style.display='flex';
+  banner.innerHTML=html;
+}
+
+function dismissCancellationItem(ds){
+  const dismissed=JSON.parse(sessionStorage.getItem('kk2_dismissed_cancel')||'[]');
+  if(!dismissed.includes(ds))dismissed.push(ds);
+  sessionStorage.setItem('kk2_dismissed_cancel',JSON.stringify(dismissed));
+  checkCancellationBanner();
+}
+
+/* ════════════════════════════════════════
    DASHBOARD FØDSELSDAG WIDGET
 ════════════════════════════════════════ */
 function renderDashboardBirthdays(){
@@ -2566,7 +2653,7 @@ function initApp(){
   }
 }
 
-function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); }
+function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); }
 
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
@@ -3198,6 +3285,7 @@ function toggleCancelled(dateStr){
   else cancelledDates.push(dateStr);
   save();
   renderHistory();
+  checkCancellationBanner();
   if(document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
 }
 
