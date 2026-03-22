@@ -271,8 +271,11 @@ textarea.fta{resize:vertical;min-height:85px}
 .archive-row{display:flex;align-items:center;gap:.8rem;padding:.6rem .9rem;background:var(--mc);border-radius:8px;margin-bottom:.45rem}
 
 /* TOAST */
-#toast{position:fixed;bottom:2rem;right:2rem;background:var(--td);color:#fff;padding:.75rem 1.3rem;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:var(--shl);opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none;max-width:380px}
+#toast{position:fixed;bottom:2rem;right:2rem;background:var(--td);color:#fff;padding:.75rem 1.3rem;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:var(--shl);opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none;max-width:420px;display:flex;align-items:center;gap:.6rem}
 #toast.show{opacity:1;transform:translateY(0)}
+#toast.has-undo{pointer-events:auto}
+.toast-undo-btn{background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.45);color:#fff;border-radius:7px;padding:.2rem .65rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.toast-undo-btn:hover{background:rgba(255,255,255,.38)}
 
 .empty-state{text-align:center;padding:2.5rem 1rem;color:var(--xtl)}
 .empty-state .icon{font-size:2.5rem;margin-bottom:.5rem}
@@ -587,11 +590,35 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </head>
 <body>
 
+<!-- ══ SHURI-RYU MÆRKE — base64 indlejret, ingen ekstern fil ══ -->
+<script>const SHURI_BADGE='data:image/jpeg;base64,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';</script>
+
+<!-- ══ SYNC-FEJL BANNER (mobil synlig) ══ -->
+<div id="syncErrBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;
+  background:linear-gradient(135deg,#7c2d12,#991b1b);color:#fff;padding:.9rem 1.2rem;
+  box-shadow:0 -4px 20px rgba(0,0,0,.35);display:none;align-items:center;gap:.8rem;
+  animation:slideUp .25s ease">
+  <div style="font-size:1.4rem;flex-shrink:0">⚠️</div>
+  <div style="flex:1">
+    <div style="font-weight:700;font-size:.9rem">Synkronisering fejlede</div>
+    <div style="font-size:.78rem;opacity:.85;margin-top:1px">Dine ændringer er gemt lokalt — tryk Genindlæs for at prøve igen</div>
+  </div>
+  <button onclick="hideSyncErrBanner(true)" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);
+    color:#fff;border-radius:8px;padding:.45rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+    🔄 Genindlæs
+  </button>
+  <button onclick="hideSyncErrBanner(false)" style="background:transparent;border:none;color:rgba(255,255,255,.7);
+    font-size:1.2rem;cursor:pointer;padding:0 .2rem;flex-shrink:0" title="Luk">✕</button>
+</div>
+
 <!-- ══ LOCK SCREEN ══ -->
 <style>body > *:not(#lockScreen){visibility:hidden}</style>
 <div id="lockScreen">
   <div class="lock-box">
-    <div class="lock-logo">🥋</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:1.2rem;margin-bottom:1.1rem">
+      <img id="lockBadgeImg" src="" alt="Shuri-Ryu mærke" style="width:78px;height:78px;border-radius:50%;object-fit:cover;box-shadow:0 3px 12px rgba(0,0,0,.25);flex-shrink:0"/>
+      <div class="lock-logo">🥋</div>
+    </div>
     <div class="lock-title">Esbjerg Shuri-Ryu Karate</div>
     <div class="lock-sub">Indtast adgangskode for at fortsætte</div>
     <input class="lock-input" id="lockInput" type="password"
@@ -607,7 +634,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- HEADER -->
 <header>
   <div class="hbrand">
-    <div class="hlogo">🥋</div>
+    <div class="hlogo" style="background:transparent;border:none;padding:0;overflow:hidden"><img id="headerBadgeImg" src="" alt="Shuri-Ryu" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block"/></div>
     <div>
       <div class="htitle">Esbjerg Shuri-Ryu Karate</div>
       <div class="hsub">Medlemsstyring &amp; Fremmøde</div>
@@ -826,6 +853,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option value="unpaid">Ikke betalt</option>
         <option value="overdue">Overskredet</option>
       </select>
+      <select class="fs" id="mfsort" onchange="_mSort={col:'',dir:'asc'};renderM()">
+        <option value="name">Sorter: Navn A–Z</option>
+        <option value="name-desc">Sorter: Navn Z–A</option>
+        <option value="start-desc">Sorter: Nyeste medlem</option>
+        <option value="start-asc">Sorter: Ældste medlem</option>
+      </select>
       <button class="btn bp btn-sm" onclick="openAddModal()">➕ Nyt medlem</button>
       <button class="btn bb btn-sm em-icon-btn" onclick="openEmailModal()" title="Send e-mail til medlemmer">✉️</button>
       <button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button>
@@ -838,10 +871,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <thead>
         <tr>
           <th>Medlem</th>
-          <th>Gruppe</th>
+          <th class="th-sort" id="mSortGroup" onclick="setMSort('group')">Gruppe<span class="sort-arrow"></span></th>
           <th>Køn / Alder</th>
-          <th>Bælte</th>
-          <th>Score</th>
+          <th class="th-sort" id="mSortBelt" onclick="setMSort('belt')">Bælte<span class="sort-arrow"></span></th>
+          <th class="th-sort" id="mSortScore" onclick="setMSort('score')">Score<span class="sort-arrow"></span></th>
           <th>Telefon</th>
           <th>Anciennitet</th>
           <th>Kontingent</th>
@@ -892,7 +925,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <!-- Fødselsdagsoverblik -->
   <div id="db-birthday-card" style="display:none;margin-bottom:1.2rem"></div>
 
-  <!-- Medlemsudvikling vækst-box -->
+<!-- Medlemsudvikling vækst-box -->
   <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
     <div id="db-growth-card" class="tcard" style="padding:1.1rem 1.4rem;border-left:4px solid #16a34a;background:linear-gradient(135deg,#f0faf5 0%,#fff 60%)">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
@@ -986,6 +1019,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     </table>
     <div id="empty-db" class="empty-state" style="display:none"><div class="icon">📊</div>Ingen data endnu</div>
   </div>
+
+  <!-- Fraværskort: medlemmer ikke set i 30+ dage -->
+  <div id="db-absent-card" style="display:none;margin-top:1.5rem"></div>
 </div>
 
 <!-- ══ PAGE: BESTYRELSE ══ -->
@@ -1000,9 +1036,17 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="board-stat" style="border-top-color:#10b981"><div class="bsv" style="color:#10b981" id="brd-next">—</div><div class="bsl">Næste bestyrelsesmøde</div></div>
   </div>
   <div id="brd-days-banner" style="display:none;align-items:center;border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.2rem"></div>
+  <!-- Kommende begivenheder-banner -->
+  <div id="brd-upcoming-banner" style="display:none;margin-bottom:1.2rem"></div>
   <div class="sh">
-    <div class="st">🗓️ Alle noter</div>
+    <div class="st" id="boardListTitle">🗓️ Alle noter</div>
     <div class="controls">
+      <select class="fs" id="boardTypeFilter" onchange="setBoardFilter(this.value)">
+        <option value="all">Alle typer</option>
+        <option value="Bestyrelsesmøde">🏛️ Bestyrelsesmøde</option>
+        <option value="Ekstra træning">🥋 Ekstra træning</option>
+        <option value="Aktivitet">🎯 Aktivitet</option>
+      </select>
       <button class="btn bb em-icon-btn" onclick="openEmailModal()" title="Send e-mail til medlemmer">✉️</button>
       <button class="btn bp" onclick="openBoardModal()">+ Ny notat</button>
     </div>
@@ -1288,7 +1332,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="mclose" onclick="closeModal('hdModal')">✕</button>
     </div>
     <div id="hdContent"></div>
-    <div class="ma"><button class="btn bg" onclick="closeModal('hdModal')">Luk</button></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('hdModal')">Luk</button>
+      <button class="btn bdr btn-sm" id="hdDeleteBtn" style="display:none" onclick="deleteSession()">🗑 Slet session</button>
+    </div>
   </div>
 </div>
 
@@ -1664,15 +1711,40 @@ function save(){
   localStorage.setItem('kk2_config',JSON.stringify(config));
   if(cloudLoaded) pushToCloud();
 }
+let _syncErrCount=0;
+let _syncErrTimer=null;
 function setSyncStatus(s){
   const el=document.getElementById('syncStatus');
   if(!el)return;
   if(!config.scriptUrl){el.style.display='none';return;}
   el.style.display='';
   const narrow=window.innerWidth<=480;
-  if(s==='loading'){el.textContent=narrow?'⏳':'⏳ Synkroniserer...';el.style.color='#fff';}
-  else if(s==='ok'){el.textContent=narrow?'☁️':'☁️ Synkroniseret';el.style.color='#7ecece';}
-  else{el.textContent=narrow?'⚠️':'⚠️ Offline';el.style.color='#fcd34d';}
+  if(s==='loading'){
+    el.textContent=narrow?'⏳':'⏳ Synkroniserer...';el.style.color='#fff';
+  } else if(s==='ok'){
+    el.textContent=narrow?'☁️':'☁️ Synkroniseret';el.style.color='#7ecece';
+    _syncErrCount=0;
+    hideSyncErrBanner(false);
+  } else {
+    el.textContent=narrow?'⚠️':'⚠️ Offline';el.style.color='#fcd34d';
+    _syncErrCount++;
+    // Vis banner efter første fejl — men vent 3 sekunder for ikke at forstyrre ved kortvarigt tab
+    clearTimeout(_syncErrTimer);
+    _syncErrTimer=setTimeout(()=>{
+      if(_syncErrCount>0) showSyncErrBanner();
+    },3000);
+  }
+}
+function showSyncErrBanner(){
+  const b=document.getElementById('syncErrBanner');
+  if(!b||b.style.display==='flex')return;
+  b.style.display='flex';
+}
+function hideSyncErrBanner(reload){
+  const b=document.getElementById('syncErrBanner');
+  if(b)b.style.display='none';
+  _syncErrCount=0;
+  if(reload)window.location.reload();
 }
 function pushToCloud(){
   const url=config.scriptUrl;
@@ -1706,10 +1778,15 @@ function loadFromCloud(onDone){
   window[cb]=function(d){
     cleanup();
     if(d.ok&&d.members&&d.members.length>0){
-      // Gem lokale endDates + startDates inden cloud overskriver (cloud kan mangle kolonnen)
+      // Gem lokale endDates + startDates + kontaktinfo inden cloud overskriver (cloud kan mangle kolonnerne)
       const _prevEndDates={};
       const _prevStartDates={};
-      members.forEach(m=>{ if(m.endDate)_prevEndDates[m.id]=m.endDate; if(m.startDate)_prevStartDates[m.id]=m.startDate; });
+      const _prevContact={};
+      members.forEach(m=>{
+        if(m.endDate)_prevEndDates[m.id]=m.endDate;
+        if(m.startDate)_prevStartDates[m.id]=m.startDate;
+        if(m.contactName||m.contactPhone)_prevContact[m.id]={n:m.contactName,p:m.contactPhone};
+      });
       members=d.members;
       // Omdøb "Normal hold" → "Basis-hold" i Sheets-data
       members.forEach(mb=>{ if(mb.group==='Normal hold') mb.group='Basis-hold'; });
@@ -1717,7 +1794,7 @@ function loadFromCloud(onDone){
       sessions=(d.sessions||[]).map(s=>({...s,date:s.date?String(s.date).slice(0,10):s.date}));
       // Bevar lokale noter + sessioner der endnu ikke er synket til Sheets
       sessions.forEach(s=>{
-        if(!s.note){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
+        if(s.note==null){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
       });
       // Tilføj lokale sessioner der ikke findes i Sheets endnu
       _prevSessions.forEach(ps=>{
@@ -1733,9 +1810,11 @@ function loadFromCloud(onDone){
         if(mb.birthdate) mb.birthdate=String(mb.birthdate).slice(0,10);
         if(mb.startDate) mb.startDate=String(mb.startDate).slice(0,10);
         if(mb.endDate)   mb.endDate=String(mb.endDate).slice(0,10);
-        // Bevar lokal endDate/startDate hvis cloud ikke har dem (kolonnen ikke oprettet endnu i Sheets)
-        if(!mb.endDate   && _prevEndDates[mb.id])   mb.endDate=_prevEndDates[mb.id];
-        if(!mb.startDate && _prevStartDates[mb.id]) mb.startDate=_prevStartDates[mb.id];
+        // Bevar lokal endDate/startDate/kontaktinfo hvis cloud ikke har dem (kolonner ikke oprettet endnu i Sheets)
+        if(!mb.endDate     && _prevEndDates[mb.id])     mb.endDate=_prevEndDates[mb.id];
+        if(!mb.startDate   && _prevStartDates[mb.id])   mb.startDate=_prevStartDates[mb.id];
+        if(!mb.contactName && _prevContact[mb.id]?.n)   mb.contactName=_prevContact[mb.id].n;
+        if(!mb.contactPhone&& _prevContact[mb.id]?.p)   mb.contactPhone=_prevContact[mb.id].p;
       });
       applyEndDateVault(); // gendan vault-endDates på members der stadig mangler dem
       saveEndDateVault();  // gem opdaterede endDates tilbage i vault (additiv — sletter aldrig)
@@ -2127,6 +2206,10 @@ function renderDashboardBirthdays(){
 }
 
 /* ════════════════════════════════════════
+   DASHBOARD — INSTRUKTØROVERSIGT
+════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
    FREMMØDE TREND + BEDSTE DAG
 ════════════════════════════════════════ */
 function memberTrend(memberId, allSessions){
@@ -2198,6 +2281,8 @@ function checkLock(){
 
 document.addEventListener('DOMContentLoaded',()=>{
   load(); // load config + data first
+  // Sæt badge-billeder straks — lockBadgeImg vises FØR login, så det skal ske her
+  ['headerBadgeImg','lockBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=SHURI_BADGE;});
   const locked=checkLock();
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
@@ -2352,6 +2437,15 @@ function updateStats(){
 function onDateChange(){
   const newDate=document.getElementById('trainingDatePicker').value;
   if(!newDate)return;
+  // Advar hvis notat-modalen er åben med uskemagte ændringer
+  const notesM=document.getElementById('notesModal');
+  if(notesM&&notesM.classList.contains('open')){
+    const cur=document.getElementById('notesInput').value;
+    if(cur!==_notesModalOriginal){
+      if(!confirm('Du har en uskrevet note.\nVil du kassere ændringerne og skifte dato?'))return;
+    }
+    closeModal('notesModal');
+  }
   // Save current check-ins before switching
   if(members.filter(m=>m.checkedIn).length>0){
     const ids=members.filter(m=>m.checkedIn).map(m=>m.id);
@@ -2383,19 +2477,35 @@ function renderT(){
   const _streakCache={};
   members.filter(m=>!m.archived&&m.status!=='passiv').forEach(m=>{ _streakCache[m.id]=calcStreak(m.id); });
   body.innerHTML='';let vis=0;
-  members.forEach(m=>{
-    if(m.archived)return;
-    if(m.status==='passiv')return;
+  const tList=members.filter(m=>{
+    if(m.archived||m.status==='passiv')return false;
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
-    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
-    if(fc!=='all'&&((fc==='in')!==m.checkedIn))return;
-    if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return;
-    if(fg!=='all'&&m.group!==fg)return;
+    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return false;
+    if(fc!=='all'&&((fc==='in')!==m.checkedIn))return false;
+    if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return false;
+    if(fg!=='all'&&m.group!==fg)return false;
+    return true;
+  }).sort((a,b)=>{
+    const oa=_GRP_ORDER[a.group]??99, ob=_GRP_ORDER[b.group]??99;
+    return oa!==ob?oa-ob:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+  });
+  const todayMs=new Date().setHours(0,0,0,0);
+  tList.forEach(m=>{
     vis++;
     const bc=BC[m.belt]||'#ccc';
     const streak=_streakCache[m.id]||0;
     const streakBadge=streak>=2?`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`:'';
     const bdBadge=birthdayBadge(m);
+    // Fraværsadvarsel
+    const attendedSessions=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
+    let daysSince=null;
+    if(attendedSessions.length>0){
+      const latest=attendedSessions.map(s=>s.date).sort().pop();
+      daysSince=Math.round((todayMs-new Date(latest+'T12:00:00').setHours(0,0,0,0))/86400000);
+    } else if(m.startDate){
+      daysSince=Math.round((todayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);
+    }
+    const absWarning=daysSince!==null&&daysSince>=30?`<span title="Ikke set i ${daysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
     tr.innerHTML=`
@@ -2407,7 +2517,7 @@ function renderT(){
       </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${inits(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${bdBadge}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${bdBadge}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
@@ -2425,6 +2535,21 @@ function renderT(){
 /* ════════════════════════════════════════
    RENDER: MEMBERS PAGE
 ════════════════════════════════════════ */
+const _BELT_SORT={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+const _GRP_ORDER={'Børnehold':0,'Basis-hold':1,'Avanceret':2};
+let _mSort={col:'group',dir:'asc'};
+function setMSort(col){
+  if(_mSort.col===col) _mSort.dir=_mSort.dir==='asc'?'desc':'asc';
+  else _mSort={col,dir:'asc'};
+  renderM();
+}
+function _scoreVal(id){
+  const a=[...assessments].filter(x=>x.memberId===id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!a.length)return -1;
+  let r={};try{r=JSON.parse(a[0].ratings||'{}');}catch(e){}
+  const v=Object.values(r).map(Number).filter(v=>v>0);
+  return v.length?v.reduce((s,x)=>s+x,0)/v.length:-1;
+}
 function renderM(){
   const body=document.getElementById('tbody-m');
   const q=document.getElementById('msearch').value.toLowerCase();
@@ -2432,20 +2557,54 @@ function renderM(){
   const fp=document.getElementById('mfp').value;
   const fr=document.getElementById('mfr').value;
   const fst=document.getElementById('mfstatus').value;
+  const sortMode=document.getElementById('mfsort')?.value||'name';
   body.innerHTML='';let vis=0;
 
   // Passive sektion
   renderPassiveMembers(q,fg,fr);
 
-  members.forEach(m=>{
-    if(m.archived)return;
-    if(m.status==='passiv')return; // håndteres i passiv-sektion
+  // Filtrer aktive til en liste og sortér
+  const activeList=members.filter(m=>{
+    if(m.archived)return false;
+    if(m.status==='passiv')return false;
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
-    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return;
-    if(fg!=='all'&&m.group!==fg)return;
-    if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return;
-    if(fr!=='all'&&(m.role||'Medlem')!==fr)return;
-    if(fst==='passiv')return; // hvis filter er "kun passive", vis ingen aktive
+    if(q&&!nm.includes(q)&&!(m.email||'').toLowerCase().includes(q))return false;
+    if(fg!=='all'&&m.group!==fg)return false;
+    if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return false;
+    if(fr!=='all'&&(m.role||'Medlem')!==fr)return false;
+    if(fst==='passiv')return false;
+    return true;
+  });
+  activeList.sort((a,b)=>{
+    const d=_mSort.dir==='asc'?1:-1;
+    if(_mSort.col==='group'){
+      const oa=_GRP_ORDER[a.group]??99, ob=_GRP_ORDER[b.group]??99;
+      return oa!==ob?(oa-ob)*d:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+    }
+    if(_mSort.col==='belt'){
+      const oa=_BELT_SORT[a.belt]??-1, ob=_BELT_SORT[b.belt]??-1;
+      return oa!==ob?(oa-ob)*d:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+    }
+    if(_mSort.col==='score'){
+      const oa=_scoreVal(a.id), ob=_scoreVal(b.id);
+      return oa!==ob?(oa-ob)*d:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+    }
+    // Dropdown-sortering (navn / anciennitet)
+    switch(sortMode){
+      case 'name-desc': return (b.firstName+' '+b.lastName).localeCompare(a.firstName+' '+a.lastName,'da');
+      case 'start-desc':return (b.startDate||'').localeCompare(a.startDate||'');
+      case 'start-asc': return (a.startDate||'').localeCompare(b.startDate||'');
+      default:          return (a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+    }
+  });
+  // Opdater pile i th-headers
+  ['group','belt','score'].forEach(col=>{
+    const key={group:'mSortGroup',belt:'mSortBelt',score:'mSortScore'}[col];
+    const el=document.getElementById(key);
+    if(el) el.className='th-sort'+(_mSort.col===col?' active-'+_mSort.dir:'');
+  });
+
+  activeList.forEach(m=>{
     vis++;
     const isPassive=(m.status==='passiv');
     const bc=BC[m.belt]||'#ccc';
@@ -2905,12 +3064,12 @@ function renderDashboard(){
   // Split sessioner i regulære (faste træningsdage) og ekstra
   const td2=config.trainingDays||[2,4];
   const regSessions=sessions.filter(s=>{
-    if(!s.date)return false;
+    if(!s.date||cancelledDates.includes(s.date))return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
     return td2.includes(dw);
   });
   const extraSessions=sessions.filter(s=>{
-    if(!s.date)return false;
+    if(!s.date||cancelledDates.includes(s.date))return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
     return !td2.includes(dw);
   });
@@ -3232,12 +3391,18 @@ function renderDashboard(){
     const streak=_dbStreakCache[m.id]||0;
     let streakBadge='';
     if(streak>=2) streakBadge=`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`;
+    const _dbTodayMs=new Date().setHours(0,0,0,0);
+    const _dbAtt=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
+    let _dbDaysSince=null;
+    if(_dbAtt.length>0){const lat=_dbAtt.map(s=>s.date).sort().pop();_dbDaysSince=Math.round((_dbTodayMs-new Date(lat+'T12:00:00').setHours(0,0,0,0))/86400000);}
+    else if(m.startDate){_dbDaysSince=Math.round((_dbTodayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);}
+    const absW=_dbDaysSince!==null&&_dbDaysSince>=30?`<span title="Ikke set i ${_dbDaysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td style="text-align:center"><div class="db-rank ${rankCls}">${i+1}</div></td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${inits(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}</div></div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absW}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
@@ -3249,7 +3414,117 @@ function renderDashboard(){
   });
   document.getElementById('empty-db').style.display=vis?'none':'block';
   updateBestDayInfo();
+  renderDashboardAbsent();
 }
+
+function renderDashboardAbsent(){
+  const card=document.getElementById('db-absent-card');
+  if(!card)return;
+  const todayMs=new Date().setHours(0,0,0,0);
+  const act=actMembers();
+  const absent=act.map(m=>{
+    const att=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
+    let days=null;
+    if(att.length>0){const lat=att.map(s=>s.date).sort().pop();days=Math.round((todayMs-new Date(lat+'T12:00:00').setHours(0,0,0,0))/86400000);}
+    else if(m.startDate){days=Math.round((todayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);}
+    return{m,days};
+  }).filter(x=>x.days!==null&&x.days>=30).sort((a,b)=>b.days-a.days);
+
+  if(!absent.length){card.style.display='none';return;}
+
+  const rows=absent.map(({m,days})=>{
+    const label=_absentLabel(days);
+    const col=days>=90?'#dc2626':days>=60?'#d97706':'#ca8a04';
+    const bg=days>=90?'#fef2f2':days>=60?'#fff7ed':'#fefce8';
+    const hasEmail=!!(m.email||'').trim();
+    const r1date=m.rem1?new Date(m.rem1+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short'}):'';
+    const r2date=m.rem2?new Date(m.rem2+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short'}):'';
+    const r1btn=!hasEmail?''
+      :m.rem1
+        ?`<span style="font-size:.7rem;font-weight:700;background:#dcfce7;color:#15803d;border-radius:7px;padding:3px 7px;white-space:nowrap;cursor:default" title="Påmind. 1 sendt ${r1date}">✓ R1 · ${r1date}</span>`
+        :`<button onclick="sendReminder(${m.id},1)" title="Send 1. påmindelse til ${m.firstName}" style="font-size:.72rem;font-weight:700;background:#fef3c7;color:#b45309;border:1.5px solid #fcd34d;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">✉️ Send R1</button>`;
+    const r2btn=!hasEmail?''
+      :m.rem2
+        ?`<span style="font-size:.7rem;font-weight:700;background:#dcfce7;color:#15803d;border-radius:7px;padding:3px 7px;white-space:nowrap;cursor:default" title="Påmind. 2 sendt ${r2date}">✓ R2 · ${r2date}</span>`
+        :m.rem1
+          ?`<button onclick="sendReminder(${m.id},2)" title="Send 2. påmindelse til ${m.firstName}" style="font-size:.72rem;font-weight:700;background:#ede9fe;color:#6d28d9;border:1.5px solid #c4b5fd;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">✉️ Send R2</button>`
+          :`<span style="font-size:.7rem;font-weight:400;color:var(--xtl);border:1.5px dashed #d1d5db;border-radius:7px;padding:3px 7px;white-space:nowrap" title="Send R1 først">R2</span>`;
+    return `<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid #f5f5f0;flex-wrap:wrap">
+      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${inits(m)}</div>
+      <div style="flex:1;min-width:120px">
+        <div style="font-weight:700;font-size:.88rem">${m.firstName} ${m.lastName}</div>
+        <div style="font-size:.75rem;color:var(--xtl)">${m.group||''}${m.belt?' · '+m.belt:''}</div>
+      </div>
+      <span style="font-size:.72rem;font-weight:700;background:${bg};color:${col};border-radius:8px;padding:2px 8px;white-space:nowrap">⚠️ ${label} siden</span>
+      <div style="display:flex;gap:.4rem;align-items:center;flex-shrink:0">${r1btn}${r2btn}</div>
+    </div>`;
+  }).join('');
+
+  card.style.display='block';
+  card.innerHTML=`<div style="background:#fff;border-radius:14px;box-shadow:var(--sh);padding:1.2rem 1.5rem;border-left:4px solid #f59e0b">
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#b45309;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem">
+      ⚠️ Ikke set i 30+ dage
+      <span style="background:#fef3c7;color:#b45309;border-radius:10px;padding:1px 8px;font-size:.68rem">${absent.length}</span>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function _absentLabel(days){
+  if(days>=60) return `${Math.floor(days/30)} måned${Math.floor(days/30)===1?'':'er'}`;
+  const uger=Math.round(days/7);
+  return `${uger} uge${uger===1?'':'r'}`;
+}
+
+function _reminderBody(num,firstName,days){
+  const label=_absentLabel(days);
+  if(num===1) return `Hej ${firstName},
+
+Vi har ikke set dig til træning i et stykke tid — det er nu ${label} siden, vi sidst så dig på måtten.
+
+Vi savner dig og håber alt er godt med dig! 😊
+
+Har du haft travlt, eller er der noget, der har holdt dig væk? Vi vil rigtig gerne høre fra dig, og vi håber at se dig tilbage til træning snarest muligt.
+
+Du er altid velkommen til at møde op, og vi glæder os til at se dig igen!
+
+Med venlig hilsen
+Esbjerg Shuri-Ryu Karate`;
+
+  return `Hej ${firstName},
+
+Det er nu ${label} siden, vi sidst så dig til træning.
+
+Vi ved, at livet kan være travlt og fyldt med mange ting, og at det ikke altid er muligt at prioritere karate. Det forstår vi fuldt ud.
+
+Men vi vil gerne have dig til at vide, at du altid er hjertelig velkommen tilbage — uanset hvornår det måtte passe dig. Døren står åben, og vi vil blive rigtig glade for at se dig på måtten igen en dag! 🥋
+
+Vi ønsker dig det allerbedste, ${firstName} — og håber inderligt, at vi ses igen!
+
+Med venlig hilsen
+Esbjerg Shuri-Ryu Karate`;
+}
+
+function sendReminder(memberId,num){
+  const m=members.find(x=>x.id===memberId);
+  if(!m||!m.email)return;
+  if(num===2&&!m.rem1){showToast('Send R1 først');return;}
+  const todayMs=new Date().setHours(0,0,0,0);
+  const att=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
+  let days=30;
+  if(att.length>0){const lat=att.map(s=>s.date).sort().pop();days=Math.round((todayMs-new Date(lat+'T12:00:00').setHours(0,0,0,0))/86400000);}
+  else if(m.startDate){days=Math.round((todayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);}
+  const body=_reminderBody(num,m.firstName,days);
+  const subj=num===1?'Vi savner dig til træning! 🥋':'Vi håber at se dig igen — en sidste hilsen fra os 🥋';
+  window.open(`mailto:${m.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
+  // Registrér dato for sendt påmindelse
+  if(num===1) m.rem1=localDate();
+  else m.rem2=localDate();
+  save();pushToCloud();
+  renderDashboardAbsent();
+  showToast(`📧 Påmindelse ${num} registreret for ${m.firstName}`);
+}
+
 
 function exportAttendance(){
   const act=members.filter(m=>!m.archived);
@@ -3275,15 +3550,31 @@ function exportAttendance(){
 function openHD(ds,dateObj,saved){
   document.getElementById('hdTitle').textContent=fmtDate(ds);
   const c=document.getElementById('hdContent');
-  if(!saved){c.innerHTML='<p style="color:var(--xtl);padding:1rem 0">Ingen fremmødedata for denne dato.</p>';openModal('hdModal');return;}
+  const delBtn=document.getElementById('hdDeleteBtn');
+  if(!saved){c.innerHTML='<p style="color:var(--xtl);padding:1rem 0">Ingen fremmødedata for denne dato.</p>';if(delBtn)delBtn.style.display='none';openModal('hdModal');return;}
   const ps=new Set(saved.presentIds);
   const pm=members.filter(m=>ps.has(m.id));
   const am=actMembers(ds).filter(m=>!ps.has(m.id));
   window._hdData={pm,am};
   window._hdSplit=true;
   window._hdDate=ds;
+  if(delBtn)delBtn.style.display='';
   renderHDContent(c,pm,am,true,saved.note||'');
   openModal('hdModal');
+}
+function deleteSession(){
+  const ds=window._hdDate;
+  if(!ds)return;
+  const sess=sessions.find(s=>s.date===ds);
+  const cnt=(sess&&sess.presentIds||[]).length;
+  if(!confirm(`Slet sessionen den ${fmtDate(ds)} permanent?\n\n${cnt} fremmøderegistrering${cnt===1?'':'er'} vil gå tabt.\n\nDette kan ikke fortrydes.`))return;
+  sessions=sessions.filter(s=>s.date!==ds);
+  const ci=cancelledDates.indexOf(ds);
+  if(ci>=0)cancelledDates.splice(ci,1);
+  save();pushToCloud();
+  closeModal('hdModal');
+  renderHistory();
+  showToast('🗑 Session slettet');
 }
 
 function renderHDContent(c,pm,am,split,note=''){
@@ -3409,6 +3700,8 @@ let _ciPushTimer=null;
 function toggleCI(id,val){
   const m=members.find(x=>x.id===id);if(!m)return;
   m.checkedIn=val;
+  // Nulstil reminder-datoer når eleven møder op igen
+  if(val&&(m.rem1||m.rem2)){m.rem1='';m.rem2='';}
   // Opdater sessions med det samme
   const ids=members.filter(x=>x.checkedIn).map(x=>x.id);
   const idx=sessions.findIndex(s=>s.date===currentTrainingDate);
@@ -3426,8 +3719,16 @@ function resetAllCheckIns(){
   if(!confirm('Nulstil fremmøde for alle?'))return;
   members.forEach(m=>m.checkedIn=false);save();renderAll();showToast('🔄 Nulstillet');
 }
+let _markAllUndoIds=[];
 function markAllPresent(){
-  actMembers().forEach(m=>m.checkedIn=true);save();renderAll();showToast('☑️ Alle aktive markeret til stede');
+  _markAllUndoIds=actMembers().filter(m=>!m.checkedIn).map(m=>m.id);
+  actMembers().forEach(m=>m.checkedIn=true);
+  save();renderAll();
+  if(_markAllUndoIds.length===0){showToast('☑️ Alle var allerede markeret til stede');return;}
+  showToastUndo(`☑️ ${actMembers().length} markeret til stede`,()=>{
+    _markAllUndoIds.forEach(id=>{const m=members.find(x=>x.id===id);if(m)m.checkedIn=false;});
+    _markAllUndoIds=[];save();renderAll();showToast('↩️ Fortrudt — fremmøde nulstillet');
+  });
 }
 function saveSession(){
   const ds=currentTrainingDate;
@@ -3511,10 +3812,14 @@ function updateAgePreview(){
 function saveMember(){
   const fn=document.getElementById('fFN').value.trim(),ln=document.getElementById('fLN').value.trim();
   if(!fn||!ln){alert('Fornavn og efternavn er påkrævet.');return;}
+  const em=document.getElementById('fEM').value.trim();
+  if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){
+    alert('E-mailadressen ser ikke korrekt ud.\nTjek formatet, f.eks. lars@mail.dk');return;
+  }
   const bd=document.getElementById('fBD').value;
   const data={
     firstName:fn,lastName:ln,
-    email:document.getElementById('fEM').value.trim(),
+    email:em,
     phone:document.getElementById('fPH').value.trim(),
     gender:document.getElementById('fGE').value,
     birthdate:bd,
@@ -3652,9 +3957,13 @@ function confirmEndDate(){
 }
 function confirmDelete(id){
   const m=members.find(x=>x.id===id);if(!m)return;
-  if(!window.confirm('Slet '+m.firstName+' '+m.lastName+' permanent?\n\nDette kan ikke fortrydes.'))return;
-  members=members.filter(x=>x.id!==id);save();renderAll();
-  showToast('🗑 '+m.firstName+' '+m.lastName+' slettet permanent');
+  const aC=assessments.filter(a=>a.memberId===id).length;
+  const aMsg=aC>0?`\n\n⚠️ ${aC} vurdering${aC===1?'':'er'} vil også blive slettet permanent.`:'';
+  if(!window.confirm(`Slet ${m.firstName} ${m.lastName} permanent?\n\nDette kan ikke fortrydes.${aMsg}`))return;
+  members=members.filter(x=>x.id!==id);
+  assessments=assessments.filter(a=>a.memberId!==id);
+  save();pushToCloud();renderAll();
+  showToast('🗑 '+m.firstName+' '+m.lastName+' slettet'+(aC>0?' + '+aC+' vurdering'+(aC===1?'':'er'):''));
 }
 function openArchiveModal(){
   applyEndDateVault(); // gendan endDates fra vault inden rendering
@@ -4356,15 +4665,35 @@ function renderAssessmentHistory(memberId){
    TOAST
 ════════════════════════════════════════ */
 let _tt;
+let _undoCb=null;
 function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
+  _undoCb=null;
+  t.classList.remove('has-undo');
+  t.innerHTML=`<span>${msg}</span>`;
+  t.classList.add('show');
   clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function showToastUndo(msg,onUndo){
+  _undoCb=onUndo;
+  const t=document.getElementById('toast');
+  t.innerHTML=`<span>${msg}</span><button class="toast-undo-btn" onclick="if(_undoCb){_undoCb();_undoCb=null;}document.getElementById('toast').classList.remove('show','has-undo')">↩️ Fortryd</button>`;
+  t.classList.add('show','has-undo');
+  clearTimeout(_tt);_tt=setTimeout(()=>{t.classList.remove('show','has-undo');_undoCb=null;},5000);
 }
 
 /* ════════════════════════════════════════
    BESTYRELSE
 ════════════════════════════════════════ */
+let _boardFilter='all';
+function setBoardFilter(val){
+  _boardFilter=val;
+  const titles={'all':'🗓️ Alle noter','Bestyrelsesmøde':'🏛️ Bestyrelsesmøder','Ekstra træning':'🥋 Ekstra træninger','Aktivitet':'🎯 Aktiviteter'};
+  const el=document.getElementById('boardListTitle');
+  if(el) el.textContent=titles[val]||'🗓️ Alle noter';
+  renderBoard();
+}
+
 function renderBoard(){
   const today=localDate();
   const thisYear=today.slice(0,4);
@@ -4416,15 +4745,54 @@ function renderBoard(){
     daysBanner.style.display='none';
   }
 
+  // ── Kommende begivenheder-banner (alle typer med fremtidig dato) ──
+  const upcomingBanner=document.getElementById('brd-upcoming-banner');
+  if(upcomingBanner){
+    const typeConf=[
+      {type:'Bestyrelsesmøde',icon:'🏛️',color:'#6d28d9',bg:'#ede9fe',border:'#c4b5fd'},
+      {type:'Ekstra træning',  icon:'🥋',color:'#0284c7',bg:'#dbeafe',border:'#93c5fd'},
+      {type:'Aktivitet',       icon:'🎯',color:'#059669',bg:'#d1fae5',border:'#6ee7b7'},
+    ];
+    const pills=typeConf.map(tc=>{
+      const nxt=boardMeetings
+        .filter(b=>(b.type||'Bestyrelsesmøde')===tc.type&&b.date&&b.date>=today)
+        .sort((a,b)=>a.date.localeCompare(b.date))[0];
+      if(!nxt) return '';
+      const d=parseDateSafe(nxt.date);
+      const days=d?Math.round((d-parseDateSafe(today))/(1000*60*60*24)):0;
+      const daysTxt=days===0?'I dag':days===1?'I morgen':`Om ${days} dage`;
+      return `<div style="display:flex;align-items:center;gap:.5rem;background:${tc.bg};border:1.5px solid ${tc.border};
+        border-radius:12px;padding:.55rem 1rem;flex:1;min-width:150px;cursor:pointer" onclick="setBoardFilter('${tc.type}');document.getElementById('boardTypeFilter').value='${tc.type}'">
+        <span style="font-size:1.4rem;flex-shrink:0">${tc.icon}</span>
+        <div style="min-width:0">
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${tc.color};white-space:nowrap">${tc.type}</div>
+          <div style="font-size:.88rem;font-weight:800;color:${tc.color};line-height:1.2">${daysTxt}</div>
+          <div style="font-size:.7rem;color:${tc.color};opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${nxt.title||tc.type}</div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+    if(pills){
+      upcomingBanner.style.display='block';
+      upcomingBanner.innerHTML=`
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--xtl);margin-bottom:.6rem">📅 Kommende begivenheder</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">${pills}</div>`;
+    } else {
+      upcomingBanner.style.display='none';
+    }
+  }
+
   const container=document.getElementById('boardMeetingsList');
-  if(boardMeetings.length===0){
-    container.innerHTML=`<div class="meeting-empty"><div class="me-icon">📋</div><div style="font-weight:600;margin-bottom:.3rem">Ingen møder endnu</div><div style="font-size:.82rem">Tryk "+ Nyt møde" for at tilføje det første bestyrelsesmøde</div></div>`;
+  // Anvend type-filter
+  const filtered=_boardFilter==='all'?boardMeetings:boardMeetings.filter(b=>(b.type||'Bestyrelsesmøde')===_boardFilter);
+  if(filtered.length===0){
+    const emptyMsg=_boardFilter==='all'?'Ingen noter endnu — tryk "+ Ny notat" for at komme i gang':`Ingen ${_boardFilter.toLowerCase()}er endnu`;
+    container.innerHTML=`<div class="meeting-empty"><div class="me-icon">📋</div><div style="font-weight:600;margin-bottom:.3rem">${emptyMsg}</div></div>`;
     return;
   }
 
   // Kommende: stigende (nærmeste øverst), Tidligere: faldende (nyeste øverst)
-  const futArr=boardMeetings.filter(b=>b.date&&b.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
-  const pastArr=boardMeetings.filter(b=>!b.date||b.date<today).sort((a,b)=>b.date.localeCompare(a.date));
+  const futArr=filtered.filter(b=>b.date&&b.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  const pastArr=filtered.filter(b=>!b.date||b.date<today).sort((a,b)=>b.date.localeCompare(a.date));
 
   let html='';
   if(futArr.length){
@@ -4634,7 +5002,10 @@ function exportBoardToPDF(id){
     @media print{body{padding:20px 30px}button{display:none}}
   </style></head><body>
   <div class="logo-row">
-    <div><div class="club-name">Esbjerg Shuri-Ryu Karate</div><div class="club-sub">Strandbygade 53, 6700 Esbjerg · holmoos@mail.dk</div></div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="${SHURI_BADGE}" alt="Shuri-Ryu" style="width:58px;height:58px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
+      <div><div class="club-name">Esbjerg Shuri-Ryu Karate</div><div class="club-sub">Strandbygade 53, 6700 Esbjerg · holmoos@mail.dk</div></div>
+    </div>
     <div class="doc-type">${ti.icon} ${ti.label}</div>
   </div>
   <h1>${b.title||ti.label}</h1>
