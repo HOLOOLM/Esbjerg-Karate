@@ -636,7 +636,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </div>
 
 <!-- ══ LOCK SCREEN ══ -->
-<style>body > *:not(#lockScreen){visibility:hidden}</style>
+<style>body > *:not(#lockScreen){visibility:hidden;pointer-events:none}</style>
 <div id="lockScreen">
   <div class="lock-box">
     <div style="display:flex;align-items:center;justify-content:center;gap:1.2rem;margin-bottom:1.1rem">
@@ -1801,10 +1801,44 @@ function refreshPresenceDatalist(){
 function confirmPresenceName(){
   const name=(document.getElementById('presenceNameInput').value||'').trim();
   if(!name){ showToast('Skriv venligst dit navn'); return; }
+  if(!config.scriptUrl){ setPresenceName(name); return; }
+  // Tjek om navn allerede er online
+  const btn=document.querySelector('#presenceModal button');
+  if(btn){ btn.disabled=true; btn.textContent='Tjekker…'; }
+  const cb='_prc'+Date.now();
+  const s=document.createElement('script');
+  let timer;
+  const cleanup=()=>{clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);};
+  window[cb]=function(d){
+    cleanup();
+    if(btn){ btn.disabled=false; btn.textContent='✓ Fortsæt'; }
+    const online=(d&&d.online)||[];
+    if(online.includes(name)){
+      showPresenceConflict(name);
+    } else {
+      setPresenceName(name);
+    }
+  };
+  s.onerror=()=>{ cleanup(); if(btn){btn.disabled=false;btn.textContent='✓ Fortsæt';} setPresenceName(name); };
+  timer=setTimeout(()=>{ cleanup(); if(btn){btn.disabled=false;btn.textContent='✓ Fortsæt';} setPresenceName(name); },6000);
+  s.src=config.scriptUrl+'?action=presence_check&callback='+cb+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function setPresenceName(name){
   _myPresenceName=name;
   sessionStorage.setItem('kk2_presence_name',name);
   document.getElementById('presenceModal').style.display='none';
   startPresence();
+}
+function showPresenceConflict(name){
+  // Skift indhold i presence-modalen til advarsel
+  const box=document.querySelector('#presenceModal > div');
+  box.innerHTML=`
+    <div style="font-size:2rem;margin-bottom:.6rem">⚠️</div>
+    <h3 style="margin:0 0 .5rem;color:#1a3a3a;font-size:1.05rem">${name} er allerede logget ind</h3>
+    <p style="margin:0 0 1.4rem;color:#4a6a6a;font-size:.85rem">Det ser ud til at <strong>${name}</strong> allerede er aktiv på en anden enhed.<br><br>Er det dig? Du kan sagtens fortsætte — den anden session vil blive overskrevet.</p>
+    <button onclick="setPresenceName('${name}')" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:.6rem">✓ Ja, det er mig — fortsæt</button>
+    <button onclick="showPresenceModal()" style="width:100%;padding:.55rem;background:#f3f4f6;border:1.5px solid #d1d5db;color:#374151;border-radius:10px;font-size:.88rem;cursor:pointer">← Vælg et andet navn</button>`;
 }
 function skipPresenceName(){
   document.getElementById('presenceModal').style.display='none';
@@ -1894,7 +1928,7 @@ function autoLogout(){
   const ls=document.getElementById('lockScreen');
   if(ls)ls.classList.remove('hidden');
   const blocker=document.createElement('style');
-  blocker.textContent='body > *:not(#lockScreen){visibility:hidden}';
+  blocker.textContent='body > *:not(#lockScreen){visibility:hidden;pointer-events:none}';
   document.head.appendChild(blocker);
   _appInited=false;
   setTimeout(()=>document.getElementById('lockInput')?.focus(),100);
@@ -2005,8 +2039,6 @@ function loadFromCloud(onDone){
       setSyncStatus('ok');
       migratePaymentToAuto();
       refreshPresenceDatalist();
-      // Vis presence-modal første gang efter cloud-sync (data er nu opdateret)
-      if(!_presenceShown){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); }
     }else if(d.ok){
       cloudLoaded=true;
       setSyncStatus('ok');
@@ -2429,6 +2461,8 @@ function unlockApp(){
     if(s.textContent.includes('visibility:hidden'))s.remove();
   });
   if(!_appInited){ _appInited=true; initApp(); }
+  // Vis presence-modal straks — blokerer appen til navn er valgt
+  if(!_presenceShown){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); }
 }
 function checkLock(){
   if(sessionStorage.getItem('kk2_unlocked')==='1'){
@@ -2450,6 +2484,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
   initApp();
+  // Vis presence-modal straks — blokerer appen til navn er valgt
+  if(!_presenceShown){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); }
 });
 function initApp(){
   startInactivityTracking();
