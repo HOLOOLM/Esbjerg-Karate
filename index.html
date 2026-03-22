@@ -97,6 +97,7 @@ select.fs:focus{border-color:var(--tl)}
 
 /* TABLE */
 .tcard{background:#fff;border-radius:14px;box-shadow:var(--sh);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin-bottom:2rem}
+#page-dashboard .tcard{margin-bottom:0}
 table{width:100%;border-collapse:collapse}
 thead th{background:var(--td);color:#fff;padding:.8rem 1rem;text-align:left;font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
 tbody tr{border-bottom:1px solid #eef4f4;transition:background .15s}
@@ -326,6 +327,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 /* ── MOBIL (≤480px) ── */
 @media(max-width:480px){
+  /* Top3 + anciennitet: stак på mobil */
+  #page-dashboard > div:has(#db-top3-card){grid-template-columns:1fr!important}
+
   /* Forhindre horisontal overflow — kun html, ikke body (body-scroll skal fungere i iOS) */
   html{overflow-x:hidden}
 
@@ -944,7 +948,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 <!-- ══ PAGE: DASHBOARD ══ -->
 <div class="page" id="page-dashboard">
-  <div class="stats-grid" style="margin-bottom:1.5rem">
+  <div class="stats-grid" style="margin-bottom:.75rem">
     <div class="stat-card"><div class="si si-b">📅</div><div><div class="sv" id="db-sessions">0</div><div class="sl">Registrerede træninger</div></div></div>
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="db-avgatt">0</div><div class="sl">Gns. fremmøde</div></div></div>
     <div class="stat-card"><div class="si si-b">🏆</div><div style="min-width:0"><div class="sv" id="db-topname" style="font-size:.95rem;font-weight:700;line-height:1.2;word-break:break-word">—</div><div class="sl">Mest fremmødt</div></div></div>
@@ -954,21 +958,21 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   </div>
 
   <!-- Top 3 månedens fremmøde + Anciennitet -->
-  <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem">
-    <div id="db-top3-card" style="flex:2;min-width:240px"></div>
-    <div id="db-seniority-card" style="flex:1;min-width:200px"></div>
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:.75rem;margin-bottom:.4rem;align-items:start">
+    <div id="db-top3-card"></div>
+    <div id="db-seniority-card"></div>
   </div>
 
   <!-- Holdoversigt -->
-  <div id="db-groups-box" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem"></div>
+  <div id="db-groups-box" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.4rem"></div>
 
   <!-- Longest streak banner -->
-  <div id="db-streak-banner" style="display:none;margin-bottom:1.2rem"></div>
+  <div id="db-streak-banner" style="display:none;margin-bottom:.4rem"></div>
 
   <!-- Fødselsdagsoverblik -->
 
 <!-- Medlemsudvikling vækst-box -->
-  <div id="db-growth-box" style="display:none;margin-bottom:1.5rem">
+  <div id="db-growth-box" style="display:none;margin-bottom:.75rem">
     <div id="db-growth-card" class="tcard" style="padding:1.1rem 1.4rem;border-left:4px solid #16a34a;background:linear-gradient(135deg,#f0faf5 0%,#fff 60%)">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
         <div>
@@ -1063,10 +1067,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   </div>
 
   <!-- Bæltefordeling -->
-  <div id="db-belt-card" style="margin-top:1.5rem"></div>
+  <div id="db-belt-card" style="margin-top:.75rem"></div>
 
   <!-- Fraværskort: medlemmer ikke set i 30+ dage -->
-  <div id="db-absent-card" style="display:none;margin-top:1.5rem"></div>
+  <div id="db-absent-card" style="display:none;margin-top:.75rem"></div>
 </div>
 
 <!-- ══ PAGE: BESTYRELSE ══ -->
@@ -3688,7 +3692,7 @@ function renderDashboardTop3(){
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+          <div onclick="showToast('${m.firstName} ${m.lastName}')" style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer" title="${m.firstName} ${m.lastName}">${m.firstName} ${m.lastName}</div>
         </div>
         <div style="font-weight:800;font-size:.95rem;color:#1a3a3a;flex-shrink:0">${counts[m.id]}<span style="font-size:.62rem;font-weight:400;color:#8aacac">x</span></div>
       </div>`).join('')
@@ -3698,12 +3702,12 @@ function renderDashboardTop3(){
       ${rows}
     </div>`;
   }).join('');
-  card.innerHTML=`<div class="tcard" style="padding:1.2rem 1.4rem">
+  card.innerHTML=`<div class="tcard" style="padding:.9rem 1.1rem">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap">
       <div style="font-weight:700;font-size:1rem;color:var(--t1)">🏆 Månedens top 3</div>
       <select class="fs" style="font-size:.75rem;padding:.2rem .5rem" onchange="document.getElementById('db-top3-card')._selMonth=this.value;renderDashboardTop3()">${monthOpts}</select>
     </div>
-    <div style="display:flex;gap:1rem;flex-wrap:wrap">${cols}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">${cols}</div>
   </div>`;
 }
 
@@ -3744,7 +3748,7 @@ function renderDashboardSeniority(){
       <div style="font-weight:700;font-size:.82rem;color:var(--tm);text-align:center">${r.label}</div>
       <div style="font-weight:700;font-size:.82rem;color:#2a6a6a;text-align:right">${fmtDays(r.totalDays)}</div>
     </div>`).join('');
-  card.innerHTML=`<div class="tcard" style="padding:1.2rem 1.4rem;height:100%;box-sizing:border-box">
+  card.innerHTML=`<div class="tcard" style="padding:.9rem 1.1rem;height:100%;box-sizing:border-box">
     <div style="font-weight:700;font-size:1rem;color:var(--t1);margin-bottom:.8rem">⏱️ Anciennitet</div>
     ${headerRow}${rows}
   </div>`;
@@ -3799,7 +3803,7 @@ function renderDashboardBeltDist(){
       <div style="font-size:.78rem;font-weight:700;color:#2a4a4a;min-width:38px;text-align:right">${count} <span style="font-weight:400;color:#8aacac">(${pct}%)</span></div>
     </div>`;
   }).join('');
-  card.innerHTML=`<div class="tcard" style="padding:1.2rem 1.4rem">
+  card.innerHTML=`<div class="tcard" style="padding:.9rem 1.1rem">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap">
       <div style="font-weight:700;font-size:1rem;color:var(--t1)">🥋 Bæltefordeling</div>
       <div style="font-size:.8rem;color:var(--xtm)">${total} aktive medlemmer</div>
