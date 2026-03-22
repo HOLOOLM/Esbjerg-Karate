@@ -136,7 +136,7 @@ td{padding:.7rem 1rem;font-size:.855rem;vertical-align:middle}
 .tw{display:flex;align-items:center;gap:7px}
 .toggle{position:relative;display:inline-block;width:42px;height:22px}
 .toggle input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background:#ccdede;border-radius:22px;transition:.25s}
+.slider{position:absolute;cursor:pointer;top:0;right:0;bottom:0;left:0;background:#ccdede;border-radius:22px;transition:.25s}
 .slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.18)}
 input:checked+.slider{background:var(--go)}
 input:checked+.slider::before{transform:translateX(20px)}
@@ -153,7 +153,7 @@ input:checked+.slider::before{transform:translateX(20px)}
 .amt-overdue{background:var(--pub);color:var(--pu)}
 
 /* MODAL */
-.mbd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px)}
+.mbd{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .mbd.open{display:flex}
 .modal{background:#fff;border-radius:16px;padding:1.8rem;width:100%;max-width:520px;box-shadow:var(--shl);animation:slideUp .22s ease;max-height:92vh;overflow-y:auto}
 .modal-lg{max-width:720px}
@@ -480,7 +480,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 /* ── LOCK SCREEN ── */
 #lockScreen{
-  position:fixed;inset:0;z-index:9999;
+  position:fixed;top:0;right:0;bottom:0;left:0;z-index:9999;
   background:linear-gradient(135deg,var(--td) 0%,#1a3030 100%);
   display:flex;align-items:center;justify-content:center;
 }
@@ -574,7 +574,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 @media(max-width:600px){.board-stats-row{grid-template-columns:1fr 1fr}.board-hero{padding:1.2rem}.board-hero h2{font-size:1.1rem}}
 
 /* GLOBAL SEARCH FULL OVERLAY */
-#globalSearchOverlay{display:none;position:fixed;inset:0;z-index:10001;background:rgba(10,30,30,.65);backdrop-filter:blur(4px);overflow-y:auto;padding:3rem 1rem 2rem}
+#globalSearchOverlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:10001;background:rgba(10,30,30,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);overflow-y:auto;padding:3rem 1rem 2rem}
 .gs-box{background:#fff;border-radius:16px;box-shadow:0 16px 60px rgba(0,0,0,.3);max-width:680px;margin:0 auto;overflow:hidden;animation:slideUp .2s ease}
 .gs-input-row{display:flex;align-items:center;gap:.7rem;padding:1rem 1.2rem;border-bottom:2px solid #e8f0f0;background:#f9fdfb}
 .gs-input-row input{flex:1;border:none;outline:none;font-size:1.05rem;background:transparent;color:#1a3a3a}
@@ -626,7 +626,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </div>
 
 <!-- ══ INAKTIVITETS-MODAL ══ -->
-<div id="inactivityModal" style="display:none;position:fixed;inset:0;z-index:9600;background:rgba(10,30,30,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+<div id="inactivityModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:9600;background:rgba(10,30,30,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:2rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center">
     <div style="font-size:2.2rem;margin-bottom:.6rem">⏱️</div>
     <h3 style="margin:0 0 .5rem;color:#1a3a3a;font-size:1.1rem">Er du stadig der?</h3>
@@ -636,7 +636,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </div>
 
 <!-- ══ PRESENCE MODAL ══ -->
-<div id="presenceModal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(10,30,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+<div id="presenceModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:9500;background:rgba(10,30,30,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
     <div style="font-size:2rem;margin-bottom:.6rem">👤</div>
     <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Hvem er du?</h3>
@@ -690,7 +690,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 </header>
 
 <!-- QUICK SEARCH OVERLAY -->
-<div id="qsOverlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,30,30,.6);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeQuickSearch()">
+<div id="qsOverlay" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;background:rgba(10,30,30,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" onclick="if(event.target===this)closeQuickSearch()">
   <div style="background:#fff;border-radius:0 0 18px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:80vh">
     <div style="padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;border-bottom:1.5px solid #e8f0f0;flex-shrink:0">
       <span style="font-size:1.3rem">🔍</span>
@@ -2507,7 +2507,7 @@ function checkLock(){
 document.addEventListener('DOMContentLoaded',()=>{
   load(); // load config + data first
   // Sæt badge-billeder straks — lockBadgeImg vises FØR login, så det skal ske her
-  ['headerBadgeImg','lockBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=SHURI_BADGE;});
+  try{['headerBadgeImg','lockBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el&&typeof SHURI_BADGE!=='undefined')el.src=SHURI_BADGE;});}catch(e){}
   const locked=checkLock();
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
@@ -3687,15 +3687,15 @@ function renderDashboardTop3(){
   const cols=GROUPS.map(({key,label})=>{
     const grpMembers=act.filter(m=>m.group===key);
     const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
-    const rows=top3.length?top3.map((m,i)=>`
-      <div onclick="showToast('${m.firstName} ${m.lastName} · ${counts[m.id]} ${counts[m.id]===1?\'gang\':\'gange\'}')" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
+    const rows=top3.length?top3.map((m,i)=>{const toastMsg=`${m.firstName} ${m.lastName} \u00b7 ${counts[m.id]} ${counts[m.id]===1?'gang':'gange'}`;return `
+      <div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${m.firstName} ${m.lastName}">${m.firstName} ${m.lastName}</div>
         </div>
         <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap">${counts[m.id]}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span></div>
-      </div>`).join('')
+      </div>`;}).join('')
       :`<div style="color:var(--xtl);font-size:.78rem;padding:.3rem 0">Ingen data</div>`;
     return `<div style="flex:1;min-width:0">
       <div style="font-size:.75rem;font-weight:700;color:var(--xtm);margin-bottom:.5rem">${label}</div>
