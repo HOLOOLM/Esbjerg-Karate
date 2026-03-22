@@ -3657,26 +3657,90 @@ function renderDashboardTop3(){
   if(!card)return;
   const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   const GROUPS=[{key:'Børnehold',label:'👦 Børnehold'},{key:'Basis-hold',label:'🟡 Basis-hold'},{key:'Avanceret',label:'⚫ Avanceret'}];
-  // Tilgængelige måneder
-  const monthSet=new Set();
-  sessions.forEach(s=>{if(s.date)monthSet.add(s.date.slice(0,7));});
-  const months=[...monthSet].sort().reverse();
-  if(!months.length){card.innerHTML='';return;}
-  let selMonth=card._selMonth||months[0];
-  if(!months.includes(selMonth))selMonth=months[0];
-  card._selMonth=selMonth;
-  // Tæl fremmøde — adskil normale og ekstra sessioner
+
+  const allSess=sessions.filter(s=>s.date&&!cancelledDates.includes(s.date));
+  const periodType=card._periodType||'måned';
+
+  // Byg liste af tilgængelige perioder baseret på type
+  let periods=[];
+  if(periodType==='måned'){
+    const set=new Set(); allSess.forEach(s=>set.add(s.date.slice(0,7)));
+    periods=[...set].sort().reverse();
+  } else if(periodType==='kvartal'){
+    const set=new Set(); allSess.forEach(s=>{
+      const [y,m]=s.date.split('-');
+      set.add(`${y}-Q${Math.ceil(Number(m)/3)}`);
+    });
+    periods=[...set].sort().reverse();
+  } else if(periodType==='halvår'){
+    const set=new Set(); allSess.forEach(s=>{
+      const [y,m]=s.date.split('-');
+      set.add(`${y}-H${Number(m)<=6?1:2}`);
+    });
+    periods=[...set].sort().reverse();
+  } else {
+    const set=new Set(); allSess.forEach(s=>set.add(s.date.slice(0,4)));
+    periods=[...set].sort().reverse();
+  }
+  if(!periods.length){card.innerHTML='';return;}
+
+  let selPeriod=card._selPeriod;
+  if(!selPeriod||!periods.includes(selPeriod)) selPeriod=periods[0];
+  card._selPeriod=selPeriod;
+  card._periodType=periodType;
+
+  // Filtrer sessioner for valgt periode
   const td=config.trainingDays||[2,4];
-  const mSessions=sessions.filter(s=>s.date&&s.date.startsWith(selMonth)&&!cancelledDates.includes(s.date));
-  const mRegSessions=mSessions.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay()));
-  const mExtraSessions=mSessions.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay()));
+  let periodSessions;
+  if(periodType==='måned'){
+    periodSessions=allSess.filter(s=>s.date.startsWith(selPeriod));
+  } else if(periodType==='kvartal'){
+    const [py,pq]=selPeriod.split('-Q');
+    const qMonths=[[1,2,3],[4,5,6],[7,8,9],[10,11,12]][Number(pq)-1];
+    periodSessions=allSess.filter(s=>{ const [sy,sm]=s.date.split('-'); return sy===py&&qMonths.includes(Number(sm)); });
+  } else if(periodType==='halvår'){
+    const [py,ph]=selPeriod.split('-H');
+    const hMonths=Number(ph)===1?[1,2,3,4,5,6]:[7,8,9,10,11,12];
+    periodSessions=allSess.filter(s=>{ const [sy,sm]=s.date.split('-'); return sy===py&&hMonths.includes(Number(sm)); });
+  } else {
+    periodSessions=allSess.filter(s=>s.date.startsWith(selPeriod));
+  }
+  const mRegSessions=periodSessions.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay()));
+  const mExtraSessions=periodSessions.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay()));
   const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
   const counts={}, regCounts={}, extraCounts={};
   act.forEach(m=>{counts[m.id]=0; regCounts[m.id]=0; extraCounts[m.id]=0;});
   mRegSessions.forEach(s=>(s.presentIds||[]).forEach(id=>{if(counts[id]!==undefined){counts[id]++;regCounts[id]++;}}));
   mExtraSessions.forEach(s=>(s.presentIds||[]).forEach(id=>{if(counts[id]!==undefined){counts[id]++;extraCounts[id]++;}}));
-  const today=new Date(); today.setHours(0,0,0,0);
+
+  // Dynamisk titel
+  let titleLabel;
+  if(periodType==='måned'){
+    const [y,mo]=selPeriod.split('-');
+    titleLabel=new Date(Number(y),Number(mo)-1,1).toLocaleDateString('da-DK',{month:'long',year:'numeric'});
+  } else if(periodType==='kvartal'){
+    const [y,q]=selPeriod.split('-Q'); titleLabel=`Q${q} ${y}`;
+  } else if(periodType==='halvår'){
+    const [y,h]=selPeriod.split('-H'); titleLabel=`H${h} ${y}`;
+  } else {
+    titleLabel=selPeriod;
+  }
+
+  // Periode-type-knapper
+  const ptypes=[{v:'måned',l:'Måned'},{v:'kvartal',l:'Kvartal'},{v:'halvår',l:'Halvår'},{v:'år',l:'År'}];
+  const typeTabs=ptypes.map(pt=>`<button onclick="var c=document.getElementById('db-top3-card');c._periodType='${pt.v}';c._selPeriod=null;renderDashboardTop3()" style="border:none;cursor:pointer;padding:.18rem .5rem;border-radius:6px;font-size:.7rem;font-weight:${periodType===pt.v?700:500};background:${periodType===pt.v?'var(--pr)':'transparent'};color:${periodType===pt.v?'#fff':'var(--xtm)'}">${pt.l}</button>`).join('');
+
+  // Periode-valgmuligheder
+  const periodOpts=periods.map(p=>{
+    let lbl=p;
+    if(periodType==='måned'){ const [y,mo]=p.split('-'); lbl=new Date(Number(y),Number(mo)-1,1).toLocaleDateString('da-DK',{month:'long',year:'numeric'}); }
+    else if(periodType==='kvartal'){ const [y,q]=p.split('-Q'); lbl=`Q${q} ${y}`; }
+    else if(periodType==='halvår'){ const [y,h]=p.split('-H'); lbl=`H${h} ${y}`; }
+    return `<option value="${p}"${p===selPeriod?' selected':''}>${lbl}</option>`;
+  }).join('');
+
   // Sortering: total → fast → ekstra → bæltegrad → anciennitet
+  const today=new Date(); today.setHours(0,0,0,0);
   const sortTop=(list)=>list.sort((a,b)=>{
     if(counts[b.id]!==counts[a.id]) return counts[b.id]-counts[a.id];
     if(regCounts[b.id]!==regCounts[a.id]) return regCounts[b.id]-regCounts[a.id];
@@ -3690,38 +3754,31 @@ function renderDashboardTop3(){
   const medals=['🥇','🥈','🥉'];
   const medalBg=['#fef9c3','#f1f5f9','#fdf4ec'];
   const medalBorder=['#fbbf24','#94a3b8','#f97316'];
-  const monthOpts=months.map(m=>{
-    const [y,mo]=m.split('-');
-    const lbl=new Date(Number(y),Number(mo)-1,1).toLocaleDateString('da-DK',{month:'long',year:'numeric'});
-    return `<option value="${m}"${m===selMonth?' selected':''}>${lbl}</option>`;
-  }).join('');
   const cols=GROUPS.map(({key,label})=>{
     const grpMembers=act.filter(m=>m.group===key);
     const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
     const rows=top3.length?top3.map((m,i)=>{
-      const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0, tot=counts[m.id]||0;
+      const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0;
       const breakdown=ex>0?`${reg} ${reg===1?'fast':'faste'} + ${ex} ekstra`:`${reg} ${reg===1?'fast':'faste'}`;
       const toastMsg=`${m.firstName} ${m.lastName}: ${breakdown}`;
       const extraBadge=ex>0?`<span style="font-size:.6rem;font-weight:700;color:#7c3aed;margin-left:2px">+${ex}</span>`:'';
-      return `
-      <div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" title="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
+      return `<div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" title="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
-        </div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div></div>
         <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap">${reg}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${extraBadge}</div>
       </div>`;}).join('')
       :`<div style="color:var(--xtl);font-size:.78rem;padding:.3rem 0">Ingen data</div>`;
-    return `<div style="flex:1;min-width:0">
-      <div style="font-size:.75rem;font-weight:700;color:var(--xtm);margin-bottom:.5rem">${label}</div>
-      ${rows}
-    </div>`;
+    return `<div style="flex:1;min-width:0"><div style="font-size:.75rem;font-weight:700;color:var(--xtm);margin-bottom:.5rem">${label}</div>${rows}</div>`;
   }).join('');
+
   card.innerHTML=`<div class="tcard" style="padding:.9rem 1.1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap">
-      <div style="font-weight:700;font-size:1rem;color:var(--t1)">🏆 Månedens top 3</div>
-      <select class="fs" style="font-size:.75rem;padding:.2rem .5rem" onchange="document.getElementById('db-top3-card')._selMonth=this.value;renderDashboardTop3()">${monthOpts}</select>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;gap:.5rem;flex-wrap:wrap">
+      <div style="font-weight:700;font-size:1rem;color:var(--t1)">🏆 ${titleLabel} – Top 3</div>
+      <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+        <div style="display:flex;gap:2px;background:var(--bg2);border-radius:8px;padding:2px">${typeTabs}</div>
+        <select class="fs" style="font-size:.75rem;padding:.2rem .5rem" onchange="document.getElementById('db-top3-card')._selPeriod=this.value;renderDashboardTop3()">${periodOpts}</select>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">${cols}</div>
   </div>`;
