@@ -683,7 +683,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="hdr-actions">
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
-    <div id="presenceBar" style="display:none;font-size:.73rem;padding:.2rem .7rem;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis" title="Online brugere" onclick="showPresenceModal()"></div>
+    <div id="presenceBar" style="display:none;font-size:.73rem;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap;cursor:pointer" title="Online brugere" onclick="showPresenceModal()"></div>
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
     <button class="btn bg btn-sm" onclick="openGlobalSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Global søgning">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
@@ -1952,15 +1952,41 @@ function updatePresenceBar(users){
   bar.style.display='flex';
   bar.style.alignItems='center';
   bar.style.gap='.2rem';
-  bar.innerHTML=users.map(u=>{
+  const narrow=window.innerWidth<=480;
+  const dot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0"></span>';
+  // Mobil med 3+ brugere: vis tæller med klikbar popup
+  if(narrow && users.length>2){
+    bar.innerHTML=`<span data-presence-all="1" style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer" onclick="event.stopPropagation();showPresenceList()">${dot}<span>${users.length} online</span></span>`;
+  } else {
+    bar.innerHTML=users.map(u=>{
+      const n=typeof u==='string'?u:u.name;
+      const firstName=n.split(' ')[0];
+      const pg=(typeof u==='object'&&u.page)?u.page:'';
+      const pageInfo=PAGE_LABELS[pg]||null;
+      const pageIcon=pageInfo?` <span style="font-size:.7rem;opacity:.8">${pageInfo.icon}</span>`:'';
+      return `<span data-presence-name="${n}" style="display:inline-flex;align-items:center;gap:.25rem;margin-right:.25rem;cursor:pointer" onclick="event.stopPropagation();showPresenceTimestamp(this)">${dot}${firstName}${pageIcon}</span>`;
+    }).join('');
+  }
+  bar.title='Online: '+users.map(u=>typeof u==='string'?u:u.name).join(', ');
+}
+function showPresenceList(){
+  // Vis popup med alle online brugere
+  const existing=document.getElementById('presenceListPopup');
+  if(existing){existing.remove();return;}
+  const bar=document.getElementById('presenceBar');
+  const rect=bar.getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.id='presenceListPopup';
+  pop.style.cssText=`position:fixed;top:${rect.bottom+6}px;left:${rect.left}px;background:#1e3a3a;color:#fff;border-radius:8px;padding:.6rem .8rem;font-size:.78rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.4);min-width:160px`;
+  pop.innerHTML=_presenceUsers.map(u=>{
     const n=typeof u==='string'?u:u.name;
     const pg=(typeof u==='object'&&u.page)?u.page:'';
     const pageInfo=PAGE_LABELS[pg]||null;
-    const pageIcon=pageInfo?` <span style="font-size:.7rem;opacity:.8">${pageInfo.icon}</span>`:'';
-    return `<span data-presence-name="${n}" style="display:inline-flex;align-items:center;gap:.25rem;margin-right:.3rem;cursor:pointer" onclick="event.stopPropagation();showPresenceTimestamp(this)">`+
-      `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0"></span>${n}${pageIcon}</span>`;
+    const pageIcon=pageInfo?` ${pageInfo.icon} ${pageInfo.label}`:'';
+    return `<div data-presence-name="${n}" style="padding:.25rem 0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.1)" onclick="document.getElementById('presenceListPopup')?.remove();showPresenceTimestamp(this)">🟢 <strong>${n}</strong>${pageIcon}</div>`;
   }).join('');
-  bar.title='Online: '+users.map(u=>typeof u==='string'?u:u.name).join(', ');
+  document.body.appendChild(pop);
+  setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),50);
 }
 function _presenceAgo(isoStr){
   if(!isoStr) return null;
