@@ -683,7 +683,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="hdr-actions">
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
-    <div id="presenceBar" style="display:none;font-size:.73rem;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap;cursor:pointer" title="Online brugere" onclick="showPresenceModal()"></div>
+    <div id="presenceBar" style="display:none;font-size:.73rem;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap" title="Online brugere"></div>
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
     <button class="btn bg btn-sm" onclick="openGlobalSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Global søgning">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
@@ -1941,9 +1941,16 @@ function pingPresence(){
 }
 function leavePresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
-  const s=document.createElement('script');
-  s.src=config.scriptUrl+'?action=presence_leave&name='+encodeURIComponent(_myPresenceName)+'&t='+Date.now();
-  document.head.appendChild(s);
+  const body=JSON.stringify({action:'presence_leave',name:_myPresenceName});
+  // sendBeacon garanterer levering selv når siden lukkes
+  if(navigator.sendBeacon){
+    navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
+  } else {
+    // Fallback til JSONP på ældre browsere
+    const s=document.createElement('script');
+    s.src=config.scriptUrl+'?action=presence_leave&name='+encodeURIComponent(_myPresenceName)+'&t='+Date.now();
+    document.head.appendChild(s);
+  }
 }
 function updatePresenceBar(users){
   const bar=document.getElementById('presenceBar');
