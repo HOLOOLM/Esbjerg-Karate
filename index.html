@@ -1824,12 +1824,11 @@ let _presenceLastSeen={}; // name -> ISO string, opdateres ved hvert ping
 let _lastActivityTs=new Date().toISOString(); // min egen seneste aktivitet
 const PRESENCE_ADMIN='Jonas Holm';
 const PAGE_LABELS={
-  'dashboard':    {label:'Dashboard',  icon:'📊'},
-  'attendance':   {label:'Fremmøde',   icon:'✅'},
-  'history':      {label:'Oversigt',   icon:'📋'},
-  'members':      {label:'Medlemmer',  icon:'👥'},
-  'board':        {label:'Notater',    icon:'📝'},
-  'frontpage':    {label:'Forside',    icon:'🏠'},
+  'dashboard': {label:'Dashboard', icon:'📊'},
+  'training':  {label:'Fremmøde',  icon:'✅'},
+  'history':   {label:'Oversigt',  icon:'📋'},
+  'members':   {label:'Medlemmer', icon:'👥'},
+  'board':     {label:'Notater',   icon:'📝'},
 };
 function getActivePage(){
   const active=document.querySelector('.page.active');
@@ -1905,7 +1904,7 @@ function startPresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
   if(_presenceInterval)clearInterval(_presenceInterval);
   pingPresence();
-  _presenceInterval=setInterval(pingPresence,60000);
+  _presenceInterval=setInterval(pingPresence,120000); // 2 minutter
   window.addEventListener('beforeunload',leavePresence);
 }
 function pingPresence(){
