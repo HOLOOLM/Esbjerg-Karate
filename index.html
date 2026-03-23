@@ -1824,11 +1824,11 @@ let _presenceLastSeen={}; // name -> ISO string, opdateres ved hvert ping
 let _lastActivityTs=new Date().toISOString(); // min egen seneste aktivitet
 const PRESENCE_ADMIN='Jonas Holm';
 const PAGE_LABELS={
-  'dashboard': {label:'Dashboard', icon:'📊'},
-  'training':  {label:'Fremmøde',  icon:'✅'},
-  'history':   {label:'Oversigt',  icon:'📋'},
-  'members':   {label:'Medlemmer', icon:'👥'},
-  'board':     {label:'Notater',   icon:'📝'},
+  'dashboard': {label:'Dashboard',          icon:'📊'},
+  'training':  {label:'Dagens træning',     icon:'🥋'},
+  'history':   {label:'Fremmødeoversigt',   icon:'📅'},
+  'members':   {label:'Alle medlemmer',     icon:'👥'},
+  'board':     {label:'Interne notater',    icon:'📒'},
 };
 function getActivePage(){
   const active=document.querySelector('.page.active');
