@@ -1821,6 +1821,7 @@ let _presenceInterval=null;
 let _presenceUsers=[]; // [{name, loginTime, page}]
 let _presenceFirstSeen={}; // name -> ISO string (lokal fallback)
 let _presenceLastSeen={}; // name -> ISO string, opdateres ved hvert ping
+let _lastActivityTs=new Date().toISOString(); // min egen seneste aktivitet
 const PRESENCE_ADMIN='Jonas Holm';
 const PAGE_LABELS={
   'dashboard':    {label:'Dashboard',  icon:'📊'},
@@ -1922,8 +1923,9 @@ function pingPresence(){
         const lt=(typeof x==='object'&&x.loginTime)?x.loginTime:null;
         const pg=(typeof x==='object'&&x.page)?x.page:'';
         if(!_presenceFirstSeen[n]) _presenceFirstSeen[n]=lt||now;
-        _presenceLastSeen[n]=now; // opdater sidst aktiv ved hvert ping
-        return {name:n,loginTime:_presenceFirstSeen[n],lastSeen:now,page:pg};
+        _presenceLastSeen[n]=now;
+        const la=(typeof x==='object'&&x.lastActivity)?x.lastActivity:null;
+        return {name:n,loginTime:_presenceFirstSeen[n],lastSeen:now,lastActivity:la,page:pg};
       });
       // Ryd op — slet dem der ikke længere er online
       const onlineNames=_presenceUsers.map(u=>u.name);
@@ -1933,7 +1935,7 @@ function pingPresence(){
   };
   s.onerror=cleanup;
   timer=setTimeout(cleanup,8000);
-  s.src=config.scriptUrl+'?action=presence_ping&name='+encodeURIComponent(_myPresenceName)+'&ts='+encodeURIComponent(new Date().toISOString())+'&page='+encodeURIComponent(getActivePage())+'&callback='+cb+'&t='+Date.now();
+  s.src=config.scriptUrl+'?action=presence_ping&name='+encodeURIComponent(_myPresenceName)+'&ts='+encodeURIComponent(new Date().toISOString())+'&page='+encodeURIComponent(getActivePage())+'&activity='+encodeURIComponent(_lastActivityTs)+'&callback='+cb+'&t='+Date.now();
   document.head.appendChild(s);
 }
 function leavePresence(){
@@ -1971,15 +1973,15 @@ function showPresenceTimestamp(el){
   const name=el.dataset.presenceName;
   const user=_presenceUsers.find(u=>(typeof u==='string'?u:u.name)===name);
   const lt=user&&user.loginTime?new Date(user.loginTime):null;
-  const ls=user&&user.lastSeen?user.lastSeen:(_presenceLastSeen[name]||null);
+  const la=user&&user.lastActivity?user.lastActivity:null;
   let loginStr='Tidspunkt ukendt';
   if(lt&&!isNaN(lt)){
     const clock=lt.toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'});
     const ago=_presenceAgo(user.loginTime);
     loginStr=`Loggede ind kl. ${clock} <span style="color:#9ca3af">(${ago})</span>`;
   }
-  const lastActiveAgo=_presenceAgo(ls);
-  const activeStr=lastActiveAgo?`<br><span style="opacity:.8">⏱ Sidst aktiv: ${lastActiveAgo}</span>`:'';
+  const lastActiveAgo=_presenceAgo(la);
+  const activeStr=lastActiveAgo?`<br><span style="opacity:.8">🖱 Sidst aktiv: ${lastActiveAgo}</span>`:'';
   // Fjern evt. eksisterende popup
   document.querySelectorAll('.presence-ts-popup').forEach(p=>p.remove());
   const popup=document.createElement('div');
@@ -2002,6 +2004,7 @@ let _inactivityTimer=null;
 let _countdownInterval=null;
 
 function resetInactivityTimer(){
+  _lastActivityTs=new Date().toISOString();
   clearTimeout(_inactivityTimer);
   const m=document.getElementById('inactivityModal');
   if(m&&m.style.display!=='none') hideInactivityModal();
