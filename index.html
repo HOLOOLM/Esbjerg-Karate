@@ -1820,13 +1820,14 @@ let _presenceShown=false;
 let _presenceInterval=null;
 let _presenceUsers=[]; // [{name, loginTime, page}]
 let _presenceFirstSeen={}; // name -> ISO string (lokal fallback)
+let _presenceLastSeen={}; // name -> ISO string, opdateres ved hvert ping
 const PRESENCE_ADMIN='Jonas Holm';
 const PAGE_LABELS={
   'dashboard':    {label:'Dashboard',  icon:'📊'},
   'attendance':   {label:'Fremmøde',   icon:'✅'},
   'history':      {label:'Oversigt',   icon:'📋'},
   'members':      {label:'Medlemmer',  icon:'👥'},
-  'board':        {label:'Bestyrelse', icon:'🏛'},
+  'board':        {label:'Notater',    icon:'📝'},
   'frontpage':    {label:'Forside',    icon:'🏠'},
 };
 function getActivePage(){
@@ -1921,11 +1922,12 @@ function pingPresence(){
         const lt=(typeof x==='object'&&x.loginTime)?x.loginTime:null;
         const pg=(typeof x==='object'&&x.page)?x.page:'';
         if(!_presenceFirstSeen[n]) _presenceFirstSeen[n]=lt||now;
-        return {name:n,loginTime:_presenceFirstSeen[n],page:pg};
+        _presenceLastSeen[n]=now; // opdater sidst aktiv ved hvert ping
+        return {name:n,loginTime:_presenceFirstSeen[n],lastSeen:now,page:pg};
       });
       // Ryd op — slet dem der ikke længere er online
       const onlineNames=_presenceUsers.map(u=>u.name);
-      Object.keys(_presenceFirstSeen).forEach(n=>{if(!onlineNames.includes(n))delete _presenceFirstSeen[n];});
+      Object.keys(_presenceFirstSeen).forEach(n=>{if(!onlineNames.includes(n)){delete _presenceFirstSeen[n];delete _presenceLastSeen[n];}});
       updatePresenceBar(_presenceUsers);
     }
   };
@@ -1957,34 +1959,41 @@ function updatePresenceBar(users){
   }).join('');
   bar.title='Online: '+users.map(u=>typeof u==='string'?u:u.name).join(', ');
 }
+function _presenceAgo(isoStr){
+  if(!isoStr) return null;
+  const d=new Date(isoStr);
+  if(isNaN(d)) return null;
+  const diffMin=Math.floor((new Date()-d)/60000);
+  const diffH=Math.floor(diffMin/60);
+  return diffMin<1?'lige nu':diffMin<60?`for ${diffMin} min siden`:`for ${diffH}t ${diffMin%60}m siden`;
+}
 function showPresenceTimestamp(el){
   const name=el.dataset.presenceName;
   const user=_presenceUsers.find(u=>(typeof u==='string'?u:u.name)===name);
   const lt=user&&user.loginTime?new Date(user.loginTime):null;
-  let timeStr='Tidspunkt ukendt';
+  const ls=user&&user.lastSeen?user.lastSeen:(_presenceLastSeen[name]||null);
+  let loginStr='Tidspunkt ukendt';
   if(lt&&!isNaN(lt)){
-    const now=new Date();
-    const diffMs=now-lt;
-    const diffMin=Math.floor(diffMs/60000);
-    const diffH=Math.floor(diffMin/60);
     const clock=lt.toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'});
-    const ago=diffMin<1?'lige nu':diffMin<60?`for ${diffMin} min siden`:`for ${diffH}t ${diffMin%60}m siden`;
-    timeStr=`Loggede ind kl. ${clock} <span style="color:#6b7280">(${ago})</span>`;
+    const ago=_presenceAgo(user.loginTime);
+    loginStr=`Loggede ind kl. ${clock} <span style="color:#9ca3af">(${ago})</span>`;
   }
+  const lastActiveAgo=_presenceAgo(ls);
+  const activeStr=lastActiveAgo?`<br><span style="opacity:.8">⏱ Sidst aktiv: ${lastActiveAgo}</span>`:'';
   // Fjern evt. eksisterende popup
   document.querySelectorAll('.presence-ts-popup').forEach(p=>p.remove());
   const popup=document.createElement('div');
   popup.className='presence-ts-popup';
-  popup.style.cssText='position:fixed;z-index:9999;background:#1a3a3a;color:#fff;padding:.45rem .75rem;border-radius:8px;font-size:.78rem;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);pointer-events:none';
+  popup.style.cssText='position:fixed;z-index:9999;background:#1a3a3a;color:#fff;padding:.5rem .8rem;border-radius:8px;font-size:.78rem;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);pointer-events:none;line-height:1.6';
   const userPage=user&&user.page?user.page:'';
   const pageInfo=PAGE_LABELS[userPage]||null;
   const pageStr=pageInfo?`<br><span style="opacity:.75">${pageInfo.icon} ${pageInfo.label}</span>`:'';
-  popup.innerHTML=`👤 <strong>${name}</strong><br>${timeStr}${pageStr}`;
+  popup.innerHTML=`👤 <strong>${name}</strong><br>${loginStr}${activeStr}${pageStr}`;
   document.body.appendChild(popup);
   const rect=el.getBoundingClientRect();
   popup.style.top=(rect.bottom+6)+'px';
   popup.style.left=Math.min(rect.left,window.innerWidth-popup.offsetWidth-8)+'px';
-  setTimeout(()=>popup.remove(),3500);
+  setTimeout(()=>popup.remove(),4000);
 }
 /* ── INAKTIVITET ──────────────────────────────────────── */
 const INACTIVITY_MS=60*60*1000; // 60 minutter
@@ -2503,9 +2512,10 @@ function checkCancellationBanner(){
   if(urgent.length){
     html+=urgent.map(({dt,ds,holiday,cancelled,diff})=>{
       const cReas=cancelledReasons[ds]||'';
-      const markeretBadge=cancelled?` <span style="font-size:.72rem;background:#dcfce7;color:#15803d;border-radius:4px;padding:1px 5px;font-weight:700">✓ Markeret aflyst${cReas?' · '+cReas:''}</span>`:'';
+      const reasonText=holiday||cReas;
+      const markeretBadge=cancelled?` <span style="font-size:.72rem;background:#dcfce7;color:#15803d;border-radius:4px;padding:1px 5px;font-weight:700">✓ Markeret aflyst${cReas&&!holiday?' · '+cReas:''}</span>`:'';
       return `<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-        <span>⚠️ <strong>${fmtDay(dt,diff)}</strong> er aflyst – ${holiday||cReas||'Manuelt aflyst'}${markeretBadge}${diff>1?` <span style="font-size:.76rem;color:#c2410c">(om ${diff} dage)</span>`:''}</span>
+        <span>⚠️ <strong>${fmtDay(dt,diff)}</strong> er aflyst${reasonText?' – '+reasonText:''}${markeretBadge}${diff>1?` <span style="font-size:.76rem;color:#c2410c">(om ${diff} dage)</span>`:''}</span>
         <button onclick="dismissCancellationItem('${ds}')" title="Skjul" style="background:none;border:none;cursor:pointer;font-size:1rem;line-height:1;color:#c2410c;padding:0;flex-shrink:0">✕</button>
       </div>`;
     }).join('');
