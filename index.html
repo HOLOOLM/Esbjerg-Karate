@@ -1786,7 +1786,9 @@ function setSyncStatus(s){
   if(!config.scriptUrl){el.style.display='none';return;}
   el.style.display='';
   const narrow=window.innerWidth<=480;
-  if(s==='loading'){
+  if(s==='pending'){
+    el.textContent=narrow?'💾':'💾 Gemmer...';el.style.color='rgba(255,255,255,.6)';
+  } else if(s==='loading'){
     el.textContent=narrow?'⏳':'⏳ Synkroniserer...';el.style.color='#fff';
   } else if(s==='ok'){
     el.textContent=narrow?'☁️':'☁️ Synkroniseret';el.style.color='#7ecece';
@@ -2059,25 +2061,39 @@ function startInactivityTracking(){
   resetInactivityTimer();
 }
 
+let _pushTimer=null;
 function pushToCloud(){
+  // Debounce: vent 2 sek efter sidste ændring — så 10 check-ins = 1 sync
+  clearTimeout(_pushTimer);
+  setSyncStatus('pending');
+  _pushTimer=setTimeout(_doPush,2000);
+}
+function _doPush(retries=2){
   const url=config.scriptUrl;
   if(!url)return;
-  // Send vault som separat endDates-felt — apps-scriptet gemmer det i Meta A3
-  // som er fuldstændig adskilt fra writeSheet og aldrig nulstilles
   let vault={};
   try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
   setSyncStatus('loading');
+  // Timeout: giv op efter 25 sek
+  const ctrl=new AbortController();
+  const tmo=setTimeout(()=>ctrl.abort(),25000);
   fetch(url,{
     method:'POST',
     headers:{'Content-Type':'text/plain'},
+    signal:ctrl.signal,
     body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,_savedAt:config._savedAt})
   })
-  .then(r=>r.json())
-  .then(d=>{if(d.ok)setSyncStatus('ok');else setSyncStatus('error');})
-  .catch(()=>{
-    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,_savedAt:config._savedAt})})
-      .then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
+  .then(r=>{ clearTimeout(tmo); return r.json(); })
+  .then(d=>{ if(d.ok) setSyncStatus('ok'); else setSyncStatus('error'); })
+  .catch(err=>{
+    clearTimeout(tmo);
+    if(retries>0){
+      // Vent 4 sek og prøv igen
+      setSyncStatus('pending');
+      setTimeout(()=>_doPush(retries-1),4000);
+    } else {
+      setSyncStatus('error');
+    }
   });
 }
 function loadFromCloud(onDone){
