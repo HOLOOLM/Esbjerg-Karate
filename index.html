@@ -277,8 +277,8 @@ textarea.fta{resize:vertical;min-height:85px}
 .archive-row{display:flex;align-items:center;gap:.8rem;padding:.6rem .9rem;background:var(--mc);border-radius:8px;margin-bottom:.45rem}
 
 /* TOAST */
-#toast{position:fixed;bottom:2rem;right:2rem;background:var(--td);color:#fff;padding:.75rem 1.3rem;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:var(--shl);opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none;max-width:420px;display:flex;align-items:center;gap:.6rem}
-#toast.show{opacity:1;transform:translateY(0)}
+#toast{position:fixed;top:1.5rem;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--td);color:#fff;padding:.75rem 1.3rem;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:var(--shl);opacity:0;transition:all .3s;z-index:99999;pointer-events:none;max-width:420px;white-space:nowrap;display:flex;align-items:center;gap:.6rem}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.has-undo{pointer-events:auto}
 .toast-undo-btn{background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.45);color:#fff;border-radius:7px;padding:.2rem .65rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
 .toast-undo-btn:hover{background:rgba(255,255,255,.38)}
@@ -528,7 +528,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .assess-history-item{background:#f8fafb;border:1px solid #e8f0f0;border-radius:10px;padding:.7rem .9rem;margin-bottom:.6rem}
 .assess-history-date{font-size:.78rem;font-weight:700;color:var(--t2);margin-bottom:.4rem}
 .assess-history-skill{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.15rem 0}
-.assess-history-stars{color:#f59e0b;letter-spacing:.05rem}
+.assess-history-stars{color:#f59e0b;letter-spacing:.05rem;width:5.2rem;text-align:right;display:inline-block;flex-shrink:0}
 .assess-history-comment{font-size:.8rem;color:var(--t2);margin-top:.4rem;font-style:italic}
 .score-wrap{position:relative;display:inline-block;cursor:pointer}
 .score-tip{display:none;position:fixed;background:#fff;border:1px solid #e0eded;border-radius:12px;padding:.7rem .9rem;min-width:210px;max-width:270px;box-shadow:0 6px 24px rgba(0,0,0,.13);z-index:9999;pointer-events:none;text-align:left}
@@ -536,7 +536,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .score-tip-hdr{font-size:.7rem;font-weight:700;color:var(--xtl);margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid #edf2f2}
 .score-tip-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.12rem 0;font-size:.75rem}
 .score-tip-skill{color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.score-tip-stars{color:#f59e0b;letter-spacing:.04em;flex-shrink:0;font-size:.8rem}
+.score-tip-stars{color:#f59e0b;letter-spacing:.04em;flex-shrink:0;font-size:.8rem;display:inline-block}
 .score-tip-comment{margin-top:.4rem;font-size:.72rem;color:#888;font-style:italic;padding-top:.35rem;border-top:1px solid #edf2f2;white-space:normal}
 .score-tip-avg{font-size:.72rem;font-weight:700;margin-top:.4rem;padding-top:.35rem;border-top:1px solid #edf2f2}
 /* ── BESTYRELSE ── */
@@ -1372,8 +1372,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div id="assessBeltBar" style="margin-bottom:1rem"></div>
     <div id="assessSkillList"></div>
     <div style="margin-top:.8rem">
-      <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Bedømt af</label>
-      <input id="assessorName" type="text" placeholder="f.eks. Jonas Holm" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem"/>
+      <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Bedømt af <span style="color:#dc2626">*</span></label>
+      <select id="assessorName" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem;background:#fff"><option value="">— Vælg bedømmer —</option></select>
     </div>
     <div style="margin-top:.6rem">
       <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Kommentar (valgfri)</label>
@@ -3142,7 +3142,7 @@ function renderM(){
     tr.innerHTML=`
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${inits(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
@@ -3417,15 +3417,16 @@ function renderHistory(){
       grid.appendChild(mh);
     }
     const allAct=actMembers(ds);
-    const total=allAct.length;
-    const present=saved?saved.presentIds.length:0;
-    const pct=total>0&&saved?Math.round(present/total*100):0;
-    // Opdel på Børnehold vs. resten
     const boernIds=new Set(allAct.filter(m=>m.group==='Børnehold').map(m=>m.id));
     const voksenIds=new Set(allAct.filter(m=>m.group!=='Børnehold').map(m=>m.id));
-    const boernTotal=boernIds.size, voksenTotal=voksenIds.size;
     const boernPresent=saved?(saved.presentIds||[]).filter(id=>boernIds.has(id)).length:0;
     const voksenPresent=saved?(saved.presentIds||[]).filter(id=>voksenIds.has(id)).length:0;
+    // For ekstra-træninger: tæl kun grupper med fremmøde med i total
+    const boernTotal=isExtra?(boernPresent>0?boernIds.size:0):boernIds.size;
+    const voksenTotal=isExtra?(voksenPresent>0?voksenIds.size:0):voksenIds.size;
+    const total=isExtra?boernTotal+voksenTotal:allAct.length;
+    const present=saved?saved.presentIds.length:0;
+    const pct=total>0&&saved?Math.round(present/total*100):0;
     const boernPct=boernTotal>0&&saved?Math.round(boernPresent/boernTotal*100):0;
     const voksenPct=voksenTotal>0&&saved?Math.round(voksenPresent/voksenTotal*100):0;
     const isCancelled=cancelledDates.includes(ds);
@@ -4736,8 +4737,10 @@ function _renderMsm(){
   const allSorted=[...sessions].filter(s=>s.date).sort((a,b)=>a.date<b.date?-1:1);
   const attended=new Set(sessions.filter(s=>(s.presentIds||[]).includes(_msmId)&&s.date).map(s=>s.date));
 
+  const memberGroup=m.group;
+  const isExtraRelevant=s=>(s.presentIds||[]).some(id=>{const pm=members.find(x=>x.id===id);return pm&&pm.group===memberGroup;});
   const periodReg=allSorted.filter(s=>s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
-  const periodExtra=allSorted.filter(s=>s.date>=fromStr&&(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date)));
+  const periodExtra=allSorted.filter(s=>s.date>=fromStr&&(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date))&&isExtraRelevant(s));
   const regAtt=periodReg.filter(s=>attended.has(s.date)).length;
   const extraAtt=periodExtra.filter(s=>attended.has(s.date)).length;
   const pct=periodReg.length>0?Math.round(regAtt/periodReg.length*100):null;
@@ -4769,7 +4772,7 @@ function _renderMsm(){
 
   // Mini squares — faste og ekstra separat
   const regAll=allSorted.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
-  const extraAll=allSorted.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date));
+  const extraAll=allSorted.filter(s=>(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date))&&isExtraRelevant(s));
   const _sq=(list,label,color)=>{
     if(!list.length) return '';
     const sq=list.slice(-12).map(s=>{
@@ -5420,7 +5423,7 @@ function safeCloseModal(id) {
 let _assessMemberId=null, _assessRatings={}, _editingAssessmentId=null;
 
 function latestAssessmentAvg(memberId){
-  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   if(!sorted.length)return null;
   let ratings={};
   try{ratings=JSON.parse(sorted[0].ratings||'{}');}catch(e){}
@@ -5466,23 +5469,50 @@ document.addEventListener('click',()=>document.querySelectorAll('.score-tip').fo
   window.addEventListener('resize',check);
   check();
 })();
+// Beregn merged ratings for én vurdering (egne + forrige vurderingers for uudfyldte kategorier)
+// Returnerer { skill: { val, carried } }
+function getMergedRatings(memberId, assessmentId){
+  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date)||Number(a.id)-Number(b.id));
+  const idx=sorted.findIndex(a=>Number(a.id)===Number(assessmentId));
+  if(idx<0)return {};
+  const a=sorted[idx];
+  let own={};try{own=JSON.parse(a.ratings||'{}');}catch(e){}
+  let prev={};
+  if(idx>0){try{prev=JSON.parse(sorted[idx-1].ratings||'{}');}catch(e){}}
+  const beltSkills=pensum[a.belt]||Object.keys(own);
+  const merged={};
+  beltSkills.forEach(sk=>{
+    if(own[sk]&&own[sk]>0) merged[sk]={val:own[sk],carried:false};
+    else if(prev[sk]&&prev[sk]>0) merged[sk]={val:prev[sk],carried:true};
+  });
+  Object.entries(own).forEach(([sk,v])=>{ if(v>0&&!merged[sk]) merged[sk]={val:v,carried:false}; });
+  return merged;
+}
+
 function scoreCell(memberId){
-  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
   const latest=sorted[0];
-  let ratings={};
-  try{ratings=JSON.parse(latest.ratings||'{}');}catch(e){}
-  const vals=Object.values(ratings).map(Number).filter(v=>v>0);
+  const merged=getMergedRatings(memberId, latest.id);
+  const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
   if(!vals.length)return '<span style="color:var(--xtl)">—</span>';
   const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
   const color=avg>=4?'#16a34a':avg>=2?'#d97706':'#dc2626';
 
   const _d=latest.date?new Date(String(latest.date).slice(0,10)+'T12:00:00'):null;
   const dateStr=_d&&!isNaN(_d)?_d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):latest.date||'—';
-  const skillRows=Object.entries(ratings).map(([skill,val])=>{
+  const prevAssess=sorted[1]||null;
+  const prevMergedSC=prevAssess?getMergedRatings(memberId,prevAssess.id):{};
+  const skillRows=Object.entries(merged).map(([skill,{val,carried}])=>{
     const n=Number(val)||0;
     const stars='★'.repeat(n)+'☆'.repeat(5-n);
-    return `<div class="score-tip-row"><span class="score-tip-skill">${skill}</span><span class="score-tip-stars">${stars}</span></div>`;
+    const carryMark=carried?` <span style="opacity:.5;font-size:.7rem">↺</span>`:'';
+    const p=prevMergedSC[skill]?Number(prevMergedSC[skill].val)||0:null;
+    const diff=(!carried&&p!==null)?n-p:null;
+    let changeHtml='';
+    if(diff!==null&&diff>0) changeHtml=`<span style="color:#16a34a;font-size:.7rem;font-weight:900;flex-shrink:0">↑ ${'★'.repeat(diff)}</span>`;
+    else if(diff!==null&&diff<0) changeHtml=`<span style="color:#dc2626;font-size:.7rem;font-weight:900;flex-shrink:0">↓ ${'★'.repeat(Math.abs(diff))}</span>`;
+    return `<div class="score-tip-row"><span class="score-tip-skill">${skill}${carryMark}</span>${changeHtml}<span class="score-tip-stars" style="width:4.5rem;text-align:right;${carried?'color:#c4b5a0;opacity:.8':''}">${stars}</span></div>`;
   }).join('');
   const commentHtml=latest.comment?`<div class="score-tip-comment">"${latest.comment}"</div>`:'';
   const assessorHtml=latest.assessorName?`<div style="font-size:.68rem;color:var(--xtl);margin-top:3px">👤 ${latest.assessorName}</div>`:'';
@@ -5510,7 +5540,12 @@ function openAssessmentModal(memberId, editAssessmentId){
   _assessRatings=existing?JSON.parse(existing.ratings||'{}'):{};
 
   document.getElementById('assessMemberName').textContent=m.firstName+' '+m.lastName;
-  document.getElementById('assessorName').value=existing?existing.assessorName||'':'';
+
+  // Byg bedømmerliste fra instruktører og hjælpetrænere
+  const assessorSel=document.getElementById('assessorName');
+  const instructors=members.filter(x=>!x.archived&&(x.role==='Instruktør'||x.role==='Hjælpetræner')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da'));
+  assessorSel.innerHTML='<option value="">— Vælg bedømmer —</option>'+instructors.map(x=>`<option value="${x.firstName} ${x.lastName}">${x.firstName} ${x.lastName} (${x.role})</option>`).join('');
+  assessorSel.value=existing?existing.assessorName||'':'';
 
   // Bæltebadge + dato
   const _BC={'10. Kyu (Hvidt)':'#f5f5f5','9. Kyu (1 Snip)':'#f5f5f5','8. Kyu (2 Snip)':'#f5f5f5','7. Kyu (Gult)':'#fff176','6. Kyu (Blåt)':'#90caf9','5. Kyu (Grønt)':'#a5d6a7','4. Kyu (Violet)':'#ce93d8','3. Kyu (Brunt)':'#bcaaa4','2. Kyu (Brunt + 1 Snip)':'#a1887f','1. Kyu (Brunt + 2 Snip)':'#8d6e63','1. Dan (Sort)':'#424242','2. Dan (Sort)':'#212121','3. Dan (Sort)':'#121212'};
@@ -5545,6 +5580,8 @@ function openAssessmentModal(memberId, editAssessmentId){
   document.querySelector('#assessmentModal .btn.bp').textContent=existing?'💾 Opdater vurdering':'💾 Gem vurdering';
   renderAssessmentHistory(memberId);
   openModal('assessmentModal');
+  // Scroll til toppen af modal (vigtigt ved redigering)
+  setTimeout(()=>{const inner=document.querySelector('#assessmentModal .modal');if(inner)inner.scrollTop=0;},50);
 }
 
 function setStarRating(el){
@@ -5571,6 +5608,7 @@ function saveAssessment(){
   }
   const comment=document.getElementById('assessComment').value.trim();
   const assessorName=document.getElementById('assessorName').value.trim();
+  if(!assessorName){showToast('⚠️ Vælg en bedømmer før du gemmer');document.getElementById('assessorName').focus();return;}
   if(existing){
     existing.ratings=JSON.stringify(_assessRatings);
     existing.comment=comment;
@@ -5599,6 +5637,74 @@ function saveAssessment(){
   showToast(existing?'✅ Vurdering opdateret':'✅ Vurdering gemt');
 }
 
+function showAssessPointPopup(assessmentId, event){
+  event.stopPropagation();
+  const existing=document.getElementById('assessPointPopup');
+  if(existing){ existing.remove(); if(Number(existing.dataset.id)===assessmentId)return; }
+  const a=assessments.find(x=>x.id===assessmentId);
+  if(!a)return;
+  const merged=getMergedRatings(a.memberId, assessmentId);
+  const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
+  const avg=vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10:0;
+
+  // Find forrige vurdering til per-skill trend
+  const allSorted=assessments.filter(x=>x.memberId===a.memberId).sort((x,y)=>new Date(x.date)-new Date(y.date));
+  const aIdx=allSorted.findIndex(x=>x.id===assessmentId);
+  const prevMerged=aIdx>0?getMergedRatings(a.memberId,allSorted[aIdx-1].id):{};
+  const skillArrow=(sk,cur)=>{
+    const p=prevMerged[sk]?.val||null;
+    if(p===null) return '';
+    const d=cur-p;
+    if(d>=0.2) return '<span style="color:#16a34a;font-weight:900;font-size:.9rem">↑</span>';
+    if(d<=-0.2) return '<span style="color:#dc2626;font-weight:900;font-size:.9rem">↓</span>';
+    return '<span style="color:#d97706;font-weight:900;font-size:.9rem">→</span>';
+  };
+
+  // Overordnet trend-pil
+  const prevVals=Object.values(prevMerged).map(x=>x.val).filter(v=>v>0);
+  const prevAvg=prevVals.length?Math.round(prevVals.reduce((s,v)=>s+v,0)/prevVals.length*10)/10:null;
+  const overallArrow=prevAvg===null?'':avg-prevAvg>=0.2?'<span style="color:#16a34a;font-weight:900;font-size:1.3rem;line-height:1">↑</span>':avg-prevAvg<=-0.2?'<span style="color:#dc2626;font-weight:900;font-size:1.3rem;line-height:1">↓</span>':'<span style="color:#d97706;font-weight:900;font-size:1.3rem;line-height:1">→</span>';
+
+  const skillsHtml=Object.entries(merged).map(([sk,{val:v,carried}])=>{
+    const vn=Number(v)||0;
+    const p=prevMerged[sk]?Number(prevMerged[sk].val)||0:null;
+    const diff=(!carried&&p!==null)?vn-p:null;
+    let changeHtml='';
+    if(diff!==null&&diff>0) changeHtml=`<span style="color:#16a34a;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↑ ${'★'.repeat(diff)}</span>`;
+    else if(diff!==null&&diff<0) changeHtml=`<span style="color:#dc2626;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↓ ${'★'.repeat(Math.abs(diff))}</span>`;
+    const starColor=carried?'#c4b5a0':'#f59e0b';
+    return `<div style="display:flex;align-items:center;font-size:.78rem;padding:.15rem 0;gap:.3rem;${carried?'opacity:.75':''}">
+      <span style="flex:1;color:#374151${carried?';font-style:italic':''}">${sk}${carried?' <span style="font-size:.65rem;color:#9ca3af">↺</span>':''}</span>
+      ${changeHtml}
+      <span style="color:${starColor};letter-spacing:.05rem;flex-shrink:0;width:5.2rem;text-align:right;display:inline-block">${'★'.repeat(vn)}${'☆'.repeat(5-vn)}</span>
+    </div>`;
+  }).join('');
+  const pop=document.createElement('div');
+  pop.id='assessPointPopup';
+  pop.dataset.id=assessmentId;
+  pop.style.cssText='position:fixed;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:.7rem .9rem;min-width:210px;max-width:280px;z-index:9999;font-size:.82rem';
+  pop.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+    <div>
+      <div style="font-weight:700;color:#111">${a.date}</div>
+      <div style="font-size:.78rem;color:#6b7280;margin-top:.1rem">👤 Bedømt af: <strong>${a.assessorName||'Ikke angivet'}</strong></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.3rem">
+      ${overallArrow}
+      <div style="font-size:1.1rem;font-weight:800;color:#6366f1">${avg}<span style="font-size:.7rem;font-weight:400;color:#9ca3af">/5</span></div>
+    </div>
+  </div>
+  <div style="border-top:1px solid #f3f4f6;padding-top:.4rem">${skillsHtml||'<span style="color:#9ca3af;font-style:italic">Ingen ratings</span>'}</div>
+  <button onclick="document.getElementById('assessPointPopup').remove()" style="position:absolute;top:.3rem;right:.5rem;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:.85rem">✕</button>`;
+  document.body.appendChild(pop);
+  // Placer popup tæt på musepositionen
+  const rect=pop.getBoundingClientRect();
+  let x=event.clientX+12, y=event.clientY-20;
+  if(x+260>window.innerWidth) x=event.clientX-270;
+  if(y+rect.height>window.innerHeight) y=event.clientY-rect.height-10;
+  pop.style.left=x+'px'; pop.style.top=y+'px';
+  setTimeout(()=>document.addEventListener('click',function h(){document.getElementById('assessPointPopup')?.remove();document.removeEventListener('click',h);},{once:true}),50);
+}
+
 function deleteAssessment(assessmentId, memberId){
   if(!confirm('Slet denne vurdering? Det kan ikke fortrydes.'))return;
   assessments=assessments.filter(a=>a.id!==assessmentId);
@@ -5611,25 +5717,108 @@ function deleteAssessment(assessmentId, memberId){
 }
 
 function renderAssessmentHistory(memberId){
-  const hist=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const histAsc=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date));
   const el=document.getElementById('assessHistory');
-  if(!hist.length){el.innerHTML='';return;}
-  el.innerHTML='<div style="font-weight:700;font-size:.85rem;color:var(--t2);margin-bottom:.5rem">Tidligere vurderinger</div>'+
-    hist.map(a=>{
-      let ratings={};
-      try{ratings=JSON.parse(a.ratings||'{}');}catch(e){}
-      const skills=Object.keys(ratings);
-      const starsHtml=skills.map(sk=>{
-        const v=ratings[sk]||0;
+  if(!histAsc.length){el.innerHTML='';return;}
+
+  // Beregn gennemsnitsscore pr. vurdering (til graf) — inkl. carried-forward
+  const pts=histAsc.map(a=>{
+    const merged=getMergedRatings(memberId,a.id);
+    const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
+    return {id:a.id,date:a.date,avg:vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10:0,assessor:a.assessorName||''};
+  });
+
+  // SVG linjegraf (kun hvis 2+ vurderinger)
+  let graphHtml='';
+  if(pts.length>=2){
+    const W=300,H=120,PL=28,PR=8,PT=12,PB=22;
+    const iW=W-PL-PR,iH=H-PT-PB;
+    const minD=new Date(pts[0].date).getTime(),maxD=new Date(pts[pts.length-1].date).getTime();
+    const dRange=maxD-minD||1;
+    // Auto-skalér Y efter faktiske værdier med luft
+    const avgs=pts.map(p=>p.avg);
+    const rawMin=Math.min(...avgs),rawMax=Math.max(...avgs);
+    const pad=Math.max((rawMax-rawMin)*0.4,0.4);
+    const yMin=Math.max(1,rawMin-pad),yMax=Math.min(5,rawMax+pad);
+    const yRange=yMax-yMin||1;
+    const toX=d=>PL+((new Date(d).getTime()-minD)/dRange)*iW;
+    const toY=v=>PT+iH-((v-yMin)/yRange)*iH;
+    const linePoints=pts.map(p=>`${toX(p.date).toFixed(1)},${toY(p.avg).toFixed(1)}`).join(' ');
+    const dots=pts.map(p=>{
+      const cx=toX(p.date).toFixed(1), cy=toY(p.avg).toFixed(1);
+      return `<circle cx="${cx}" cy="${cy}" r="6" fill="#6366f1" stroke="#fff" stroke-width="2" style="cursor:pointer" onclick="showAssessPointPopup(${p.id},event)"/>`;
+    }).join('');
+    // Vælg 3-4 pæne Y-labels indenfor [yMin, yMax]
+    const yStep=yRange<=1?0.5:yRange<=2?0.5:1;
+    const yStart=Math.ceil(yMin/yStep)*yStep;
+    const yTicks=[];for(let v=yStart;v<=yMax+0.001;v=Math.round((v+yStep)*10)/10)yTicks.push(Math.round(v*10)/10);
+    const yLines=yTicks.map(v=>`<line x1="${PL}" y1="${toY(v).toFixed(1)}" x2="${PL+iW}" y2="${toY(v).toFixed(1)}" stroke="#f0f4f4" stroke-width="1"/><text x="${PL-4}" y="${(toY(v)+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#9ca3af">${v}</text>`).join('');
+    const fmtDate=d=>{ const p=d.split('-'); return p[2]+'/'+p[1]; };
+    graphHtml=`<div style="margin-bottom:1rem;background:#f9fafb;border:1px solid #e8f0f0;border-radius:10px;padding:.7rem .9rem">
+      <div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:.4rem">Gennemsnitsscore over tid</div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;overflow:visible;display:block">
+        ${yLines}
+        <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+iH}" stroke="#d1d5db" stroke-width="1"/>
+        <line x1="${PL}" y1="${PT+iH}" x2="${PL+iW}" y2="${PT+iH}" stroke="#d1d5db" stroke-width="1"/>
+        <text x="${PL}" y="${H-4}" text-anchor="start" font-size="9" fill="#9ca3af">${fmtDate(pts[0].date)}</text>
+        <text x="${PL+iW}" y="${H-4}" text-anchor="end" font-size="9" fill="#9ca3af">${fmtDate(pts[pts.length-1].date)}</text>
+        <polyline points="${linePoints}" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round"/>
+        ${dots}
+      </svg>
+    </div>`;
+  }
+
+  // Beregn avg pr. vurdering til trend (inkl. carried-forward via fælles hjælpefunktion)
+  const avgForId=id=>{
+    const merged=getMergedRatings(memberId,id);
+    const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
+    return vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10:null;
+  };
+  const trendArrow=(cur,prev)=>{
+    if(prev===null||cur===null)return '';
+    const diff=cur-prev;
+    if(diff>=0.2) return '<span style="color:#16a34a;font-size:1rem;font-weight:700" title="Fremgang">↑</span>';
+    if(diff<=-0.2) return '<span style="color:#dc2626;font-size:1rem;font-weight:700" title="Tilbagegang">↓</span>';
+    return '<span style="color:#d97706;font-size:1rem;font-weight:700" title="Uændret">→</span>';
+  };
+
+  // Historik-liste (nyeste øverst)
+  const histDesc=[...histAsc].reverse();
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+    <div style="font-weight:700;font-size:.85rem;color:var(--t2)">Tidligere vurderinger</div>
+    ${histDesc.length?`<button class="btn bs btn-sm" style="font-size:.72rem;padding:.2rem .6rem" onclick="exportAssessmentsExcel(${memberId})">📊 Excel</button>`:''}
+  </div>`+
+    graphHtml+
+    histDesc.map((a,i)=>{
+      const merged=getMergedRatings(memberId,a.id);
+      const prevMergedH=histDesc[i+1]?getMergedRatings(memberId,histDesc[i+1].id):{};
+      const starsHtml=Object.entries(merged).map(([sk,{val,carried}])=>{
+        const v=Number(val)||0;
         const filled='★'.repeat(v)+'☆'.repeat(5-v);
-        return `<div class="assess-history-skill"><span>${sk}</span><span class="assess-history-stars">${filled}</span></div>`;
+        const p=prevMergedH[sk]?Number(prevMergedH[sk].val)||0:null;
+        const diff=(!carried&&p!==null)?v-p:null;
+        let changeHtml='';
+        if(diff!==null&&diff>0) changeHtml=`<span style="color:#16a34a;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↑ ${'★'.repeat(diff)}</span>`;
+        else if(diff!==null&&diff<0) changeHtml=`<span style="color:#dc2626;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↓ ${'★'.repeat(Math.abs(diff))}</span>`;
+        if(carried) return `<div class="assess-history-skill" style="opacity:.7">
+          <span style="font-style:italic;color:var(--t2);flex:1">${sk} <span style="font-size:.68rem;color:#9ca3af" title="Fra forrige vurdering">↺</span></span>
+          ${changeHtml}
+          <span class="assess-history-stars" style="color:#c4b5a0">${filled}</span>
+        </div>`;
+        return `<div class="assess-history-skill"><span style="flex:1">${sk}</span>${changeHtml}<span class="assess-history-stars">${filled}</span></div>`;
       }).join('');
       const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
       const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${a.assessorName}</strong></div>`:'';
       const beltLabel=a.belt?`<span style="font-size:.72rem;font-weight:600;opacity:.7;margin-left:.5rem">${a.belt}</span>`:'';
+      // Find forrige vurdering (ældre) — histDesc er nyeste øverst, så næste i desc = forrige i tid
+      const prevA=histDesc[i+1];
+      const curAvg=avgForId(a.id);
+      const prevAvg=prevA?avgForId(prevA.id):null;
+      const arrow=trendArrow(curAvg,prevAvg);
+      const avgLabel=curAvg!==null?`<span style="font-size:.78rem;font-weight:700;color:#6366f1;margin-left:.4rem">${curAvg}/5</span>`:'';
       return `<div class="assess-history-item">
         <div class="assess-history-date" style="display:flex;justify-content:space-between;align-items:center">
-          <span>${a.date}${beltLabel}</span>
+          <span style="display:flex;align-items:center;gap:.3rem">${a.date}${beltLabel}${avgLabel}${arrow}</span>
           <div style="display:flex;gap:.3rem">
             <button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>
             <button class="btn bdr btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="deleteAssessment(${a.id},${memberId})">🗑</button>
@@ -5640,6 +5829,72 @@ function renderAssessmentHistory(memberId){
         ${commentHtml}
       </div>`;
     }).join('');
+}
+
+/* ════════════════════════════════════════
+   EKSPORT VURDERINGER (Excel pr. medlem)
+════════════════════════════════════════ */
+function exportAssessmentsExcel(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m)return;
+  const mAssess=assessments.filter(a=>a.memberId===memberId)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date)||Number(a.id)-Number(b.id));
+  if(!mAssess.length){showToast('Ingen vurderinger at eksportere');return;}
+
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const cell=(v,type='String',sid='')=>`<Cell${sid?` ss:StyleID="${sid}"`:''}><Data ss:Type="${type}">${esc(v)}</Data></Cell>`;
+  const hcell=v=>`<Cell ss:StyleID="h"><Data ss:Type="String">${esc(v)}</Data></Cell>`;
+
+  // Collect all unique skills across assessments
+  const allSkills=new Set();
+  mAssess.forEach(a=>{
+    const merged=getMergedRatings(memberId,a.id);
+    Object.keys(merged).forEach(sk=>allSkills.add(sk));
+  });
+  const skills=[...allSkills];
+
+  const headers=['Dato','Bæltegrad','Gennemsnitsscore','Bedømt af','Kommentar',...skills];
+  const colWidths=[80,110,100,120,200,...skills.map(()=>90)];
+  const cols=colWidths.map(w=>`<Column ss:Width="${w}"/>`).join('');
+  const freeze=`<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions>`;
+
+  let rows=`<Row>${headers.map(hcell).join('')}</Row>\n`;
+  mAssess.forEach((a,i)=>{
+    const even=i%2===1;
+    const sid=even?'ev':'';
+    const merged=getMergedRatings(memberId,a.id);
+    const vals=Object.values(merged).map(x=>Number(x.val)||0).filter(v=>v>0);
+    const avg=vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10:'';
+    const skillCells=skills.map(sk=>{
+      const entry=merged[sk];
+      if(!entry)return cell('',sid?'String':undefined,sid);
+      const v=Number(entry.val)||0;
+      return cell(v,'Number',sid+(entry.carried?'car':''));
+    }).join('');
+    rows+=`<Row>${cell(a.date,'String',sid)}${cell(a.belt||'','String',sid)}${avg!==''?cell(avg,'Number',sid):cell('','String',sid)}${cell(a.assessorName||'','String',sid)}${cell(a.comment||'','String',sid)}${skillCells}</Row>\n`;
+  });
+
+  const memberName=`${m.firstName} ${m.lastName}`;
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<Styles>
+  <Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#2C4A4A" ss:Pattern="Solid"/><Alignment ss:Vertical="Bottom"/></Style>
+  <Style ss:ID="ev"><Interior ss:Color="#F2F6F5" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="car"><Interior ss:Color="#FFF9EC" ss:Pattern="Solid"/><Font ss:Color="#92400e"/></Style>
+  <Style ss:ID="evcar"><Interior ss:Color="#FFF9EC" ss:Pattern="Solid"/><Font ss:Color="#92400e"/></Style>
+</Styles>
+<Worksheet ss:Name="${esc(memberName.slice(0,31))}"><Table>${cols}${rows}</Table>${freeze}</Worksheet>
+</Workbook>`;
+
+  const blob=new Blob(['\uFEFF'+xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const safeName=memberName.replace(/[^a-zA-Z0-9\-_æøåÆØÅ ]/g,'');
+  a.href=url;a.download=`vurderinger-${safeName}-${today()}.xls`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`📊 Vurderinger eksporteret for ${memberName}`);
 }
 
 /* ════════════════════════════════════════
