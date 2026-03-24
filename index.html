@@ -321,7 +321,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   .mbd{max-width:96vw;width:96vw}
   /* Horisontal tabel-scroll — ingen kolonner skjult */
   .tcard{overflow:auto;-webkit-overflow-scrolling:touch}
-  #page-training table{min-width:560px}
+  #page-training table{min-width:680px}
   #page-members table{min-width:820px}
   #page-dashboard table{min-width:640px}
 }
@@ -377,7 +377,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   td,th{white-space:nowrap}
   td{padding:.5rem .55rem;font-size:.78rem}
   thead th{padding:.55rem .55rem;font-size:.64rem}
-  #page-training table{min-width:500px}
+  #page-training table{min-width:620px}
   #page-members table{min-width:780px}
   #page-dashboard table{min-width:580px}
 
@@ -810,12 +810,13 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <thead>
         <tr>
           <th>Til stede</th>
+          <th style="text-align:center">📋</th>
           <th>Medlem</th>
+          <th style="text-align:center">Score</th>
           <th>Gruppe</th>
           <th>Køn / Alder</th>
           <th>Bælte</th>
           <th>Kontingent</th>
-          <th></th>
         </tr>
       </thead>
       <tbody id="tbody-t"></tbody>
@@ -992,7 +993,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;background:#fef2f2;border-radius:10px;padding:.45rem .85rem;border:1px solid #fecaca">
               <span style="font-size:1.5rem;font-weight:800;color:#dc2626;line-height:1" id="db-growth-stop">−0</span>
-              <span style="font-size:.65rem;color:#dc2626;font-weight:600;margin-top:2px">stoppede</span>
+              <span style="font-size:.65rem;color:#dc2626;font-weight:600;margin-top:2px" id="db-growth-stop-lbl">stoppede</span>
             </div>
           </div>
         </div>
@@ -1257,6 +1258,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="mclose" onclick="closeModal('emailModal')">✕</button>
     </div>
 
+    <!-- Kontingent-reminder banner (vises kun omkring 15. feb og 15. sep) -->
+    <div id="emReminderBanner" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:.65rem 1rem;margin-bottom:.75rem;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap">
+      <div style="font-size:.83rem;color:#991b1b">
+        🔔 <strong>Kontingentpåmindelsesperiode</strong> — klik på 🔔 ud for et enkelt medlem, eller send til alle ikke-betalende på én gang.
+      </div>
+      <button class="btn btn-sm" style="background:#dc2626;color:#fff;border:none;white-space:nowrap" onclick="openGroupReminder()">📧 Send til alle ikke-betalende</button>
+    </div>
+
     <!-- Hold-filter tabs -->
     <div class="em-tabs">
       <button class="em-tab active" id="emtab-all"      onclick="setEmailGroup('all')">Alle hold</button>
@@ -1265,7 +1274,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="em-tab"        id="emtab-avan"     onclick="setEmailGroup('Avanceret')">⭐ Avanceret</button>
     </div>
 
-    <!-- Bæltefilter + vælg alle/ingen -->
+    <!-- Filtre + vælg alle/ingen -->
     <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem">
       <select id="emAgeFilter" onchange="buildEmailList()" style="border:1.5px solid #c8dede;border-radius:8px;padding:.3rem .6rem;font-size:.78rem;color:var(--t2);background:#fff;cursor:pointer;min-width:110px">
         <option value="">Alle aldre</option>
@@ -1288,8 +1297,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option>2. Dan (Sort)</option>
         <option>3. Dan (Sort)</option>
       </select>
+      <select id="emPayFilter" onchange="buildEmailList()" style="border:1.5px solid #c8dede;border-radius:8px;padding:.3rem .6rem;font-size:.78rem;color:var(--t2);background:#fff;cursor:pointer;min-width:130px">
+        <option value="">Alle betalinger</option>
+        <option value="unpaid">💸 Ikke betalt</option>
+        <option value="paid">✅ Betalt</option>
+      </select>
       <div class="em-count" id="emCount" style="margin:0;flex:1"></div>
-      <div style="display:flex;gap:.4rem">
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button class="seg-btn" onclick="emailSelectUnpaid()" title="Vælg alle ikke-betalende med e-mail" style="background:#fef2f2;color:#dc2626;border-color:#fca5a5">🔔 Rykkere</button>
         <button class="seg-btn" onclick="emailSelectVisible(true)">✓ Alle</button>
         <button class="seg-btn" onclick="emailSelectVisible(false)">✗ Ingen</button>
       </div>
@@ -2982,6 +2997,7 @@ function renderT(){
     const absWarning=daysSince!==null&&daysSince>=30?`<span title="Ikke set i ${daysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
+    // Seneste vurdering — genbrug scoreCell() fra medlemssiden (samme kriterier + tooltip)
     tr.innerHTML=`
       <td style="text-align:center">
         <label class="toggle" title="${m.checkedIn?'Til stede':'Fraværende'}">
@@ -2989,17 +3005,18 @@ function renderT(){
           <span class="slider"></span>
         </label>
       </td>
+      <td style="text-align:center">
+        <button class="btn bg btn-sm" onclick="openAssessmentModal(${m.id})" title="Vurdering" style="padding:.25rem .5rem;font-size:.8rem">📋</button>
+      </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${inits(m)}</div>
         <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${bdBadge}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
+      <td style="text-align:center">${scoreCell(m.id)}</td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
       <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
-      <td data-col="payment">${payBadge(m)}</td>
-      <td style="text-align:center">
-        <button class="btn bg btn-sm" onclick="openAssessmentModal(${m.id})" title="Vurdering" style="padding:.25rem .5rem;font-size:.8rem">📋</button>
-      </td>`;
+      <td data-col="payment">${payBadge(m)}</td>`;
     body.appendChild(tr);
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
@@ -3443,14 +3460,14 @@ function renderHistory(){
       </div>
       ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${saved.note}</div>`:''}`:
       !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:'')}
-      ${!isCancelled?`<div style="display:flex;gap:.4rem;align-items:center;margin-top:.75rem">
-        <select id="cr-${ds}" class="fs" style="flex:1;font-size:.76rem;padding:.3rem .5rem" onclick="event.stopPropagation()">
+      ${!isCancelled?`<div style="display:flex;gap:.4rem;align-items:stretch;margin-top:.75rem">
+        <select id="cr-${ds}" class="fs" style="flex:1;font-size:.76rem;padding:.35rem .5rem;height:2.1rem;box-sizing:border-box" onclick="event.stopPropagation()">
           <option value="">Vælg årsag…</option>
           <option value="Helligdag">🗓 Helligdag</option>
           <option value="Ferie">🏖 Ferie</option>
           <option value="Andet">📌 Andet</option>
         </select>
-        <button class="hc-cancel-btn" data-date="${ds}" onclick="event.stopPropagation();const r=document.getElementById('cr-'+this.dataset.date);if(!r||!r.value){showToast('Vælg en årsag først');return;}toggleCancelled(this.dataset.date,r.value)">🚫 Aflys</button>
+        <button class="hc-cancel-btn" data-date="${ds}" style="height:2.1rem;box-sizing:border-box;padding:.35rem .75rem" onclick="event.stopPropagation();const r=document.getElementById('cr-'+this.dataset.date);if(!r||!r.value){showToast('Vælg en årsag først');return;}toggleCancelled(this.dataset.date,r.value)">🚫 Aflys</button>
       </div>`:
       `<button class="hc-cancel-btn active" data-date="${ds}" onclick="event.stopPropagation();toggleCancelled(this.dataset.date)">↩️ Gendan træning</button>`}
       `;
@@ -3831,7 +3848,12 @@ function renderDashboard(){
   growthCard.style.background=bgGrad;
   document.getElementById('db-growth-year').textContent=yrStr;
   document.getElementById('db-growth-new').textContent='+'+newInYear.length;
-  document.getElementById('db-growth-stop').textContent='−'+stopInYear.length;
+  const stopEl=document.getElementById('db-growth-stop');
+  const stopLbl=document.getElementById('db-growth-stop-lbl');
+  const stopColor=stopInYear.length>0?'#dc2626':'#6b7280';
+  stopEl.textContent=stopInYear.length>0?'−'+stopInYear.length:'0';
+  stopEl.style.color=stopColor;
+  stopLbl.style.color=stopColor;
   const netEl=document.getElementById('db-growth-net');
   netEl.textContent=(net>0?'+':'')+net;
   netEl.style.color=netColor;
@@ -4750,6 +4772,76 @@ let _emailGroup='all';
 let _emailSubject='';
 let _emailBody='';
 
+// ── Kontingent-hjælpefunktioner ─────────────────────────
+function getMemberKontingent(m){
+  const r=config.rates||{};
+  const age=getAge(m);
+  if(age!==null&&age<10) return r.age6_10||550;
+  if(age!==null&&age<16) return r.age10_15||650;
+  return r.age16plus||850;
+}
+function isKontingentReminderPeriod(){
+  const today=new Date();
+  const y=today.getFullYear();
+  const feb15=new Date(y,1,15), sep15=new Date(y,8,15);
+  return Math.abs(today-feb15)/86400000<=30 || Math.abs(today-sep15)/86400000<=30;
+}
+function getKontingentPeriod(){
+  const m=new Date().getMonth()+1;
+  const y=new Date().getFullYear();
+  return m<=6?`forår ${y}`:`efterår ${y}`;
+}
+function openIndividualReminder(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m||!m.email) return;
+  const beloeb=getMemberKontingent(m);
+  const periode=getKontingentPeriod();
+  const subj=encodeURIComponent(`Påmindelse om kontingent – Esbjerg Shuri-Ryu Karate`);
+  const body=encodeURIComponent(
+`Kære ${m.firstName},
+
+Vi håber, du har det godt og stadig nyder træningen!
+
+Vi kan se, at vi endnu ikke har modtaget dit kontingent for ${periode}. Vi vil blot minde om, at kontingentet bedes indbetalt snarest muligt.
+
+Beløb: ${beloeb} kr.
+Betaling via MobilePay: 63348
+eller bankoverførsel: Reg. 9244 – Konto 4574880136
+
+Har du allerede betalt, bedes du se bort fra denne påmindelse — og undskyld forstyrrelsen!
+
+Har du spørgsmål, er du altid velkommen til at kontakte os.
+
+Med venlig hilsen,
+Esbjerg Shuri-Ryu Karate`);
+  window.open(`mailto:${m.email}?subject=${subj}&body=${body}`);
+}
+function openGroupReminder(){
+  const periode=getKontingentPeriod();
+  const unpaid=members.filter(m=>!m.archived&&m.status!=='passiv'&&(m.payment||'unpaid')==='unpaid'&&m.email);
+  if(!unpaid.length){showToast('Ingen ikke-betalende med e-mailadresse');return;}
+  const bcc=unpaid.map(m=>m.email).join(';');
+  const subj=encodeURIComponent(`Påmindelse om kontingent – Esbjerg Shuri-Ryu Karate`);
+  const body=encodeURIComponent(
+`Kære forældre/elev,
+
+Vi håber, I har det godt og at træningen går fint!
+
+Denne besked går til jer, som vi endnu ikke har registreret betaling fra for ${periode}. Vi vil venligst bede jer om at indbetale kontingentet snarest muligt.
+
+Betaling via MobilePay: 63348
+eller bankoverførsel: Reg. 9244 – Konto 4574880136
+
+Har du allerede betalt, bedes du se bort fra denne besked — og undskyld forstyrrelsen!
+
+Har du spørgsmål, er du altid velkommen til at kontakte os.
+
+Med venlig hilsen,
+Esbjerg Shuri-Ryu Karate`);
+  window.open(`mailto:?bcc=${encodeURIComponent(bcc)}&subject=${subj}&body=${body}`);
+}
+// ─────────────────────────────────────────────────────────
+
 function openEmailModal(preGroup){
   _emailGroup=preGroup||'all';
   _emailSubject='';
@@ -4759,6 +4851,11 @@ function openEmailModal(preGroup){
   if(bf) bf.value='';
   const af=document.getElementById('emAgeFilter');
   if(af) af.value='';
+  const pf=document.getElementById('emPayFilter');
+  if(pf) pf.value='';
+  // Vis/skjul kontingent-reminder banner
+  const banner=document.getElementById('emReminderBanner');
+  if(banner) banner.style.display=isKontingentReminderPeriod()?'flex':'none';
   renderEmailTabs();
   buildEmailList();
   openModal('emailModal');
@@ -4855,12 +4952,20 @@ function beltBadgeEM(belt){
 function getEmailVisible(){
   const beltFilter=(document.getElementById('emBeltFilter')||{}).value||'';
   const ageFilter=(document.getElementById('emAgeFilter')||{}).value||'';
+  const payFilter=(document.getElementById('emPayFilter')||{}).value||'';
   const act=members.filter(m=>!m.archived&&m.status!=='passiv');
   let visible=_emailGroup==='all'?act:act.filter(m=>m.group===_emailGroup);
   if(beltFilter) visible=visible.filter(m=>m.belt===beltFilter);
   if(ageFilter==='under18') visible=visible.filter(m=>{ const a=getAge(m); return a!==null&&a<18; });
   if(ageFilter==='18plus')  visible=visible.filter(m=>{ const a=getAge(m); return a!==null&&a>=18; });
+  if(payFilter) visible=visible.filter(m=>(m.payment||'unpaid')===payFilter);
   return visible;
+}
+function emailSelectUnpaid(){
+  // Sæt filter til "Ikke betalt" og vælg alle med e-mail
+  const sel=document.getElementById('emPayFilter');
+  if(sel){ sel.value='unpaid'; buildEmailList(); }
+  setTimeout(()=>emailSelectVisible(true),50);
 }
 function buildEmailList(){
   const visible=getEmailVisible();
@@ -4893,6 +4998,8 @@ function buildEmailList(){
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0">
         ${m.belt?beltBadgeEM(m.belt):''}
         ${_emailGroup==='all'?`<span class="em-grp" style="${grpStyle}">${m.group}</span>`:''}
+        ${(m.payment||'unpaid')==='unpaid'?`<span style="font-size:.65rem;font-weight:700;background:#fef2f2;color:#dc2626;border-radius:8px;padding:1px 6px;border:1px solid #fca5a5">💸 Ikke betalt</span>`:''}
+        ${(m.payment||'unpaid')==='unpaid'&&isKontingentReminderPeriod()&&m.email?`<button onclick="event.stopPropagation();openIndividualReminder(${m.id})" title="Send personlig betalingspåmindelse" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:2px 6px;font-size:.72rem;cursor:pointer;color:#dc2626;font-weight:700">🔔 Rykker</button>`:''}
       </div>`;
     div.addEventListener('click',e=>{
       if(e.target.tagName==='INPUT'||!m.email) return;
