@@ -1906,8 +1906,9 @@ function startPresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
   if(_presenceInterval)clearInterval(_presenceInterval);
   pingPresence();
-  _presenceInterval=setInterval(pingPresence,120000); // 2 minutter
+  _presenceInterval=setInterval(pingPresence,90000); // 90 sekunder
   window.addEventListener('beforeunload',leavePresence);
+  _startPeriodicSync();
 }
 function pingPresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
@@ -2094,22 +2095,33 @@ function startInactivityTracking(){
   resetInactivityTimer();
 }
 
-let _pushTimer=null;
+let _pushTimer=null, _isSyncing=false, _hasPending=false;
+
 function pushToCloud(){
   // Debounce: vent 2 sek efter sidste ændring — så 10 check-ins = 1 sync
+  _hasPending=true;
   clearTimeout(_pushTimer);
   setSyncStatus('pending');
-  _pushTimer=setTimeout(_doPush,2000);
+  _pushTimer=setTimeout(()=>_doPush(0),2000);
 }
-function _doPush(retries=2){
+
+// Periodisk sync hvert 60 sek — kun hvis der er ændringer og ingen sync kører
+function _startPeriodicSync(){
+  setInterval(()=>{
+    if(_hasPending&&!_isSyncing) _doPush(0);
+  },60000);
+}
+
+function _doPush(attempt){
   const url=config.scriptUrl;
-  if(!url)return;
+  if(!url||_isSyncing)return;
+  _isSyncing=true;
+  _hasPending=false;
   let vault={};
   try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
   setSyncStatus('loading');
-  // Timeout: giv op efter 25 sek
   const ctrl=new AbortController();
-  const tmo=setTimeout(()=>ctrl.abort(),25000);
+  const tmo=setTimeout(()=>ctrl.abort(),15000); // 15 sek timeout
   fetch(url,{
     method:'POST',
     headers:{'Content-Type':'text/plain'},
@@ -2117,13 +2129,21 @@ function _doPush(retries=2){
     body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
-  .then(d=>{ if(d.ok) setSyncStatus('ok'); else setSyncStatus('error'); })
-  .catch(err=>{
+  .then(d=>{
+    _isSyncing=false;
+    if(d.ok){ setSyncStatus('ok'); }
+    else { _hasPending=true; setSyncStatus('error'); }
+  })
+  .catch(()=>{
     clearTimeout(tmo);
-    if(retries>0){
-      // Vent 4 sek og prøv igen
+    _isSyncing=false;
+    _hasPending=true; // markér til retry
+    const maxAttempts=3;
+    if(attempt<maxAttempts){
+      // Eksponentiel backoff: 5s → 10s → 20s
+      const delay=5000*Math.pow(2,attempt);
       setSyncStatus('pending');
-      setTimeout(()=>_doPush(retries-1),4000);
+      setTimeout(()=>_doPush(attempt+1),delay);
     } else {
       setSyncStatus('error');
     }
