@@ -449,7 +449,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 }
 
 /* DASHBOARD CHART */
-.chart-area{position:relative;height:200px;margin:0 0 0 36px;border-left:2px solid #dde8e8;border-bottom:2px solid #dde8e8}
+.chart-area{position:relative;height:200px;margin:0 0 30px 36px;border-left:2px solid #dde8e8;border-bottom:2px solid #dde8e8}
 .chart-grid-line{position:absolute;left:0;right:0;border-top:1px dashed #e8f0f0;pointer-events:none}
 .chart-grid-lbl{position:absolute;left:-34px;font-size:.67rem;color:var(--xtl);transform:translateY(-50%);width:30px;text-align:right}
 .chart-bars{display:flex;align-items:flex-end;height:100%;gap:3px;padding:0 8px;overflow-x:auto}
@@ -457,7 +457,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .chart-col:hover .chart-bar{filter:brightness(1.1)}
 .chart-bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height .4s}
 .chart-val{font-size:.68rem;font-weight:700;color:var(--td);position:absolute;bottom:calc(var(--bh) + 4px);left:50%;transform:translateX(-50%);white-space:nowrap}
-.chart-lbl{font-size:.63rem;color:var(--xtl);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;margin-top:4px;padding-bottom:2px}
+.chart-lbl{font-size:.63rem;color:var(--xtl);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;position:absolute;bottom:-28px;left:50%;transform:translateX(-50%)}
 .chart-legend{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
 .cl-item{font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:5px;color:var(--xtm)}
 .cl-item::before{content:'';display:inline-block;width:12px;height:12px;border-radius:3px}
@@ -1033,8 +1033,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </div>
     </div>
     <div class="chart-legend">
-      <span class="cl-item cl-green">≥70% fremmøde</span>
-      <span class="cl-item cl-orange">40–69%</span>
+      <span class="cl-item cl-green">≥60% fremmøde</span>
+      <span class="cl-item cl-orange">40–59%</span>
       <span class="cl-item cl-red">&lt;40%</span>
     </div>
     <div id="db-chart"></div>
@@ -1110,6 +1110,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option value="Bestyrelsesmøde">🏛️ Bestyrelsesmøde</option>
         <option value="Ekstra træning">🥋 Ekstra træning</option>
         <option value="Aktivitet">🎯 Aktivitet</option>
+        <option value="Notat">📝 Notat</option>
       </select>
       <button class="btn bb em-icon-btn" onclick="openEmailModal()" title="Send e-mail til medlemmer">✉️</button>
       <button class="btn bp" onclick="openBoardModal()">+ Ny notat</button>
@@ -1131,6 +1132,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <button type="button" class="bm-type-btn active" id="bmt-board" onclick="setBoardType('Bestyrelsesmøde')">🏛️ Bestyrelsesmøde</button>
         <button type="button" class="bm-type-btn" id="bmt-extra" onclick="setBoardType('Ekstra træning')">🥋 Ekstra træning</button>
         <button type="button" class="bm-type-btn" id="bmt-act" onclick="setBoardType('Aktivitet')">🎯 Aktivitet</button>
+        <button type="button" class="bm-type-btn" id="bmt-note" onclick="setBoardType('Notat')">📝 Notat</button>
       </div>
     </div>
     <div class="fgrp"><label>Dato</label><input type="date" id="bmDate"/></div>
@@ -3539,17 +3541,27 @@ function prevWeekKey(wk){
   return yr*100+(w-1);
 }
 function calcStreak(memberId){
+  const td=config.trainingDays||[2,4];
   const attended=new Set();
-  sessions.forEach(s=>{ if((s.presentIds||[]).includes(memberId)&&s.date) attended.add(getWeekKey(s.date)); });
+  sessions.forEach(s=>{
+    if((s.presentIds||[]).includes(memberId)&&s.date){
+      const dw=new Date(s.date+'T12:00:00').getDay();
+      if(td.includes(dw)) attended.add(getWeekKey(s.date)); // Kun regulære træningsdage
+    }
+  });
   if(!attended.size) return 0;
   // Uger med mindst én aflyst dato tæller ikke som brudt streak
   const cancelledWeeks=new Set((cancelledDates||[]).map(d=>getWeekKey(d)));
-  let streak=0, check=getWeekKey(localDate()), foundFirst=false;
+  const currentWeek=getWeekKey(localDate());
+  let streak=0, check=currentWeek, foundFirst=false;
   for(let i=0;i<52*5;i++){
     if(attended.has(check)){
       streak++; foundFirst=true; check=prevWeekKey(check);
     } else if(cancelledWeeks.has(check)){
       // Aflyst uge — spring over uden at bryde streak
+      check=prevWeekKey(check);
+    } else if(check===currentWeek){
+      // Indeværende uge er ikke slut endnu — spring over uden at bryde streak
       check=prevWeekKey(check);
     } else {
       if(!foundFirst) return 0; // Aldrig mødt op endnu (eller streak ikke aktiv)
@@ -3738,7 +3750,7 @@ function renderDashboard(){
       const h=Math.max(d.pct,d.sessions>0?2:0);
       let color='#e0eded';
       if(d.sessions>0){
-        if(d.pct>=70)color='var(--go)';
+        if(d.pct>=60)color='var(--go)';
         else if(d.pct>=40)color='var(--or)';
         else color='var(--rb)';
       }
@@ -3890,18 +3902,15 @@ function renderDashboard(){
 
   // Longest streak banner — kun én vinder, tiebreakers: sessioner i streakperiode → bæltegrad → anciennitet
   const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
-  function sessInStreakPeriod(memberId, streakWeeks){
-    const cutoff=new Date(localDate()+'T12:00:00');
-    cutoff.setDate(cutoff.getDate()-streakWeeks*7);
-    const cutStr=localDate(cutoff);
-    return sessions.filter(s=>s.date&&s.date>=cutStr&&(s.presentIds||[]).includes(memberId)).length;
+  function sessInStreakPeriod(memberId){
+    return sessions.filter(s=>s.date&&(s.presentIds||[]).includes(memberId)).length;
   }
   const streakBanner=document.getElementById('db-streak-banner');
   const streakEntries=act.map(m=>({m,s:calcStreak(m.id)})).filter(x=>x.s>=2);
   if(streakEntries.length>0){
     streakEntries.sort((a,b)=>{
       if(b.s!==a.s) return b.s-a.s; // 1. Længste streak
-      const aSess=sessInStreakPeriod(a.m.id,a.s), bSess=sessInStreakPeriod(b.m.id,b.s);
+      const aSess=sessInStreakPeriod(a.m.id), bSess=sessInStreakPeriod(b.m.id);
       if(bSess!==aSess) return bSess-aSess; // 2. Flest træninger i streakperioden
       const aB=BELT_RANK[a.m.belt]??-1, bB=BELT_RANK[b.m.belt]??-1;
       if(bB!==aB) return bB-aB; // 3. Højeste bæltegrad
@@ -5924,7 +5933,7 @@ function showToastUndo(msg,onUndo){
 let _boardFilter='all';
 function setBoardFilter(val){
   _boardFilter=val;
-  const titles={'all':'🗓️ Alle noter','Bestyrelsesmøde':'🏛️ Bestyrelsesmøder','Ekstra træning':'🥋 Ekstra træninger','Aktivitet':'🎯 Aktiviteter'};
+  const titles={'all':'🗓️ Alle noter','Bestyrelsesmøde':'🏛️ Bestyrelsesmøder','Ekstra træning':'🥋 Ekstra træninger','Aktivitet':'🎯 Aktiviteter','Notat':'📝 Notater'};
   const el=document.getElementById('boardListTitle');
   if(el) el.textContent=titles[val]||'🗓️ Alle noter';
   renderBoard();
@@ -5988,6 +5997,7 @@ function renderBoard(){
       {type:'Bestyrelsesmøde',icon:'🏛️',color:'#6d28d9',bg:'#ede9fe',border:'#c4b5fd'},
       {type:'Ekstra træning',  icon:'🥋',color:'#0284c7',bg:'#dbeafe',border:'#93c5fd'},
       {type:'Aktivitet',       icon:'🎯',color:'#059669',bg:'#d1fae5',border:'#6ee7b7'},
+      {type:'Notat',           icon:'📝',color:'#ea580c',bg:'#ffedd5',border:'#fdba74'},
     ];
     const pills=typeConf.map(tc=>{
       const nxt=boardMeetings
@@ -6078,6 +6088,7 @@ function formatBoardText(text){
 function boardTypeInfo(type){
   if(type==='Ekstra træning') return {icon:'🥋',accentBase:'extra',color:'#0ea5e9',bg:'#e0f2fe',label:'Ekstra træning'};
   if(type==='Aktivitet')      return {icon:'🎯',accentBase:'activity',color:'#10b981',bg:'#d1fae5',label:'Aktivitet'};
+  if(type==='Notat')          return {icon:'📝',accentBase:'note',color:'#ea580c',bg:'#ffedd5',label:'Notat'};
   return                              {icon:'🏛️',accentBase:'',color:'#6d28d9',bg:'#ede9fe',label:'Bestyrelsesmøde'};
 }
 function boardCard(b,today){
@@ -6123,10 +6134,10 @@ let _boardType='Bestyrelsesmøde';
 function setBoardType(type){
   _boardType=type;
   document.querySelectorAll('.bm-type-btn').forEach(btn=>btn.classList.remove('active'));
-  const map={'Bestyrelsesmøde':'bmt-board','Ekstra træning':'bmt-extra','Aktivitet':'bmt-act'};
+  const map={'Bestyrelsesmøde':'bmt-board','Ekstra træning':'bmt-extra','Aktivitet':'bmt-act','Notat':'bmt-note'};
   const btn=document.getElementById(map[type]);
   if(btn) btn.classList.add('active');
-  const icons={'Bestyrelsesmøde':'🏛️','Ekstra træning':'🥋','Aktivitet':'🎯'};
+  const icons={'Bestyrelsesmøde':'🏛️','Ekstra træning':'🥋','Aktivitet':'🎯','Notat':'📝'};
   document.getElementById('boardModalIcon').textContent=icons[type]||'📋';
 }
 function openBoardModal(id=null){
