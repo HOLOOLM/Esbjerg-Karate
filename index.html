@@ -394,6 +394,7 @@ body.hm-fs-active{overflow:hidden}
 .hc-cancelled .hc-date{text-decoration:line-through;color:var(--xtl)}
 .hc-extra{border-left-color:#7c3aed!important}
 .t-extra{background:#ede9fe;color:#6d28d9}
+#page-training td:nth-child(3){min-width:230px}
 #page-training td:nth-child(3) .mn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hc-cancel-btn{margin-top:.7rem;width:100%;padding:.3rem .6rem;border-radius:7px;border:1.5px solid #c8dede;background:#fff;font-size:.73rem;font-weight:600;cursor:pointer;color:var(--xtm);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
 .hc-cancel-btn:hover{background:var(--rbb);border-color:var(--rb);color:var(--rb)}
@@ -451,13 +452,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   /* Horisontal tabel-scroll — ingen kolonner skjult */
   .tcard{overflow:auto;-webkit-overflow-scrolling:touch}
   #page-training table{min-width:680px}
-  #page-training td:nth-child(3){max-width:160px}
-  #page-training td:nth-child(3) .mn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+  #page-training td:nth-child(3){min-width:210px}
   #page-members table{min-width:820px}
   #page-dashboard table{min-width:640px}
   /* E-mail + navn wrapper så de ikke overlapper score/hold-kolonner */
-  #page-dashboard td .me,#page-members td .me,#page-training td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:200px}
-  #page-dashboard td .mn,#page-members td .mn,#page-training td .mn{white-space:normal;word-break:break-word;max-width:200px}
+  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:200px}
+  #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:200px}
   #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child,#page-training .mrow>div:last-child{min-width:0;flex:1}
 }
 
@@ -513,14 +513,13 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   td{padding:.5rem .55rem;font-size:.78rem}
   thead th{padding:.55rem .55rem;font-size:.64rem}
   #page-training table{min-width:620px}
-  #page-training td:nth-child(3){max-width:140px}
-  #page-training td:nth-child(3) .mn{max-width:120px}
+  #page-training td:nth-child(3){min-width:190px}
   #page-members table{min-width:780px}
   #page-dashboard table{min-width:580px}
 
   /* E-mail (og navn) må wrappe i medlems-/dashboard-tabel så lange mails ikke overlapper score/hold */
-  #page-dashboard td .me,#page-members td .me,#page-training td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:180px}
-  #page-dashboard td .mn,#page-members td .mn,#page-training td .mn{white-space:normal;word-break:break-word;max-width:180px}
+  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:180px}
+  #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:180px}
   #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child,#page-training .mrow>div:last-child{min-width:0;flex:1}
 
   /* Dashboard: stats-grid 2 kolonner (3 rækker af 2) */
@@ -1260,6 +1259,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div id="db-streak-banner" style="display:none;margin-bottom:.4rem"></div>
 
   <!-- Fødselsdagsoverblik -->
+  <div id="db-birthday-card" style="display:none;margin-bottom:.4rem"></div>
 
 <!-- Medlemsudvikling vækst-box -->
   <div id="db-growth-box" style="display:none;margin-bottom:.75rem">
@@ -5091,6 +5091,7 @@ function renderDashboard(){
   renderDashboardSeniority();
   renderDashboardBeltDist();
   renderDashboardAbsent();
+  renderDashboardBirthdays();
   renderHeatmap();
 }
 
