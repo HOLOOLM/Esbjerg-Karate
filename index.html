@@ -41,7 +41,7 @@ header{background:linear-gradient(135deg,var(--td) 0%,#1a3030 100%);color:#fff;p
 .nav-tabs-wrap.scrolled-end::after{opacity:0}
 .nav-tabs{background:transparent;display:flex;padding:0 2rem;gap:4px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .nav-tabs::-webkit-scrollbar{display:none}
-.nav-tab{padding:.72rem 1.4rem;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;display:flex;align-items:center;gap:7px;user-select:none;white-space:nowrap;flex-shrink:0}
+.nav-tab{padding:.72rem 1.4rem;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;display:flex;align-items:center;gap:7px;user-select:none;white-space:nowrap;flex-shrink:0;touch-action:manipulation}
 .nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
 .nav-tab.active{color:#fff;border-bottom-color:#7ecece}
 
@@ -107,10 +107,23 @@ td{padding:.7rem 1rem;font-size:.855rem;vertical-align:middle}
 
 /* AVATAR */
 .mrow{display:flex;align-items:center;gap:10px}
-.av{width:34px;height:34px;border-radius:50%;background:var(--td);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.74rem;font-weight:700;flex-shrink:0}
+.av{width:34px;height:34px;border-radius:50%;background:var(--td);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.74rem;font-weight:700;flex-shrink:0;overflow:hidden;position:relative}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .av-boern {background:#2980b9}
 .av-junior{background:#27ae60}
 .av-senior{background:#8e44ad}
+/* Foto-upload i medlems-modal */
+.photo-upload-wrap{display:flex;align-items:center;gap:1rem;padding:.9rem 1rem;background:linear-gradient(135deg,#f5f9f9,#fff);border:1px solid #dde8e8;border-radius:12px;margin-bottom:1rem}
+.photo-preview{width:82px;height:82px;border-radius:50%;background:var(--td);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;flex-shrink:0;overflow:hidden;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-actions{display:flex;flex-direction:column;gap:.4rem;flex:1;min-width:0}
+.photo-btn{display:inline-flex;align-items:center;gap:.4rem;justify-content:center;padding:.5rem .8rem;border-radius:8px;border:1px solid #dde8e8;background:#fff;cursor:pointer;font-weight:600;font-size:.82rem;color:var(--tt);transition:all .15s}
+.photo-btn:hover{background:#f5f9f9;border-color:#bfd3d3}
+.photo-btn.danger{color:#c2410c;border-color:#fed7aa}
+.photo-btn.danger:hover{background:#fff7ed}
+.photo-hint{font-size:.68rem;color:var(--xtl);margin-top:2px}
+.photo-spinner{width:20px;height:20px;border:2.5px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:phSpin .8s linear infinite;display:inline-block}
+@keyframes phSpin{to{transform:rotate(360deg)}}
 .mn{font-weight:600;color:var(--xtd)}
 .me{font-size:.73rem;color:var(--xtl);margin-top:1px}
 .gm{color:var(--bl);font-weight:700;font-size:.8rem}
@@ -174,6 +187,77 @@ textarea.fta{resize:vertical;min-height:85px}
 .ma{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.4rem;padding-top:1rem;border-top:1px solid #eef4f4}
 .age-hint{font-size:.72rem;color:var(--xtl);margin-top:2px}
 .age-calc{font-size:.72rem;color:var(--go);font-weight:600;margin-top:2px}
+
+/* HEATMAP */
+.hm-wrap{overflow:auto;max-height:540px;border:1px solid #e5eded;border-radius:10px;background:#fff;position:relative}
+.hm-table{border-collapse:separate;border-spacing:0;font-size:.76rem;min-width:100%}
+.hm-table th,.hm-table td{padding:0;border:none}
+.hm-table thead th{position:sticky;top:0;background:#2c4a4a;color:#fff;font-weight:600;font-size:.67rem;text-transform:uppercase;letter-spacing:.4px;z-index:3;padding:.45rem .25rem;text-align:center;border-bottom:2px solid #1a2e2e;white-space:nowrap}
+.hm-table thead th.hm-th-name{text-align:left;padding:.45rem .7rem;position:sticky;left:0;z-index:5;min-width:170px;max-width:170px}
+.hm-table thead th.hm-th-pct{min-width:58px}
+.hm-table thead th.hm-th-date{min-width:38px;cursor:pointer;font-variant-numeric:tabular-nums}
+.hm-table thead th.hm-th-date:hover{background:#1a2e2e}
+.hm-table thead th.hm-th-date.hm-extra{background:#a16207}
+.hm-table thead th.hm-th-date.hm-cancel{background:#9a3412}
+.hm-table thead th .hm-dow{font-size:.58rem;opacity:.8;font-weight:500;display:block;margin-bottom:1px}
+.hm-table thead th .hm-day{font-size:.78rem;font-weight:700;display:block}
+.hm-table thead th .hm-mon{font-size:.56rem;opacity:.75;font-weight:500;display:block;margin-top:1px;text-transform:uppercase}
+.hm-table tbody td{border-bottom:1px solid #f1f5f5;height:30px}
+/* Row-hover highlight kun på navn + %-kolonnerne — farvede celler skal bevare deres farve */
+.hm-table tbody tr:hover td.hm-pct{background:#f5f9f9}
+.hm-table tbody tr:hover td.hm-name{background:#eaf3f3}
+.hm-table tbody td.hm-name{position:sticky;left:0;background:#fff;padding:.35rem .7rem;font-weight:600;color:var(--xtd);min-width:170px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;border-right:1.5px solid #e5eded;cursor:pointer;font-size:.8rem}
+.hm-table tbody td.hm-name:hover{color:var(--td);text-decoration:underline}
+.hm-table tbody td.hm-name .hm-sub{font-size:.66rem;color:var(--xtl);font-weight:500;margin-top:1px;display:block}
+.hm-cell{width:38px;height:30px;text-align:center;vertical-align:middle;position:relative;transition:transform .12s}
+.hm-cell.hm-present{background:#15803d}
+.hm-cell.hm-present-extra{background:#d97706}
+.hm-cell.hm-absent{background:#f1f5f5}
+.hm-cell.hm-cancel{background:repeating-linear-gradient(45deg,#fde68a,#fde68a 3px,#fcd34d 3px,#fcd34d 6px)}
+.hm-cell.hm-na{background:repeating-linear-gradient(45deg,#fff,#fff 4px,#e5e7eb 4px,#e5e7eb 5px)}
+.hm-cell:hover{transform:scale(1.15);z-index:4;box-shadow:0 0 0 2px #1d4ed8,0 2px 8px rgba(0,0,0,.15);border-radius:3px}
+.hm-table tbody td.hm-pct{text-align:center;font-weight:700;font-variant-numeric:tabular-nums;font-size:.82rem;padding:0 .4rem;white-space:nowrap}
+.hm-pct-val.hm-pct-hi{color:#15803d}
+.hm-pct-val.hm-pct-mid{color:#d97706}
+.hm-pct-val.hm-pct-lo{color:#c2410c}
+.hm-streak-fire{font-size:.7rem;margin-left:2px}
+.hm-legend{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.75rem;font-size:.72rem}
+.hm-lg{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .55rem;border-radius:6px;background:#f5f9f9;border:1px solid #e5eded;color:var(--xtm);font-weight:600}
+.hm-lg::before{content:"";width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.hm-lg-present::before{background:#15803d}
+.hm-lg-extra::before{background:#d97706}
+.hm-lg-absent::before{background:#f1f5f5;border:1px solid #d1d5db}
+.hm-lg-cancel::before{background:repeating-linear-gradient(45deg,#fde68a,#fde68a 2px,#fcd34d 2px,#fcd34d 4px)}
+.hm-lg-na::before{background:repeating-linear-gradient(45deg,#fff,#fff 2px,#e5e7eb 2px,#e5e7eb 3px);border:1px solid #e5e7eb}
+@media (max-width:640px){
+  .hm-table thead th.hm-th-name,.hm-table tbody td.hm-name{min-width:130px;max-width:130px;font-size:.75rem}
+  .hm-cell{width:30px;height:26px}
+  .hm-table thead th.hm-th-date{min-width:30px}
+  .hm-wrap{max-height:440px}
+}
+
+/* POLISHED MODAL COMPONENTS */
+.m-hero{margin:-1.8rem -1.8rem 1.2rem;padding:1.3rem 1.8rem 1.1rem;background:linear-gradient(135deg,#2c4a4a 0%,#3d6060 100%);color:#fff;border-radius:16px 16px 0 0;position:relative;overflow:hidden}
+.m-hero::before{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none}
+.m-hero-title{font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:.6rem;letter-spacing:-.01em}
+.m-hero-sub{font-size:.82rem;opacity:.85;margin-top:.25rem;font-weight:500}
+.m-hero-close{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.15);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;color:#fff;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:background .15s;backdrop-filter:blur(4px)}
+.m-hero-close:hover{background:rgba(255,255,255,.28)}
+.m-hero-icon{width:40px;height:40px;background:rgba(255,255,255,.18);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;backdrop-filter:blur(4px)}
+.m-hero.hero-warn{background:linear-gradient(135deg,#c2410c 0%,#ea580c 100%)}
+.m-hero.hero-info{background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%)}
+.m-hero.hero-note{background:linear-gradient(135deg,#2c4a4a 0%,#3d6060 100%)}
+.m-hero.hero-success{background:linear-gradient(135deg,#065f46 0%,#10b981 100%)}
+.m-chip{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.18);color:#fff;padding:.25rem .65rem;border-radius:20px;font-size:.73rem;font-weight:600;backdrop-filter:blur(4px);margin-top:.55rem}
+.m-infobox{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:10px;padding:.7rem .9rem;font-size:.82rem;color:#1e3a8a;display:flex;gap:.6rem;align-items:flex-start;margin-bottom:1rem}
+.m-infobox.warn{background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74;color:#7c2d12}
+.m-infobox-icon{font-size:1.1rem;flex-shrink:0;line-height:1}
+.m-avatar{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#5a8a8a,#3d6060);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;letter-spacing:.5px;box-shadow:0 2px 8px rgba(44,74,74,.15)}
+.m-person{display:flex;align-items:center;gap:.8rem;padding:.75rem .9rem;background:#f5f9f9;border:1px solid #dde8e8;border-radius:12px;margin-bottom:1rem}
+.m-person-meta{flex:1;min-width:0}
+.m-person-name{font-weight:700;color:var(--td);font-size:.95rem}
+.m-person-sub{font-size:.78rem;color:var(--xtl);margin-top:1px}
+.m-counter{font-size:.72rem;color:var(--xtl);text-align:right;margin-top:.35rem;font-variant-numeric:tabular-nums}
 
 /* EMAIL MODAL */
 .em-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.85rem}
@@ -480,8 +564,24 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .db-rank.r1{background:#fef08a;color:#854d0e}.db-rank.r2{background:#e2e8f0;color:#475569}.db-rank.r3{background:#fed7aa;color:#9a3412}
 .db-att-bar{height:8px;background:#e0eded;border-radius:4px;overflow:hidden;margin-top:3px;width:100px}
 .db-att-fill{height:100%;border-radius:4px;background:var(--go)}
-.db-milestone{display:inline-block;padding:.15rem .5rem;border-radius:10px;font-size:.68rem;font-weight:700;margin-top:3px}
-.db-streak{display:inline-block;padding:.15rem .55rem;border-radius:10px;font-size:.68rem;font-weight:700;margin-top:3px;margin-left:3px;background:#fff3e0;color:#c2410c}
+.db-milestone{display:inline-block;padding:.15rem .5rem;border-radius:10px;font-size:.68rem;font-weight:700;margin-top:3px;transition:transform .12s,box-shadow .12s}
+.db-milestone.clickable{cursor:pointer}
+.db-milestone.clickable:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.15);filter:brightness(1.05)}
+.db-streak{display:inline-block;padding:.15rem .55rem;border-radius:10px;font-size:.68rem;font-weight:700;margin-top:3px;margin-left:3px;background:#fff3e0;color:#c2410c;transition:transform .12s,box-shadow .12s}
+.db-streak.clickable{cursor:pointer}
+.db-streak.clickable:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(194,65,12,.25);filter:brightness(1.05)}
+.att-week-row{display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border-bottom:1px solid #eef3f3;font-size:.85rem}
+.att-week-row:last-child{border-bottom:none}
+.att-week-label{font-weight:600;color:var(--tt);min-width:180px}
+.att-week-dates{flex:1;color:var(--xtm);font-size:.82rem}
+.att-week-status{padding:.2rem .55rem;border-radius:10px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.att-st-ok{background:#dcfce7;color:#166534}
+.att-st-cancel{background:#fef3c7;color:#92400e}
+.att-st-ongoing{background:#e0e7ff;color:#3730a3}
+.att-month-group{margin-bottom:1rem}
+.att-month-title{font-weight:700;color:var(--td);font-size:.9rem;margin-bottom:.4rem;padding-bottom:.3rem;border-bottom:2px solid #dde8e8}
+.att-date-chip{display:inline-block;padding:.3rem .65rem;margin:.15rem;background:#ecfdf5;color:#065f46;border-radius:8px;font-size:.8rem;font-weight:600;border:1px solid #a7f3d0}
+.att-date-chip.extra{background:#f3e8ff;color:#6b21a8;border-color:#d8b4fe}
 .db-ms-bronze{background:#fed7aa;color:#9a3412}.db-ms-silver{background:#e2e8f0;color:#475569}
 .db-ms-gold{background:#fef08a;color:#854d0e}.db-ms-plat{background:#e0e7ff;color:#3730a3}
 
@@ -729,10 +829,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- NOTES MODAL -->
 <div class="mbd" id="notesModal">
   <div class="modal">
-    <div style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">📝 Træningsnoter</div>
-    <div style="font-size:.82rem;color:var(--xtl);margin-bottom:.8rem" id="notesModalDate"></div>
-    <textarea id="notesInput" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.88rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv noter til dagens træning…"></textarea>
-    <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
+    <div class="m-hero hero-note">
+      <button class="m-hero-close" onclick="safeCloseModal('notesModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📝</span><span>Træningsnoter</span></div>
+      <div class="m-chip" id="notesModalDate">📅 I dag</div>
+    </div>
+    <textarea id="notesInput" rows="6" oninput="updateNotesCounter()" style="width:100%;border:1.5px solid #c8dede;border-radius:10px;padding:.85rem;font-size:.9rem;resize:vertical;font-family:inherit;box-sizing:border-box;line-height:1.5;transition:border-color .15s" placeholder="Skriv noter til dagens træning — fx stemning, skader, fravær, særlige øvelser…"></textarea>
+    <div class="m-counter" id="notesCounter">0 tegn</div>
+    <div class="ma">
       <button class="btn bg btn-sm" onclick="safeCloseModal('notesModal')">Annuller</button>
       <button class="btn bp btn-sm" onclick="saveTrainingNote()">💾 Gem note</button>
     </div>
@@ -759,12 +863,21 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <!-- Fødselsdag-banner -->
   <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
+  <!-- Backup-påmindelse -->
+  <div id="backupBanner" style="display:none;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #3b82f6;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#1e3a8a;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+    <span>💾 <strong>Backup anbefales</strong> – <span id="backupBannerText"></span></span>
+    <span style="display:flex;gap:.4rem;flex-shrink:0">
+      <button onclick="downloadBackup()" style="background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:.35rem .7rem;font-size:.78rem;font-weight:600;cursor:pointer">⬇️ Download backup</button>
+      <button onclick="dismissBackupBanner()" title="Skjul i dag" style="background:none;border:none;cursor:pointer;font-size:1rem;line-height:1;color:#1e3a8a;padding:0">✕</button>
+    </span>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
-    <div class="stat-card"><div class="si si-b">✅</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
+    <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">✅</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
     <div class="stat-card"><div class="si si-c">❌</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
-    <div class="stat-card"><div class="si si-b">💰</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
-    <div class="stat-card"><div class="si si-d">⚠️</div><div><div class="sv" id="s5">0</div><div class="sl">Mangler betaling</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
+    <div class="stat-card" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt"><div class="si si-b">💰</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
+    <div class="stat-card" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale"><div class="si si-d">⚠️</div><div><div class="sv" id="s5">0</div><div class="sl">Mangler betaling</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
   </div>
 
   <!-- Dato-bar -->
@@ -866,14 +979,120 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ MODAL: NOTER OVERSIGT ══ -->
 <div class="mbd" id="notesOverviewModal">
   <div class="modal modal-lg">
-    <div class="mtitle">
-      <div class="mtitle-left"><span>📝</span><span>Træningsnoter</span></div>
-      <button class="mclose" onclick="closeModal('notesOverviewModal')">✕</button>
+    <div class="m-hero hero-note">
+      <button class="m-hero-close" onclick="closeModal('notesOverviewModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📝</span><span>Træningsnoter</span></div>
+      <div class="m-hero-sub" id="notesOverviewSub">Alle noter fra tidligere træninger</div>
     </div>
     <div id="notesOverviewContent"></div>
     <div class="ma" style="justify-content:space-between">
       <button class="btn bs btn-sm" onclick="exportNotesToExcel()">📊 Eksporter til Excel</button>
       <button class="btn bg" onclick="closeModal('notesOverviewModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Manglende betaling ══ -->
+<div class="mbd" id="unpaidModal">
+  <div class="modal modal-lg">
+    <div class="m-hero hero-warn">
+      <button class="m-hero-close" onclick="closeModal('unpaidModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">⚠️</span><span>Manglende betaling</span></div>
+      <div class="m-hero-sub">Medlemmer der mangler at indbetale kontingent</div>
+    </div>
+    <div id="unpaidModalContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('unpaidModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Betalt kontingent ══ -->
+<div class="mbd" id="paidModal">
+  <div class="modal modal-lg">
+    <div class="m-hero hero-success">
+      <button class="m-hero-close" onclick="closeModal('paidModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">💰</span><span>Betalt kontingent</span></div>
+      <div class="m-hero-sub">Medlemmer der har indbetalt kontingent</div>
+    </div>
+    <div id="paidModalContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('paidModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Til stede i dag ══ -->
+<div class="mbd" id="presentModal">
+  <div class="modal modal-lg">
+    <div class="m-hero hero-success">
+      <button class="m-hero-close" onclick="closeModal('presentModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">✅</span><span id="presentModalTitle">Til stede i dag</span></div>
+      <div class="m-hero-sub" id="presentModalSub">Opdelt efter hold</div>
+    </div>
+    <div id="presentModalContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('presentModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Fremmøde-detaljer (streak / medalje) ══ -->
+<div class="mbd" id="attendanceDetailModal">
+  <div class="modal modal-lg">
+    <div class="m-hero" id="attDetailHero">
+      <button class="m-hero-close" onclick="closeModal('attendanceDetailModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon" id="attDetailIcon">🔥</span><span id="attDetailTitle">Streak</span></div>
+      <div class="m-hero-sub" id="attDetailSub"></div>
+    </div>
+    <div id="attDetailContent" style="padding:1rem"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('attendanceDetailModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Flest gange (topliste) ══ -->
+<div class="mbd" id="topAttendanceModal">
+  <div class="modal modal-lg">
+    <div class="m-hero hero-info">
+      <button class="m-hero-close" onclick="closeModal('topAttendanceModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📈</span><span id="topAttendanceTitle">Flest fremmøder</span></div>
+      <div class="m-hero-sub" id="topAttendanceSub">Rangliste i indeværende halvår</div>
+    </div>
+    <div id="topAttendanceContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('topAttendanceModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Nye elever ══ -->
+<div class="mbd" id="newMembersModal">
+  <div class="modal modal-lg">
+    <div class="m-hero hero-success">
+      <button class="m-hero-close" onclick="closeModal('newMembersModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">🆕</span><span id="newMembersTitle">Nye elever</span></div>
+      <div class="m-hero-sub" id="newMembersSub">Medlemmer der er startet i valgte år</div>
+    </div>
+    <div id="newMembersContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('newMembersModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Stoppede elever ══ -->
+<div class="mbd" id="stoppedMembersModal">
+  <div class="modal modal-lg">
+    <div class="m-hero hero-warn">
+      <button class="m-hero-close" onclick="closeModal('stoppedMembersModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">👋</span><span id="stoppedMembersTitle">Stoppede elever</span></div>
+      <div class="m-hero-sub" id="stoppedMembersSub">Medlemmer der har afsluttet i valgte år</div>
+    </div>
+    <div id="stoppedMembersContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('stoppedMembersModal')">Luk</button>
     </div>
   </div>
 </div>
@@ -967,9 +1186,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="stat-card"><div class="si si-b">📅</div><div><div class="sv" id="db-sessions">0</div><div class="sl" id="db-sessions-lbl">Registreret fast træning</div></div></div>
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="db-avgatt">0</div><div class="sl">Gns. fremmøde</div></div></div>
     <div class="stat-card"><div class="si si-b">🏆</div><div style="min-width:0"><div class="sv" id="db-topname" style="font-size:.95rem;font-weight:700;line-height:1.2;word-break:break-word">—</div><div class="sl">Mest fremmødt</div></div></div>
-    <div class="stat-card"><div class="si si-d">📈</div><div><div class="sv" id="db-topcount">0</div><div class="sl">Flest gange</div></div></div>
-    <div class="stat-card"><div class="si si-b">🆕</div><div><div class="sv" id="db-newmembers">0</div><div class="sl" id="db-newmembers-lbl">Nye elever</div></div></div>
-    <div class="stat-card"><div class="si si-d">👋</div><div><div class="sv" id="db-stopmembers">0</div><div class="sl" id="db-stopmembers-lbl">Stoppede elever</div></div></div>
+    <div class="stat-card" onclick="showTopAttendanceModal()" style="cursor:pointer" title="Klik for at se rangliste"><div class="si si-d">📈</div><div><div class="sv" id="db-topcount">0</div><div class="sl" id="db-topcount-lbl">Flest gange</div></div></div>
+    <div class="stat-card" onclick="showNewMembersModal()" style="cursor:pointer" title="Klik for at se nye elever"><div class="si si-b">🆕</div><div><div class="sv" id="db-newmembers">0</div><div class="sl" id="db-newmembers-lbl">Nye elever</div></div></div>
+    <div class="stat-card" onclick="showStoppedMembersModal()" style="cursor:pointer" title="Klik for at se stoppede elever"><div class="si si-d">👋</div><div><div class="sv" id="db-stopmembers">0</div><div class="sl" id="db-stopmembers-lbl">Stoppede elever</div></div></div>
   </div>
 
   <!-- Top 3 månedens fremmøde + Anciennitet -->
@@ -1072,13 +1291,55 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
           <th>Gruppe</th>
           <th class="th-sort" id="dbSortBaelte" onclick="setDbSort('baelte')">Bælte<span class="sort-arrow"></span></th>
           <th class="th-sort" id="dbSortAnc" onclick="setDbSort('anc')">Anciennitet<span class="sort-arrow"></span></th>
-          <th class="th-sort" id="dbSortAntal" onclick="setDbSort('antal')">Antal træninger<span class="sort-arrow"></span></th>
-          <th class="th-sort" id="dbSortPct" onclick="setDbSort('pct')">Fremmøde %<span class="sort-arrow"></span></th>
+          <th class="th-sort" id="dbSortAntal" onclick="setDbSort('antal')">Antal træninger <span id="dbAntalHy" style="font-size:.62rem;color:var(--xtl);font-weight:600">(halvår)</span><span class="sort-arrow"></span></th>
+          <th class="th-sort" id="dbSortPct" onclick="setDbSort('pct')">Fremmøde % <span id="dbPctHy" style="font-size:.62rem;color:var(--xtl);font-weight:600">(halvår)</span><span class="sort-arrow"></span></th>
         </tr>
       </thead>
       <tbody id="tbody-db"></tbody>
     </table>
     <div id="empty-db" class="empty-state" style="display:none"><div class="icon">📊</div>Ingen data endnu</div>
+  </div>
+
+  <!-- Heatmap: Hvem kommer hvilke dage? -->
+  <div class="tcard" style="padding:1.2rem;margin-top:.75rem">
+    <div class="sh" style="margin-bottom:1rem">
+      <div class="st">🗓️ Fremmøde-heatmap</div>
+      <div class="controls">
+        <input type="date" class="fs" id="hmFrom" onchange="renderHeatmap()" title="Fra dato" style="min-width:135px"/>
+        <span style="font-size:.75rem;color:var(--xtl);align-self:center">→</span>
+        <input type="date" class="fs" id="hmTo" onchange="renderHeatmap()" title="Til dato" style="min-width:135px"/>
+        <div style="display:flex;gap:.2rem;align-items:center">
+          <button class="btn bs btn-sm" onclick="setHmRange(1)" title="Sidste måned" style="padding:.3rem .6rem;font-size:.72rem">1M</button>
+          <button class="btn bs btn-sm" onclick="setHmRange(3)" title="Sidste 3 måneder" style="padding:.3rem .6rem;font-size:.72rem">3M</button>
+          <button class="btn bs btn-sm" onclick="setHmRange(6)" title="Sidste 6 måneder" style="padding:.3rem .6rem;font-size:.72rem">6M</button>
+          <button class="btn bs btn-sm" onclick="setHmRange(12)" title="Sidste år" style="padding:.3rem .6rem;font-size:.72rem">1Å</button>
+        </div>
+        <select class="fs" id="hmType" onchange="renderHeatmap()">
+          <option value="regular" selected>Kun regulære</option>
+          <option value="all">Alle træninger</option>
+          <option value="extra">Kun ekstra</option>
+        </select>
+        <select class="fs" id="hmGroup" onchange="renderHeatmap()">
+          <option value="all">Alle grupper</option>
+          <option value="Børnehold">Børnehold</option>
+          <option value="Basis-hold">Basis-hold</option>
+          <option value="Avanceret">Avanceret</option>
+        </select>
+        <input class="sbx" type="text" id="hmSearch" placeholder="🔍 Søg navn…" oninput="renderHeatmap()"/>
+      </div>
+    </div>
+    <div class="hm-legend">
+      <span class="hm-lg hm-lg-present">Til stede</span>
+      <span class="hm-lg hm-lg-extra">Ekstra træning</span>
+      <span class="hm-lg hm-lg-absent">Fravær</span>
+      <span class="hm-lg hm-lg-cancel">Aflyst</span>
+      <span class="hm-lg hm-lg-na">Ikke aktiv</span>
+    </div>
+    <div id="hm-summary" style="font-size:.78rem;color:var(--xtm);margin-bottom:.6rem"></div>
+    <div class="hm-wrap">
+      <div id="hm-grid"></div>
+    </div>
+    <div id="hm-empty" class="empty-state" style="display:none"><div class="icon">🗓️</div>Ingen træningsdata i perioden</div>
   </div>
 
   <!-- Bæltefordeling -->
@@ -1173,9 +1434,22 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div class="mtitle-left"><span>🥋</span><span id="mTitle">Tilføj nyt medlem</span></div>
       <button class="mclose" onclick="safeCloseModal('memberModal')">✕</button>
     </div>
+    <!-- Foto-upload sektion -->
+    <div class="photo-upload-wrap">
+      <div class="photo-preview" id="photoPreview">👤</div>
+      <div class="photo-actions">
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          <button type="button" class="photo-btn" onclick="triggerPhotoUpload()">📷 Upload foto</button>
+          <button type="button" class="photo-btn danger" id="photoDeleteBtn" onclick="removeCurrentPhoto()" style="display:none">🗑️ Slet</button>
+        </div>
+        <div class="photo-hint" id="photoStatus"></div>
+        <div class="photo-hint">Taget med kamera eller valgt fra bibliotek · 400×400 px</div>
+      </div>
+      <input type="file" id="photoFileInput" accept="image/*" capture="user" style="display:none" onchange="onPhotoFileSelected(event)"/>
+    </div>
     <div class="fg">
-      <div class="fgrp"><label>Fornavn *</label><input type="text" id="fFN" placeholder="Lars"/></div>
-      <div class="fgrp"><label>Efternavn *</label><input type="text" id="fLN" placeholder="Jensen"/></div>
+      <div class="fgrp"><label>Fornavn *</label><input type="text" id="fFN" placeholder="Lars" oninput="renderPhotoPreview()"/></div>
+      <div class="fgrp"><label>Efternavn *</label><input type="text" id="fLN" placeholder="Jensen" oninput="renderPhotoPreview()"/></div>
       <div class="fgrp full"><label>E-mail</label><input type="email" id="fEM" placeholder="lars@mail.dk"/></div>
       <div class="fgrp"><label>Telefon</label><input type="tel" id="fPH" placeholder="12 34 56 78"/></div>
       <div class="fgrp"><label>Køn</label>
@@ -1354,12 +1628,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 <!-- ══ MODAL: VURDERING ══ -->
 <div class="mbd" id="memberStatsModal">
-  <div class="modal" style="max-width:400px;width:92vw">
-    <div class="mtitle">
-      <div class="mtitle-left" id="msmTitle" style="font-size:.95rem">Fremmøde</div>
-      <button class="mclose" onclick="closeModal('memberStatsModal')">✕</button>
+  <div class="modal" style="max-width:420px;width:92vw">
+    <div class="m-hero hero-info">
+      <button class="m-hero-close" onclick="closeModal('memberStatsModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📊</span><span id="msmTitle">Fremmøde</span></div>
+      <div class="m-hero-sub" id="msmSubtitle">Overblik over mødte træninger</div>
     </div>
-    <div id="msmPeriodTabs" style="display:flex;gap:.4rem;margin-bottom:1rem"></div>
+    <div id="msmPhotoBox" style="display:none;text-align:center;margin-bottom:1rem"></div>
+    <div id="msmPeriodTabs" style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap"></div>
     <div id="msmStats"></div>
     <div id="msmSquares" style="margin-top:.75rem"></div>
   </div>
@@ -1392,10 +1668,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ MODAL: ARKIV ══ -->
 <div class="mbd" id="archiveModal">
   <div class="modal modal-lg">
-    <div class="mtitle">
-      <div class="mtitle-left"><span>📦</span><span>Arkiverede medlemmer</span></div>
-      <button class="mclose" onclick="closeModal('archiveModal')">✕</button>
+    <div class="m-hero">
+      <button class="m-hero-close" onclick="closeModal('archiveModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📦</span><span>Arkiverede medlemmer</span></div>
+      <div class="m-hero-sub" id="archiveModalSub">Tidligere aktive medlemmer</div>
     </div>
+    <div id="archivePhotoBanner" style="display:none;margin-bottom:.8rem"></div>
     <div id="archiveList"></div>
     <div class="ma"><button class="btn bg" onclick="closeModal('archiveModal')">Luk</button></div>
   </div>
@@ -1403,13 +1681,25 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 <!-- ══ MODAL: AFSLUTNINGSDATO ══ -->
 <div class="mbd" id="endDateModal">
-  <div class="modal" style="max-width:380px">
-    <div class="mtitle">
-      <div class="mtitle-left">📅 <span id="endDateModalTitle">Afslutningsdato</span></div>
-      <button class="mclose" onclick="closeModal('endDateModal')">✕</button>
+  <div class="modal" style="max-width:420px">
+    <div class="m-hero hero-warn">
+      <button class="m-hero-close" onclick="closeModal('endDateModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📅</span><span id="endDateModalTitle">Afslutningsdato</span></div>
+      <div class="m-hero-sub" id="endDateModalSub">Vælg hvornår medlemmet stoppede</div>
     </div>
-    <p style="font-size:.88rem;color:var(--xtm);margin:.2rem 0 1rem">Hvornår stoppede medlemmet? Bruges til historisk nøjagtighed i fremmødestatistik.</p>
+    <div id="endDatePersonCard"></div>
+    <div class="m-infobox warn">
+      <span class="m-infobox-icon">ℹ️</span>
+      <span>Afslutningsdatoen bruges til <strong>historisk nøjagtighed</strong> i fremmødestatistik — medlemmet tælles kun med i perioder hvor de var aktive.</span>
+    </div>
     <div class="fgrp"><label>Afslutningsdato</label><input type="date" id="endDateInput"/></div>
+    <div id="endDatePhotoOption" class="fgrp" style="display:none;background:#f5f9f9;border-radius:10px;padding:.6rem .75rem;border:1px solid #dde8e8;margin-top:.4rem">
+      <label style="font-size:.78rem;margin-bottom:.3rem;display:block;color:var(--tt);font-weight:600">📷 Medlemmet har et foto uploadet</label>
+      <div style="display:flex;flex-direction:column;gap:.3rem;font-size:.82rem">
+        <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;padding:.25rem .1rem"><input type="radio" name="endDatePhotoAction" value="keep" checked/><span>Behold foto (vises i arkiv)</span></label>
+        <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;padding:.25rem .1rem"><input type="radio" name="endDatePhotoAction" value="delete"/><span>🗑️ Slet foto fra Drive (frigør plads)</span></label>
+      </div>
+    </div>
     <div class="ma">
       <button class="btn bg" onclick="closeModal('endDateModal')">Annuller</button>
       <button class="btn bp" onclick="confirmEndDate()">✅ Bekræft</button>
@@ -1420,14 +1710,15 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ MODAL: HISTORIK DETALJE ══ -->
 <div class="mbd" id="hdModal">
   <div class="modal modal-lg">
-    <div class="mtitle">
-      <div class="mtitle-left"><span>📅</span><span id="hdTitle"></span></div>
-      <button class="mclose" onclick="closeModal('hdModal')">✕</button>
+    <div class="m-hero">
+      <button class="m-hero-close" onclick="closeModal('hdModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">📅</span><span id="hdTitle">Session</span></div>
+      <div class="m-hero-sub" id="hdSubtitle">Sessionsdetaljer</div>
     </div>
     <div id="hdContent"></div>
     <div class="ma">
+      <button class="btn bdr btn-sm" id="hdDeleteBtn" style="display:none;margin-right:auto" onclick="deleteSession()">🗑 Slet session</button>
       <button class="btn bg" onclick="closeModal('hdModal')">Luk</button>
-      <button class="btn bdr btn-sm" id="hdDeleteBtn" style="display:none" onclick="deleteSession()">🗑 Slet session</button>
     </div>
   </div>
 </div>
@@ -1666,6 +1957,19 @@ function calcAge(bd){
 function getAge(m){ return m.birthdate?calcAge(m.birthdate):(m.age!=null?m.age:null); }
 function ageStr(m){ const a=getAge(m); return a===null?'—':a+' år'+(m.birthdate?'':''); }
 function inits(m){ return ((m.firstName||'')[0]||'')+((m.lastName||'')[0]||''); }
+// ═══════════ FOTO: Google Drive URL + avatar-render helper ═══════════
+function photoUrl(photoId){
+  if(!photoId) return '';
+  // Drive offentlig URL — fungerer for billeder < 25 MB
+  return 'https://lh3.googleusercontent.com/d/'+photoId+'=w400-h400';
+}
+function avatarInner(m){
+  if(m && m.photoId){
+    const esc=inits(m).replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return '<img src="'+photoUrl(m.photoId)+'" loading="lazy" alt="" onerror="this.parentElement.textContent=\''+esc+'\'"/>';
+  }
+  return inits(m);
+}
 function today(){ return localDate(); }
 function fmtDate(iso){
   if(!iso)return'';
@@ -2123,6 +2427,16 @@ function autoLogout(){
   _appInited=false;
   setTimeout(()=>document.getElementById('lockInput')?.focus(),100);
 }
+// Scroll-detektion til at undgå utilsigtet fremmøde-toggle ved scroll på mobil
+let _touchStartY=0, _touchScrolled=false;
+document.addEventListener('touchstart',e=>{
+  _touchStartY=e.touches[0]?e.touches[0].clientY:0;
+  _touchScrolled=false;
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(e.touches[0]&&Math.abs(e.touches[0].clientY-_touchStartY)>8) _touchScrolled=true;
+},{passive:true});
+
 function startInactivityTracking(){
   ['click','keydown','touchstart','scroll'].forEach(ev=>{
     document.addEventListener(ev,resetInactivityTimer,{passive:true});
@@ -2324,7 +2638,7 @@ function renderQS(){
     const payLabel=eps==='paid'?'✅ Betalt':eps==='partial'?'⚡ Delvis':'❌ Ikke betalt';
     const passivBadge=m.status==='passiv'?'<span style="font-size:.65rem;background:#f3f4f6;color:#6b7280;border-radius:4px;padding:1px 5px;font-weight:600;margin-left:4px">Passiv</span>':'';
     return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer;opacity:${m.status==='passiv'?.6:1}" onclick="closeQuickSearch();openEditModal(${m.id})">
-      <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${inits(m)}</div>
+      <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}${passivBadge}</div>
         <div style="font-size:.74rem;color:#666">${m.phone||'ingen tlf.'} · ${m.email||'ingen e-mail'}</div>
@@ -2377,7 +2691,7 @@ function renderGlobalSearch(){
       const bc=BC[m.belt]||'#ccc';
       const passivBadge=m.status==='passiv'?'<span style="font-size:.65rem;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 5px;margin-left:4px">Passiv</span>':'';
       return `<div class="gs-item" onclick="closeGlobalSearch();switchTab('members');setTimeout(()=>openEditModal(${m.id}),80)">
-        <div class="gs-item-icon" style="background:var(--mbg)">${(() => { const cl=avClass(m.group); return `<div class="av ${cl}" style="width:30px;height:30px;font-size:.7rem">${inits(m)}</div>`; })()}</div>
+        <div class="gs-item-icon" style="background:var(--mbg)">${(() => { const cl=avClass(m.group); return `<div class="av ${cl}" style="width:30px;height:30px;font-size:.7rem">${avatarInner(m)}</div>`; })()}</div>
         <div class="gs-item-main">
           <div class="gs-item-title">${m.firstName} ${m.lastName}${passivBadge}</div>
           <div class="gs-item-sub"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);width:16px;height:5px;display:inline-block;vertical-align:middle;margin-right:3px"></span>${m.belt} · ${m.group}</div>
@@ -2455,8 +2769,17 @@ function openNotesModal(){
   document.getElementById('notesInput').value=noteVal;
   _notesModalOriginal=noteVal;
   const d=new Date(currentTrainingDate+'T12:00:00');
-  document.getElementById('notesModalDate').textContent=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('notesModalDate').textContent='📅 '+d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  updateNotesCounter();
   openModal('notesModal');
+}
+function updateNotesCounter(){
+  const el=document.getElementById('notesInput');
+  const c=document.getElementById('notesCounter');
+  if(!el||!c) return;
+  const n=el.value.length;
+  c.textContent=n+' tegn';
+  c.style.color=n>500?'#c2410c':'var(--xtl)';
 }
 function saveTrainingNote(){
   const note=document.getElementById('notesInput').value.trim();
@@ -2693,7 +3016,7 @@ function renderDashboardBirthdays(){
     const dateObj=new Date(String(m.birthdate).slice(0,10)+'T12:00:00');
     const dateStr=dateObj.toLocaleDateString('da-DK',{day:'numeric',month:'long'});
     return `<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid #f0f9f7">
-      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${inits(m)}</div>
+      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName} <span style="font-size:.75rem;color:var(--xtl);font-weight:400">fylder ${m._age}</span></div>
         <div style="font-size:.74rem;color:var(--xtl);margin-top:1px">${dateStr} · ${beltBadge}</div>
@@ -2847,7 +3170,7 @@ function initApp(){
   }
 }
 
-function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); }
+function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); checkBackupBanner(); }
 
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
@@ -3003,7 +3326,7 @@ function renderT(){
     vis++;
     const bc=BC[m.belt]||'#ccc';
     const streak=_streakCache[m.id]||0;
-    const streakBadge=streak>=2?`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`:'';
+    const streakBadge=streak>=2?`<span class="db-streak clickable" title="Klik for detaljer · ${streak} uger i træk" onclick="event.stopPropagation();showStreakDetailModal(${m.id})">🔥 ${streak} uger</span>`:'';
     const bdBadge=birthdayBadge(m);
     // Fraværsadvarsel
     const attendedSessions=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
@@ -3021,7 +3344,7 @@ function renderT(){
     tr.innerHTML=`
       <td style="text-align:center">
         <label class="toggle" title="${m.checkedIn?'Til stede':'Fraværende'}">
-          <input type="checkbox" ${m.checkedIn?'checked':''} onchange="toggleCI(${m.id},this.checked)"/>
+          <input type="checkbox" data-mid="${m.id}" ${m.checkedIn?'checked':''} onchange="toggleCI(${m.id},this.checked)"/>
           <span class="slider"></span>
         </label>
       </td>
@@ -3029,7 +3352,7 @@ function renderT(){
         <button class="btn bg btn-sm" onclick="openAssessmentModal(${m.id})" title="Vurdering" style="padding:.25rem .5rem;font-size:.8rem">📋</button>
       </td>
       <td><div class="mrow">
-        <div class="av ${avClass(m.group)}">${inits(m)}</div>
+        <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
         <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${bdBadge}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
@@ -3143,7 +3466,7 @@ function renderM(){
     if(isPassive)tr.className='passive-row';
     tr.innerHTML=`
       <td><div class="mrow">
-        <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${inits(m)}</div>
+        <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${avatarInner(m)}</div>
         <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
       </div></td>
       <td>${grpChip(m.group)}</td>
@@ -3204,7 +3527,7 @@ function renderPassiveMembers(q,fg,fr){
     return `<tr style="border-bottom:1px solid #f1f5f9;opacity:.85">
       <td style="padding:.6rem .8rem">
         <div style="display:flex;align-items:center;gap:.7rem">
-          <div class="av ${avClass(m.group)}" style="opacity:.6;flex-shrink:0">${inits(m)}</div>
+          <div class="av ${avClass(m.group)}" style="opacity:.6;flex-shrink:0">${avatarInner(m)}</div>
           <div>
             <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}</div>
             <div style="font-size:.74rem;color:var(--xtl)">${m.email||'ingen e-mail'}</div>
@@ -3280,14 +3603,466 @@ function updatePaymentSummary(){
       <div class="ps-icon">🎯</div>
       <div class="ps-body"><div class="ps-val">${fmt(forventet)}</div><div class="ps-lbl">Forventet i alt</div></div>
     </div>
-    <div class="pay-stat ps-ok">
+    <div class="pay-stat ps-ok" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt">
       <div class="ps-icon">✅</div>
       <div class="ps-body"><div class="ps-val">${fmt(betalt)}</div><div class="ps-lbl">Indbetalt i alt</div></div>
     </div>
-    <div class="pay-stat ps-miss">
+    <div class="pay-stat ps-miss" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale">
       <div class="ps-icon">⏳</div>
       <div class="ps-body"><div class="ps-val">${fmt(mangler)}</div><div class="ps-lbl">Mangler stadig</div></div>
     </div>`;
+}
+
+function showUnpaidModal(){
+  const act=members.filter(m=>!m.archived&&m.status!=='passiv');
+  const missing=act
+    .filter(m=>effectivePaymentStatus(m)!=='paid')
+    .map(m=>{
+      const exp=getExpectedAmount(m);
+      const paid=Number(m.betaltBeløb)||0;
+      const rest=Math.max(0,exp-paid);
+      const st=effectivePaymentStatus(m);
+      return {m,exp,paid,rest,st,age:getAge(m)};
+    })
+    .sort((a,b)=>b.rest-a.rest);
+
+  const fmt=n=>Math.round(n).toLocaleString('da-DK')+' kr';
+  const totalMissing=missing.reduce((s,x)=>s+x.rest,0);
+
+  // Opsummer efter alderssats
+  const groups={};
+  missing.forEach(x=>{
+    const key=x.exp;
+    if(!groups[key]) groups[key]={count:0,sum:0};
+    groups[key].count++;
+    groups[key].sum+=x.rest;
+  });
+  const groupParts=Object.keys(groups).sort((a,b)=>Number(b)-Number(a)).map(k=>{
+    const g=groups[k];
+    return `${g.count} × ${fmt(Number(k))}`;
+  });
+  const sumParts=Object.keys(groups).sort((a,b)=>Number(b)-Number(a)).map(k=>{
+    const g=groups[k];
+    return fmt(g.sum);
+  });
+
+  let html='';
+  if(missing.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">✅</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--tt)">Alle aktive medlemmer har betalt!</div>
+    </div>`;
+  } else {
+    const statusBadge=(st)=>{
+      if(st==='partial') return `<span class="amt-badge amt-partial">⚠️ Delvis</span>`;
+      if(st==='overdue') return `<span class="amt-badge amt-overdue">🔴 Overskredet</span>`;
+      return `<span class="amt-badge amt-unpaid">❌ Ikke betalt</span>`;
+    };
+    html=`
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#7c2d12">
+        <div style="font-weight:700;margin-bottom:.3rem">Sådan er beløbet sammensat:</div>
+        <div>${groupParts.join(' + ')} ${sumParts.length>1?'= '+sumParts.join(' + '):''}</div>
+        <div style="margin-top:.3rem;font-weight:700">Total manglende: ${fmt(totalMissing)}</div>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead>
+          <tr style="background:#f5f9f9;text-align:left">
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Navn</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Alder</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Forventet</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Betalt</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Mangler</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${missing.map(x=>`
+            <tr style="border-bottom:1px solid #eef3f3">
+              <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}</td>
+              <td style="padding:.5rem;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
+              <td style="padding:.5rem;text-align:right;color:var(--xtl)">${fmt(x.exp)}</td>
+              <td style="padding:.5rem;text-align:right;color:${x.paid>0?'#15803d':'var(--xtl)'}">${fmt(x.paid)}</td>
+              <td style="padding:.5rem;text-align:right;font-weight:700;color:#c2410c">${fmt(x.rest)}</td>
+              <td style="padding:.5rem">${statusBadge(x.st)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      </div>`;
+  }
+  document.getElementById('unpaidModalContent').innerHTML=html;
+  openModal('unpaidModal');
+}
+
+function showPaidModal(){
+  // Inkluderer alle ikke-arkiverede (også passive, da "Indbetalt i alt" gør det)
+  const all=members.filter(m=>!m.archived);
+  const paidList=all
+    .filter(m=>(Number(m.betaltBeløb)||0)>0)
+    .map(m=>{
+      const exp=getExpectedAmount(m);
+      const paid=Number(m.betaltBeløb)||0;
+      const rest=Math.max(0,exp-paid);
+      const st=effectivePaymentStatus(m);
+      return {m,exp,paid,rest,st,age:getAge(m)};
+    })
+    .sort((a,b)=>b.paid-a.paid);
+
+  const fmt=n=>Math.round(n).toLocaleString('da-DK')+' kr';
+  const totalPaid=paidList.reduce((s,x)=>s+x.paid,0);
+  const fullyPaid=paidList.filter(x=>x.st==='paid').length;
+  const partialPaid=paidList.filter(x=>x.st==='partial').length;
+
+  let html='';
+  if(paidList.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">💤</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--tt)">Ingen har indbetalt endnu</div>
+    </div>`;
+  } else {
+    const statusBadge=(st)=>{
+      if(st==='paid')    return `<span class="amt-badge amt-paid">✅ Betalt</span>`;
+      if(st==='partial') return `<span class="amt-badge amt-partial">⚠️ Delvis</span>`;
+      if(st==='overdue') return `<span class="amt-badge amt-overdue">🔴 Overskredet</span>`;
+      return `<span class="amt-badge amt-unpaid">❌ Ikke betalt</span>`;
+    };
+    html=`
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#065f46">
+        <div style="font-weight:700;margin-bottom:.3rem">Oversigt:</div>
+        <div>✅ ${fullyPaid} har betalt fuldt · ⚠️ ${partialPaid} har betalt delvist</div>
+        <div style="margin-top:.3rem;font-weight:700">Indbetalt i alt: ${fmt(totalPaid)}</div>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead>
+          <tr style="background:#f5f9f9;text-align:left">
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Navn</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Alder</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Forventet</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Betalt</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Rest</th>
+            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${paidList.map(x=>`
+            <tr style="border-bottom:1px solid #eef3f3">
+              <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}${x.m.status==='passiv'?' <span style="font-size:.7rem;color:var(--xtl);font-weight:400">(passiv)</span>':''}</td>
+              <td style="padding:.5rem;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
+              <td style="padding:.5rem;text-align:right;color:var(--xtl)">${fmt(x.exp)}</td>
+              <td style="padding:.5rem;text-align:right;font-weight:700;color:#15803d">${fmt(x.paid)}</td>
+              <td style="padding:.5rem;text-align:right;color:${x.rest>0?'#c2410c':'var(--xtl)'}">${fmt(x.rest)}</td>
+              <td style="padding:.5rem">${statusBadge(x.st)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      </div>`;
+  }
+  document.getElementById('paidModalContent').innerHTML=html;
+  openModal('paidModal');
+}
+
+function showPresentModal(){
+  const act=actMembers();
+  const present=act.filter(m=>m.checkedIn);
+  const total=act.length;
+  const GROUPS=[
+    {key:'Børnehold', icon:'🧒', color:'#3b82f6', bg:'#eff6ff', border:'#bfdbfe'},
+    {key:'Basis-hold', icon:'🥋', color:'#10b981', bg:'#ecfdf5', border:'#a7f3d0'},
+    {key:'Avanceret', icon:'⭐', color:'#8b5cf6', bg:'#f5f3ff', border:'#ddd6fe'}
+  ];
+  const dateStr=new Date().toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('presentModalTitle').textContent=`Til stede ${dateStr}`;
+  document.getElementById('presentModalSub').textContent=`${present.length} af ${total} aktive medlemmer er markeret til stede`;
+
+  let html='';
+  if(present.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">🫥</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--tt)">Ingen er markeret til stede endnu</div>
+      <div style="font-size:.85rem;margin-top:.3rem">Slå ⬤-knappen til ud for hvert medlem i tabellen for at markere dem som til stede.</div>
+    </div>`;
+  } else {
+    // Samlet oversigt
+    const grpCounts={};
+    GROUPS.forEach(g=>{ grpCounts[g.key]={present:0,total:0}; });
+    act.forEach(m=>{
+      const g=m.group||'Andet';
+      if(!grpCounts[g]) grpCounts[g]={present:0,total:0};
+      grpCounts[g].total++;
+      if(m.checkedIn) grpCounts[g].present++;
+    });
+    const summaryChips=Object.entries(grpCounts).filter(([g,c])=>c.total>0).map(([g,c])=>{
+      const gr=GROUPS.find(x=>x.key===g)||{icon:'👥',color:'#6b7280',bg:'#f3f4f6',border:'#d1d5db'};
+      const pct=c.total>0?Math.round(c.present/c.total*100):0;
+      return `<div style="background:${gr.bg};border:1px solid ${gr.border};border-radius:12px;padding:.6rem .8rem;flex:1;min-width:130px">
+        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem">
+          <span style="font-size:1.2rem">${gr.icon}</span>
+          <span style="font-size:.72rem;font-weight:700;color:${gr.color};text-transform:uppercase;letter-spacing:.04em">${g}</span>
+        </div>
+        <div style="font-size:1.4rem;font-weight:800;color:${gr.color};line-height:1">${c.present}<span style="font-size:.85rem;font-weight:500;color:var(--xtl)"> / ${c.total}</span></div>
+        <div style="font-size:.68rem;color:var(--xtl);margin-top:2px">${pct}% til stede</div>
+      </div>`;
+    }).join('');
+    html=`<div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">${summaryChips}</div>`;
+
+    // Pr. gruppe detaljeret liste
+    const groupOrder=[...GROUPS.map(g=>g.key), ...Object.keys(grpCounts).filter(k=>!GROUPS.some(g=>g.key===k))];
+    groupOrder.forEach(gKey=>{
+      const inGrp=present.filter(m=>(m.group||'Andet')===gKey);
+      if(inGrp.length===0) return;
+      const gr=GROUPS.find(x=>x.key===gKey)||{icon:'👥',color:'#6b7280',bg:'#f3f4f6',border:'#d1d5db'};
+      // Sort by belt rank descending so senior first, then alphabetically
+      const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+      const sorted=[...inGrp].sort((a,b)=>{
+        const rb=(BELT_RANK[b.belt]??-1)-(BELT_RANK[a.belt]??-1);
+        if(rb!==0) return rb;
+        return (a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da');
+      });
+      html+=`<div style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;padding:.4rem .7rem;background:${gr.bg};border-left:4px solid ${gr.color};border-radius:6px">
+          <span style="font-size:1.1rem">${gr.icon}</span>
+          <span style="font-weight:700;color:${gr.color}">${gKey}</span>
+          <span style="margin-left:auto;font-size:.72rem;color:var(--xtl);font-weight:600">${inGrp.length} til stede</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.5rem">
+          ${sorted.map(m=>{
+            const bc=(typeof BC!=='undefined'&&BC[m.belt])||'#ccc';
+            const age=getAge(m);
+            return `<div class="m-person" style="cursor:pointer" onclick="closeModal('presentModal');openMemberStatsModal(${m.id})" title="Klik for detaljer">
+              <div class="m-avatar av ${typeof avClass==='function'?avClass(m.group):''}" style="width:36px;height:36px;font-size:.78rem">${avatarInner(m)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:.88rem;color:var(--tt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+                <div style="font-size:.7rem;color:var(--xtl);display:flex;align-items:center;gap:.3rem">
+                  <span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);display:inline-block;width:14px;height:8px;border-radius:2px"></span>
+                  <span>${m.belt||'—'}</span>
+                  ${age!==null?`<span>· ${age} år</span>`:''}
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+  }
+  document.getElementById('presentModalContent').innerHTML=html;
+  openModal('presentModal');
+}
+
+/* ══════════════════════════════════════════════
+   DASHBOARD TILE POPUPS: Flest gange · Nye · Stoppede
+═══════════════════════════════════════════════ */
+function _dashHalfYearInfo(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const isH1=now.getMonth()<6;
+  return {
+    year:y,
+    isH1,
+    label:(isH1?'H1':'H2')+' '+y,
+    months:isH1?['01','02','03','04','05','06']:['07','08','09','10','11','12'],
+    prefix:y+'-',
+    inRange:(dt)=>dt && dt.startsWith(y+'-') && (isH1?['01','02','03','04','05','06']:['07','08','09','10','11','12']).includes(dt.slice(5,7))
+  };
+}
+
+function _memberRowHtml(m,extraRight,extraBelow){
+  const bc=(typeof BC!=='undefined'&&BC[m.belt])||'#ccc';
+  const age=(typeof getAge==='function')?getAge(m):null;
+  const grp=m.group||'Andet';
+  const grpCol={'Børnehold':'#3b82f6','Basis-hold':'#10b981','Avanceret':'#8b5cf6'}[grp]||'#6b7280';
+  const grpBg={'Børnehold':'#eff6ff','Basis-hold':'#ecfdf5','Avanceret':'#f5f3ff'}[grp]||'#f3f4f6';
+  const archivedBadge=m.archived?`<span style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem" title="Medlemmet er arkiveret">📦 Arkiveret</span>`:'';
+  const passiveBadge=!m.archived&&m.status==='passiv'?`<span style="background:#f3f4f6;color:#6b7280;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem" title="Passivt medlem">😴 Passiv</span>`:'';
+  const dimmed=m.archived?'opacity:.72;':'';
+  return `<div class="m-person" style="cursor:pointer;align-items:stretch;${dimmed}" onclick="closeAllTileModals();openMemberStatsModal(${m.id})" title="Klik for detaljer">
+    <div class="m-avatar av ${typeof avClass==='function'?avClass(grp):''}" style="width:38px;height:38px;font-size:.82rem;align-self:center">${avatarInner(m)}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:.9rem;color:var(--tt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+      <div style="font-size:.7rem;color:var(--xtl);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-top:2px">
+        <span style="background:${grpBg};color:${grpCol};border-radius:8px;padding:1px 6px;font-weight:700;font-size:.64rem">${grp}</span>
+        <span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);display:inline-block;width:14px;height:8px;border-radius:2px"></span>
+        <span>${m.belt||'—'}</span>
+        ${age!==null?`<span>· ${age} år</span>`:''}
+        ${archivedBadge}${passiveBadge}
+      </div>
+      ${extraBelow||''}
+    </div>
+    ${extraRight||''}
+  </div>`;
+}
+
+function closeAllTileModals(){
+  ['topAttendanceModal','newMembersModal','stoppedMembersModal','presentModal'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && el.classList.contains('open')) closeModal(id);
+  });
+}
+
+function showTopAttendanceModal(){
+  // Brug samme halvårs-scope som dashboardet
+  const hy=_dashHalfYearInfo();
+  const td=config.trainingDays||[2,4];
+  const act=actMembers();
+  // Regulære træninger i indeværende halvår
+  const hyReg=sessions.filter(s=>{
+    if(!s.date||cancelledDates.includes(s.date))return false;
+    if(!hy.inRange(s.date))return false;
+    const dw=new Date(s.date+'T12:00:00').getDay();
+    return td.includes(dw);
+  });
+  // Ekstra træninger i indeværende halvår
+  const hyExtra=sessions.filter(s=>{
+    if(!s.date||cancelledDates.includes(s.date))return false;
+    if(!hy.inRange(s.date))return false;
+    const dw=new Date(s.date+'T12:00:00').getDay();
+    return !td.includes(dw);
+  });
+  const regCount={}, exCount={};
+  act.forEach(m=>{ regCount[m.id]=0; exCount[m.id]=0; });
+  hyReg.forEach(s=>(s.presentIds||[]).forEach(id=>{ if(regCount[id]!==undefined) regCount[id]++; }));
+  hyExtra.forEach(s=>(s.presentIds||[]).forEach(id=>{ if(exCount[id]!==undefined) exCount[id]++; }));
+  const totalSess=hyReg.length;
+
+  const rows=act.map(m=>({m,reg:regCount[m.id]||0,ex:exCount[m.id]||0,tot:(regCount[m.id]||0)+(exCount[m.id]||0)}))
+                .filter(r=>r.tot>0)
+                .sort((a,b)=>(b.reg-a.reg)||(b.ex-a.ex)||(a.m.firstName+a.m.lastName).localeCompare(b.m.firstName+b.m.lastName,'da'));
+
+  document.getElementById('topAttendanceTitle').textContent=`Flest fremmøder · ${hy.label}`;
+  document.getElementById('topAttendanceSub').textContent=`${rows.length} medlem${rows.length===1?'':'mer'} har mødt op til mindst én træning · ${totalSess} regulære træninger holdt`;
+
+  let html='';
+  if(rows.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--tt)">Ingen fremmøder i ${hy.label}</div>
+      <div style="font-size:.85rem;margin-top:.3rem">Tjek om der er registreret sessioner i det valgte halvår.</div>
+    </div>`;
+  } else {
+    html=`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#1e3a8a">
+      <div style="font-weight:700;margin-bottom:.2rem">📊 Tæller regulære + ekstra træninger i ${hy.label}</div>
+      <div style="font-size:.8rem">Sorteret efter regulære → derefter ekstra → derefter navn.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.45rem">`;
+    rows.forEach((r,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      const pct=totalSess>0?Math.round(r.reg/totalSess*100):0;
+      const barW=Math.max(3,Math.min(100,pct));
+      const rightCol=`<div style="align-self:center;text-align:right;min-width:72px;padding-left:.5rem">
+        <div style="font-size:1.2rem;font-weight:800;color:#1d4ed8;line-height:1">${r.reg}</div>
+        <div style="font-size:.62rem;color:var(--xtl);font-weight:600">af ${totalSess}${r.ex>0?` · +${r.ex} ekstra`:''}</div>
+      </div>`;
+      const rankBadge=`<div style="position:absolute;top:.4rem;left:.4rem;background:${i<3?'#fef3c7':'#f3f4f6'};color:${i<3?'#92400e':'#6b7280'};font-weight:800;font-size:.68rem;border-radius:999px;padding:2px 8px;line-height:1.4">${medal}${i+1}</div>`;
+      const below=`<div style="margin-top:4px;display:flex;align-items:center;gap:.4rem">
+        <div style="flex:1;height:4px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="width:${barW}%;height:100%;background:linear-gradient(90deg,#60a5fa,#1d4ed8);border-radius:3px"></div></div>
+        <span style="font-size:.66rem;color:var(--xtl);font-weight:600;min-width:34px;text-align:right">${pct}%</span>
+      </div>`;
+      html+=`<div style="position:relative;padding-left:.5rem">${rankBadge}<div style="margin-left:2.2rem">${_memberRowHtml(r.m,rightCol,below)}</div></div>`;
+    });
+    html+='</div>';
+  }
+  document.getElementById('topAttendanceContent').innerHTML=html;
+  openModal('topAttendanceModal');
+}
+
+function showNewMembersModal(){
+  // Tager samme årsvalg som dashboardet (fallback: indeværende år)
+  // Inkluderer arkiverede der startede i året — så antallet matcher dashboard-tile'n
+  const yrSel=document.getElementById('dbYear');
+  const yrStr=yrSel?.value||String(new Date().getFullYear());
+  const newList=members.filter(m=>m.startDate&&m.startDate.startsWith(yrStr));
+  // Sortér: nyeste først
+  newList.sort((a,b)=>(b.startDate||'').localeCompare(a.startDate||''));
+  document.getElementById('newMembersTitle').textContent=`Nye elever · ${yrStr}`;
+  document.getElementById('newMembersSub').textContent=newList.length===0?`Ingen nye startede i ${yrStr}`:`${newList.length} medlem${newList.length===1?'':'mer'} startede i ${yrStr}`;
+
+  let html='';
+  if(newList.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">🌱</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--tt)">Ingen nye elever i ${yrStr}</div>
+    </div>`;
+  } else {
+    // Gruppér pr. måned
+    const byMonth={};
+    newList.forEach(m=>{ const mo=m.startDate.slice(0,7); if(!byMonth[mo]) byMonth[mo]=[]; byMonth[mo].push(m); });
+    const monthsSorted=Object.keys(byMonth).sort().reverse();
+    const DA_MONTHS=['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
+    html=`<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#065f46">
+      <div style="font-weight:700">🌱 ${newList.length} nye medlem${newList.length===1?'':'mer'} i ${yrStr}</div>
+      <div style="font-size:.78rem;margin-top:.2rem">Sorteret efter startdato — nyeste først. Klik for at se medlemsdetaljer.</div>
+    </div>`;
+    monthsSorted.forEach(mo=>{
+      const ymd=mo.split('-');
+      const moLbl=DA_MONTHS[parseInt(ymd[1])-1]+' '+ymd[0];
+      html+=`<div style="margin-bottom:.9rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.45rem;padding:.35rem .6rem;background:#f5f9f9;border-left:4px solid #10b981;border-radius:6px">
+          <span style="font-weight:700;color:#065f46;font-size:.85rem">${moLbl}</span>
+          <span style="margin-left:auto;font-size:.7rem;color:var(--xtl);font-weight:600">${byMonth[mo].length} ny${byMonth[mo].length===1?'':'e'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.45rem">`;
+      byMonth[mo].forEach(m=>{
+        const dNum=parseInt(m.startDate.slice(8,10));
+        const right=`<div style="align-self:center;text-align:right;padding-left:.4rem"><div style="font-size:.68rem;color:var(--xtl);font-weight:600">Startet</div><div style="font-size:.85rem;font-weight:800;color:#10b981;line-height:1">${dNum}. ${DA_MONTHS[parseInt(ymd[1])-1].slice(0,3).toLowerCase()}</div></div>`;
+        html+=_memberRowHtml(m,right,'');
+      });
+      html+=`</div></div>`;
+    });
+  }
+  document.getElementById('newMembersContent').innerHTML=html;
+  openModal('newMembersModal');
+}
+
+function showStoppedMembersModal(){
+  const yrSel=document.getElementById('dbYear');
+  const yrStr=yrSel?.value||String(new Date().getFullYear());
+  let edVault={};try{edVault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}');}catch(e){}
+  const stopList=members.filter(m=>{
+    const ed=m.endDate||edVault[String(m.id)]||'';
+    return ed && ed.startsWith(yrStr);
+  }).map(m=>({m, endDate:m.endDate||edVault[String(m.id)]||''}));
+  stopList.sort((a,b)=>(b.endDate||'').localeCompare(a.endDate||''));
+  document.getElementById('stoppedMembersTitle').textContent=`Stoppede elever · ${yrStr}`;
+  document.getElementById('stoppedMembersSub').textContent=stopList.length===0?`Ingen stoppede i ${yrStr}`:`${stopList.length} medlem${stopList.length===1?'':'mer'} stoppede i ${yrStr}`;
+
+  let html='';
+  if(stopList.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">🎉</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--tt)">Ingen stoppede i ${yrStr}</div>
+      <div style="font-size:.85rem;margin-top:.3rem">Alle medlemmer er stadig aktive!</div>
+    </div>`;
+  } else {
+    const byMonth={};
+    stopList.forEach(x=>{ const mo=x.endDate.slice(0,7); if(!byMonth[mo]) byMonth[mo]=[]; byMonth[mo].push(x); });
+    const monthsSorted=Object.keys(byMonth).sort().reverse();
+    const DA_MONTHS=['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
+    html=`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#9a3412">
+      <div style="font-weight:700">👋 ${stopList.length} medlem${stopList.length===1?'':'mer'} stoppede i ${yrStr}</div>
+      <div style="font-size:.78rem;margin-top:.2rem">Sorteret efter slutdato — seneste først. Klik for at se medlemsdetaljer.</div>
+    </div>`;
+    monthsSorted.forEach(mo=>{
+      const ymd=mo.split('-');
+      const moLbl=DA_MONTHS[parseInt(ymd[1])-1]+' '+ymd[0];
+      html+=`<div style="margin-bottom:.9rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.45rem;padding:.35rem .6rem;background:#fff7ed;border-left:4px solid #ea580c;border-radius:6px">
+          <span style="font-weight:700;color:#9a3412;font-size:.85rem">${moLbl}</span>
+          <span style="margin-left:auto;font-size:.7rem;color:var(--xtl);font-weight:600">${byMonth[mo].length} stoppede</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.45rem">`;
+      byMonth[mo].forEach(x=>{
+        const dNum=parseInt(x.endDate.slice(8,10));
+        const dur=(typeof durationStr==='function'&&x.m.startDate)?durationStr(x.m):'';
+        const right=`<div style="align-self:center;text-align:right;padding-left:.4rem"><div style="font-size:.68rem;color:var(--xtl);font-weight:600">Stoppet</div><div style="font-size:.85rem;font-weight:800;color:#ea580c;line-height:1">${dNum}. ${DA_MONTHS[parseInt(ymd[1])-1].slice(0,3).toLowerCase()}</div>${dur?`<div style="font-size:.62rem;color:var(--xtl);margin-top:2px">${dur}</div>`:''}</div>`;
+        html+=_memberRowHtml(x.m,right,'');
+      });
+      html+=`</div></div>`;
+    });
+  }
+  document.getElementById('stoppedMembersContent').innerHTML=html;
+  openModal('stoppedMembersModal');
 }
 
 const _amtTimers={};
@@ -3540,6 +4315,219 @@ function prevWeekKey(wk){
   }
   return yr*100+(w-1);
 }
+// Helper: Returnér alle regulære træningsdatoer (yyyy-mm-dd) for en given ISO-uge (weekKey)
+function regularDatesInWeek(wk){
+  const td=config.trainingDays||[2,4];
+  const yr=Math.floor(wk/100), w=wk%100;
+  const jan4=new Date(Date.UTC(yr,0,4));
+  const jan4Day=jan4.getUTCDay()||7;
+  const mondayW1=new Date(jan4);
+  mondayW1.setUTCDate(jan4.getUTCDate()-jan4Day+1);
+  const monday=new Date(mondayW1);
+  monday.setUTCDate(mondayW1.getUTCDate()+(w-1)*7);
+  const out=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);
+    d.setUTCDate(monday.getUTCDate()+i);
+    const dow=d.getUTCDay();
+    if(td.includes(dow)){
+      const y=d.getUTCFullYear();
+      const mo=String(d.getUTCMonth()+1).padStart(2,'0');
+      const da=String(d.getUTCDate()).padStart(2,'0');
+      out.push(`${y}-${mo}-${da}`);
+    }
+  }
+  return out;
+}
+
+// Helper: Er ALLE regulære træningsdage i denne uge aflyst?
+function isWeekFullyCancelled(wk, cancelledSet){
+  const regDates=regularDatesInWeek(wk);
+  if(regDates.length===0) return false;
+  return regDates.every(d=>cancelledSet.has(d));
+}
+
+// Helper: formatér uge-label fra weekKey (år*100+ugenr) til "Uge 15 — 7.-13. apr"
+function weekLabelFromKey(wk){
+  const yr=Math.floor(wk/100), w=wk%100;
+  // Find mandag i den ISO-uge (torsdag i uge 1 er altid i samme år)
+  const jan4=new Date(Date.UTC(yr,0,4));
+  const jan4Day=jan4.getUTCDay()||7;
+  const mondayWeek1=new Date(jan4);
+  mondayWeek1.setUTCDate(jan4.getUTCDate()-jan4Day+1);
+  const monday=new Date(mondayWeek1);
+  monday.setUTCDate(mondayWeek1.getUTCDate()+(w-1)*7);
+  const sunday=new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate()+6);
+  const months=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  const fmt=(d)=>d.getUTCDate()+'. '+months[d.getUTCMonth()];
+  return `Uge ${w} — ${fmt(monday)}–${fmt(sunday)}`;
+}
+
+// Dansk dato-format: "man 7. apr"
+function formatAttDate(ds){
+  const d=new Date(ds+'T12:00:00');
+  const days=['søn','man','tir','ons','tor','fre','lør'];
+  const months=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  return `${days[d.getDay()]} ${d.getDate()}. ${months[d.getMonth()]}`;
+}
+
+// Popup: streak-detaljer — viser uge for uge hvilke datoer medlemmet har trænet
+function showStreakDetailModal(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m) return;
+  const td=config.trainingDays||[2,4];
+  // Byg map: weekKey -> [dates] (kun regulære træningsdage — samme logik som calcStreak)
+  const weekMap={};
+  sessions.forEach(s=>{
+    if(!(s.presentIds||[]).includes(memberId)||!s.date) return;
+    const dw=new Date(s.date+'T12:00:00').getDay();
+    if(!td.includes(dw)) return;
+    const wk=getWeekKey(s.date);
+    if(!weekMap[wk]) weekMap[wk]=[];
+    weekMap[wk].push(s.date);
+  });
+  const cancelledWeeks=new Set((cancelledDates||[]).map(d=>getWeekKey(d)));
+  const cancelledDatesInWeek=(wk)=>(cancelledDates||[]).filter(d=>getWeekKey(d)===wk);
+  const currentWeek=getWeekKey(localDate());
+
+  // Gå tilbage ugevis — præcis som calcStreak — og byg visningsrækker
+  const rows=[];
+  let streak=0, check=currentWeek, foundFirst=false;
+  for(let i=0;i<52*5;i++){
+    if(weekMap[check]){
+      streak++; foundFirst=true;
+      rows.push({wk:check, type:'ok', dates:weekMap[check].slice().sort()});
+      check=prevWeekKey(check);
+    } else if(cancelledWeeks.has(check)){
+      rows.push({wk:check, type:'cancel', dates:cancelledDatesInWeek(check)});
+      check=prevWeekKey(check);
+    } else if(check===currentWeek){
+      rows.push({wk:check, type:'ongoing', dates:[]});
+      check=prevWeekKey(check);
+    } else {
+      break;
+    }
+  }
+
+  const color=streak>=2?'#c2410c':'var(--xtm)';
+  document.getElementById('attDetailHero').style.background='linear-gradient(135deg,#fff3e0,#ffedd5)';
+  document.getElementById('attDetailHero').style.color='#7c2d12';
+  document.getElementById('attDetailIcon').textContent='🔥';
+  document.getElementById('attDetailTitle').textContent=`${m.firstName} ${m.lastName} — Streak`;
+  document.getElementById('attDetailSub').textContent=streak>=2?`${streak} uger i træk`:'Ingen aktiv streak';
+
+  let html='';
+  if(rows.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">💤</div>
+      <div>Ingen streak-historik endnu</div>
+    </div>`;
+  } else {
+    html=`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#7c2d12">
+      <div style="font-weight:700;margin-bottom:.3rem">🔥 ${streak} ${streak===1?'uge':'uger'} i træk</div>
+      <div style="font-size:.8rem">Uger med mindst én aflyst træning og indeværende (igangværende) uge bryder ikke streaken.</div>
+    </div>`;
+    html+='<div style="background:#fff;border:1px solid #e5eaea;border-radius:8px;overflow:hidden">';
+    rows.forEach(r=>{
+      let status='', datesHtml='';
+      if(r.type==='ok'){
+        status=`<span class="att-week-status att-st-ok">✅ Mødt op</span>`;
+        datesHtml=r.dates.map(d=>formatAttDate(d)).join(' · ');
+      } else if(r.type==='cancel'){
+        status=`<span class="att-week-status att-st-cancel">⛔ Aflyst</span>`;
+        datesHtml=r.dates.length?r.dates.map(d=>formatAttDate(d)).join(' · '):'—';
+      } else if(r.type==='ongoing'){
+        status=`<span class="att-week-status att-st-ongoing">⏳ Indeværende</span>`;
+        datesHtml='Uge ikke slut endnu';
+      }
+      html+=`<div class="att-week-row">
+        <div class="att-week-label">${weekLabelFromKey(r.wk)}</div>
+        <div class="att-week-dates">${datesHtml}</div>
+        ${status}
+      </div>`;
+    });
+    html+='</div>';
+  }
+  document.getElementById('attDetailContent').innerHTML=html;
+  openModal('attendanceDetailModal');
+}
+
+// Popup: medalje-detaljer — viser alle træningsdatoer i indeværende halvår
+function showMilestoneDetailModal(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m) return;
+  const now=new Date();
+  const yr=now.getFullYear();
+  const isH1=now.getMonth()<6;
+  const hyLbl=(isH1?'H1':'H2')+' '+yr;
+  const months=isH1?['01','02','03','04','05','06']:['07','08','09','10','11','12'];
+  const monthNames={'01':'Januar','02':'Februar','03':'Marts','04':'April','05':'Maj','06':'Juni','07':'Juli','08':'August','09':'September','10':'Oktober','11':'November','12':'December'};
+  const prefix=yr+'-';
+  const td=config.trainingDays||[2,4];
+
+  // Saml alle sessions i halvåret hvor medlemmet var til stede
+  const attended=sessions
+    .filter(s=>s.date&&s.date.startsWith(prefix)&&months.includes(s.date.slice(5,7)))
+    .filter(s=>(s.presentIds||[]).includes(memberId))
+    .map(s=>({date:s.date, isExtra:!td.includes(new Date(s.date+'T12:00:00').getDay())}))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  // Kun regulære tæller til medaljen
+  const regCount=attended.filter(a=>!a.isExtra).length;
+  const extraCount=attended.filter(a=>a.isExtra).length;
+
+  // Medalje-info
+  let medalIcon='🎯', medalName='Ingen medalje endnu', heroBg='linear-gradient(135deg,#f5f9f9,#fff)', heroColor='var(--tt)';
+  if(regCount>=50){ medalIcon='⭐'; medalName='Platin (50+)'; heroBg='linear-gradient(135deg,#e0e7ff,#c7d2fe)'; heroColor='#3730a3'; }
+  else if(regCount>=25){ medalIcon='🥇'; medalName='Guld (25+)'; heroBg='linear-gradient(135deg,#fef08a,#fde047)'; heroColor='#854d0e'; }
+  else if(regCount>=10){ medalIcon='🏅'; medalName='Sølv (10+)'; heroBg='linear-gradient(135deg,#e2e8f0,#cbd5e1)'; heroColor='#475569'; }
+  else if(regCount>=5){ medalIcon='🎖️'; medalName='Bronze (5+)'; heroBg='linear-gradient(135deg,#fed7aa,#fdba74)'; heroColor='#9a3412'; }
+
+  document.getElementById('attDetailHero').style.background=heroBg;
+  document.getElementById('attDetailHero').style.color=heroColor;
+  document.getElementById('attDetailIcon').textContent=medalIcon;
+  document.getElementById('attDetailTitle').textContent=`${m.firstName} ${m.lastName} — ${medalName}`;
+  document.getElementById('attDetailSub').textContent=`${regCount} fremmøde i ${hyLbl}${extraCount>0?` · +${extraCount} ekstra`:''}`;
+
+  // Næste milepæl
+  let nextMs='';
+  if(regCount<5) nextMs=`${5-regCount} flere → 🎖️ Bronze`;
+  else if(regCount<10) nextMs=`${10-regCount} flere → 🏅 Sølv`;
+  else if(regCount<25) nextMs=`${25-regCount} flere → 🥇 Guld`;
+  else if(regCount<50) nextMs=`${50-regCount} flere → ⭐ Platin`;
+  else nextMs='🏆 Topniveau opnået!';
+
+  let html='';
+  if(attended.length===0){
+    html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">💤</div>
+      <div>Ingen fremmøde i ${hyLbl} endnu</div>
+    </div>`;
+  } else {
+    html=`<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:.7rem .9rem;margin-bottom:.9rem;font-size:.85rem;color:#0c4a6e">
+      <div style="font-weight:700;margin-bottom:.3rem">${medalIcon} ${regCount} fremmøde${regCount===1?'':'r'} i ${hyLbl}</div>
+      <div style="font-size:.8rem">${nextMs}${extraCount>0?` · <span style="color:#6b21a8;font-weight:600">+${extraCount} ekstra træning${extraCount===1?'':'er'}</span>`:''}</div>
+    </div>`;
+    // Grupper per måned
+    const byMonth={};
+    attended.forEach(a=>{
+      const mo=a.date.slice(5,7);
+      if(!byMonth[mo]) byMonth[mo]=[];
+      byMonth[mo].push(a);
+    });
+    months.filter(mo=>byMonth[mo]).forEach(mo=>{
+      const list=byMonth[mo];
+      html+=`<div class="att-month-group">
+        <div class="att-month-title">${monthNames[mo]} ${yr} <span style="font-weight:400;color:var(--xtl);font-size:.8rem">· ${list.length} ${list.length===1?'gang':'gange'}</span></div>
+        <div>${list.map(a=>`<span class="att-date-chip${a.isExtra?' extra':''}" title="${a.isExtra?'Ekstra træning':'Regulær træning'}">${formatAttDate(a.date)}${a.isExtra?' +':''}</span>`).join('')}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('attDetailContent').innerHTML=html;
+  openModal('attendanceDetailModal');
+}
+
 function calcStreak(memberId){
   const td=config.trainingDays||[2,4];
   const attended=new Set();
@@ -3550,7 +4538,7 @@ function calcStreak(memberId){
     }
   });
   if(!attended.size) return 0;
-  // Uger med mindst én aflyst dato tæller ikke som brudt streak
+  // Lempelig regel: Uger med mindst én aflyst dato bryder ikke streaken
   const cancelledWeeks=new Set((cancelledDates||[]).map(d=>getWeekKey(d)));
   const currentWeek=getWeekKey(localDate());
   let streak=0, check=currentWeek, foundFirst=false;
@@ -3558,7 +4546,7 @@ function calcStreak(memberId){
     if(attended.has(check)){
       streak++; foundFirst=true; check=prevWeekKey(check);
     } else if(cancelledWeeks.has(check)){
-      // Aflyst uge — spring over uden at bryde streak
+      // Mindst én dato i ugen er aflyst — spring over uden at bryde streak
       check=prevWeekKey(check);
     } else if(check===currentWeek){
       // Indeværende uge er ikke slut endnu — spring over uden at bryde streak
@@ -3645,21 +4633,39 @@ function renderDashboard(){
   const selYear=parseInt(yearSel.value)||curYear;
   yearSel.style.display=periodType==='year'?'none':'';
 
-  // Primære fremmødetæller
+  // Halvårs-scope: tæl kun træninger i indeværende halvår (H1 jan-jun / H2 jul-dec)
+  // Så tallet i "Antal"-kolonnen ikke akkumuleres livstidsvist
+  const _dbNow=new Date();
+  const _dbHyYear=_dbNow.getFullYear();
+  const _dbHyIsH1=_dbNow.getMonth()<6;
+  const _dbHyLbl=(_dbHyIsH1?'H1':'H2')+' '+_dbHyYear;
+  const _dbHyMonths=_dbHyIsH1?['01','02','03','04','05','06']:['07','08','09','10','11','12'];
+  const _dbHyPrefix=_dbHyYear+'-';
+  function _dbInHy(dt){ return dt && dt.startsWith(_dbHyPrefix) && _dbHyMonths.includes(dt.slice(5,7)); }
+  const hyActive=activeSessions.filter(s=>_dbInHy(s.date));
+  const hyInactive=inactiveSessions.filter(s=>_dbInHy(s.date));
+
+  // Primære fremmødetæller (scoped til indeværende halvår)
   const counts={};
   act.forEach(m=>{ counts[m.id]=0; });
-  activeSessions.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(counts[id]!==undefined)counts[id]++; }); });
+  hyActive.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(counts[id]!==undefined)counts[id]++; }); });
 
   // Sekundære fremmødetæller (den anden type — vises kun som badge i regular-tilstand)
   const extraCounts={};
   act.forEach(m=>{ extraCounts[m.id]=0; });
-  inactiveSessions.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(extraCounts[id]!==undefined)extraCounts[id]++; }); });
+  hyInactive.forEach(s=>{ (s.presentIds||[]).forEach(id=>{ if(extraCounts[id]!==undefined)extraCounts[id]++; }); });
 
-  // Stats
-  const totalSess=activeSessions.length;
-  document.getElementById('db-sessions').textContent=totalSess;
-  document.getElementById('db-sessions-lbl').textContent=totalSess===1?'Registreret fast træning':'Registrerede faste træninger';
-  const avg=totalSess>0?Math.round(regSessions.reduce((a,s)=>a+(s.presentIds||[]).length,0)/totalSess):0;
+  // Stats — totalSess er også halvårs-scoped så pct i tabel matcher counts
+  const totalSess=hyActive.length;
+  const totalSessAll=activeSessions.length; // bevaret til øvrige tiles der viser fuld historik
+  // Halvårs-labels på tabel-header
+  const _hyAntalEl=document.getElementById('dbAntalHy');
+  const _hyPctEl=document.getElementById('dbPctHy');
+  if(_hyAntalEl) _hyAntalEl.textContent='('+_dbHyLbl+')';
+  if(_hyPctEl) _hyPctEl.textContent='('+_dbHyLbl+')';
+  document.getElementById('db-sessions').textContent=totalSessAll;
+  document.getElementById('db-sessions-lbl').textContent=totalSessAll===1?'Registreret fast træning':'Registrerede faste træninger';
+  const avg=totalSessAll>0?Math.round(regSessions.reduce((a,s)=>a+(s.presentIds||[]).length,0)/totalSessAll):0;
   document.getElementById('db-avgatt').textContent=avg;
   // Topstat opdateres efter tabellen er sorteret — se nedenfor
 
@@ -3838,6 +4844,8 @@ function renderDashboard(){
   const topC=topM?counts[topM.id]:0;
   document.getElementById('db-topname').textContent=topM?topM.firstName+' '+topM.lastName:'—';
   document.getElementById('db-topcount').textContent=topC;
+  const _topLbl=document.getElementById('db-topcount-lbl');
+  if(_topLbl) _topLbl.textContent='Flest gange ('+_dbHyLbl+')';
 
   // Nye og stoppede elever for det valgte år
   const yrStr=String(selYear);
@@ -3948,14 +4956,19 @@ function renderDashboard(){
     const pct=totalSess>0?Math.round(c/totalSess*100):0;
     const bc=BC[m.belt]||'#ccc';
     const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    // Milestone badge viser det reelle antal i indeværende halvår (ikke akkumuleret)
     let milestone='';
-    if(c>=50) milestone='<span class="db-milestone db-ms-plat">⭐ 50+</span>';
-    else if(c>=25) milestone='<span class="db-milestone db-ms-gold">🥇 25+</span>';
-    else if(c>=10) milestone='<span class="db-milestone db-ms-silver">🏅 10+</span>';
-    else if(c>=5) milestone='<span class="db-milestone db-ms-bronze">🎖️ 5+</span>';
+    if(c>0){
+      const _mTip=`Klik for detaljer · ${c} fremmøde i ${_dbHyLbl}`;
+      const _mClick=`onclick="event.stopPropagation();showMilestoneDetailModal(${m.id})"`;
+      if(c>=50) milestone=`<span class="db-milestone db-ms-plat clickable" title="${_mTip}" ${_mClick}>⭐ ${c}</span>`;
+      else if(c>=25) milestone=`<span class="db-milestone db-ms-gold clickable" title="${_mTip}" ${_mClick}>🥇 ${c}</span>`;
+      else if(c>=10) milestone=`<span class="db-milestone db-ms-silver clickable" title="${_mTip}" ${_mClick}>🏅 ${c}</span>`;
+      else if(c>=5) milestone=`<span class="db-milestone db-ms-bronze clickable" title="${_mTip}" ${_mClick}>🎖️ ${c}</span>`;
+    }
     const streak=_dbStreakCache[m.id]||0;
     let streakBadge='';
-    if(streak>=2) streakBadge=`<span class="db-streak" title="${streak} uger i træk">🔥 ${streak} uger</span>`;
+    if(streak>=2) streakBadge=`<span class="db-streak clickable" title="Klik for detaljer · ${streak} uger i træk" onclick="event.stopPropagation();showStreakDetailModal(${m.id})">🔥 ${streak} uger</span>`;
     const _dbTodayMs=new Date().setHours(0,0,0,0);
     const _dbAtt=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
     let _dbDaysSince=null;
@@ -3966,7 +4979,7 @@ function renderDashboard(){
     tr.innerHTML=`
       <td style="text-align:center"><div class="db-rank ${rankCls}">${i+1}</div></td>
       <td><div class="mrow">
-        <div class="av ${avClass(m.group)}">${inits(m)}</div>
+        <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
         <div><div class="mn" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
@@ -3983,6 +4996,211 @@ function renderDashboard(){
   renderDashboardSeniority();
   renderDashboardBeltDist();
   renderDashboardAbsent();
+  renderHeatmap();
+}
+
+function openHDFromDate(ds){
+  const sess=sessions.find(s=>s.date===ds);
+  const d=new Date(ds+'T12:00:00');
+  openHD(ds,d,sess||null);
+}
+
+function setHmRange(months){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const from=new Date(today);
+  from.setMonth(from.getMonth()-months);
+  const fromEl=document.getElementById('hmFrom');
+  const toEl=document.getElementById('hmTo');
+  if(fromEl) fromEl.value=localDate(from);
+  if(toEl) toEl.value=localDate(today);
+  renderHeatmap();
+}
+
+function renderHeatmap(){
+  const grid=document.getElementById('hm-grid');
+  const empty=document.getElementById('hm-empty');
+  const sumEl=document.getElementById('hm-summary');
+  if(!grid) return;
+
+  const fromEl=document.getElementById('hmFrom');
+  const toEl=document.getElementById('hmTo');
+  const typeF=document.getElementById('hmType')?.value||'all';
+  const groupF=document.getElementById('hmGroup')?.value||'all';
+  const q=(document.getElementById('hmSearch')?.value||'').toLowerCase().trim();
+
+  // Beregn periode — brug date pickers, default til sidste 3 mdr hvis tomme
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayStr=localDate(today);
+  let fromStr=fromEl?.value||'';
+  let toStr=toEl?.value||'';
+  if(!fromStr){
+    const defFrom=new Date(today); defFrom.setMonth(defFrom.getMonth()-3);
+    fromStr=localDate(defFrom);
+    if(fromEl) fromEl.value=fromStr;
+  }
+  if(!toStr){
+    toStr=todayStr;
+    if(toEl) toEl.value=toStr;
+  }
+  // Sikring: fra må ikke være efter til
+  if(fromStr>toStr){ const tmp=fromStr; fromStr=toStr; toStr=tmp; if(fromEl)fromEl.value=fromStr; if(toEl)toEl.value=toStr; }
+
+  // Find alle sessioner i perioden
+  const td=config.trainingDays||[2,4];
+  let sessList=sessions
+    .filter(s=>s.date&&s.date>=fromStr&&s.date<=toStr)
+    .sort((a,b)=>a.date<b.date?-1:1);
+
+  if(typeF==='regular'){
+    sessList=sessList.filter(s=>{
+      const dw=new Date(s.date+'T12:00:00').getDay();
+      return td.includes(dw);
+    });
+  } else if(typeF==='extra'){
+    sessList=sessList.filter(s=>{
+      const dw=new Date(s.date+'T12:00:00').getDay();
+      return !td.includes(dw);
+    });
+  }
+
+  // Aflyste datoer i perioden (kun hvor det var en regulær træningsdag)
+  const cancelledInPeriod=(cancelledDates||[])
+    .filter(d=>d>=fromStr&&d<=toStr)
+    .filter(d=>{
+      const dw=new Date(d+'T12:00:00').getDay();
+      return td.includes(dw);
+    });
+
+  // Byg kolonne-liste: sessioner + aflyste regulære dage (undgå duplikater)
+  const sessionDates=new Set(sessList.map(s=>s.date));
+  const cancelDates=cancelledInPeriod.filter(d=>!sessionDates.has(d));
+  const columns=[
+    ...sessList.map(s=>{
+      const dw=new Date(s.date+'T12:00:00').getDay();
+      const isExtra=!td.includes(dw);
+      return {date:s.date,session:s,cancelled:false,isExtra};
+    }),
+    ...(typeF==='extra'?[]:cancelDates.map(d=>({date:d,session:null,cancelled:true,isExtra:false})))
+  ].sort((a,b)=>a.date<b.date?-1:1);
+
+  // Find medlemmer der skal vises
+  const allAct=members.filter(m=>!m.archived&&m.status!=='passiv');
+  let mems=allAct;
+  if(groupF!=='all') mems=mems.filter(m=>m.group===groupF);
+  if(q) mems=mems.filter(m=>(m.firstName+' '+m.lastName).toLowerCase().includes(q));
+
+  if(!columns.length||!mems.length){
+    grid.innerHTML='';
+    empty.style.display='block';
+    if(sumEl) sumEl.textContent='';
+    return;
+  }
+  empty.style.display='none';
+
+  // Beregn fremmødeprocent per medlem (kun "aktive" sessioner hvor medlemmet var aktivt)
+  const memberStats=mems.map(m=>{
+    let present=0, eligible=0;
+    columns.forEach(col=>{
+      if(col.cancelled) return; // aflyst tæller ikke som mulighed
+      // Var medlemmet aktivt denne dato?
+      const active=(!m.startDate||m.startDate<=col.date)&&(!m.endDate||m.endDate>=col.date);
+      if(!active) return;
+      eligible++;
+      if((col.session.presentIds||[]).includes(m.id)) present++;
+    });
+    const pct=eligible>0?Math.round(present/eligible*100):0;
+    return {m,present,eligible,pct};
+  });
+
+  // Sortér efter %, højest først
+  memberStats.sort((a,b)=>{
+    if(b.pct!==a.pct) return b.pct-a.pct;
+    if(b.present!==a.present) return b.present-a.present;
+    return (a.m.firstName+a.m.lastName).localeCompare(b.m.firstName+b.m.lastName);
+  });
+
+  // Summary
+  const totalSessions=columns.filter(c=>!c.cancelled).length;
+  const regCount=columns.filter(c=>!c.cancelled&&!c.isExtra).length;
+  const extraCount=columns.filter(c=>!c.cancelled&&c.isExtra).length;
+  const cancCount=columns.filter(c=>c.cancelled).length;
+  if(sumEl){
+    const parts=[];
+    parts.push(`${totalSessions} træninger`);
+    if(regCount>0) parts.push(`${regCount} regulære`);
+    if(extraCount>0) parts.push(`⭐ ${extraCount} ekstra`);
+    if(cancCount>0) parts.push(`⚠️ ${cancCount} aflyst`);
+    parts.push(`${mems.length} medlemmer`);
+    sumEl.textContent=parts.join(' · ');
+  }
+
+  // Byg tabel
+  const daNames=['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
+  const monNames=['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+
+  const headerCells=columns.map(col=>{
+    const d=new Date(col.date+'T12:00:00');
+    const dayNo=d.getDate();
+    const dow=daNames[d.getDay()];
+    const mon=monNames[d.getMonth()];
+    let cls='hm-th-date';
+    let titleStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if(col.cancelled){ cls+=' hm-cancel'; titleStr+=' — AFLYST'; }
+    else if(col.isExtra){ cls+=' hm-extra'; titleStr+=' — EKSTRA TRÆNING'; }
+    const onclick=col.session?` onclick="openHDFromDate('${col.date}')"`:'';
+    return `<th class="${cls}" title="${titleStr}"${onclick}>
+      <span class="hm-dow">${dow}</span>
+      <span class="hm-day">${dayNo}</span>
+      <span class="hm-mon">${mon}</span>
+    </th>`;
+  }).join('');
+
+  const initials=(m)=>((m.firstName||'?')[0]+((m.lastName||' ')[0]||'')).toUpperCase();
+
+  const rows=memberStats.map(({m,present,eligible,pct})=>{
+    const cells=columns.map(col=>{
+      const d=col.date;
+      const active=(!m.startDate||m.startDate<=d)&&(!m.endDate||m.endDate>=d);
+      if(!active){
+        return `<td class="hm-cell hm-na" title="${m.firstName} ${m.lastName} — ikke aktiv ${d}"></td>`;
+      }
+      if(col.cancelled){
+        return `<td class="hm-cell hm-cancel" title="${d} — aflyst"></td>`;
+      }
+      const was=(col.session.presentIds||[]).includes(m.id);
+      if(was){
+        const cls=col.isExtra?'hm-present-extra':'hm-present';
+        const lbl=col.isExtra?'til stede (ekstra)':'til stede';
+        return `<td class="hm-cell ${cls}" title="${m.firstName} ${m.lastName} — ${d} — ${lbl}"></td>`;
+      }
+      return `<td class="hm-cell hm-absent" title="${m.firstName} ${m.lastName} — ${d} — fravær"></td>`;
+    }).join('');
+
+    const pctCls=pct>=80?'hm-pct-hi':pct>=50?'hm-pct-mid':'hm-pct-lo';
+    const pctStr=eligible>0?`${pct}%`:'—';
+    const pctSub=eligible>0?`${present}/${eligible}`:'';
+
+    return `<tr>
+      <td class="hm-name" onclick="openMemberStatsModal(${m.id})" title="Klik for fremmøde-detaljer">
+        ${m.firstName} ${m.lastName}
+        <span class="hm-sub">${m.group||''}</span>
+      </td>
+      ${cells}
+      <td class="hm-pct"><span class="hm-pct-val ${pctCls}">${pctStr}</span><div style="font-size:.64rem;color:var(--xtl);font-weight:500">${pctSub}</div></td>
+    </tr>`;
+  }).join('');
+
+  grid.innerHTML=`
+    <table class="hm-table">
+      <thead>
+        <tr>
+          <th class="hm-th-name">Medlem</th>
+          ${headerCells}
+          <th class="hm-th-pct">%</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function renderDashboardTop3(){
@@ -4097,7 +5315,7 @@ function renderDashboardTop3(){
       const extraBadge=ex>0?`<span style="font-size:.6rem;font-weight:700;color:#7c3aed;margin-left:2px">+${ex}</span>`:'';
       return `<div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" title="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
-        <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${inits(m)}</div>
+        <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${avatarInner(m)}</div>
         <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div></div>
         <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap">${reg}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${extraBadge}</div>
       </div>`;}).join('')
@@ -4252,7 +5470,7 @@ function renderDashboardAbsent(){
           ?`<button onclick="sendReminder(${m.id},2)" title="Send 2. påmindelse til ${m.firstName}" style="font-size:.72rem;font-weight:700;background:#ede9fe;color:#6d28d9;border:1.5px solid #c4b5fd;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">✉️ Send R2</button>`
           :`<span style="font-size:.7rem;font-weight:400;color:var(--xtl);border:1.5px dashed #d1d5db;border-radius:7px;padding:3px 7px;white-space:nowrap" title="Send R1 først">R2</span>`;
     return `<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid #f5f5f0;flex-wrap:wrap">
-      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${inits(m)}</div>
+      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:120px">
         <div style="font-weight:700;font-size:.88rem">${m.firstName} ${m.lastName}</div>
         <div style="font-size:.75rem;color:var(--xtl)">${m.group||''}${m.belt?' · '+m.belt:''}</div>
@@ -4351,6 +5569,14 @@ function exportAttendance(){
 
 function openHD(ds,dateObj,saved){
   document.getElementById('hdTitle').textContent=fmtDate(ds);
+  const sub=document.getElementById('hdSubtitle');
+  if(sub){
+    if(saved && saved.presentIds){
+      sub.textContent=saved.presentIds.length+' til stede ved denne træning';
+    } else {
+      sub.textContent='Ingen fremmødedata registreret';
+    }
+  }
   const c=document.getElementById('hdContent');
   const delBtn=document.getElementById('hdDeleteBtn');
   if(!saved){c.innerHTML='<p style="color:var(--xtl);padding:1rem 0">Ingen fremmødedata for denne dato.</p>';if(delBtn)delBtn.style.display='none';openModal('hdModal');return;}
@@ -4381,7 +5607,7 @@ function deleteSession(){
 
 function renderHDContent(c,pm,am,split,note=''){
   const row=(m,present,variant='')=>`<div class="dm-row ${present?'present':''} ${variant}">
-    <div class="av ${present?avClass(m.group):''}" style="width:28px;height:28px;font-size:.7rem${present?'':';background:var(--xtl)'}">${inits(m)}</div>
+    <div class="av ${present?avClass(m.group):''}" style="width:28px;height:28px;font-size:.7rem${present?'':';background:var(--xtl)'}">${avatarInner(m)}</div>
     <span class="dm-name">${m.firstName} ${m.lastName}</span>
     ${payBadge(m)}
     ${present?'✅':'❌'}
@@ -4501,6 +5727,20 @@ function openHDNoteModal(){
 let _ciPushTimer=null;
 function toggleCI(id,val){
   const m=members.find(x=>x.id===id);if(!m)return;
+  // Hvis brugeren scrollede (ikke tappede), reverter checkboxen og ignorer
+  if(_touchScrolled){
+    const cb=document.querySelector(`input[data-mid="${id}"]`);
+    if(cb) cb.checked=m.checkedIn;
+    return;
+  }
+  // Bekræft afmelding hvis eleven allerede var tjekket ind
+  if(!val && m.checkedIn){
+    if(!confirm(`Afmeld ${m.firstName} ${m.lastName} fra dagens træning?`)){
+      const cb=document.querySelector(`input[data-mid="${id}"]`);
+      if(cb) cb.checked=true;
+      return;
+    }
+  }
   m.checkedIn=val;
   // Nulstil reminder-datoer når eleven møder op igen
   if(val&&(m.rem1||m.rem2)){m.rem1='';m.rem2='';}
@@ -4566,6 +5806,8 @@ function openAddModal(){
   document.getElementById('ageCalc').style.display='none';
   const _attSec=document.getElementById('memberAttendanceSection');
   if(_attSec) _attSec.style.display='none';
+  resetPhotoModalState();
+  renderPhotoPreview();
   _memberModalDirty = false;
   openModal('memberModal');
 }
@@ -4598,6 +5840,8 @@ function openEditModal(id){
   document.getElementById('fCP').value=m.contactPhone||'';
   updateAgePreview();
   renderMemberAttendanceSection(id);
+  resetPhotoModalState();
+  renderPhotoPreview();
   _memberModalDirty = false;
   openModal('memberModal');
 }
@@ -4611,7 +5855,7 @@ function updateAgePreview(){
     af.readOnly=false;hint.style.display='';calc.style.display='none';
   }
 }
-function saveMember(){
+async function saveMember(){
   const fn=document.getElementById('fFN').value.trim(),ln=document.getElementById('fLN').value.trim();
   if(!fn||!ln){alert('Fornavn og efternavn er påkrævet.');return;}
   const em=document.getElementById('fEM').value.trim();
@@ -4636,14 +5880,46 @@ function saveMember(){
     contactName:document.getElementById('fCN').value.trim()||null,
     contactPhone:document.getElementById('fCP').value.trim()||null,
   };
+  // Opret først medlem, så vi har et ID til foto-upload
+  let savedMember;
   if(editingId){
     const i=members.findIndex(x=>x.id===editingId);
     members[i]={...members[i],...data};
-    showToast('✏️ '+fn+' '+ln+' opdateret');
+    savedMember=members[i];
   } else {
-    members.push({id:nextId++,checkedIn:false,...data});
-    showToast('✅ '+fn+' '+ln+' oprettet');
+    savedMember={id:nextId++,checkedIn:false,...data};
+    members.push(savedMember);
   }
+  // Håndter foto-ændringer
+  if(_currentEditPhotoDirty){
+    const saveBtn=document.querySelector('#memberModal .bp');
+    const origText=saveBtn?saveBtn.textContent:'';
+    try{
+      if(typeof _currentEditPhotoId==='string'&&_currentEditPhotoId.startsWith('data:')){
+        // Nyt foto skal uploades
+        if(saveBtn){saveBtn.disabled=true;saveBtn.innerHTML='<span class="photo-spinner" style="border-top-color:#fff"></span> Uploader foto…';}
+        const oldPhotoId=savedMember.photoId;
+        const newPhotoId=await uploadPhotoToDrive(savedMember.id, _currentEditPhotoId);
+        savedMember.photoId=newPhotoId;
+        // Slet gammelt foto hvis det eksisterede
+        if(oldPhotoId&&oldPhotoId!==newPhotoId){
+          deletePhotoFromDrive(oldPhotoId); // fire-and-forget
+        }
+      } else if(_currentEditPhotoId===''){
+        // Slet-markering
+        const oldPhotoId=savedMember.photoId;
+        savedMember.photoId=null;
+        if(oldPhotoId) deletePhotoFromDrive(oldPhotoId);
+      }
+    }catch(err){
+      if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=origText;}
+      alert('⚠️ Foto-upload fejlede: '+err.message+'\n\nMedlemmet er gemt men uden foto. Prøv igen ved at åbne medlemmet og upload på ny.');
+      // Fortsæt alligevel — medlemsdata er vigtigere end foto
+    }
+    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=origText;}
+  }
+  showToast(editingId?('✏️ '+fn+' '+ln+' opdateret'):('✅ '+fn+' '+ln+' oprettet'));
+  resetPhotoModalState();
   _memberModalDirty=false; save();closeModal('memberModal');renderAll();
 }
 
@@ -4726,7 +6002,22 @@ function openMemberStatsModal(id){
 }
 function _renderMsm(){
   const m=members.find(x=>x.id===_msmId); if(!m) return;
-  document.getElementById('msmTitle').innerHTML=`<strong>${m.firstName} ${m.lastName}</strong> <span style="font-size:.75rem;font-weight:400;color:var(--xtl)">${m.belt}</span>`;
+  document.getElementById('msmTitle').textContent=`${m.firstName} ${m.lastName}`;
+  const sub=document.getElementById('msmSubtitle');
+  if(sub) sub.textContent=m.belt||'Fremmøde-statistik';
+  // Stort billede
+  const photoBox=document.getElementById('msmPhotoBox');
+  if(photoBox){
+    if(m.photoId){
+      photoBox.style.display='';
+      photoBox.innerHTML=`<div style="display:inline-block;width:140px;height:140px;border-radius:50%;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.12);border:4px solid #fff;background:#f5f9f9">
+        <img src="${photoUrl(m.photoId)}" alt="${m.firstName} ${m.lastName}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.parentElement.style.display='none'"/>
+      </div>`;
+    } else {
+      photoBox.style.display='none';
+      photoBox.innerHTML='';
+    }
+  }
 
   // Periode-tabs
   const tabs=[['3m','3 mdr.'],['6m','6 mdr.'],['1y','År']];
@@ -4804,17 +6095,46 @@ function archiveMember(id){
   const m=members.find(x=>x.id===id);if(!m)return;
   _endDateTargetId=id;
   _endDateMode='archive';
-  document.getElementById('endDateModalTitle').textContent='Hvornår stoppede '+m.firstName+' '+m.lastName+'?';
+  document.getElementById('endDateModalTitle').textContent='Arkivér medlem';
+  document.getElementById('endDateModalSub').textContent='Hvornår stoppede de med at træne?';
   document.getElementById('endDateInput').value=m.endDate||localDate();
+  renderEndDatePersonCard(m,'archive');
+  // Foto-valg kun hvis medlemmet har foto
+  const photoOpt=document.getElementById('endDatePhotoOption');
+  if(photoOpt){
+    photoOpt.style.display=m.photoId?'':'none';
+    const keep=photoOpt.querySelector('input[value="keep"]');
+    if(keep) keep.checked=true;
+  }
   openModal('endDateModal');
 }
 function setEndDate(id){
   const m=members.find(x=>x.id===id);if(!m)return;
   _endDateTargetId=id;
   _endDateMode='edit';
-  document.getElementById('endDateModalTitle').textContent='Afslutningsdato — '+m.firstName+' '+m.lastName;
+  document.getElementById('endDateModalTitle').textContent='Ret afslutningsdato';
+  document.getElementById('endDateModalSub').textContent='Opdatér hvornår medlemmet stoppede';
   document.getElementById('endDateInput').value=m.endDate||localDate();
+  renderEndDatePersonCard(m,'edit');
+  // Foto-valg skjult ved rediger-mode
+  const photoOpt=document.getElementById('endDatePhotoOption');
+  if(photoOpt) photoOpt.style.display='none';
   openModal('endDateModal');
+}
+function renderEndDatePersonCard(m,mode){
+  const el=document.getElementById('endDatePersonCard');
+  if(!el) return;
+  const initials=((m.firstName||'?')[0]+((m.lastName||' ')[0]||'')).toUpperCase();
+  const age=getAge(m);
+  const sub=[age!==null?age+' år':null,m.belt||null,m.group||null].filter(Boolean).join(' · ');
+  el.innerHTML=`
+    <div class="m-person">
+      <div class="m-avatar">${initials}</div>
+      <div class="m-person-meta">
+        <div class="m-person-name">${m.firstName} ${m.lastName}</div>
+        <div class="m-person-sub">${sub||'Medlem'}</div>
+      </div>
+    </div>`;
 }
 function saveEndDateVault(){
   // ADDITIV: tilføjer/opdaterer kun — sletter aldrig eksisterende entries
@@ -4838,6 +6158,15 @@ function confirmEndDate(){
   saveEndDateVault(); // gem i separat vault FØRSTE
   if(_endDateMode==='archive'){
     m.archived=true;
+    // Hvis medlemmet har et foto og brugeren valgte "slet"
+    if(m.photoId){
+      const sel=document.querySelector('input[name="endDatePhotoAction"]:checked');
+      if(sel && sel.value==='delete'){
+        const oldPid=m.photoId;
+        m.photoId=null;
+        deletePhotoFromDrive(oldPid); // fire-and-forget
+      }
+    }
     save();renderAll();pushToCloud();
     closeModal('endDateModal');
     showToast('📦 '+m.firstName+' '+m.lastName+' arkiveret — gendan via 📦 Arkiv i toppen');
@@ -4852,7 +6181,10 @@ function confirmDelete(id){
   const m=members.find(x=>x.id===id);if(!m)return;
   const aC=assessments.filter(a=>a.memberId===id).length;
   const aMsg=aC>0?`\n\n⚠️ ${aC} vurdering${aC===1?'':'er'} vil også blive slettet permanent.`:'';
-  if(!window.confirm(`Slet ${m.firstName} ${m.lastName} permanent?\n\nDette kan ikke fortrydes.${aMsg}`))return;
+  const pMsg=m.photoId?'\n\n📷 Foto slettes også fra Google Drive.':'';
+  if(!window.confirm(`Slet ${m.firstName} ${m.lastName} permanent?\n\nDette kan ikke fortrydes.${aMsg}${pMsg}`))return;
+  // Slet foto fra Drive (fire-and-forget)
+  if(m.photoId) deletePhotoFromDrive(m.photoId);
   members=members.filter(x=>x.id!==id);
   assessments=assessments.filter(a=>a.memberId!==id);
   save();pushToCloud();renderAll();
@@ -4862,6 +6194,24 @@ function openArchiveModal(){
   applyEndDateVault(); // gendan endDates fra vault inden rendering
   const ark=members.filter(m=>m.archived);
   const list=document.getElementById('archiveList');
+  const banner=document.getElementById('archivePhotoBanner');
+  // Foto-oprydning banner
+  const arkWithPhoto=ark.filter(m=>m.photoId);
+  if(banner){
+    if(arkWithPhoto.length>0){
+      banner.style.display='';
+      banner.innerHTML=`<div style="background:linear-gradient(135deg,#fff7ed,#fffbeb);border:1px solid #fed7aa;border-radius:12px;padding:.75rem .95rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <div style="font-size:1.6rem">📷</div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;color:#9a3412;font-size:.88rem">${arkWithPhoto.length} arkiverede har foto i Drive</div>
+          <div style="font-size:.72rem;color:#b45309;margin-top:2px">Ryd op for at frigøre plads i din Google Drive.</div>
+        </div>
+        <button class="btn btn-sm" onclick="bulkDeleteArchivedPhotos()" style="background:#ea580c;color:#fff;border:1px solid #c2410c;font-weight:600">🧹 Ryd alle fotos</button>
+      </div>`;
+    } else {
+      banner.style.display='none';
+    }
+  }
   if(!ark.length){
     list.innerHTML='<p style="color:var(--xtl);padding:1rem 0;text-align:center">Ingen arkiverede medlemmer.</p>';
   } else {
@@ -4871,7 +6221,7 @@ function openArchiveModal(){
       const endColor=m.endDate?'#795548':'#c0392b';
       return `
       <div class="archive-row">
-        <div class="av ${avClass(m.group)}" style="background:var(--xtl)">${inits(m)}</div>
+        <div class="av ${avClass(m.group)}" style="background:var(--xtl)">${avatarInner(m)}</div>
         <div style="flex:1">
           <div class="mn">${m.firstName} ${m.lastName}</div>
           <div class="me">${m.group} · ${payBadge(m)}</div>
@@ -4889,6 +6239,21 @@ function restoreMember(id){
   const m=members.find(x=>x.id===id);if(!m)return;
   m.archived=false;m.endDate=null;
   save();renderAll();openArchiveModal();showToast('✅ '+m.firstName+' '+m.lastName+' gendannet');
+}
+async function bulkDeleteArchivedPhotos(){
+  const ark=members.filter(m=>m.archived && m.photoId);
+  if(ark.length===0){showToast('ℹ️ Ingen fotos at rydde');return;}
+  if(!window.confirm(`🧹 Slet fotos fra ${ark.length} arkiverede medlem${ark.length===1?'':'mer'}?\n\nFotoene slettes permanent fra Google Drive. Medlemsdata bevares.\n\nDette kan ikke fortrydes.`))return;
+  const photoIds=ark.map(m=>m.photoId);
+  showToast('🧹 Sletter '+photoIds.length+' fotos...');
+  try{
+    const res=await deletePhotosBulkFromDrive(photoIds);
+    ark.forEach(m=>{ m.photoId=null; });
+    save();pushToCloud();openArchiveModal();renderAll();
+    showToast('✅ '+res.deleted+' foto'+(res.deleted===1?'':'s')+' slettet fra Drive');
+  }catch(err){
+    showToast('❌ Fejl: '+err.message);
+  }
 }
 
 /* ════════════════════════════════════════
@@ -5319,6 +6684,168 @@ function saveSettings(){
 /* ════════════════════════════════════════
    BACKUP & GENDANNELSE
 ════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   FOTO-UPLOAD (Google Drive via Apps Script)
+═══════════════════════════════════════════════ */
+let _currentEditPhotoId=null; // staged photoId for edit modal (nyt foto uploaded men ikke gemt endnu)
+let _currentEditPhotoDirty=false; // foto ændret?
+
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Kunne ikke læse fil'));
+    reader.onload=(e)=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('Kunne ikke indlæse billede'));
+      img.onload=()=>{
+        const md=maxDim||400;
+        let w=img.width, h=img.height;
+        // Center-crop til kvadrat
+        const side=Math.min(w,h);
+        const sx=(w-side)/2, sy=(h-side)/2;
+        const canvas=document.createElement('canvas');
+        canvas.width=md; canvas.height=md;
+        const ctx=canvas.getContext('2d');
+        ctx.imageSmoothingEnabled=true;
+        ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, md, md);
+        canvas.toBlob(blob=>{
+          if(!blob){reject(new Error('Komprimering fejlede'));return;}
+          const r2=new FileReader();
+          r2.onload=ev=>resolve(ev.target.result);
+          r2.onerror=()=>reject(new Error('Kunne ikke kode billede'));
+          r2.readAsDataURL(blob);
+        }, 'image/jpeg', quality||0.85);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function uploadPhotoToDrive(memberId, base64){
+  return new Promise((resolve,reject)=>{
+    if(!config.scriptUrl){reject(new Error('Mangler Apps Script URL'));return;}
+    const ctrl=new AbortController();
+    const tmo=setTimeout(()=>ctrl.abort(),30000); // 30 sek timeout
+    fetch(config.scriptUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      signal:ctrl.signal,
+      body:JSON.stringify({action:'uploadPhoto',memberId:String(memberId),photoData:base64})
+    }).then(r=>{clearTimeout(tmo);return r.json();})
+      .then(d=>{
+        if(d&&d.ok&&d.photoId) resolve(d.photoId);
+        else reject(new Error(d&&d.error?d.error:'Upload fejlede'));
+      })
+      .catch(err=>{clearTimeout(tmo);reject(err);});
+  });
+}
+
+function deletePhotoFromDrive(photoId){
+  return new Promise((resolve)=>{
+    if(!photoId||!config.scriptUrl){resolve();return;}
+    const ctrl=new AbortController();
+    const tmo=setTimeout(()=>ctrl.abort(),15000);
+    fetch(config.scriptUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      signal:ctrl.signal,
+      body:JSON.stringify({action:'deletePhoto',photoId:String(photoId)})
+    }).then(()=>{clearTimeout(tmo);resolve();})
+      .catch(()=>{clearTimeout(tmo);resolve();}); // fejl tolereres — best-effort
+  });
+}
+
+function deletePhotosBulkFromDrive(photoIds){
+  return new Promise((resolve,reject)=>{
+    if(!config.scriptUrl){reject(new Error('Mangler Apps Script URL'));return;}
+    const valid=(photoIds||[]).filter(Boolean);
+    if(valid.length===0){resolve({deleted:0});return;}
+    const ctrl=new AbortController();
+    const tmo=setTimeout(()=>ctrl.abort(),45000);
+    fetch(config.scriptUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      signal:ctrl.signal,
+      body:JSON.stringify({action:'deletePhotosBulk',photoIds:valid.map(String)})
+    }).then(r=>{clearTimeout(tmo);return r.json();})
+      .then(d=>{if(d&&d.ok)resolve(d);else reject(new Error(d&&d.error?d.error:'Bulk sletning fejlede'));})
+      .catch(err=>{clearTimeout(tmo);reject(err);});
+  });
+}
+
+// Render preview i medlems-modal
+function renderPhotoPreview(){
+  const previewEl=document.getElementById('photoPreview');
+  if(!previewEl) return;
+  const m=editingId?members.find(x=>x.id===editingId):null;
+  // Prioritér staged photoId over eksisterende
+  const pid=_currentEditPhotoId!==null?_currentEditPhotoId:(m?m.photoId:null);
+  const firstName=document.getElementById('fFN').value||'';
+  const lastName=document.getElementById('fLN').value||'';
+  const fakeM={firstName,lastName,photoId:pid};
+  if(pid){
+    if(typeof pid==='string'&&pid.startsWith('data:')){
+      // Lokal preview efter komprimering, inden upload
+      previewEl.innerHTML='<img src="'+pid+'" alt=""/>';
+    } else {
+      previewEl.innerHTML='<img src="'+photoUrl(pid)+'" alt="" onerror="this.replaceWith(document.createTextNode(\''+(inits(fakeM)||'?').replace(/\'/g,"\\'")+'\'))"/>';
+    }
+  } else {
+    previewEl.innerHTML=inits(fakeM)||'👤';
+  }
+  // Vis/skjul slet-knappen
+  const delBtn=document.getElementById('photoDeleteBtn');
+  if(delBtn) delBtn.style.display=pid?'':'none';
+}
+
+function triggerPhotoUpload(){
+  const input=document.getElementById('photoFileInput');
+  if(input) input.click();
+}
+
+function onPhotoFileSelected(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){showToast('⚠️ Vælg venligst et billede');return;}
+  if(file.size>25*1024*1024){showToast('⚠️ Billedet er for stort (max 25 MB)');return;}
+  const statusEl=document.getElementById('photoStatus');
+  const previewEl=document.getElementById('photoPreview');
+  if(statusEl) statusEl.innerHTML='<span class="photo-spinner"></span> Komprimerer…';
+  compressImage(file, 400, 0.85).then(base64=>{
+    _currentEditPhotoId=base64; // midlertidig data-URL (upload først ved gem)
+    _currentEditPhotoDirty=true;
+    _memberModalDirty=true;
+    renderPhotoPreview();
+    const kb=Math.round(base64.length*0.73/1024);
+    if(statusEl) statusEl.innerHTML='✅ Klar til upload ('+kb+' KB)';
+  }).catch(err=>{
+    if(statusEl) statusEl.textContent='❌ '+err.message;
+    showToast('❌ Kunne ikke behandle billedet');
+  });
+  // Nulstil input så samme fil kan vælges igen
+  ev.target.value='';
+}
+
+function removeCurrentPhoto(){
+  _currentEditPhotoId=''; // tom streng = markér til sletning
+  _currentEditPhotoDirty=true;
+  _memberModalDirty=true;
+  const statusEl=document.getElementById('photoStatus');
+  if(statusEl) statusEl.textContent='🗑️ Foto slettes ved gem';
+  renderPhotoPreview();
+}
+
+function resetPhotoModalState(){
+  _currentEditPhotoId=null;
+  _currentEditPhotoDirty=false;
+  const statusEl=document.getElementById('photoStatus');
+  if(statusEl) statusEl.textContent='';
+  const fileInput=document.getElementById('photoFileInput');
+  if(fileInput) fileInput.value='';
+}
+
 function downloadBackup(){
   const date=localDate();
   const backup={
@@ -5343,7 +6870,45 @@ function downloadBackup(){
   a.download=`karate-backup-${date}.json`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  try{ localStorage.setItem('kk2_lastBackup', Date.now().toString()); }catch(e){}
   showToast('💾 Backup downloadet: karate-backup-'+date+'.json');
+  checkBackupBanner();
+}
+
+function checkBackupBanner(){
+  const banner=document.getElementById('backupBanner');
+  if(!banner) return;
+  // Skjult for i dag?
+  const dismissedToday=sessionStorage.getItem('kk2_backup_dismissed')===localDate();
+  if(dismissedToday){ banner.style.display='none'; return; }
+  const last=parseInt(localStorage.getItem('kk2_lastBackup')||'0',10);
+  const now=Date.now();
+  const days=last?Math.floor((now-last)/(1000*60*60*24)):null;
+  const THRESHOLD=7;
+  let show=false, text='';
+  if(!last){
+    show=true;
+    text='Du har endnu ikke taget en backup af dine data.';
+  } else if(days>=THRESHOLD){
+    show=true;
+    text=`Sidste backup var for ${days} dage siden.`;
+  } else if(days>=30){
+    show=true;
+    text=`Sidste backup var for over 30 dage siden!`;
+  }
+  if(show){
+    const txt=document.getElementById('backupBannerText');
+    if(txt) txt.textContent=text;
+    banner.style.display='flex';
+  } else {
+    banner.style.display='none';
+  }
+}
+
+function dismissBackupBanner(){
+  sessionStorage.setItem('kk2_backup_dismissed', localDate());
+  const banner=document.getElementById('backupBanner');
+  if(banner) banner.style.display='none';
 }
 
 function handleRestoreFile(input){
