@@ -455,6 +455,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-training td:nth-child(3) .mn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
   #page-members table{min-width:820px}
   #page-dashboard table{min-width:640px}
+  /* E-mail + navn wrapper så de ikke overlapper score/hold-kolonner */
+  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:200px}
+  #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:200px}
+  #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child{min-width:0;flex:1}
 }
 
 /* ── MOBIL (≤480px) ── */
@@ -513,6 +517,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-training td:nth-child(3) .mn{max-width:120px}
   #page-members table{min-width:780px}
   #page-dashboard table{min-width:580px}
+
+  /* E-mail (og navn) må wrappe i medlems-/dashboard-tabel så lange mails ikke overlapper score/hold */
+  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:180px}
+  #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:180px}
+  #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child{min-width:0;flex:1}
 
   /* Dashboard: stats-grid 2 kolonner (3 rækker af 2) */
   .stats-grid{grid-template-columns:1fr 1fr;gap:.45rem}
@@ -2017,7 +2026,7 @@ function avatarInner(m){
   if(m && m.photoId){
     const esc=inits(m).replace(/'/g,"\\'").replace(/"/g,'&quot;');
     const fullName=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    return '<img src="'+photoUrl(m.photoId)+'" loading="lazy" alt="" style="cursor:zoom-in" title="Klik for at se billedet i stort format" onclick="event.stopPropagation();openPhotoLightbox(\''+m.photoId+'\',\''+fullName+'\')" onerror="this.parentElement.textContent=\''+esc+'\'"/>';
+    return '<img src="'+photoUrl(m.photoId)+'" loading="lazy" alt="" style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.15);touch-action:manipulation" title="Klik for at se billedet i stort format" onclick="event.stopPropagation();openPhotoLightbox(\''+m.photoId+'\',\''+fullName+'\')" onerror="this.parentElement.textContent=\''+esc+'\'"/>';
   }
   return inits(m);
 }
@@ -6113,7 +6122,7 @@ function _renderMsm(){
     if(m.photoId){
       photoBox.style.display='';
       const _fn=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
-      photoBox.innerHTML=`<div style="display:inline-block;width:140px;height:140px;border-radius:50%;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.12);border:4px solid #fff;background:#f5f9f9;cursor:zoom-in" onclick="openPhotoLightbox('${m.photoId}','${_fn}')" title="Klik for at se i fuld størrelse">
+      photoBox.innerHTML=`<div style="display:inline-block;width:140px;height:140px;border-radius:50%;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.12);border:4px solid #fff;background:#f5f9f9;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.15);touch-action:manipulation" onclick="openPhotoLightbox('${m.photoId}','${_fn}')" title="Klik for at se i fuld størrelse">
         <img src="${photoUrl(m.photoId)}" alt="${m.firstName} ${m.lastName}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.parentElement.style.display='none'"/>
       </div>`;
     } else {
