@@ -7129,13 +7129,14 @@ function getMergedRatings(memberId, assessmentId){
   let own={};try{own=JSON.parse(a.ratings||'{}');}catch(e){}
   let prev={};
   if(idx>0){try{prev=JSON.parse(sorted[idx-1].ratings||'{}');}catch(e){}}
+  const hasPensum=!!pensum[a.belt];
   const beltSkills=pensum[a.belt]||Object.keys(own);
   const merged={};
   beltSkills.forEach(sk=>{
-    if(own[sk]&&own[sk]>0) merged[sk]={val:own[sk],carried:false};
-    else if(prev[sk]&&prev[sk]>0) merged[sk]={val:prev[sk],carried:true};
+    if(own[sk]&&own[sk]>0) merged[sk]={val:own[sk],carried:false,orphaned:false};
+    else if(prev[sk]&&prev[sk]>0) merged[sk]={val:prev[sk],carried:true,orphaned:false};
   });
-  Object.entries(own).forEach(([sk,v])=>{ if(v>0&&!merged[sk]) merged[sk]={val:v,carried:false}; });
+  Object.entries(own).forEach(([sk,v])=>{ if(v>0&&!merged[sk]) merged[sk]={val:v,carried:false,orphaned:hasPensum}; });
   return merged;
 }
 
@@ -7442,7 +7443,7 @@ function renderAssessmentHistory(memberId){
     histDesc.map((a,i)=>{
       const merged=getMergedRatings(memberId,a.id);
       const prevMergedH=histDesc[i+1]?getMergedRatings(memberId,histDesc[i+1].id):{};
-      const starsHtml=Object.entries(merged).map(([sk,{val,carried}])=>{
+      const starsHtml=Object.entries(merged).map(([sk,{val,carried,orphaned}])=>{
         const v=Number(val)||0;
         const filled='★'.repeat(v)+'☆'.repeat(5-v);
         const p=prevMergedH[sk]?Number(prevMergedH[sk].val)||0:null;
@@ -7450,6 +7451,14 @@ function renderAssessmentHistory(memberId){
         let changeHtml='';
         if(diff!==null&&diff>0) changeHtml=`<span style="color:#16a34a;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↑ ${'★'.repeat(diff)}</span>`;
         else if(diff!==null&&diff<0) changeHtml=`<span style="color:#dc2626;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↓ ${'★'.repeat(Math.abs(diff))}</span>`;
+        if(orphaned){const safeSk=String(sk).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');const safeBelt=String(a.belt||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');return `<div class="assess-history-skill" style="background:#fff7ed;border-radius:5px;padding:1px 4px;margin:1px 0">
+          <span style="font-style:italic;color:#ea580c;flex:1">${safeSk}</span>
+          <button class="skill-orphaned-btn" data-oldname="${safeSk}" data-belt="${safeBelt}" data-memberid="${memberId}"
+            onclick="showRenameSkillUI(this)"
+            title="Navnet findes ikke i nuværende pensum — klik for at koble til nyt navn"
+            style="font-size:.66rem;padding:1px 6px;border-radius:4px;background:#fff7ed;border:1px solid #f97316;color:#ea580c;cursor:pointer;white-space:nowrap;flex-shrink:0">⚠️ Omdøb</button>
+          <span class="assess-history-stars" style="color:#f97316">${filled}</span>
+        </div>`;}
         if(carried) return `<div class="assess-history-skill" style="opacity:.7">
           <span style="font-style:italic;color:var(--t2);flex:1">${sk} <span style="font-size:.68rem;color:#9ca3af" title="Fra forrige vurdering">↺</span></span>
           ${changeHtml}
@@ -7479,6 +7488,63 @@ function renderAssessmentHistory(memberId){
         ${commentHtml}
       </div>`;
     }).join('');
+}
+
+/* ════════════════════════════════════════
+   OMDØB FORÆLDET PENSUM-PUNKT I VURDERINGER
+════════════════════════════════════════ */
+function showRenameSkillUI(btn){
+  document.querySelectorAll('.skill-rename-popup').forEach(el=>el.remove());
+  const oldName=btn.dataset.oldname;
+  const belt=btn.dataset.belt;
+  const memberId=Number(btn.dataset.memberid);
+  const currentSkills=(pensum[belt]||[]).filter(sk=>sk!==oldName);
+  const popup=document.createElement('div');
+  popup.className='skill-rename-popup';
+  popup.style.cssText='position:fixed;z-index:9999;background:#fff;border:1.5px solid #f97316;border-radius:10px;padding:.8rem 1rem;box-shadow:0 6px 24px rgba(0,0,0,.15);min-width:240px;max-width:300px';
+  popup.innerHTML=`
+    <div style="font-size:.72rem;font-weight:700;color:#ea580c;margin-bottom:.5rem">⚠️ "${oldName}" er ikke i pensum</div>
+    <div style="font-size:.75rem;color:var(--t2);margin-bottom:.5rem">Kobl til nyt navn — opdaterer alle vurderinger:</div>
+    <select style="width:100%;font-size:.8rem;padding:.3rem .5rem;border-radius:6px;border:1px solid #e2e8f0;margin-bottom:.5rem">
+      <option value="">— vælg nyt navn —</option>
+      ${currentSkills.map(sk=>{const s=String(sk).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');return `<option value="${s}">${s}</option>`;}).join('')}
+    </select>
+    <div style="display:flex;gap:.4rem">
+      <button style="flex:1;font-size:.75rem;padding:.3rem .5rem;border-radius:6px;border:none;background:#ea580c;color:#fff;cursor:pointer;font-weight:600">Kobl til</button>
+      <button style="font-size:.75rem;padding:.3rem .5rem;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer">Annuller</button>
+    </div>`;
+  document.body.appendChild(popup);
+  const rect=btn.getBoundingClientRect();
+  popup.style.top=Math.min(rect.bottom+6, window.innerHeight-popup.offsetHeight-10)+'px';
+  popup.style.left=Math.max(10,Math.min(rect.left, window.innerWidth-popup.offsetWidth-10))+'px';
+  const [sel,confirmBtn,cancelBtn]=popup.querySelectorAll('select,button,button');
+  const close=()=>popup.remove();
+  cancelBtn.onclick=close;
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();},{once:true});
+  confirmBtn.onclick=()=>{
+    const newName=sel.value;
+    if(!newName){showToast('Vælg et navn fra listen');return;}
+    renameSkillInAssessments(oldName,newName);
+    close();
+    renderAssessmentHistory(memberId);
+    showToast(`✅ "${oldName}" koblet til "${newName}" i alle vurderinger`);
+  };
+}
+
+function renameSkillInAssessments(oldName,newName){
+  if(!oldName||!newName||oldName===newName)return;
+  assessments.forEach(a=>{
+    try{
+      const r=JSON.parse(a.ratings||'{}');
+      if(r[oldName]!==undefined){
+        if(r[newName]===undefined||r[newName]===0) r[newName]=r[oldName];
+        delete r[oldName];
+        a.ratings=JSON.stringify(r);
+      }
+    }catch(e){}
+  });
+  save();
+  pushToCloud();
 }
 
 /* ════════════════════════════════════════
