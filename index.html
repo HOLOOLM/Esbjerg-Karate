@@ -107,6 +107,7 @@ td{padding:.7rem 1rem;font-size:.855rem;vertical-align:middle}
 
 /* AVATAR */
 .mrow{display:flex;align-items:center;gap:10px}
+.mrow>div:last-child{min-width:0}
 .av{width:34px;height:34px;border-radius:50%;background:var(--td);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.74rem;font-weight:700;flex-shrink:0;overflow:hidden;position:relative}
 .av img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .av-boern {background:#2980b9}
@@ -125,7 +126,7 @@ td{padding:.7rem 1rem;font-size:.855rem;vertical-align:middle}
 .photo-spinner{width:20px;height:20px;border:2.5px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:phSpin .8s linear infinite;display:inline-block}
 @keyframes phSpin{to{transform:rotate(360deg)}}
 .mn{font-weight:600;color:var(--xtd)}
-.me{font-size:.73rem;color:var(--xtl);margin-top:1px}
+.me{font-size:.73rem;color:var(--xtl);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 .gm{color:var(--bl);font-weight:700;font-size:.8rem}
 .gk{color:#be185d;font-weight:700;font-size:.8rem}
 
@@ -456,9 +457,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-members table{min-width:820px}
   #page-dashboard table{min-width:640px}
   /* E-mail + navn wrapper så de ikke overlapper score/hold-kolonner */
-  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:200px}
-  #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:200px}
-  #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child{min-width:0;flex:1}
+  #page-dashboard td .me,#page-members td .me,#page-training td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:200px}
+  #page-dashboard td .mn,#page-members td .mn,#page-training td .mn{white-space:normal;word-break:break-word;max-width:200px}
+  #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child,#page-training .mrow>div:last-child{min-width:0;flex:1}
 }
 
 /* ── MOBIL (≤480px) ── */
@@ -519,9 +520,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-dashboard table{min-width:580px}
 
   /* E-mail (og navn) må wrappe i medlems-/dashboard-tabel så lange mails ikke overlapper score/hold */
-  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:180px}
-  #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:180px}
-  #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child{min-width:0;flex:1}
+  #page-dashboard td .me,#page-members td .me,#page-training td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:180px}
+  #page-dashboard td .mn,#page-members td .mn,#page-training td .mn{white-space:normal;word-break:break-word;max-width:180px}
+  #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child,#page-training .mrow>div:last-child{min-width:0;flex:1}
 
   /* Dashboard: stats-grid 2 kolonner (3 rækker af 2) */
   .stats-grid{grid-template-columns:1fr 1fr;gap:.45rem}
