@@ -188,6 +188,22 @@ textarea.fta{resize:vertical;min-height:85px}
 .age-hint{font-size:.72rem;color:var(--xtl);margin-top:2px}
 .age-calc{font-size:.72rem;color:var(--go);font-weight:600;margin-top:2px}
 
+/* FOTO-LIGHTBOX */
+#photoLightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:10000;display:none;align-items:center;justify-content:center;padding:1rem}
+#photoLightbox.show{display:flex}
+#photoLightbox .lb-inner{position:relative;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+#photoLightbox img{max-width:95vw;max-height:85vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);background:#222}
+#photoLightbox .lb-caption{color:#fff;font-weight:600;font-size:1rem;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+#photoLightbox .lb-actions{display:flex;gap:.5rem;align-items:center}
+#photoLightbox .lb-btn{display:inline-flex;align-items:center;gap:.35rem;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);padding:.45rem .9rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;text-decoration:none;transition:background .15s}
+#photoLightbox .lb-btn:hover{background:rgba(255,255,255,.25)}
+#photoLightbox .lb-close{position:absolute;top:-.5rem;right:-.5rem;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.95);color:#111;border:none;cursor:pointer;font-size:1.3rem;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:1}
+#photoLightbox .lb-close:hover{background:#fff;transform:scale(1.05)}
+@media (max-width:640px){
+  #photoLightbox .lb-close{top:.3rem;right:.3rem;width:36px;height:36px;font-size:1.1rem}
+  #photoLightbox img{max-height:78vh}
+}
+
 /* HEATMAP */
 .hm-wrap{overflow:auto;max-height:540px;border:1px solid #e5eded;border-radius:10px;background:#fff;position:relative}
 .hm-table{border-collapse:separate;border-spacing:0;font-size:.76rem;min-width:100%}
@@ -229,11 +245,38 @@ textarea.fta{resize:vertical;min-height:85px}
 .hm-lg-absent::before{background:#f1f5f5;border:1px solid #d1d5db}
 .hm-lg-cancel::before{background:repeating-linear-gradient(45deg,#fde68a,#fde68a 2px,#fcd34d 2px,#fcd34d 4px)}
 .hm-lg-na::before{background:repeating-linear-gradient(45deg,#fff,#fff 2px,#e5e7eb 2px,#e5e7eb 3px);border:1px solid #e5e7eb}
+/* HEATMAP FULLSCREEN */
+.hm-card.hm-fullscreen{position:fixed;inset:0;z-index:9500;margin:0 !important;padding:0 !important;border-radius:0;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.hm-card.hm-fullscreen .sh{padding:.7rem 1rem;margin:0;border-bottom:1px solid #e5eded;background:#f5f9f9;flex-shrink:0}
+.hm-card.hm-fullscreen .hm-legend{padding:.5rem 1rem;margin:0;border-bottom:1px solid #e5eded;flex-shrink:0}
+.hm-card.hm-fullscreen #hm-summary{padding:.3rem 1rem;margin:0;flex-shrink:0}
+.hm-card.hm-fullscreen .hm-wrap{max-height:none;flex:1;border:none;border-radius:0;overflow:auto}
+.hm-fs-btn{display:inline-flex;align-items:center;gap:.3rem;background:var(--td);color:#fff;border:none;padding:.4rem .7rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:600;transition:background .15s}
+.hm-fs-btn:hover{background:#1a3030}
+.hm-card.hm-fullscreen .hm-fs-btn{background:#c2410c}
+.hm-card.hm-fullscreen .hm-fs-btn:hover{background:#9a3412}
+body.hm-fs-active{overflow:hidden}
+
 @media (max-width:640px){
-  .hm-table thead th.hm-th-name,.hm-table tbody td.hm-name{min-width:130px;max-width:130px;font-size:.75rem}
-  .hm-cell{width:30px;height:26px}
-  .hm-table thead th.hm-th-date{min-width:30px}
-  .hm-wrap{max-height:440px}
+  /* Smallere navnekolonne giver plads til større dato-celler — bedre læsbarhed på touch */
+  .hm-table thead th.hm-th-name,.hm-table tbody td.hm-name{min-width:110px;max-width:110px;font-size:.72rem;padding:.3rem .45rem}
+  .hm-table tbody td.hm-name .hm-sub{font-size:.62rem}
+  /* Større klik-flader + tydeligere tal */
+  .hm-cell{width:42px;height:38px}
+  .hm-table thead th.hm-th-date{min-width:42px;padding:.4rem .15rem}
+  .hm-table thead th .hm-day{font-size:.82rem}
+  .hm-table thead th .hm-dow{font-size:.55rem}
+  .hm-table thead th .hm-mon{font-size:.53rem}
+  /* %-kolonne mere kompakt */
+  .hm-table thead th.hm-th-pct{min-width:50px}
+  .hm-table tbody td.hm-pct{font-size:.76rem;padding:0 .3rem}
+  /* Tilladelse til lidt mere lodret scroll */
+  .hm-wrap{max-height:520px;-webkit-overflow-scrolling:touch}
+  /* Sæt en tydelig skygge på sticky navne-kolonne så man ser at man scroller */
+  .hm-table tbody td.hm-name{box-shadow:2px 0 0 rgba(0,0,0,.03)}
+  /* Større og mere læsbare legend-labels */
+  .hm-legend{gap:.4rem;font-size:.68rem}
+  .hm-lg{padding:.22rem .45rem}
 }
 
 /* POLISHED MODAL COMPONENTS */
@@ -863,14 +906,6 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <!-- Fødselsdag-banner -->
   <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
-  <!-- Backup-påmindelse -->
-  <div id="backupBanner" style="display:none;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #3b82f6;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#1e3a8a;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
-    <span>💾 <strong>Backup anbefales</strong> – <span id="backupBannerText"></span></span>
-    <span style="display:flex;gap:.4rem;flex-shrink:0">
-      <button onclick="downloadBackup()" style="background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:.35rem .7rem;font-size:.78rem;font-weight:600;cursor:pointer">⬇️ Download backup</button>
-      <button onclick="dismissBackupBanner()" title="Skjul i dag" style="background:none;border:none;cursor:pointer;font-size:1rem;line-height:1;color:#1e3a8a;padding:0">✕</button>
-    </span>
-  </div>
 
   <div class="stats-grid">
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
@@ -1033,6 +1068,18 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div id="presentModalContent"></div>
     <div class="ma">
       <button class="btn bg" onclick="closeModal('presentModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOTO-LIGHTBOX ══ -->
+<div id="photoLightbox" onclick="if(event.target===this)closePhotoLightbox()">
+  <div class="lb-inner">
+    <button class="lb-close" onclick="closePhotoLightbox()" title="Luk (Esc)">✕</button>
+    <img id="photoLightboxImg" src="" alt=""/>
+    <div class="lb-caption" id="photoLightboxCaption"></div>
+    <div class="lb-actions">
+      <a class="lb-btn" id="photoLightboxDownload" href="" download="" target="_blank" rel="noopener" title="Download original">⬇️ Download</a>
     </div>
   </div>
 </div>
@@ -1301,7 +1348,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   </div>
 
   <!-- Heatmap: Hvem kommer hvilke dage? -->
-  <div class="tcard" style="padding:1.2rem;margin-top:.75rem">
+  <div class="tcard hm-card" id="hmCard" style="padding:1.2rem;margin-top:.75rem">
     <div class="sh" style="margin-bottom:1rem">
       <div class="st">🗓️ Fremmøde-heatmap</div>
       <div class="controls">
@@ -1326,6 +1373,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
           <option value="Avanceret">Avanceret</option>
         </select>
         <input class="sbx" type="text" id="hmSearch" placeholder="🔍 Søg navn…" oninput="renderHeatmap()"/>
+        <button class="hm-fs-btn" id="hmFsBtn" onclick="toggleHeatmapFullscreen()" title="Vis i fuldskærm"><span id="hmFsIcon">⛶</span><span id="hmFsLabel">Fuldskærm</span></button>
       </div>
     </div>
     <div class="hm-legend">
@@ -1958,18 +2006,56 @@ function getAge(m){ return m.birthdate?calcAge(m.birthdate):(m.age!=null?m.age:n
 function ageStr(m){ const a=getAge(m); return a===null?'—':a+' år'+(m.birthdate?'':''); }
 function inits(m){ return ((m.firstName||'')[0]||'')+((m.lastName||'')[0]||''); }
 // ═══════════ FOTO: Google Drive URL + avatar-render helper ═══════════
-function photoUrl(photoId){
+function photoUrl(photoId, size){
   if(!photoId) return '';
   // Drive offentlig URL — fungerer for billeder < 25 MB
-  return 'https://lh3.googleusercontent.com/d/'+photoId+'=w400-h400';
+  // size: standard thumbnail = 'w400-h400', stor visning = 's1600', original = 's0'
+  const sz=size||'w400-h400';
+  return 'https://lh3.googleusercontent.com/d/'+photoId+'='+sz;
 }
 function avatarInner(m){
   if(m && m.photoId){
     const esc=inits(m).replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    return '<img src="'+photoUrl(m.photoId)+'" loading="lazy" alt="" onerror="this.parentElement.textContent=\''+esc+'\'"/>';
+    const fullName=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return '<img src="'+photoUrl(m.photoId)+'" loading="lazy" alt="" style="cursor:zoom-in" title="Klik for at se billedet i stort format" onclick="event.stopPropagation();openPhotoLightbox(\''+m.photoId+'\',\''+fullName+'\')" onerror="this.parentElement.textContent=\''+esc+'\'"/>';
   }
   return inits(m);
 }
+
+// Åbn foto i fuld størrelse (lightbox)
+function openPhotoLightbox(photoId, memberName){
+  if(!photoId) return;
+  const overlay=document.getElementById('photoLightbox');
+  const img=document.getElementById('photoLightboxImg');
+  const cap=document.getElementById('photoLightboxCaption');
+  const dl=document.getElementById('photoLightboxDownload');
+  img.src=photoUrl(photoId,'s1600');
+  img.alt=memberName||'';
+  cap.textContent=memberName||'';
+  // Download-link: højopløseligt billede
+  if(dl){
+    dl.href=photoUrl(photoId,'s0');
+    dl.download=(memberName||'foto').replace(/[^a-zA-Z0-9æøåÆØÅ_-]+/g,'_')+'.jpg';
+  }
+  overlay.classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closePhotoLightbox(){
+  const overlay=document.getElementById('photoLightbox');
+  overlay.classList.remove('show');
+  document.body.style.overflow='';
+  // Ryd src så billedet ikke bliver i hukommelsen
+  setTimeout(()=>{const img=document.getElementById('photoLightboxImg'); if(img)img.src='';},300);
+}
+// ESC lukker lightbox
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    const lb=document.getElementById('photoLightbox');
+    if(lb && lb.classList.contains('show')) closePhotoLightbox();
+    const hmFs=document.getElementById('hmCard');
+    if(hmFs && hmFs.classList.contains('hm-fullscreen')) toggleHeatmapFullscreen();
+  }
+});
 function today(){ return localDate(); }
 function fmtDate(iso){
   if(!iso)return'';
@@ -3170,7 +3256,7 @@ function initApp(){
   }
 }
 
-function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); checkBackupBanner(); }
+function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); }
 
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
@@ -5005,6 +5091,22 @@ function openHDFromDate(ds){
   openHD(ds,d,sess||null);
 }
 
+function toggleHeatmapFullscreen(){
+  const card=document.getElementById('hmCard');
+  const icon=document.getElementById('hmFsIcon');
+  const label=document.getElementById('hmFsLabel');
+  if(!card) return;
+  const isFs=card.classList.toggle('hm-fullscreen');
+  document.body.classList.toggle('hm-fs-active', isFs);
+  if(icon) icon.textContent=isFs?'✕':'⛶';
+  if(label) label.textContent=isFs?'Luk':'Fuldskærm';
+  // Scroll-top når man åbner/lukker fuldskærm så man ser toppen
+  if(isFs){
+    window.scrollTo(0,0);
+    const wrap=card.querySelector('.hm-wrap');
+    if(wrap) wrap.scrollTop=0;
+  }
+}
 function setHmRange(months){
   const today=new Date(); today.setHours(0,0,0,0);
   const from=new Date(today);
@@ -6010,7 +6112,8 @@ function _renderMsm(){
   if(photoBox){
     if(m.photoId){
       photoBox.style.display='';
-      photoBox.innerHTML=`<div style="display:inline-block;width:140px;height:140px;border-radius:50%;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.12);border:4px solid #fff;background:#f5f9f9">
+      const _fn=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      photoBox.innerHTML=`<div style="display:inline-block;width:140px;height:140px;border-radius:50%;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.12);border:4px solid #fff;background:#f5f9f9;cursor:zoom-in" onclick="openPhotoLightbox('${m.photoId}','${_fn}')" title="Klik for at se i fuld størrelse">
         <img src="${photoUrl(m.photoId)}" alt="${m.firstName} ${m.lastName}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.parentElement.style.display='none'"/>
       </div>`;
     } else {
@@ -6872,43 +6975,6 @@ function downloadBackup(){
   URL.revokeObjectURL(url);
   try{ localStorage.setItem('kk2_lastBackup', Date.now().toString()); }catch(e){}
   showToast('💾 Backup downloadet: karate-backup-'+date+'.json');
-  checkBackupBanner();
-}
-
-function checkBackupBanner(){
-  const banner=document.getElementById('backupBanner');
-  if(!banner) return;
-  // Skjult for i dag?
-  const dismissedToday=sessionStorage.getItem('kk2_backup_dismissed')===localDate();
-  if(dismissedToday){ banner.style.display='none'; return; }
-  const last=parseInt(localStorage.getItem('kk2_lastBackup')||'0',10);
-  const now=Date.now();
-  const days=last?Math.floor((now-last)/(1000*60*60*24)):null;
-  const THRESHOLD=7;
-  let show=false, text='';
-  if(!last){
-    show=true;
-    text='Du har endnu ikke taget en backup af dine data.';
-  } else if(days>=THRESHOLD){
-    show=true;
-    text=`Sidste backup var for ${days} dage siden.`;
-  } else if(days>=30){
-    show=true;
-    text=`Sidste backup var for over 30 dage siden!`;
-  }
-  if(show){
-    const txt=document.getElementById('backupBannerText');
-    if(txt) txt.textContent=text;
-    banner.style.display='flex';
-  } else {
-    banner.style.display='none';
-  }
-}
-
-function dismissBackupBanner(){
-  sessionStorage.setItem('kk2_backup_dismissed', localDate());
-  const banner=document.getElementById('backupBanner');
-  if(banner) banner.style.display='none';
 }
 
 function handleRestoreFile(input){
