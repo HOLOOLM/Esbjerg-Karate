@@ -263,6 +263,7 @@ textarea.fta{resize:vertical;min-height:85px}
 body.hm-fs-active{overflow:hidden}
 
 @media (max-width:640px){
+  .hm-fs-btn{display:none!important}
   /* Smallere navnekolonne giver plads til større dato-celler — bedre læsbarhed på touch */
   .hm-table thead th.hm-th-name,.hm-table tbody td.hm-name{min-width:110px;max-width:110px;font-size:.72rem;padding:.3rem .45rem}
   .hm-table tbody td.hm-name .hm-sub{font-size:.62rem}
@@ -920,8 +921,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
   <div class="stats-grid">
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
-    <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">✅</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
-    <div class="stat-card"><div class="si si-c">❌</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
+    <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">🙋</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
+    <div class="stat-card"><div class="si si-c">🚫</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
     <div class="stat-card" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt"><div class="si si-b">✅</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
     <div class="stat-card" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale"><div class="si si-d">⏳</div><div><div class="sv" id="s5">0</div><div class="sl">Ikke betalt</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
   </div>
@@ -5221,6 +5222,8 @@ function openHDFromDate(ds){
 }
 
 function toggleHeatmapFullscreen(){
+  // Bloker fuldskærm på små skærme
+  if(window.innerWidth<=640) return;
   const card=document.getElementById('hmCard');
   const icon=document.getElementById('hmFsIcon');
   const label=document.getElementById('hmFsLabel');
@@ -5229,13 +5232,19 @@ function toggleHeatmapFullscreen(){
   document.body.classList.toggle('hm-fs-active', isFs);
   if(icon) icon.textContent=isFs?'✕':'⛶';
   if(label) label.textContent=isFs?'Luk':'Fuldskærm';
-  // Scroll-top når man åbner/lukker fuldskærm så man ser toppen
   if(isFs){
     window.scrollTo(0,0);
     const wrap=card.querySelector('.hm-wrap');
     if(wrap) wrap.scrollTop=0;
   }
 }
+// Luk fuldskærm heatmap automatisk ved resize til mobil
+window.addEventListener('resize',()=>{
+  if(window.innerWidth<=640){
+    const card=document.getElementById('hmCard');
+    if(card&&card.classList.contains('hm-fullscreen')) toggleHeatmapFullscreen();
+  }
+});
 function setHmRange(months){
   const today=new Date(); today.setHours(0,0,0,0);
   const from=new Date(today);
@@ -5774,10 +5783,11 @@ function openGroupDetailModal(groupName){
     const beltLbl=danM?danM[1]+'. Dan':(m.belt||'').replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
     const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
     const beltTc=dark.includes(bc)?'#fff':'#333';
-    html+=`<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;${i<sorted.length-1?'border-bottom:1px solid #f0f0f0;':''}">
+    const _promoRow=promotionRowStyle(m.id);
+    html+=`<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;${i<sorted.length-1?'border-bottom:1px solid #f0f0f0;':''}${_promoRow?_promoRow+';':''}">
       <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.7rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:.82rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="closeModal('groupDetailModal');setTimeout(()=>openMemberStatsModal(${m.id}),200)">${m.firstName} ${m.lastName}${streakHtml}</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="closeModal('groupDetailModal');setTimeout(()=>openMemberStatsModal(${m.id}),200)">${m.firstName} ${m.lastName}${promotionBadge(m.id)}${streakHtml}</div>
         <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
           <span style="display:inline-block;padding:1px 6px;border-radius:8px;background:${bc};color:${beltTc};font-size:.6rem;font-weight:700;border:1px solid rgba(0,0,0,.08)">${beltLbl}</span>
           ${m.age?`<span style="font-size:.6rem;color:var(--xtl)">${m.age} år</span>`:''}
