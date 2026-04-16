@@ -1016,6 +1016,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div style="margin-bottom:.8rem">
     <button class="btn bg btn-sm" onclick="openNotesOverview()">📝 Se alle noter</button>
   </div>
+  <div id="h-notes-wrap" style="margin-bottom:.8rem"></div>
   <div class="hgrid" id="hGrid"></div>
 </div>
 
@@ -4245,6 +4246,30 @@ function rebuildHistoryYearSelector(){
 }
 
 function renderHistory(){
+  // Seneste træningsnotater (op til 4 sessioner med faktisk indhold)
+  const notesWrap=document.getElementById('h-notes-wrap');
+  if(notesWrap){
+    const recentNotes=sessions
+      .filter(s=>s.note&&s.note.trim())
+      .sort((a,b)=>b.date.localeCompare(a.date))
+      .slice(0,4);
+    if(recentNotes.length){
+      notesWrap.innerHTML=`<div style="background:#fff;border-radius:14px;box-shadow:var(--sh);padding:1rem 1.2rem">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--xtl);margin-bottom:.7rem">📝 Seneste træningsnotater</div>
+        ${recentNotes.map(s=>{
+          const d=new Date(s.date+'T12:00:00');
+          const dateStr=d.toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
+          return `<div style="display:flex;gap:.75rem;padding:.5rem 0;border-bottom:1px solid #f0f4f4;align-items:flex-start">
+            <div style="font-size:.72rem;font-weight:700;color:var(--pr);white-space:nowrap;padding-top:1px;min-width:70px">${dateStr}</div>
+            <div style="font-size:.8rem;color:var(--t2);line-height:1.5">${s.note.trim()}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    } else {
+      notesWrap.innerHTML='';
+    }
+  }
+
   const grid=document.getElementById('hGrid');
   const year=parseInt(document.getElementById('hYear').value)||new Date().getFullYear();
   const df=document.getElementById('hDay').value;
@@ -7188,12 +7213,31 @@ function scoreCell(memberId){
   }).join('');
   const commentHtml=latest.comment?`<div class="score-tip-comment">"${latest.comment}"</div>`:'';
   const assessorHtml=latest.assessorName?`<div style="font-size:.68rem;color:var(--xtl);margin-top:3px">👤 ${latest.assessorName}</div>`:'';
+  const _scMember=members.find(x=>x.id===memberId);
+  const _scBeltSkills=pensum[_scMember?.belt||'']||[];
+  let progressTipHtml='';
+  if(_scBeltSkills.length){
+    const threshold=config.promotionScore??4.0;
+    const mastered=_scBeltSkills.filter(sk=>merged[sk]&&merged[sk].val>=threshold).length;
+    const total=_scBeltSkills.length;
+    const pct=Math.round(mastered/total*100);
+    const barColor=pct>=100?'#16a34a':pct>=60?'#d97706':'#6366f1';
+    progressTipHtml=`<div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid #edf2f2">
+      <div style="display:flex;justify-content:space-between;font-size:.67rem;color:var(--xtl);margin-bottom:.3rem">
+        <span>Pensumfremgang (${threshold}★+)</span><span style="font-weight:700;color:${barColor}">${mastered}/${total}</span>
+      </div>
+      <div style="background:#e8f0f0;border-radius:4px;height:5px;overflow:hidden">
+        <div style="background:${barColor};height:100%;width:${pct}%;border-radius:4px"></div>
+      </div>
+    </div>`;
+  }
   const tip=`<div class="score-tip">
     <div class="score-tip-hdr">📋 ${dateStr} · ${latest.belt}</div>
     ${assessorHtml}
     ${skillRows}
     ${commentHtml}
     <div class="score-tip-avg" style="color:${color}">★ Gennemsnit: ${avg.toFixed(1)} / 5</div>
+    ${progressTipHtml}
   </div>`;
 
   return `<div class="score-wrap" onclick="toggleScoreTip(event,this)">
@@ -7454,9 +7498,33 @@ function renderAssessmentHistory(memberId){
     return '<span style="color:#d97706;font-size:1rem;font-weight:700" title="Uændret">→</span>';
   };
 
+  // Pensum-fremgang baseret på seneste vurdering
+  const _pm=members.find(x=>x.id===memberId);
+  const _beltKey=_pm?.belt||'';
+  const _beltSkills=pensum[_beltKey]||[];
+  let progressHtml='';
+  if(_beltSkills.length&&histAsc.length){
+    const latestMerged=getMergedRatings(memberId,histAsc[histAsc.length-1].id);
+    const threshold=config.promotionScore??4.0;
+    const mastered=_beltSkills.filter(sk=>latestMerged[sk]&&latestMerged[sk].val>=threshold).length;
+    const total=_beltSkills.length;
+    const pct=Math.round(mastered/total*100);
+    const barColor=pct>=100?'#16a34a':pct>=60?'#d97706':'#6366f1';
+    progressHtml=`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem">
+        <span style="font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--xtl)">📊 Pensumfremgang · ${_beltKey}</span>
+        <span style="font-size:.78rem;font-weight:700;color:${mastered===total?'#16a34a':'var(--t2)'}">${mastered} / ${total} på ${threshold}★+</span>
+      </div>
+      <div style="background:#e2e8f0;border-radius:6px;height:8px;overflow:hidden">
+        <div style="background:${barColor};height:100%;width:${pct}%;border-radius:6px"></div>
+      </div>
+      ${mastered===total?'<div style="font-size:.72rem;color:#16a34a;margin-top:.45rem;font-weight:600">✅ Alle pensumkrav opfyldt — klar til oprykning!</div>':''}
+    </div>`;
+  }
+
   // Historik-liste (nyeste øverst)
   const histDesc=[...histAsc].reverse();
-  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+  el.innerHTML=progressHtml+`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
     <div style="font-weight:700;font-size:.85rem;color:var(--t2)">Tidligere vurderinger</div>
     ${histDesc.length?`<button class="btn bs btn-sm" style="font-size:.72rem;padding:.2rem .6rem" onclick="exportAssessmentsExcel(${memberId})">📊 Excel</button>`:''}
   </div>`+
