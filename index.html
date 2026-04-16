@@ -2649,13 +2649,16 @@ function loadFromCloud(onDone){
       sessions.forEach(s=>{
         if(s.note==null){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
       });
-      // Bevar lokale check-ins for dagens dato hvis et push stadig afventer (cloud er bagud)
-      if(_hasPending){
-        const todayLocal=_prevSessions.find(s=>s.date===currentTrainingDate);
-        if(todayLocal){
-          const todayCloud=sessions.find(s=>s.date===currentTrainingDate);
-          if(todayCloud) todayCloud.presentIds=todayLocal.presentIds;
-          else sessions.push(todayLocal);
+      // Merge lokale + cloud check-ins for dagens dato — sikrer at 2 enheder ikke overskriver hinanden
+      const todayLocal=_prevSessions.find(s=>s.date===currentTrainingDate);
+      if(todayLocal){
+        const todayCloud=sessions.find(s=>s.date===currentTrainingDate);
+        if(todayCloud){
+          // Union: bevar alle id'er fra begge enheder
+          const merged=[...new Set([...todayLocal.presentIds,...todayCloud.presentIds])];
+          todayCloud.presentIds=merged;
+        } else {
+          sessions.push(todayLocal);
         }
       }
       // Google Sheets er autoritativ kilde — lokale sessions der ikke findes i Sheets slettes ikke gendannes
@@ -3343,7 +3346,7 @@ function refreshFromCloud(){
   });
 }
 
-// Auto-refresh hvert 30. sekund på træningssiden (springer over hvis allerede i gang)
+// Auto-refresh hvert minut på træningssiden (springer over hvis allerede i gang)
 let _autoRefreshing=false;
 setInterval(()=>{
   const tp=document.getElementById('page-training');
@@ -3354,7 +3357,7 @@ setInterval(()=>{
       if(ok){ loadCheckInsForDate(currentTrainingDate); renderAll(); }
     });
   }
-},30000);
+},60000);
 
 /* ════════════════════════════════════════
    TABS
