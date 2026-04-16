@@ -3519,6 +3519,19 @@ function _scoreVal(id){
   const v=Object.values(r).map(Number).filter(v=>v>0);
   return v.length?v.reduce((s,x)=>s+x,0)/v.length:-1;
 }
+const _NEXT_BELT_NAME={
+  '10. Kyu (Hvidt)':'9. Kyu (1 Snip)','9. Kyu (1 Snip)':'8. Kyu (2 Snip)','8. Kyu (2 Snip)':'7. Kyu (Gult)',
+  '7. Kyu (Gult)':'6. Kyu (Blåt)','6. Kyu (Blåt)':'5. Kyu (Grønt)',
+  '5. Kyu (Grønt)':'4. Kyu (Violet)','4. Kyu (Violet)':'3. Kyu (Brunt)',
+  '3. Kyu (Brunt)':'2. Kyu (Brunt + 1 Snip)','2. Kyu (Brunt + 1 Snip)':'1. Kyu (Brunt + 2 Snip)',
+  '1. Kyu (Brunt + 2 Snip)':'1. Dan (Sort)',
+  '1. Dan (Sort)':'2. Dan (Sort)','2. Dan (Sort)':'3. Dan (Sort)'
+};
+function _nextBeltLabel(belt){
+  const nb=_NEXT_BELT_NAME[belt];if(!nb)return '';
+  const danM=nb.match(/(\d+)\.\s*Dan/i);
+  return danM?danM[1]+'. Dan':nb.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
+}
 function promotionBadge(memberId){
   const threshold=config.promotionScore??4.0;
   const _pm=members.find(x=>x.id===memberId);
@@ -3530,7 +3543,13 @@ function promotionBadge(memberId){
   if(!vals.length)return '';
   const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
   if(avg<threshold)return '';
-  return ` <span title="Gns. score ${avg.toFixed(1)} ★ — klar til bælteforfremmelse!" style="font-size:.8rem;cursor:default">🏅</span>`;
+  const nextBelt=_NEXT_BELT_NAME[currentBelt]||'';
+  const nextLabel=_nextBeltLabel(currentBelt);
+  const nextColor=BC[nextBelt]||'#ccc';
+  const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
+  const tc=dark.includes(nextColor)?'#fff':'#333';
+  const name=_pm.firstName||'';
+  return ` <span onclick="event.stopPropagation();showToast('🏅 ${name} er klar til ${nextLabel} — gns. score ${avg.toFixed(1)} ★')" style="font-size:.72rem;cursor:pointer;padding:1px 6px;border-radius:8px;background:${nextColor};color:${tc};font-weight:700;border:1px solid rgba(0,0,0,.12);white-space:nowrap">🏅 → ${nextLabel}</span>`;
 }
 // Næste-bælte farve (subtil gradient) når klar til oprykning
 const _NEXT_BELT_COLOR={
