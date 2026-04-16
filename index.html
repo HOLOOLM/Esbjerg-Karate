@@ -2649,6 +2649,15 @@ function loadFromCloud(onDone){
       sessions.forEach(s=>{
         if(s.note==null){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
       });
+      // Bevar lokale check-ins for dagens dato hvis et push stadig afventer (cloud er bagud)
+      if(_hasPending){
+        const todayLocal=_prevSessions.find(s=>s.date===currentTrainingDate);
+        if(todayLocal){
+          const todayCloud=sessions.find(s=>s.date===currentTrainingDate);
+          if(todayCloud) todayCloud.presentIds=todayLocal.presentIds;
+          else sessions.push(todayLocal);
+        }
+      }
       // Google Sheets er autoritativ kilde — lokale sessions der ikke findes i Sheets slettes ikke gendannes
       cancelledDates=(d.cancelledDates||[]).map(x=>String(x).slice(0,10));
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
