@@ -125,6 +125,9 @@ td{padding:.7rem 1rem;font-size:.855rem;vertical-align:middle}
 .photo-hint{font-size:.68rem;color:var(--xtl);margin-top:2px}
 .photo-spinner{width:20px;height:20px;border:2.5px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:phSpin .8s linear infinite;display:inline-block}
 @keyframes phSpin{to{transform:rotate(360deg)}}
+.flame-pulse{display:inline-block;animation:flamePulse 1.2s ease-in-out infinite}
+@keyframes flamePulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.2);filter:brightness(1.3)}}
+.streak-hot{background:linear-gradient(135deg,#fff7ed,#ffedd5)!important;border-color:#f97316!important}
 .mn{font-weight:600;color:var(--xtd)}
 .me{font-size:.73rem;color:var(--xtl);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .gm{color:var(--bl);font-weight:700;font-size:.8rem}
@@ -157,7 +160,8 @@ input:checked+.slider::before{transform:translateX(20px)}
 .tl{font-size:.78rem;color:var(--xtm);min-width:68px;font-weight:500}
 
 /* BELT */
-.blt{display:inline-block;width:22px;height:7px;border-radius:4px;vertical-align:middle}
+.blt{display:inline-flex;align-items:center;height:10px;border-radius:3px;vertical-align:middle;overflow:hidden;position:relative;min-width:32px}
+.blt-snip{width:2px;height:100%;background:rgba(255,255,255,.7);margin-left:3px;flex-shrink:0}
 
 /* BETALT BELØB BADGE */
 .amt-badge{display:inline-flex;align-items:center;gap:3px;padding:.2rem .6rem;border-radius:6px;font-size:.75rem;font-weight:700}
@@ -914,13 +918,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <!-- Fødselsdag-banner -->
   <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
-
   <div class="stats-grid">
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
     <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">✅</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
     <div class="stat-card"><div class="si si-c">❌</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
-    <div class="stat-card" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt"><div class="si si-b">💰</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
-    <div class="stat-card" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale"><div class="si si-d">⚠️</div><div><div class="sv" id="s5">0</div><div class="sl">Mangler betaling</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
+    <div class="stat-card" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt"><div class="si si-b">✅</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
+    <div class="stat-card" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale"><div class="si si-d">⏳</div><div><div class="sv" id="s5">0</div><div class="sl">Ikke betalt</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
   </div>
 
   <!-- Dato-bar -->
@@ -1041,7 +1044,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="modal modal-lg">
     <div class="m-hero hero-warn">
       <button class="m-hero-close" onclick="closeModal('unpaidModal')">✕</button>
-      <div class="m-hero-title"><span class="m-hero-icon">⚠️</span><span>Manglende betaling</span></div>
+      <div class="m-hero-title"><span class="m-hero-icon">⏳</span><span>Ikke betalt</span></div>
       <div class="m-hero-sub">Medlemmer der mangler at indbetale kontingent</div>
     </div>
     <div id="unpaidModalContent"></div>
@@ -1056,7 +1059,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="modal modal-lg">
     <div class="m-hero hero-success">
       <button class="m-hero-close" onclick="closeModal('paidModal')">✕</button>
-      <div class="m-hero-title"><span class="m-hero-icon">💰</span><span>Betalt kontingent</span></div>
+      <div class="m-hero-title"><span class="m-hero-icon">✅</span><span>Betalt kontingent</span></div>
       <div class="m-hero-sub">Medlemmer der har indbetalt kontingent</div>
     </div>
     <div id="paidModalContent"></div>
@@ -1077,6 +1080,20 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div id="presentModalContent"></div>
     <div class="ma">
       <button class="btn bg" onclick="closeModal('presentModal')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<div class="mbd" id="groupDetailModal">
+  <div class="modal modal-lg">
+    <div class="m-hero" id="grpDetailHero">
+      <button class="m-hero-close" onclick="closeModal('groupDetailModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon" id="grpDetailIcon">🧒</span><span id="grpDetailTitle">Hold</span></div>
+      <div class="m-hero-sub" id="grpDetailSub">Oversigt</div>
+    </div>
+    <div id="grpDetailContent"></div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('groupDetailModal')">Luk</button>
     </div>
   </div>
 </div>
@@ -2136,7 +2153,7 @@ function payBadge(m){
   if(p==='paid')    return `<span class="amt-badge amt-paid">✅ Betalt</span>`;
   if(p==='partial') return `<span class="amt-badge amt-partial">⚠️ Delvis betalt</span>`;
   if(p==='overdue') return `<span class="amt-badge amt-overdue">🔴 Overskredet</span>`;
-  return `<span class="amt-badge amt-unpaid">❌ Ikke betalt</span>`;
+  return `<span class="amt-badge amt-unpaid">⏳ Ikke betalt</span>`;
 }
 function gCell(m){
   const g=m.gender;
@@ -2654,9 +2671,15 @@ function loadFromCloud(onDone){
       localStorage.setItem('kk2_members',JSON.stringify(members));
       localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
       nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
-      assessments=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date}));
+      // Merge assessments: cloud + lokale der ikke findes i cloud (undgår tab ved hurtige gem)
+      const cloudAssess=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date}));
+      const cloudIds=new Set(cloudAssess.map(a=>a.id));
+      const localOnly=assessments.filter(a=>!cloudIds.has(a.id));
+      assessments=[...cloudAssess,...localOnly];
       nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
+      // Hvis der var lokale vurderinger der ikke var i cloud, push dem nu
+      if(localOnly.length>0) pushToCloud();
       pensum=d.pensum||{};
       localStorage.setItem('kk2_pensum',JSON.stringify(pensum));
       // Bestyrelse: hent fra Sheets KUN hvis svaret eksplicit indeholder boardMeetings
@@ -2685,7 +2708,7 @@ function loadFromCloud(onDone){
     if(onDone)onDone(true);
   };
   s.onerror=()=>{cleanup();setSyncStatus('error');if(onDone)onDone(false);};
-  timer=setTimeout(()=>{cleanup();setSyncStatus('error');showToast('⚠️ Google svarede ikke — tjek Apps Script er redeployeret med ny version');if(onDone)onDone(false);},10000);
+  timer=setTimeout(()=>{cleanup();setSyncStatus('error');showToast('⚠️ Google svarede ikke — prøv igen om et øjeblik');if(onDone)onDone(false);},10000);
   s.src=url+'?callback='+cb+'&t='+Date.now();
   document.body.appendChild(s);
 }
@@ -2739,7 +2762,7 @@ function renderQS(){
     const bc=BC[m.belt]||'#ccc';
     const eps=effectivePaymentStatus(m);
     const payColor=eps==='paid'?'#16a34a':eps==='partial'?'#d97706':'#dc2626';
-    const payLabel=eps==='paid'?'✅ Betalt':eps==='partial'?'⚡ Delvis':'❌ Ikke betalt';
+    const payLabel=eps==='paid'?'✅ Betalt':eps==='partial'?'⚠️ Delvis':'⏳ Ikke betalt';
     const passivBadge=m.status==='passiv'?'<span style="font-size:.65rem;background:#f3f4f6;color:#6b7280;border-radius:4px;padding:1px 5px;font-weight:600;margin-left:4px">Passiv</span>':'';
     return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer;opacity:${m.status==='passiv'?.6:1}" onclick="closeQuickSearch();openEditModal(${m.id})">
       <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${avatarInner(m)}</div>
@@ -3112,7 +3135,7 @@ function renderDashboardBirthdays(){
 
   const rows=upcoming.map(m=>{
     const bc=BC[m.belt]||'#ccc';
-    const beltBadge=`<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:10px;background:${bc};color:${bc==='#f7e040'||bc==='#e8e8e8'||bc==='#e0e0e0'||bc==='#d0d0d0'?'#333':'#fff'};border:1px solid rgba(0,0,0,.1)">${m.belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim()}</span>`;
+    const beltBadge=`<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:10px;background:${bc};color:${bc==='#f7e040'||bc==='#e8e8e8'||bc==='#e0e0e0'||bc==='#d0d0d0'?'#333':'#fff'};border:1px solid rgba(0,0,0,.1)">${(m.belt.match(/(\d+)\.\s*Dan/i)?m.belt.match(/(\d+)\.\s*Dan/i)[1]+'. Dan':m.belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim())}</span>`;
     let when;
     if(m._diff===0) when='<strong style="color:#16a34a">I dag! 🎉</strong>';
     else if(m._diff===1) when='<span style="color:#d97706">I morgen</span>';
@@ -3144,10 +3167,14 @@ function renderDashboardBirthdays(){
    FREMMØDE TREND + BEDSTE DAG
 ════════════════════════════════════════ */
 function memberTrend(memberId, allSessions){
-  const sorted=[...allSessions].sort((a,b)=>b.date>a.date?1:-1);
-  if(sorted.length<5)return '';
-  const r=sorted.slice(0,4).filter(s=>(s.presentIds||[]).includes(memberId)).length/4;
-  const p=sorted.slice(4,8).filter(s=>(s.presentIds||[]).includes(memberId)).length/Math.min(4,sorted.slice(4,8).length||1);
+  // Kun sessioner med faktisk fremmøde-data og ikke aflyste
+  const valid=[...allSessions].filter(s=>s.date&&s.presentIds&&s.presentIds.length>0&&!cancelledDates.includes(s.date)).sort((a,b)=>b.date>a.date?1:-1);
+  if(valid.length<6)return '';
+  const recent=valid.slice(0,4);
+  const prev=valid.slice(4,8);
+  if(prev.length<2)return '';
+  const r=recent.filter(s=>s.presentIds.includes(memberId)).length/recent.length;
+  const p=prev.filter(s=>s.presentIds.includes(memberId)).length/prev.length;
   if(r>p+0.15)return '<span style="color:#16a34a;font-size:.8rem;margin-left:3px">↑</span>';
   if(r<p-0.15)return '<span style="color:#dc2626;font-size:.8rem;margin-left:3px">↓</span>';
   return '';
@@ -3431,7 +3458,7 @@ function renderT(){
     vis++;
     const bc=BC[m.belt]||'#ccc';
     const streak=_streakCache[m.id]||0;
-    const streakBadge=streak>=2?`<span class="db-streak clickable" title="Klik for detaljer · ${streak} uger i træk" onclick="event.stopPropagation();showStreakDetailModal(${m.id})">🔥 ${streak} uger</span>`:'';
+    const streakBadge=streak>=2?`<span class="db-streak clickable${streak>=5?' streak-hot':''}" title="Klik for detaljer · ${streak} uger i træk" onclick="event.stopPropagation();showStreakDetailModal(${m.id})"><span class="${streak>=5?'flame-pulse':''}">🔥</span> ${streak} uger</span>`:'';
     const bdBadge=birthdayBadge(m);
     // Fraværsadvarsel
     const attendedSessions=sessions.filter(s=>(s.presentIds||[]).includes(m.id)&&s.date);
@@ -3445,6 +3472,8 @@ function renderT(){
     const absWarning=daysSince!==null&&daysSince>=30?`<span title="Ikke set i ${daysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
+    const _promoStyle=promotionRowStyle(m.id);
+    if(_promoStyle) tr.style.cssText=_promoStyle;
     // Seneste vurdering — genbrug scoreCell() fra medlemssiden (samme kriterier + tooltip)
     tr.innerHTML=`
       <td style="text-align:center">
@@ -3463,7 +3492,7 @@ function renderT(){
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
-      <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
+      <td>${beltHtml(m.belt,bc)}</td>
       <td data-col="payment">${payBadge(m)}</td>`;
     body.appendChild(tr);
   });
@@ -3491,7 +3520,9 @@ function _scoreVal(id){
 }
 function promotionBadge(memberId){
   const threshold=config.promotionScore??4.0;
-  const a=[...assessments].filter(x=>x.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const _pm=members.find(x=>x.id===memberId);
+  const currentBelt=_pm?.belt||'';
+  const a=[...assessments].filter(x=>x.memberId===memberId&&x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!a.length)return '';
   const merged=getMergedRatings(memberId,a[0].id);
   const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
@@ -3499,6 +3530,46 @@ function promotionBadge(memberId){
   const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
   if(avg<threshold)return '';
   return ` <span title="Gns. score ${avg.toFixed(1)} ★ — klar til bælteforfremmelse!" style="font-size:.8rem;cursor:default">🏅</span>`;
+}
+// Næste-bælte farve (subtil gradient) når klar til oprykning
+const _NEXT_BELT_COLOR={
+  '10. Kyu (Hvidt)':'#f7e040','9. Kyu (1 Snip)':'#f7e040','8. Kyu (2 Snip)':'#f7e040',
+  '7. Kyu (Gult)':'#2980b9',
+  '6. Kyu (Blåt)':'#27ae60',
+  '5. Kyu (Grønt)':'#8e44ad',
+  '4. Kyu (Violet)':'#8d5524',
+  '3. Kyu (Brunt)':'#7a4820','2. Kyu (Brunt + 1 Snip)':'#6b3d18',
+  '1. Kyu (Brunt + 2 Snip)':'#212121',
+  '1. Dan (Sort)':'#212121','2. Dan (Sort)':'#212121'
+};
+function _hexRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];}
+function promotionRowStyle(memberId){
+  const _pm=members.find(x=>x.id===memberId);
+  if(!_pm)return '';
+  const belt=_pm.belt||'';
+  const nc=_NEXT_BELT_COLOR[belt];
+  if(!nc)return '';
+  const threshold=config.promotionScore??4.0;
+  const currentBelt=belt;
+  const a=[...assessments].filter(x=>x.memberId===memberId&&x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!a.length)return '';
+  const merged=getMergedRatings(memberId,a[0].id);
+  const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
+  if(!vals.length)return '';
+  const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
+  if(avg<threshold)return '';
+  const cc=BC[belt]||'#ccc';
+  const [cr,cg,cb]=_hexRgb(cc);
+  const [nr,ng,nb]=_hexRgb(nc);
+  return `background:linear-gradient(90deg,rgba(${cr},${cg},${cb},.18) 0%,rgba(${cr},${cg},${cb},.10) 40%,rgba(${nr},${ng},${nb},.25) 60%,rgba(${nr},${ng},${nb},.45) 100%)`;
+}
+function beltHtml(belt,bc){
+  const snipMatch=belt.match(/(\d+)\s*Snip/i);
+  const snips=snipMatch?parseInt(snipMatch[1]):0;
+  const snipDivs='<div class="blt-snip"></div>'.repeat(snips);
+  const danMatch=belt.match(/(\d+)\.\s*Dan/i);
+  const label=danMatch?danMatch[1]+'. Dan':belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
+  return `<span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);padding:0 5px">${snipDivs}</span> <span style="font-size:.8rem">${label}</span>`;
 }
 function renderM(){
   const body=document.getElementById('tbody-m');
@@ -3580,6 +3651,7 @@ function renderM(){
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
     if(isPassive)tr.className='passive-row';
+    if(!isPassive){const _ps=promotionRowStyle(m.id);if(_ps)tr.style.cssText=_ps;}
     tr.innerHTML=`
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${avatarInner(m)}</div>
@@ -3587,7 +3659,7 @@ function renderM(){
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
-      <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
+      <td>${beltHtml(m.belt,bc)}</td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td style="font-size:.82rem">${m.phone||'<span style="color:var(--xtl)">—</span>'}</td>
       <td style="font-size:.8rem;color:var(--xtm)">
@@ -3690,11 +3762,11 @@ function updateMemberStats(){
       <div class="msi">💤</div>
       <div class="msb"><div class="msv">${passive.length}</div><div class="msl">Passive medlemmer</div></div>
     </div>
-    <div class="m-stat ms-paid">
+    <div class="m-stat ms-paid" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt">
       <div class="msi">✅</div>
       <div class="msb"><div class="msv">${betalt}</div><div class="msl">Betalt kontingent</div></div>
     </div>
-    <div class="m-stat ms-unpaid">
+    <div class="m-stat ms-unpaid" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale">
       <div class="msi">⏳</div>
       <div class="msb"><div class="msv">${ikkeBetalt}</div><div class="msl">Ikke betalt</div></div>
     </div>`;
@@ -4366,7 +4438,7 @@ function renderHistory(){
     else if(isToday) tag='<span class="hc-tag t-today">I dag</span>';
     else if(isExtra) tag='<span class="hc-tag t-extra">⭐ Ekstra</span>';
     else tag=`<span class="hc-tag ${dw===2?'t-tue':'t-thu'}">${DA_D[dw]}</span>`;
-    let pbcls='pb';if(pct>=70)pbcls+=' good';else if(pct>=40)pbcls+=' mid';else if(saved)pbcls+=' low';
+    let pbcls='pb';if(pct>=60)pbcls+=' good';else if(pct>=40)pbcls+=' mid';else if(saved)pbcls+=' low';
     card.innerHTML=`
       <div class="hc-top">
         <div>
@@ -4383,14 +4455,14 @@ function renderHistory(){
         ${boernTotal>0?`<div style="flex:1;min-width:120px;background:#eff6ff;border-radius:8px;padding:.4rem .6rem;border:1px solid #bfdbfe">
           <div style="font-size:.68rem;font-weight:700;color:#1d4ed8;margin-bottom:.25rem">🧒 Børnehold</div>
           <div style="display:flex;align-items:center;gap:.4rem">
-            <div style="flex:1;height:5px;background:#dbeafe;border-radius:3px;overflow:hidden"><div style="height:100%;width:${boernPct}%;background:${boernPct>=70?'#2563eb':boernPct>=40?'#60a5fa':'#93c5fd'};border-radius:3px"></div></div>
+            <div style="flex:1;height:5px;background:#dbeafe;border-radius:3px;overflow:hidden"><div style="height:100%;width:${boernPct}%;background:${boernPct>=60?'#2563eb':boernPct>=40?'#60a5fa':'#93c5fd'};border-radius:3px"></div></div>
             <span style="font-size:.72rem;font-weight:700;color:#1d4ed8;white-space:nowrap">${boernPresent}/${boernTotal} · ${boernPct}%</span>
           </div>
         </div>`:''}
         ${voksenTotal>0?`<div style="flex:1;min-width:120px;background:#f0fdf4;border-radius:8px;padding:.4rem .6rem;border:1px solid #bbf7d0">
           <div style="font-size:.68rem;font-weight:700;color:#15803d;margin-bottom:.25rem">🥋 Voksne</div>
           <div style="display:flex;align-items:center;gap:.4rem">
-            <div style="flex:1;height:5px;background:#dcfce7;border-radius:3px;overflow:hidden"><div style="height:100%;width:${voksenPct}%;background:${voksenPct>=70?'#16a34a':voksenPct>=40?'#4ade80':'#86efac'};border-radius:3px"></div></div>
+            <div style="flex:1;height:5px;background:#dcfce7;border-radius:3px;overflow:hidden"><div style="height:100%;width:${voksenPct}%;background:${voksenPct>=60?'#16a34a':voksenPct>=40?'#4ade80':'#86efac'};border-radius:3px"></div></div>
             <span style="font-size:.72rem;font-weight:700;color:#15803d;white-space:nowrap">${voksenPresent}/${voksenTotal} · ${voksenPct}%</span>
           </div>
         </div>`:''}
@@ -5004,7 +5076,8 @@ function renderDashboard(){
   grpBox.innerHTML=Object.entries(grpCounts).sort((a,b)=>b[1]-a[1]).map(([g,n])=>{
     const col=grpColors[g]||'#6b7280';
     const icon=grpIcons[g]||'👥';
-    return `<div style="background:#fff;border-radius:12px;box-shadow:var(--sh);padding:.75rem 1.1rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid ${col};flex:1;min-width:140px">
+    const safeG=g.replace(/'/g,"\\'");
+    return `<div onclick="openGroupDetailModal('${safeG}')" style="background:#fff;border-radius:12px;box-shadow:var(--sh);padding:.75rem 1.1rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid ${col};flex:1;min-width:140px;cursor:pointer;transition:transform .12s,box-shadow .12s" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,.12)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--sh)'">
       <span style="font-size:1.5rem">${icon}</span>
       <div><div style="font-size:1.6rem;font-weight:800;color:${col};line-height:1">${n}</div>
       <div style="font-size:.72rem;color:var(--xtl);font-weight:600;margin-top:2px">${g}</div></div>
@@ -5116,6 +5189,7 @@ function renderDashboard(){
     else if(m.startDate){_dbDaysSince=Math.round((_dbTodayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);}
     const absW=_dbDaysSince!==null&&_dbDaysSince>=30?`<span title="Ikke set i ${_dbDaysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const tr=document.createElement('tr');
+    const _dbPromo=promotionRowStyle(m.id);if(_dbPromo)tr.style.cssText=_dbPromo;
     tr.innerHTML=`
       <td style="text-align:center"><div class="db-rank ${rankCls}">${i+1}</div></td>
       <td><div class="mrow">
@@ -5123,10 +5197,10 @@ function renderDashboard(){
         <div><div class="mn" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
-      <td><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.8rem">${m.belt}</span></td>
+      <td>${beltHtml(m.belt,bc)}</td>
       <td style="font-size:.8rem;color:var(--xtm)">${m.startDate?`<span style="font-weight:600">${durationStr(m)}</span>`:'<span style="color:var(--xtl)">—</span>'}</td>
       <td style="font-weight:700;color:var(--td)">${c} <span style="font-size:.75rem;font-weight:400;color:var(--xtl)">/ ${totalSess}</span>${dbSessionFilter==='regular'&&ex>0?`<span style="font-size:.68rem;font-weight:600;color:#7c3aed;margin-left:4px">+${ex} ekstra</span>`:''}</td>
-      <td><div>${pct}%${memberTrend(m.id,sessions)}</div><div class="db-att-bar"><div class="db-att-fill" style="width:${pct}%"></div></div></td>`;
+      <td><div>${pct}%${memberTrend(m.id,sessions)}</div><div class="db-att-bar"><div class="db-att-fill" style="width:${pct}%;background:${pct>=60?'var(--go)':pct>=40?'var(--or)':'var(--rb)'}"></div></div></td>`;
     body.appendChild(tr);
     vis++;
   });
@@ -5593,6 +5667,137 @@ function renderDashboardBeltDist(){
   </div>`;
 }
 
+function openGroupDetailModal(groupName){
+  const GD_COLORS={'Børnehold':{color:'#3b82f6',bg:'#eff6ff',grad:'linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%)'},
+    'Basis-hold':{color:'#10b981',bg:'#ecfdf5',grad:'linear-gradient(135deg,#047857 0%,#10b981 100%)'},
+    'Avanceret':{color:'#8b5cf6',bg:'#f5f3ff',grad:'linear-gradient(135deg,#6d28d9 0%,#8b5cf6 100%)'}};
+  const GD_ICONS={'Børnehold':'🧒','Basis-hold':'🥋','Avanceret':'⭐'};
+  const theme=GD_COLORS[groupName]||{color:'#6b7280',bg:'#f9fafb',grad:'linear-gradient(135deg,#2c4a4a 0%,#3d6060 100%)'};
+  const icon=GD_ICONS[groupName]||'👥';
+
+  document.getElementById('grpDetailHero').style.background=theme.grad;
+  document.getElementById('grpDetailIcon').textContent=icon;
+  document.getElementById('grpDetailTitle').textContent=groupName;
+
+  const act=actMembers().filter(m=>m.group===groupName);
+  document.getElementById('grpDetailSub').textContent=act.length+' aktive medlemmer';
+
+  // Beregn statistik
+  const td=config.trainingDays||[2,4];
+  const now=new Date(); now.setHours(0,0,0,0);
+  const from3m=new Date(now); from3m.setMonth(from3m.getMonth()-3);
+  const fromStr=localDate(from3m);
+  const regSess=sessions.filter(s=>s.date&&s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
+  const totalSess=regSess.length;
+
+  // Bæltefordeling
+  const beltDist={};
+  act.forEach(m=>{const b=m.belt||'Ukendt'; beltDist[b]=(beltDist[b]||0)+1;});
+  const beltChips=Object.entries(beltDist).sort((a,b)=>{
+    const _BS={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+    return (_BS[a[0]]||99)-(_BS[b[0]]||99);
+  }).map(([b,n])=>{
+    const bc=BC[b]||'#ccc';
+    const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
+    const tc=dark.includes(bc)?'#fff':'#333';
+    const danM=b.match(/(\d+)\.\s*Dan/i);
+    const lbl=danM?danM[1]+'. Dan':b.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
+    const snipM=b.match(/(\d+)\s*Snip/i);
+    const snips=snipM?parseInt(snipM[1]):0;
+    const snipDivs=snips>0?'<span style="display:inline-flex;gap:1px;margin-right:3px">'+Array(snips).fill('<span style="width:2px;height:10px;background:rgba(255,255,255,.7);border-radius:1px"></span>').join('')+'</span>':'';
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;background:${bc};color:${tc};font-size:.72rem;font-weight:700;border:1px solid rgba(0,0,0,.12)">${snipDivs}${lbl} <span style="opacity:.7">×${n}</span></span>`;
+  }).join(' ');
+
+  // Kønsfordeling
+  const genderM=act.filter(m=>m.gender==='M').length;
+  const genderK=act.filter(m=>m.gender==='K').length;
+
+  // Betaling
+  const paid=act.filter(m=>effectivePaymentStatus(m)==='paid').length;
+  const unpaid=act.length-paid;
+
+  // Gennemsnitsalder
+  const ages=act.map(m=>m.age).filter(a=>a&&a>0);
+  const avgAge=ages.length>0?Math.round(ages.reduce((a,b)=>a+b,0)/ages.length*10)/10:null;
+
+  // KPI tiles
+  let html=`<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+    <div style="flex:1;min-width:70px;background:${theme.bg};border-radius:10px;padding:.5rem .7rem;text-align:center;border:1px solid ${theme.color}22">
+      <div style="font-size:1.4rem;font-weight:800;color:${theme.color};line-height:1">${act.length}</div>
+      <div style="font-size:.6rem;color:var(--xtl);margin-top:2px">Medlemmer</div>
+    </div>
+    ${avgAge?`<div style="flex:1;min-width:70px;background:#fff7ed;border-radius:10px;padding:.5rem .7rem;text-align:center;border:1px solid #fed7aa">
+      <div style="font-size:1.4rem;font-weight:800;color:#c2410c;line-height:1">${avgAge}</div>
+      <div style="font-size:.6rem;color:var(--xtl);margin-top:2px">Gns. alder</div>
+    </div>`:''}
+    <div onclick="closeModal('groupDetailModal');setTimeout(()=>showPaidModal(),200)" style="flex:1;min-width:70px;background:#f0fdf4;border-radius:10px;padding:.5rem .7rem;text-align:center;border:1px solid #bbf7d0;cursor:pointer" title="Klik for at se hvem der har betalt">
+      <div style="font-size:1.4rem;font-weight:800;color:#16a34a;line-height:1">✅ ${paid}</div>
+      <div style="font-size:.6rem;color:var(--xtl);margin-top:2px">Betalt kontingent</div>
+    </div>
+    ${unpaid>0?`<div onclick="closeModal('groupDetailModal');setTimeout(()=>showUnpaidModal(),200)" style="flex:1;min-width:70px;background:#fef2f2;border-radius:10px;padding:.5rem .7rem;text-align:center;border:1px solid #fecaca;cursor:pointer" title="Klik for at se hvem der mangler at betale">
+      <div style="font-size:1.4rem;font-weight:800;color:#dc2626;line-height:1">⏳ ${unpaid}</div>
+      <div style="font-size:.6rem;color:var(--xtl);margin-top:2px">Ikke betalt</div>
+    </div>`:''}
+    <div style="flex:1;min-width:70px;background:#eff6ff;border-radius:10px;padding:.5rem .7rem;text-align:center;border:1px solid #bfdbfe">
+      <div style="font-size:1rem;font-weight:800;color:#1d4ed8;line-height:1">${genderM>0?'♂'+genderM:''}${genderM>0&&genderK>0?' · ':''}${genderK>0?'♀'+genderK:''}</div>
+      <div style="font-size:.6rem;color:var(--xtl);margin-top:2px">Køn</div>
+    </div>
+  </div>`;
+
+  // Bæltefordeling
+  html+=`<div style="margin-bottom:1rem">
+    <div style="font-size:.75rem;font-weight:700;color:var(--td);margin-bottom:.4rem">🥋 Bæltefordeling</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">${beltChips}</div>
+  </div>`;
+
+  // Medlemsliste med fremmøde
+  const attended={};
+  act.forEach(m=>{attended[m.id]=0;});
+  regSess.forEach(s=>{(s.presentIds||[]).forEach(id=>{if(attended[id]!==undefined)attended[id]++;});});
+
+  const sorted=[...act].sort((a,b)=>{
+    const pctA=totalSess>0?attended[a.id]/totalSess:0;
+    const pctB=totalSess>0?attended[b.id]/totalSess:0;
+    return pctB-pctA;
+  });
+
+  html+=`<div style="font-size:.75rem;font-weight:700;color:var(--td);margin-bottom:.4rem">👥 Medlemmer <span style="font-weight:400;color:var(--xtl)">· fremmøde seneste 3 mdr.</span></div>`;
+  html+=`<div style="max-height:350px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:10px">`;
+  sorted.forEach((m,i)=>{
+    const c=attended[m.id]||0;
+    const pct=totalSess>0?Math.round(c/totalSess*100):0;
+    const pctColor=pct>=60?'#16a34a':pct>=40?'#d97706':'#dc2626';
+    const bc=BC[m.belt]||'#ccc';
+    const streak=calcStreak(m.id);
+    const streakHtml=streak>=3?`<span style="font-size:.65rem;font-weight:700;color:#c2410c;margin-left:4px">🔥${streak}</span>`:'';
+    const danM=m.belt?m.belt.match(/(\d+)\.\s*Dan/i):null;
+    const beltLbl=danM?danM[1]+'. Dan':(m.belt||'').replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
+    const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
+    const beltTc=dark.includes(bc)?'#fff':'#333';
+    html+=`<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;${i<sorted.length-1?'border-bottom:1px solid #f0f0f0;':''}">
+      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.7rem;flex-shrink:0">${avatarInner(m)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.82rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="closeModal('groupDetailModal');setTimeout(()=>openMemberStatsModal(${m.id}),200)">${m.firstName} ${m.lastName}${streakHtml}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+          <span style="display:inline-block;padding:1px 6px;border-radius:8px;background:${bc};color:${beltTc};font-size:.6rem;font-weight:700;border:1px solid rgba(0,0,0,.08)">${beltLbl}</span>
+          ${m.age?`<span style="font-size:.6rem;color:var(--xtl)">${m.age} år</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;min-width:60px">
+        <div style="font-size:.85rem;font-weight:800;color:${pctColor}">${pct}%</div>
+        <div style="font-size:.58rem;color:var(--xtl)">${c}/${totalSess} gange</div>
+        <div style="height:4px;width:50px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin-top:2px;margin-left:auto">
+          <div style="height:100%;width:${pct}%;background:${pctColor};border-radius:3px"></div>
+        </div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  document.getElementById('grpDetailContent').innerHTML=html;
+  openModal('groupDetailModal');
+}
+
 function renderDashboardAbsent(){
   const card=document.getElementById('db-absent-card');
   if(!card)return;
@@ -5776,9 +5981,9 @@ function renderHDContent(c,pm,am,split,note=''){
     const paid=pm.filter(m=>effectivePaymentStatus(m)==='paid');
     const notPaid=pm.filter(m=>effectivePaymentStatus(m)!=='paid');
     grid=`
-      <div class="dm-section paid">💚 Betalt <span style="background:#c8f0d8;color:#1a7a3f;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${paid.length} fremmødte</span></div>
+      <div class="dm-section paid">✅ Betalt kontingent <span style="background:#c8f0d8;color:#1a7a3f;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${paid.length} fremmødte</span></div>
       ${paid.length?paid.map(m=>row(m,true,''))  .join(''):'<div style="grid-column:1/-1;color:var(--xtl);font-size:.8rem;padding:.3rem .7rem">Ingen</div>'}
-      <div class="dm-section unpaid" style="margin-top:.4rem">🔴 Ikke betalt <span style="background:#f9c0c0;color:#c0392b;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${notPaid.length} fremmødte</span></div>
+      <div class="dm-section unpaid" style="margin-top:.4rem">⏳ Ikke betalt <span style="background:#f9c0c0;color:#c0392b;border-radius:20px;padding:.1rem .6rem;font-size:.78rem;margin-left:.2rem">${notPaid.length} fremmødte</span></div>
       ${notPaid.length?notPaid.map(m=>row(m,true,'unpaid')).join(''):'<div style="grid-column:1/-1;color:var(--xtl);font-size:.8rem;padding:.3rem .7rem">Ingen</div>'}`;
   }
   const noteHtml=note
@@ -6041,6 +6246,12 @@ async function saveMember(){
   let savedMember;
   if(editingId){
     const i=members.findIndex(x=>x.id===editingId);
+    const oldBelt=members[i].belt;
+    const newBelt=data.belt;
+    if(oldBelt&&newBelt&&oldBelt!==newBelt){
+      const hasAssess=assessments.some(a=>a.memberId===editingId&&a.belt===oldBelt);
+      if(hasAssess&&!confirm(`${data.firstName||members[i].firstName} rykker fra ${oldBelt} til ${newBelt}.\n\nScoren nulstilles for det nye bælte.\nHistorikken fra ${oldBelt} bevares.\n\nFortsæt?`))return;
+    }
     members[i]={...members[i],...data};
     savedMember=members[i];
   } else {
@@ -6595,7 +6806,8 @@ function beltBadgeEM(belt){
   const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
   const txt=dark.includes(bg)?'#fff':'#1a1a1a';
   // Kort bæltenavn
-  const short=belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim()||belt;
+  const _danM=belt.match(/(\d+)\.\s*Dan/i);
+  const short=_danM?_danM[1]+'. Dan':(belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim()||belt);
   return `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:10px;background:${bg};color:${txt};white-space:nowrap;border:1px solid rgba(0,0,0,.08)"><span style="width:8px;height:8px;border-radius:50%;background:${bg};border:1.5px solid rgba(0,0,0,.18);display:inline-block;flex-shrink:0"></span>${short}</span>`;
 }
 
@@ -6648,7 +6860,7 @@ function buildEmailList(){
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0">
         ${m.belt?beltBadgeEM(m.belt):''}
         ${_emailGroup==='all'?`<span class="em-grp" style="${grpStyle}">${m.group}</span>`:''}
-        ${['unpaid','overdue'].includes(effectivePaymentStatus(m))?`<span style="font-size:.65rem;font-weight:700;background:#fef2f2;color:#dc2626;border-radius:8px;padding:1px 6px;border:1px solid #fca5a5">💸 Ikke betalt</span>`:''}
+        ${['unpaid','overdue'].includes(effectivePaymentStatus(m))?`<span style="font-size:.65rem;font-weight:700;background:#fef2f2;color:#dc2626;border-radius:8px;padding:1px 6px;border:1px solid #fca5a5">⏳ Ikke betalt</span>`:''}
         ${isKontingentReminderPeriod()&&['unpaid','overdue'].includes(effectivePaymentStatus(m))&&m.email?`<button onclick="event.stopPropagation();openIndividualReminder(${m.id})" title="Send personlig betalingspåmindelse" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:2px 6px;font-size:.72rem;cursor:pointer;color:#dc2626;font-weight:700">📧 Rykker</button>`:''}
       </div>`;
     div.addEventListener('click',e=>{
@@ -7187,7 +7399,9 @@ function getMergedRatings(memberId, assessmentId){
 }
 
 function scoreCell(memberId){
-  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const _scM=members.find(x=>x.id===memberId);
+  const currentBelt=_scM?.belt||'';
+  const sorted=assessments.filter(a=>a.memberId===memberId&&a.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
   const latest=sorted[0];
   const merged=getMergedRatings(memberId, latest.id);
@@ -7240,8 +7454,17 @@ function scoreCell(memberId){
     ${progressTipHtml}
   </div>`;
 
+  const pct5=avg/5*100;
+  const r=16,circ=2*Math.PI*r,dash=circ*pct5/100,gap=circ-dash;
   return `<div class="score-wrap" onclick="toggleScoreTip(event,this)">
-    <span style="font-weight:700;color:${color};font-size:.88rem">★ ${avg.toFixed(1)}</span>
+    <svg width="42" height="42" viewBox="0 0 42 42" style="display:block;margin:0 auto">
+      <circle cx="21" cy="21" r="${r}" fill="none" stroke="#e8f0f0" stroke-width="3.5"/>
+      <circle cx="21" cy="21" r="${r}" fill="none" stroke="${color}" stroke-width="3.5"
+        stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-linecap="round"
+        transform="rotate(-90 21 21)" style="transition:stroke-dasharray .4s"/>
+      <text x="21" y="22" text-anchor="middle" dominant-baseline="central"
+        style="font-size:10px;font-weight:800;fill:${color}">${avg.toFixed(1)}</text>
+    </svg>
     ${tip}
   </div>`;
 }
@@ -7341,6 +7564,7 @@ function saveAssessment(){
     });
   }
   save();
+  pushToCloud(); // Synk vurdering til cloud med det samme
   renderM();
   const memberId=_assessMemberId;
   _editingAssessmentId=null;
