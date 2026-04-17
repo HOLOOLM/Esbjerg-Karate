@@ -2575,6 +2575,12 @@ function pushToCloud(){
   setSyncStatus('pending');
   _pushTimer=setTimeout(()=>_doPush(0),2000);
 }
+function pushToCloudNow(){
+  clearTimeout(_pushTimer);
+  _hasPending=true;
+  setSyncStatus('pending');
+  _doPush(0);
+}
 
 // Periodisk sync hvert 60 sek — kun hvis der er ændringer og ingen sync kører
 function _startPeriodicSync(){
@@ -7615,7 +7621,7 @@ function saveAssessment(){
     });
   }
   save();
-  pushToCloud(); // Synk vurdering til cloud med det samme
+  pushToCloudNow();
   renderM();
   const memberId=_assessMemberId;
   _editingAssessmentId=null;
