@@ -687,7 +687,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .assess-history-stars{color:#f59e0b;letter-spacing:.05rem;width:5.2rem;text-align:right;display:inline-block;flex-shrink:0}
 .assess-history-comment{font-size:.8rem;color:var(--t2);margin-top:.4rem;font-style:italic}
 .score-wrap{position:relative;display:inline-block;cursor:pointer}
-.score-tip{display:none;position:fixed;background:#fff;border:1px solid #e0eded;border-radius:12px;padding:.7rem .9rem;min-width:210px;max-width:270px;box-shadow:0 6px 24px rgba(0,0,0,.13);z-index:9999;pointer-events:none;text-align:left}
+.score-tip{display:none;position:fixed;background:#fff;border:1px solid #e0eded;border-radius:12px;padding:.7rem .9rem;min-width:210px;max-width:min(270px,calc(100vw - 16px));box-shadow:0 6px 24px rgba(0,0,0,.13);z-index:9999;pointer-events:none;text-align:left}
 @media(hover:hover) and (pointer:fine){.score-wrap:hover .score-tip{display:block!important}}
 .score-tip-hdr{font-size:.7rem;font-weight:700;color:var(--xtl);margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid #edf2f2}
 .score-tip-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.12rem 0;font-size:.75rem}
@@ -3551,6 +3551,8 @@ function promotionBadge(memberId){
   const a=[...assessments].filter(x=>x.memberId===memberId&&x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!a.length)return '';
   const merged=getMergedRatings(memberId,a[0].id);
+  const pensumSkills=pensum[currentBelt]||[];
+  if(pensumSkills.length&&!pensumSkills.every(sk=>merged[sk]&&merged[sk].val>0))return '';
   const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
   if(!vals.length)return '';
   const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
@@ -3586,6 +3588,8 @@ function promotionRowStyle(memberId){
   const a=[...assessments].filter(x=>x.memberId===memberId&&x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!a.length)return '';
   const merged=getMergedRatings(memberId,a[0].id);
+  const pensumSkills=pensum[currentBelt]||[];
+  if(pensumSkills.length&&!pensumSkills.every(sk=>merged[sk]&&merged[sk].val>0))return '';
   const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
   if(!vals.length)return '';
   const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
@@ -7497,6 +7501,11 @@ function scoreCell(memberId){
 
   const pct5=avg/5*100;
   const r=16,circ=2*Math.PI*r,dash=circ*pct5/100,gap=circ-dash;
+  const _covTotal=_scBeltSkills.length;
+  const _covRated=_covTotal?_scBeltSkills.filter(sk=>merged[sk]&&merged[sk].val>0).length:0;
+  const coverageHtml=(_covTotal>0&&_covRated<_covTotal)
+    ?`<div style="font-size:.6rem;font-weight:700;color:#6366f1;text-align:center;line-height:1;margin-top:2px">${_covRated}/${_covTotal}</div>`
+    :'';
   return `<div class="score-wrap" onclick="toggleScoreTip(event,this)">
     <svg width="42" height="42" viewBox="0 0 42 42" style="display:block;margin:0 auto">
       <circle cx="21" cy="21" r="${r}" fill="none" stroke="#e8f0f0" stroke-width="3.5"/>
@@ -7506,6 +7515,7 @@ function scoreCell(memberId){
       <text x="21" y="22" text-anchor="middle" dominant-baseline="central"
         style="font-size:10px;font-weight:800;fill:${color}">${avg.toFixed(1)}</text>
     </svg>
+    ${coverageHtml}
     ${tip}
   </div>`;
 }
