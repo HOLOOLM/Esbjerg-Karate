@@ -2718,7 +2718,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -2812,10 +2812,17 @@ function loadFromCloud(onDone){
       localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
       nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
       // Merge assessments: cloud + lokale der ikke findes i cloud (undgår tab ved hurtige gem)
+      // Synkroniser deletedAssessmentIds fra cloud — union af lokale + cloud
+      if(Array.isArray(d.deletedAssessmentIds)&&d.deletedAssessmentIds.length){
+        d.deletedAssessmentIds.forEach(id=>deletedAssessmentIds.add(id));
+        localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
+      }
       const cloudAssess=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date})).filter(a=>!deletedAssessmentIds.has(a.id));
       const cloudIds=new Set(cloudAssess.map(a=>a.id));
       const localOnly=assessments.filter(a=>!cloudIds.has(a.id)&&!deletedAssessmentIds.has(a.id));
       assessments=[...cloudAssess,...localOnly];
+      // Rens lokale assessments for slettede IDs
+      assessments=assessments.filter(a=>!deletedAssessmentIds.has(a.id));
       nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
       // Hvis der var lokale vurderinger der ikke var i cloud, push dem nu
