@@ -2719,7 +2719,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -2838,6 +2838,16 @@ function loadFromCloud(onDone){
         }));
         nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
         localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
+      }
+      // Merge config: cloud vinder hvis den er nyere end lokal
+      if(d.config&&typeof d.config==='object'){
+        const cloudSaved=d.config._savedAt||0, localSaved=config._savedAt||0;
+        if(cloudSaved>localSaved){
+          const scriptUrl=config.scriptUrl;
+          config=Object.assign(config,d.config);
+          config.scriptUrl=scriptUrl; // aldrig overskriv scriptUrl
+          localStorage.setItem('kk2_config',JSON.stringify(config));
+        }
       }
       cloudLoaded=true;
       setSyncStatus('ok');
