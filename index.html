@@ -875,6 +875,15 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div style="font-size:2rem;margin-bottom:.6rem">👤</div>
     <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Hvem er du?</h3>
     <p style="margin:0 0 1.2rem;color:#4a6a6a;font-size:.85rem">Så andre kan se hvem der er online</p>
+    <div id="presenceSyncNotice" style="display:none;background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:.7rem .9rem;margin-bottom:1rem;text-align:left">
+      <div style="display:flex;align-items:center;gap:.55rem">
+        <span style="font-size:1.1rem;animation:phSpin 1.2s linear infinite;display:inline-block">⏳</span>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:#0369a1">Synkroniserer…</div>
+          <div style="font-size:.75rem;color:#0284c7;margin-top:1px">Henter navne fra skyen – vent et øjeblik</div>
+        </div>
+      </div>
+    </div>
     <select id="presenceNameInput"
       style="width:100%;box-sizing:border-box;padding:.65rem .85rem;border:1.5px solid #d0e4e4;border-radius:10px;font-size:.95rem;outline:none;margin-bottom:1rem;color:#1a3a3a;background:#fff;appearance:auto">
       <option value="">— Vælg dit navn —</option>
@@ -2430,13 +2439,16 @@ function refreshPresenceDatalist(){
   if(!sel||sel.tagName!=='SELECT')return;
   const cur=sel.value;
   sel.innerHTML='<option value="">— Vælg dit navn —</option>';
-  (members||[]).filter(m=>!m.archived&&(m.role==='Instruktør'||m.role==='Hjælpetræner'||m.role==='Kasserer')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da')).forEach(m=>{
+  const eligible=(members||[]).filter(m=>!m.archived&&(m.role==='Instruktør'||m.role==='Hjælpetræner'||m.role==='Kasserer')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da'));
+  eligible.forEach(m=>{
     const o=document.createElement('option');
     o.value=m.firstName+' '+m.lastName;
     o.textContent=m.firstName+' '+m.lastName+' ('+m.role+')';
     sel.appendChild(o);
   });
   if(cur)sel.value=cur;
+  const notice=document.getElementById('presenceSyncNotice');
+  if(notice) notice.style.display=(eligible.length===0&&config.scriptUrl)?'block':'none';
 }
 function confirmPresenceName(){
   const name=(document.getElementById('presenceNameInput').value||'').trim();
