@@ -8291,7 +8291,10 @@ function deleteAssessment(assessmentId, memberId){
   assessments=assessments.filter(a=>a.id!==assessmentId);
   deletedAssessmentIds.add(assessmentId);
   localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
-  save(); pushToCloud();
+  save();
+  // Push øjeblikkeligt uden debounce så cloud opdateres før næste auto-refresh
+  clearTimeout(_pushTimer);
+  _doPush(0);
   renderAssessmentHistory(memberId);
   // Opdater score-celle i tabellen
   const rowM=document.querySelector(`#tbody-m tr[data-id="${memberId}"]`);
