@@ -974,7 +974,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
   <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
-  <div class="nav-tab" onclick="switchTab('promotion')" id="tab-promotion" style="display:none">🎯 Oprykning</div>
+  <div class="nav-tab" onclick="switchTab('promotion')" id="tab-promotion" style="display:none">🎯 Graduering</div>
   <div class="nav-tab" onclick="switchTab('board')" id="tab-board">📒 Interne notater</div>
 </nav>
 </div>
@@ -1528,8 +1528,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ SIDE: OPRYKNING ══ -->
 <div class="page" id="page-promotion">
   <div class="promo-hero">
-    <h2>🎯 Oprykning</h2>
-    <p>Oversigt over medlemmer tæt på næste bælte — samt dem der mangler en vurdering</p>
+    <h2>🎯 Graduering</h2>
+    <p>Oversigt over medlemmer tæt på eller klar til næste bælte</p>
   </div>
   <div class="promo-summary" id="promoSummary"></div>
   <div id="promoContent"></div>
@@ -1930,7 +1930,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <div class="age-hint">Betalingsstatus beregnes automatisk. Passive medlemmer tæller ikke med.</div>
       </div>
       <div class="fgrp full" style="margin-top:.8rem;border-top:1px solid #e8f0f0;padding-top:.9rem">
-        <label>🎯 Oprykningsfane</label>
+        <label>🎯 Graderingsfane</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem;margin-top:.5rem">
           <div>
             <div style="font-size:.78rem;color:var(--xtm);margin-bottom:.25rem">Klar til nyt bælte! (min. score)</div>
@@ -2402,7 +2402,7 @@ const PAGE_LABELS={
   'history':    {label:'Fremmødeoversigt',   icon:'📅'},
   'members':    {label:'Alle medlemmer',     icon:'👥'},
   'board':      {label:'Interne notater',    icon:'📒'},
-  'promotion':  {label:'Oprykning',          icon:'🏅'},
+  'promotion':  {label:'Graduering',          icon:'🏅'},
 };
 function getActivePage(){
   const active=document.querySelector('.page.active');
@@ -3581,6 +3581,7 @@ function _promoCardReady(s){
       </div>
     </div>
     ${s.comment?`<div style="font-size:.75rem;font-style:italic;color:#6b7280;padding:.45rem .6rem;background:#f9fafb;border-radius:8px;border-left:3px solid #e5e7eb;margin-top:.25rem">💬 "${s.comment}"</div>`:''}
+    ${(()=>{const low=s.weak.filter(w=>w.val<=3&&w.val>0);return low.length?`<div style="margin-top:.6rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${low.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${_promoStarsHtml(w.val)}</span></div>`).join('')}</div>`:'';})()}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>
@@ -3593,7 +3594,8 @@ function _promoCardAlmost(s){
   const pct=Math.round(s.avg/5*100);
   const promoThr=config.promotionScore??4.0;
   const gap=(promoThr-s.avg).toFixed(1).replace('.',',');
-  const weakHtml=s.weak.length?`<div><div class="promo-missing-lbl">⚠ Mangler fokus på</div>${s.weak.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
+  const lowSkills=s.weak.filter(w=>w.val<=3);
+  const weakHtml=lowSkills.length?`<div><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${lowSkills.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
   return `<div class="promo-card almost" onclick="openAssessmentModal(${m.id})">
     <div class="promo-card-top">
       ${_promoAvatar(m)}
@@ -3696,8 +3698,29 @@ function updatePromotionTabVisibility(){
   tab.style.display=total>0?'':'none';
 }
 function togglePromoFilter(group){
-  if(group==='ready') config.showReady=config.showReady===false?true:false;
-  else if(group==='almost') config.showAlmost=config.showAlmost===false?true:false;
+  const showReady=config.showReady!==false;
+  const showAlmost=config.showAlmost!==false;
+  if(group==='ready'){
+    if(showReady&&!showAlmost){ config.showReady=true; config.showAlmost=true; }
+    else { config.showReady=true; config.showAlmost=false; }
+  } else if(group==='almost'){
+    if(showAlmost&&!showReady){ config.showReady=true; config.showAlmost=true; }
+    else { config.showReady=false; config.showAlmost=true; }
+  }
+  config.promoGroupFilter=null;
+  save();
+  renderPromotion();
+}
+
+function togglePromoGroupFilter(gf,section){
+  const same=config.promoGroupFilter===gf&&config.promoSectionFilter===section;
+  if(same){ config.promoGroupFilter=null; config.promoSectionFilter=null; config.showReady=true; config.showAlmost=true; }
+  else {
+    config.promoGroupFilter=gf;
+    config.promoSectionFilter=section;
+    config.showReady=section==='ready';
+    config.showAlmost=section==='almost';
+  }
   save();
   renderPromotion();
 }
@@ -3709,18 +3732,50 @@ function renderPromotion(){
   const showReady=config.showReady!==false;
   const showAlmost=config.showAlmost!==false;
   const showOverdue=config.showOverdue===true;
+  const gf=config.promoGroupFilter||null;
   const g=_computePromoGroups();
+  const _filterByGroup=(arr,section)=>{
+    if(!gf||sf!==section) return arr;
+    return arr.filter(e=>{const m=members.find(x=>x.id===e.memberId);if(!m)return false;return gf==='børnehold'?m.group==='Børnehold':m.group!=='Børnehold';});
+  };
+  const sf=config.promoSectionFilter||null;
+  const _tileBreakdown=(arr,section)=>{
+    const børn=arr.filter(e=>{const m=members.find(x=>x.id===e.memberId);return m&&m.group==='Børnehold';});
+    const basis=arr.filter(e=>{const m=members.find(x=>x.id===e.memberId);return m&&m.group!=='Børnehold';});
+    const bøActive=gf==='børnehold'&&sf===section, baActive=gf==='basis'&&sf===section;
+    let s='<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.35rem">';
+    if(børn.length) s+=`<div onclick="event.stopPropagation();togglePromoGroupFilter('børnehold','${section}')" style="cursor:pointer;background:#eff6ff;border:1.5px solid ${bøActive?'#2563eb':'#bfdbfe'};border-radius:7px;padding:.25rem .5rem;display:flex;align-items:center;gap:.3rem"><span style="font-size:.66rem;font-weight:700;color:#1d4ed8">🧒 Børnehold</span><span style="font-size:.72rem;font-weight:800;color:#1d4ed8">${børn.length}</span></div>`;
+    if(basis.length) s+=`<div onclick="event.stopPropagation();togglePromoGroupFilter('basis','${section}')" style="cursor:pointer;background:#f0fdf4;border:1.5px solid ${baActive?'#15803d':'#bbf7d0'};border-radius:7px;padding:.25rem .5rem;display:flex;align-items:center;gap:.3rem"><span style="font-size:.66rem;font-weight:700;color:#15803d">🥋 Basis+</span><span style="font-size:.72rem;font-weight:800;color:#15803d">${basis.length}</span></div>`;
+    s+='</div>';
+    return (børn.length||basis.length)?s:'';
+  };
   const sum=document.getElementById('promoSummary');
   sum.innerHTML=`
-    <div class="promo-stat promo-stat-btn${showReady?'':' promo-stat-off'}" onclick="togglePromoFilter('ready')" title="Klik for at vise/skjule"><div class="promo-stat-ico" style="background:#dcfce7;color:#16a34a">🏅</div><div><div class="promo-stat-num" style="color:#16a34a">${g.ready.length}</div><div class="promo-stat-lbl">Klar til nyt bælte!</div></div></div>
-    <div class="promo-stat promo-stat-btn${showAlmost?'':' promo-stat-off'}" onclick="togglePromoFilter('almost')" title="Klik for at vise/skjule"><div class="promo-stat-ico" style="background:#fef3c7;color:#d97706">🎯</div><div><div class="promo-stat-num" style="color:#d97706">${g.almost.length}</div><div class="promo-stat-lbl">På vej op!</div></div></div>
+    <div class="promo-stat promo-stat-btn${showReady?'':' promo-stat-off'}" onclick="togglePromoFilter('ready')" title="Klik for at vise/skjule">
+      <div class="promo-stat-ico" style="background:#dcfce7;color:#16a34a">🏅</div>
+      <div>
+        <div class="promo-stat-num" style="color:#16a34a">${g.ready.length}</div>
+        <div class="promo-stat-lbl">Klar til nyt bælte!</div>
+        <div style="font-size:.7rem;margin-top:3px;line-height:1.3">${_tileBreakdown(g.ready,'ready')}</div>
+      </div>
+    </div>
+    <div class="promo-stat promo-stat-btn${showAlmost?'':' promo-stat-off'}" onclick="togglePromoFilter('almost')" title="Klik for at vise/skjule">
+      <div class="promo-stat-ico" style="background:#fef3c7;color:#d97706">🎯</div>
+      <div>
+        <div class="promo-stat-num" style="color:#d97706">${g.almost.length}</div>
+        <div class="promo-stat-lbl">På vej op!</div>
+        <div style="font-size:.7rem;margin-top:3px;line-height:1.3">${_tileBreakdown(g.almost,'almost')}</div>
+      </div>
+    </div>
     `;
+  const readyArr=_filterByGroup(g.ready,'ready');
+  const almostArr=_filterByGroup(g.almost,'almost');
   let html='';
-  if(showReady&&g.ready.length){
-    html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til nyt bælte!</h3><span class="promo-badge">${g.ready.length} medlem${g.ready.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${g.ready.map(_promoCardReady).join('')}</div>`;
+  if(showReady&&readyArr.length){
+    html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til nyt bælte!</h3><span class="promo-badge">${readyArr.length} medlem${readyArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${readyArr.map(_promoCardReady).join('')}</div>`;
   }
-  if(showAlmost&&g.almost.length){
-    html+=`<div class="promo-section-hdr almost"><h3>🎯 På vej op!</h3><span class="promo-badge">${g.almost.length} medlem${g.almost.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${g.almost.map(_promoCardAlmost).join('')}</div>`;
+  if(showAlmost&&almostArr.length){
+    html+=`<div class="promo-section-hdr almost"><h3>🎯 På vej op!</h3><span class="promo-badge">${almostArr.length} medlem${almostArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${almostArr.map(_promoCardAlmost).join('')}</div>`;
   }
   if(!html) html=`<div class="promo-empty">Ingen synlige grupper. Slå grupper til/fra med knapperne ovenfor.</div>`;
   document.getElementById('promoContent').innerHTML=html;
