@@ -3564,7 +3564,10 @@ function _promoCardReady(s){
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
         <div class="promo-name">${m.firstName} ${m.lastName}</div>
-        <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+          <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
+          ${m.group?`<span style="font-size:.68rem;border-radius:6px;padding:1px 6px;white-space:nowrap;font-weight:700;background:${({'Børnehold':'#eff6ff','Basis-hold':'#ecfdf5','Avanceret':'#f5f3ff'}[m.group]||'#f3f4f6')};color:${({'Børnehold':'#3b82f6','Basis-hold':'#10b981','Avanceret':'#8b5cf6'}[m.group]||'#6b7280')}">${m.group}</span>`:''}
+        </div>
       </div>
     </div>
     <div class="promo-score-row">
@@ -3596,7 +3599,10 @@ function _promoCardAlmost(s){
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
         <div class="promo-name">${m.firstName} ${m.lastName}</div>
-        <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+          <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
+          ${m.group?`<span style="font-size:.68rem;border-radius:6px;padding:1px 6px;white-space:nowrap;font-weight:700;background:${({'Børnehold':'#eff6ff','Basis-hold':'#ecfdf5','Avanceret':'#f5f3ff'}[m.group]||'#f3f4f6')};color:${({'Børnehold':'#3b82f6','Basis-hold':'#10b981','Avanceret':'#8b5cf6'}[m.group]||'#6b7280')}">${m.group}</span>`:''}
+        </div>
       </div>
     </div>
     <div class="promo-score-row">
@@ -3663,6 +3669,23 @@ function _computePromoGroups(){
     const o=getPromoOverdue(m.id);
     if(o) overdue.push(o);
   });
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  const GROUP_ORDER=['Børnehold','Basis-hold','Avanceret'];
+  const promoSort=(a,b)=>{
+    const ma=members.find(x=>x.id===a.memberId),mb=members.find(x=>x.id===b.memberId);
+    if(!ma||!mb) return 0;
+    const ga=GROUP_ORDER.indexOf(ma.group),gb=GROUP_ORDER.indexOf(mb.group);
+    const giA=ga===-1?GROUP_ORDER.length:ga, giB=gb===-1?GROUP_ORDER.length:gb;
+    if(giA!==giB) return giA-giB;
+    const ba=BELT_ORDER.indexOf(ma.belt),bb=BELT_ORDER.indexOf(mb.belt);
+    const biA=ba===-1?BELT_ORDER.length:ba, biB=bb===-1?BELT_ORDER.length:bb;
+    if(biA!==biB) return biA-biB;
+    // Samme bælte: nyest startdato først, ældst sidst (størst anciennitet sidst)
+    const sa=ma.startDate||'',sb=mb.startDate||'';
+    return sb.localeCompare(sa); // nyere dato = lavere anciennitet = kommer først
+  };
+  ready.sort(promoSort);
+  almost.sort(promoSort);
   return {ready,almost,overdue};
 }
 function updatePromotionTabVisibility(){
