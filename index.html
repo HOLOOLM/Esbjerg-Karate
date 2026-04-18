@@ -38,7 +38,9 @@ header{background:linear-gradient(135deg,var(--td) 0%,#1a3030 100%);color:#fff;p
 /* TABS */
 .nav-tabs-wrap{position:relative;background:var(--tm)}
 .nav-tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,transparent,var(--tm));pointer-events:none;opacity:1;transition:opacity .25s;z-index:2}
+.nav-tabs-wrap::before{content:'';position:absolute;left:0;top:0;bottom:0;width:48px;background:linear-gradient(to left,transparent,var(--tm));pointer-events:none;opacity:0;transition:opacity .25s;z-index:2}
 .nav-tabs-wrap.scrolled-end::after{opacity:0}
+.nav-tabs-wrap.scrolled-start::before{opacity:1}
 .nav-tabs{background:transparent;display:flex;padding:0 2rem;gap:4px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .nav-tabs::-webkit-scrollbar{display:none}
 .nav-tab{padding:.72rem 1.4rem;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;display:flex;align-items:center;gap:7px;user-select:none;white-space:nowrap;flex-shrink:0;touch-action:manipulation}
@@ -485,7 +487,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #syncStatus{font-size:.68rem;padding:.2rem .45rem;white-space:nowrap}
   #trainingDatePicker{width:148px!important;max-width:148px!important;min-width:0!important;flex:none!important}
 
-  /* Tabs: scrollbar-fri horisontal scroll */
+  /* Tabs: sticky + scrollbar-fri horisontal scroll */
+  .nav-tabs-wrap{position:sticky;top:0;z-index:90}
   .nav-tabs{padding:0 .4rem;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .nav-tabs::-webkit-scrollbar{display:none}
   .nav-tab{padding:.48rem .65rem;font-size:.7rem;white-space:nowrap;flex-shrink:0}
@@ -3491,7 +3494,9 @@ function switchTab(tab){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
+  const activeTab=document.getElementById('tab-'+tab);
+  activeTab.classList.add('active');
+  activeTab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   if(tab==='history') renderHistory();
   if(tab==='dashboard') renderDashboard();
   if(tab==='board') renderBoard();
@@ -7879,6 +7884,7 @@ document.addEventListener('click',()=>document.querySelectorAll('.score-tip').fo
   const check=()=>{
     const atEnd=nav.scrollLeft+nav.clientWidth>=nav.scrollWidth-4;
     wrap.classList.toggle('scrolled-end',atEnd);
+    wrap.classList.toggle('scrolled-start',nav.scrollLeft>4);
   };
   nav.addEventListener('scroll',check,{passive:true});
   window.addEventListener('resize',check);
