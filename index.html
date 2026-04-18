@@ -7577,7 +7577,6 @@ function saveSettings(){
   config.assessReminderTrainings=Math.max(1,Number(document.getElementById('setReminderTrainings').value)||24);
   config.showReady=document.getElementById('setShowReady').checked;
   config.showAlmost=document.getElementById('setShowAlmost').checked;
-  config.showOverdue=document.getElementById('setShowOverdue').checked;
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
   renderM(); renderHistory(); updatePromotionTabVisibility();
   if(config.scriptUrl) loadFromCloud();
