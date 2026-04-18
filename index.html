@@ -763,6 +763,74 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .restore-section{margin-top:.8rem;padding:1rem;background:#fff7ed;border-radius:10px;border:1px solid #fed7aa}
 .restore-section h4{font-size:.82rem;font-weight:700;color:#c2410c;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem}
 .restore-warning{font-size:.75rem;color:#9a3412;margin-bottom:.6rem;line-height:1.4}
+
+/* ═══ OPRYKNING DASHBOARD ═══ */
+#page-promotion .promo-hero{background:linear-gradient(135deg,#2c4a4a,#3d6464);color:#fff;padding:1.25rem 1.5rem;border-radius:16px;margin-bottom:1.25rem;box-shadow:0 4px 12px rgba(44,74,74,.15)}
+#page-promotion .promo-hero h2{margin:0 0 .3rem;font-size:1.3rem;letter-spacing:-.01em}
+#page-promotion .promo-hero p{margin:0;opacity:.88;font-size:.85rem}
+#page-promotion .promo-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem;margin-bottom:1.25rem}
+#page-promotion .promo-stat{background:#fff;border:1px solid #e3ecec;border-radius:14px;padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+#page-promotion .promo-stat-btn{cursor:pointer;transition:opacity .15s,box-shadow .15s}
+#page-promotion .promo-stat-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+#page-promotion .promo-stat-off{opacity:.38;filter:grayscale(.6)}
+#page-promotion .promo-stat-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+#page-promotion .promo-stat-num{font-size:1.35rem;font-weight:800;line-height:1}
+#page-promotion .promo-stat-lbl{font-size:.78rem;color:#5a6d6d;margin-top:3px;font-weight:600}
+#page-promotion .promo-controls{background:#fff;border:1px solid #e3ecec;border-radius:14px;padding:.8rem 1rem;margin-bottom:1.25rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+#page-promotion .promo-toggle{display:flex;align-items:center;gap:.45rem;font-size:.82rem;cursor:pointer;user-select:none}
+#page-promotion .promo-toggle input{accent-color:#2c4a4a;width:16px;height:16px;cursor:pointer}
+#page-promotion .promo-divider{width:1px;height:22px;background:#e3ecec}
+#page-promotion .promo-thr-info{font-size:.75rem;color:#5a6d6d}
+#page-promotion .promo-thr-info b{color:#1a2e2e}
+#page-promotion .promo-section-hdr{display:flex;align-items:center;gap:.6rem;margin:1.5rem 0 .85rem}
+#page-promotion .promo-section-hdr h3{margin:0;font-size:1.05rem;letter-spacing:-.01em;color:#1a2e2e}
+#page-promotion .promo-section-hdr .promo-badge{padding:2px 10px;border-radius:10px;font-size:.72rem;font-weight:700}
+#page-promotion .promo-section-hdr.ready .promo-badge{background:#dcfce7;color:#16a34a}
+#page-promotion .promo-section-hdr.almost .promo-badge{background:#fef3c7;color:#d97706}
+#page-promotion .promo-section-hdr.overdue .promo-badge{background:#fee2e2;color:#dc2626}
+#page-promotion .promo-section-hdr .promo-line{flex:1;height:1px;background:#e3ecec}
+#page-promotion .promo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.85rem}
+#page-promotion .promo-card{background:#fff;border:1px solid #e3ecec;border-radius:16px;padding:1rem;box-shadow:0 1px 4px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:.75rem;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
+#page-promotion .promo-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08);border-color:#3d6464}
+#page-promotion .promo-card.ready::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#16a34a}
+#page-promotion .promo-card.almost::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#d97706}
+#page-promotion .promo-card.overdue::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#dc2626}
+#page-promotion .promo-card-top{display:flex;align-items:center;gap:.75rem}
+#page-promotion .promo-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#a5d6a7,#2c4a4a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0}
+#page-promotion .promo-name{font-weight:700;font-size:.95rem;color:#1a2e2e}
+#page-promotion .promo-belt-row{display:flex;align-items:center;gap:.4rem;font-size:.72rem;margin-top:3px;color:#5a6d6d;flex-wrap:wrap}
+#page-promotion .promo-belt-pill{padding:2px 9px;border-radius:20px;font-size:.68rem;font-weight:700;border:1px solid rgba(0,0,0,.1);white-space:nowrap}
+#page-promotion .promo-score-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;background:#f4f7f7;border-radius:10px;gap:.75rem}
+#page-promotion .promo-score-big{font-size:1.5rem;font-weight:800;line-height:1;display:flex;align-items:baseline;gap:3px}
+#page-promotion .promo-score-big .unit{font-size:.72rem;color:#9aacac;font-weight:600}
+#page-promotion .promo-coverage{font-size:.7rem;color:#5a6d6d;margin-top:2px}
+#page-promotion .promo-progress-bar{height:6px;background:#e3ecec;border-radius:4px;overflow:hidden;flex:1;max-width:130px}
+#page-promotion .promo-progress-fill{height:100%;border-radius:4px;transition:width .4s}
+#page-promotion .promo-missing-lbl{font-size:.75rem;font-weight:700;color:#5a6d6d;margin-bottom:.35rem}
+#page-promotion .promo-skill-line{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:4px 0;font-size:.8rem;border-bottom:1px dashed #e3ecec}
+#page-promotion .promo-skill-line:last-child{border-bottom:none}
+#page-promotion .promo-skill-name{color:#1a2e2e;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#page-promotion .promo-stars{color:#f59e0b;font-size:.78rem;letter-spacing:.03em;flex-shrink:0}
+#page-promotion .promo-stars .un{color:#d4d4d4}
+#page-promotion .promo-meta{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:#5a6d6d;padding-top:.5rem;border-top:1px solid #e3ecec;gap:.4rem;flex-wrap:wrap}
+#page-promotion .promo-meta .pill{padding:2px 8px;border-radius:8px;font-weight:700;font-size:.68rem;white-space:nowrap}
+#page-promotion .promo-empty{background:#fff;border:1px dashed #e3ecec;border-radius:14px;padding:1.5rem;text-align:center;color:#5a6d6d;font-size:.88rem}
+@media(max-width:600px){
+  #page-promotion .promo-hero{padding:1rem 1.1rem}
+  #page-promotion .promo-hero h2{font-size:1.1rem}
+  #page-promotion .promo-summary{grid-template-columns:repeat(2,1fr);gap:.5rem}
+  #page-promotion .promo-stat{padding:.6rem .7rem;gap:.5rem}
+  #page-promotion .promo-stat-ico{width:34px;height:34px;font-size:1rem;border-radius:10px}
+  #page-promotion .promo-stat-num{font-size:1.1rem}
+  #page-promotion .promo-stat-lbl{font-size:.68rem}
+  #page-promotion .promo-controls{gap:.55rem;padding:.65rem .8rem;font-size:.78rem}
+  #page-promotion .promo-thr-info{font-size:.68rem;width:100%}
+  #page-promotion .promo-divider{display:none}
+  #page-promotion .promo-grid{grid-template-columns:1fr;gap:.65rem}
+  #page-promotion .promo-card{padding:.85rem}
+  #page-promotion .promo-score-big{font-size:1.25rem}
+  #page-promotion .promo-progress-bar{max-width:90px}
+}
 </style>
 </head>
 <body>
@@ -906,6 +974,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
   <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
+  <div class="nav-tab" onclick="switchTab('promotion')" id="tab-promotion" style="display:none">🎯 Oprykning</div>
   <div class="nav-tab" onclick="switchTab('board')" id="tab-board">📒 Interne notater</div>
 </nav>
 </div>
@@ -919,12 +988,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <!-- Fødselsdag-banner -->
   <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
-  <div class="stats-grid">
-    <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">0</div><div class="sl">Aktive medlemmer</div></div></div>
-    <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">🙋</div><div><div class="sv" id="s2">0</div><div class="sl">Til stede i dag</div></div></div>
-    <div class="stat-card"><div class="si si-c">🚫</div><div><div class="sv" id="s3">0</div><div class="sl">Fraværende</div></div></div>
-    <div class="stat-card" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt"><div class="si si-b">✅</div><div><div class="sv" id="s4">0</div><div class="sl">Betalt kontingent</div></div></div>
-    <div class="stat-card" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale"><div class="si si-d">⏳</div><div><div class="sv" id="s5">0</div><div class="sl">Ikke betalt</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">–</div><div class="sl">Aktive medlemmer</div></div></div>
+    <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">🙋</div><div><div class="sv" id="s2">–</div><div class="sl">Til stede i dag</div></div></div>
+    <div class="stat-card"><div class="si si-c">🚫</div><div><div class="sv" id="s3">–</div><div class="sl">Fraværende</div></div></div>
+    <div class="stat-card" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt"><div class="si si-b">✅</div><div><div class="sv" id="s4">–</div><div class="sl">Betalt kontingent</div></div></div>
+    <div class="stat-card" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale"><div class="si si-d">⏳</div><div><div class="sv" id="s5">–</div><div class="sl">Ikke betalt</div><div id="s5sub" style="font-size:.63rem;color:var(--xtl);margin-top:1px"></div></div></div>
   </div>
 
   <!-- Dato-bar -->
@@ -1456,6 +1525,16 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <div id="boardMeetingsList"></div>
 </div>
 
+<!-- ══ SIDE: OPRYKNING ══ -->
+<div class="page" id="page-promotion">
+  <div class="promo-hero">
+    <h2>🎯 Oprykning</h2>
+    <p>Oversigt over medlemmer tæt på næste bælte — samt dem der mangler en vurdering</p>
+  </div>
+  <div class="promo-summary" id="promoSummary"></div>
+  <div id="promoContent"></div>
+</div>
+
 <!-- ══ MODAL: BESTYRELSESMØDE OPRET/REDIGER ══ -->
 <div class="mbd" id="boardModal">
   <div class="modal" style="max-width:580px">
@@ -1723,7 +1802,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div class="mtitle-left"><span>📋</span><span id="assessMemberName">Vurdering</span></div>
       <button class="mclose" onclick="safeCloseModal('assessmentModal')">✕</button>
     </div>
-    <div id="assessBeltBar" style="margin-bottom:1rem"></div>
+    <div id="assessBeltBar" style="margin-bottom:.6rem"></div>
+    <div id="assessGultToggle" style="margin-bottom:1rem"></div>
     <div id="assessSkillList"></div>
     <div style="margin-top:.8rem">
       <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Bedømt af <span style="color:#dc2626">*</span></label>
@@ -1849,13 +1929,38 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         </div>
         <div class="age-hint">Betalingsstatus beregnes automatisk. Passive medlemmer tæller ikke med.</div>
       </div>
-      <div class="fgrp full" style="margin-top:.8rem">
-        <label>🏅 Oprykning — minimumscore for "klar til oprykning"</label>
-        <div style="display:flex;align-items:center;gap:.6rem;margin-top:.4rem">
-          <input type="number" id="setPromotionScore" min="1" max="5" step="0.5" style="width:80px;padding:.28rem .45rem;border:1px solid #dde3e8;border-radius:6px;font-size:.83rem;text-align:right"/>
-          <span style="font-size:.8rem;color:var(--xtl)">stjerner (1–5). Standard: 4.0</span>
+      <div class="fgrp full" style="margin-top:.8rem;border-top:1px solid #e8f0f0;padding-top:.9rem">
+        <label>🎯 Oprykningsfane</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem;margin-top:.5rem">
+          <div>
+            <div style="font-size:.78rem;color:var(--xtm);margin-bottom:.25rem">Klar til nyt bælte! (min. score)</div>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <input type="number" id="setPromotionScore" min="1" max="5" step="0.5" style="width:70px;padding:.28rem .45rem;border:1px solid #dde3e8;border-radius:6px;font-size:.83rem;text-align:right"/>
+              <span style="font-size:.78rem;color:var(--xtl)">★ (standard 4,0)</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.78rem;color:var(--xtm);margin-bottom:.25rem">På vej op! (min. score)</div>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <input type="number" id="setAlmostScore" min="1" max="5" step="0.5" style="width:70px;padding:.28rem .45rem;border:1px solid #dde3e8;border-radius:6px;font-size:.83rem;text-align:right"/>
+              <span style="font-size:.78rem;color:var(--xtl)">★ (standard 3,0)</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.78rem;color:var(--xtm);margin-bottom:.25rem">Påmindelsesgrænse</div>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <input type="number" id="setReminderTrainings" min="1" max="200" step="1" style="width:70px;padding:.28rem .45rem;border:1px solid #dde3e8;border-radius:6px;font-size:.83rem;text-align:right"/>
+              <span style="font-size:.78rem;color:var(--xtl)">træninger (standard 24)</span>
+            </div>
+          </div>
         </div>
-        <div class="age-hint">Medlemmer med denne gns. score eller højere vises med 🏅 i tabellerne.</div>
+        <div style="margin-top:.6rem">
+          <div style="font-size:.78rem;color:var(--xtm);margin-bottom:.35rem">Vis grupper i oprykningsfanen</div>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:.35rem;font-size:.83rem;font-weight:400"><input type="checkbox" id="setShowReady"> 🏅 Klar til nyt bælte!</label>
+            <label style="display:flex;align-items:center;gap:.35rem;font-size:.83rem;font-weight:400"><input type="checkbox" id="setShowAlmost"> 💪 På vej op!</label>
+          </div>
+        </div>
       </div>
     </div>
     <div style="margin-top:1.2rem;padding:.9rem;background:var(--mbg);border-radius:8px;font-size:.8rem;color:var(--xtm);line-height:1.5" id="settingsInfo">
@@ -1991,7 +2096,8 @@ const SEED = [
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, boardMeetings=[];
+let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[];
+let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
 let nextBoardId=1, editingBoardId=null;
 let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
 let dbSort={col:'rang', dir:'asc'};
@@ -2222,10 +2328,14 @@ function load(){
     nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
     const pv=localStorage.getItem('kk2_pensum');
     pensum=pv?JSON.parse(pv):{};
+    const snv=localStorage.getItem('kk2_skillNotes');
+    skillNotes=snv?JSON.parse(snv):{};
     const bv=localStorage.getItem('kk2_board');
     boardMeetings=bv?JSON.parse(bv):[];
     boardMeetings.forEach(b=>{ b.date=normDateStr(b.date); });
     nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
+    const gpv=localStorage.getItem('kk2_gultPensum');
+    gultPensumOverrides=gpv?JSON.parse(gpv):{};
   }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; }
 }
 function save(){
@@ -2287,11 +2397,12 @@ let _presenceLastSeen={}; // name -> ISO string, opdateres ved hvert ping
 let _lastActivityTs=new Date().toISOString(); // min egen seneste aktivitet
 const PRESENCE_ADMIN='Jonas Holm';
 const PAGE_LABELS={
-  'dashboard': {label:'Dashboard',          icon:'📊'},
-  'training':  {label:'Dagens træning',     icon:'🥋'},
-  'history':   {label:'Fremmødeoversigt',   icon:'📅'},
-  'members':   {label:'Alle medlemmer',     icon:'👥'},
-  'board':     {label:'Interne notater',    icon:'📒'},
+  'dashboard':  {label:'Dashboard',          icon:'📊'},
+  'training':   {label:'Dagens træning',     icon:'🥋'},
+  'history':    {label:'Fremmødeoversigt',   icon:'📅'},
+  'members':    {label:'Alle medlemmer',     icon:'👥'},
+  'board':      {label:'Interne notater',    icon:'📒'},
+  'promotion':  {label:'Oprykning',          icon:'🏅'},
 };
 function getActivePage(){
   const active=document.querySelector('.page.active');
@@ -2603,7 +2714,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -2647,6 +2758,12 @@ function loadFromCloud(onDone){
         if(m.contactName||m.contactPhone)_prevContact[m.id]={n:m.contactName,p:m.contactPhone};
       });
       members=d.members;
+      // Modtag gultPensumOverrides fra cloud (autoritativ kilde på tværs af enheder)
+      if(d.gultPensumOverrides) {
+        gultPensumOverrides=d.gultPensumOverrides;
+        localStorage.setItem('kk2_gultPensum',JSON.stringify(gultPensumOverrides));
+      }
+      members.forEach(mb=>{ if(gultPensumOverrides[mb.id]) mb.gultPensum=true; });
       // Omdøb "Normal hold" → "Basis-hold" i Sheets-data
       members.forEach(mb=>{ if(mb.group==='Normal hold') mb.group='Basis-hold'; });
       const _prevSessions=sessions;
@@ -2701,6 +2818,7 @@ function loadFromCloud(onDone){
       if(localOnly.length>0) pushToCloud();
       pensum=d.pensum||{};
       localStorage.setItem('kk2_pensum',JSON.stringify(pensum));
+      if(d.skillNotes){ skillNotes=d.skillNotes; localStorage.setItem('kk2_skillNotes',JSON.stringify(skillNotes)); }
       // Bestyrelse: hent fra Sheets KUN hvis svaret eksplicit indeholder boardMeetings
       // (undefined = gammelt apps-script uden boardMeetings support → bevar lokale data)
       if(Array.isArray(d.boardMeetings)){
@@ -3243,8 +3361,7 @@ function unlockApp(){
     if(s.textContent.includes('visibility:hidden'))s.remove();
   });
   if(!_appInited){ _appInited=true; initApp(); }
-  // Vis presence-modal straks — blokerer appen til navn er valgt
-  if(!_presenceShown){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); }
+  // Presence-modal vises efter data er hentet (se renderAll)
 }
 function checkLock(){
   if(sessionStorage.getItem('kk2_unlocked')==='1'){
@@ -3266,8 +3383,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
   initApp();
-  // Vis presence-modal straks — blokerer appen til navn er valgt
-  if(!_presenceShown){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); }
+  // Presence-modal vises efter data er hentet (se renderAll)
 });
 function initApp(){
   startInactivityTracking();
@@ -3305,23 +3421,26 @@ function initApp(){
   const td=config.trainingDays||[2,4];
   [0,1,2,3,4,5,6].forEach(i=>{const el=document.getElementById('td'+i);if(el)el.checked=td.includes(i);});
   document.getElementById('setPromotionScore').value=config.promotionScore??4.0;
+  document.getElementById('setAlmostScore').value=config.almostReadyScore??3.0;
+  document.getElementById('setReminderTrainings').value=config.assessReminderTrainings??24;
+  document.getElementById('setShowReady').checked=config.showReady!==false;
+  document.getElementById('setShowAlmost').checked=config.showAlmost!==false;
 
   document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)safeCloseModal(b.id)}));
   // Ét delegeret lytter på member-modal — sætter dirty-flag ved ændringer (ingen akkumulering ved genåbning)
   document.getElementById('memberModal').addEventListener('input', ()=>{ _memberModalDirty=true; });
   document.getElementById('memberModal').addEventListener('change', ()=>{ _memberModalDirty=true; });
+  loadCheckInsForDate(currentTrainingDate);
+  renderAll();
   if(config.scriptUrl){
     loadFromCloud(()=>{
       loadCheckInsForDate(currentTrainingDate);
       renderAll();
     });
-  } else {
-    loadCheckInsForDate(currentTrainingDate);
-    renderAll();
   }
 }
 
-function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); }
+function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); updatePromotionTabVisibility(); if(document.getElementById('presenceModal').style.display==='flex') refreshPresenceDatalist(); if(!_presenceShown&&sessionStorage.getItem('kk2_unlocked')==='1'){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); } }
 
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
@@ -3376,6 +3495,212 @@ function switchTab(tab){
   if(tab==='history') renderHistory();
   if(tab==='dashboard') renderDashboard();
   if(tab==='board') renderBoard();
+  if(tab==='promotion') renderPromotion();
+}
+
+/* ════════════════════════════════════════
+   OPRYKNING DASHBOARD
+════════════════════════════════════════ */
+function getPromotionStatus(memberId){
+  const _pm=members.find(x=>x.id===memberId);
+  if(!_pm) return null;
+  const currentBelt=_pm.belt||'';
+  const pensumBelt=effectivePensumBelt(_pm);
+  const promoThr=config.promotionScore??4.0;
+  const almostThr=config.almostReadyScore??3.0;
+  const ma=assessments.filter(x=>x.memberId===memberId&&(x.belt===pensumBelt||x.belt===currentBelt)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!ma.length) return null;
+  const merged=getMergedRatings(memberId,ma[0].id);
+  const pensumSkills=pensum[pensumBelt]||[];
+  const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
+  if(!vals.length) return null;
+  const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
+  const ratedCount=pensumSkills.length?pensumSkills.filter(sk=>merged[sk]&&merged[sk].val>0).length:vals.length;
+  const total=pensumSkills.length||vals.length;
+  const coverage={rated:ratedCount,total};
+  const allRated=pensumSkills.length>0&&ratedCount===total;
+  const weak=pensumSkills.filter(sk=>!merged[sk]||!merged[sk].val||merged[sk].val<promoThr).map(sk=>({skill:sk,val:merged[sk]?.val||0})).sort((a,b)=>a.val-b.val);
+  const base={memberId,avg,date:ma[0].date,assessorName:ma[0].assessorName||'',comment:ma[0].comment||'',coverage,weak,currentBelt,nextBelt:effectiveNextBelt(_pm)};
+  if(allRated&&avg>=promoThr) return {...base,status:'ready'};
+  if(avg>=almostThr&&avg<promoThr) return {...base,status:'almost'};
+  if(avg>=almostThr&&!allRated&&pensumSkills.length) return {...base,status:'almost'};
+  return null;
+}
+function getPromoOverdue(memberId){
+  const threshold=config.assessReminderTrainings??24;
+  const info=getLastAssessmentInfo(memberId);
+  if(info.lastDate===null) return {memberId,never:true,info};
+  if(info.trainingDaysSince>=threshold) return {memberId,never:false,info};
+  return null;
+}
+function _promoInitials(m){return ((m.firstName||'?')[0]+(m.lastName||'')[0]).toUpperCase()}
+function _promoAvatar(m){
+  const bc=BC[m.belt]||'#a5d6a7';
+  return `<div class="promo-avatar" style="background:linear-gradient(135deg,${bc},#2c4a4a)">${_promoInitials(m)}</div>`;
+}
+function _promoBeltPills(currentBelt,nextBelt){
+  function beltSpan(belt){
+    if(!belt) return '<span style="color:#9aacac">—</span>';
+    const bc=BC[belt]||'#ccc';
+    const snipMatch=belt.match(/(\d+)\s*Snip/i);
+    const snips=snipMatch?parseInt(snipMatch[1]):0;
+    const snipDivs='<div class="blt-snip"></div>'.repeat(snips);
+    return `<span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.15);min-width:46px" title="${belt}">${snipDivs}</span>`;
+  }
+  let html=beltSpan(currentBelt);
+  if(nextBelt) html+=`<span style="color:#9aacac;margin:0 3px">→</span>${beltSpan(nextBelt)}`;
+  return html;
+}
+function _promoStarsHtml(v){
+  const n=Number(v)||0;
+  return '★'.repeat(n)+'<span class="un">'+'☆'.repeat(5-n)+'</span>';
+}
+function _promoCardReady(s){
+  const m=members.find(x=>x.id===s.memberId);if(!m) return '';
+  const color='#16a34a';
+  const pct=Math.round(s.avg/5*100);
+  return `<div class="promo-card ready" onclick="openAssessmentModal(${m.id})">
+    <div class="promo-card-top">
+      ${_promoAvatar(m)}
+      <div style="flex:1;min-width:0">
+        <div class="promo-name">${m.firstName} ${m.lastName}</div>
+        <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
+      </div>
+    </div>
+    <div class="promo-score-row">
+      <div>
+        <div class="promo-score-big" style="color:${color}">${s.avg.toFixed(1).replace('.',',')}<span class="unit">/ 5</span></div>
+        <div class="promo-coverage">Alle ${s.coverage.total} skills vurderet</div>
+      </div>
+      <div style="flex:1;max-width:130px">
+        <div class="promo-progress-bar"><div class="promo-progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div style="font-size:.68rem;color:#5a6d6d;margin-top:3px;text-align:right">${pct}%</div>
+      </div>
+    </div>
+    ${s.comment?`<div style="font-size:.75rem;font-style:italic;color:#6b7280;padding:.45rem .6rem;background:#f9fafb;border-radius:8px;border-left:3px solid #e5e7eb;margin-top:.25rem">💬 "${s.comment}"</div>`:''}
+    <div class="promo-meta">
+      <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
+      <span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>
+    </div>
+  </div>`;
+}
+function _promoCardAlmost(s){
+  const m=members.find(x=>x.id===s.memberId);if(!m) return '';
+  const color='#d97706';
+  const pct=Math.round(s.avg/5*100);
+  const promoThr=config.promotionScore??4.0;
+  const gap=(promoThr-s.avg).toFixed(1).replace('.',',');
+  const weakHtml=s.weak.length?`<div><div class="promo-missing-lbl">⚠ Mangler fokus på</div>${s.weak.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
+  return `<div class="promo-card almost" onclick="openAssessmentModal(${m.id})">
+    <div class="promo-card-top">
+      ${_promoAvatar(m)}
+      <div style="flex:1;min-width:0">
+        <div class="promo-name">${m.firstName} ${m.lastName}</div>
+        <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
+      </div>
+    </div>
+    <div class="promo-score-row">
+      <div>
+        <div class="promo-score-big" style="color:${color}">${s.avg.toFixed(1).replace('.',',')}<span class="unit">/ 5</span></div>
+        <div class="promo-coverage">${s.coverage.rated} af ${s.coverage.total} skills vurderet</div>
+      </div>
+      <div style="flex:1;max-width:130px">
+        <div class="promo-progress-bar"><div class="promo-progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div style="font-size:.68rem;color:#5a6d6d;margin-top:3px;text-align:right">${pct}%</div>
+      </div>
+    </div>
+    ${weakHtml}
+    ${s.comment?`<div style="font-size:.75rem;font-style:italic;color:#6b7280;padding:.45rem .6rem;background:#f9fafb;border-radius:8px;border-left:3px solid #e5e7eb;margin-top:.25rem">💬 "${s.comment}"</div>`:''}
+    <div class="promo-meta">
+      <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
+      <span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>
+    </div>
+  </div>`;
+}
+function _promoCardOverdue(o){
+  const m=members.find(x=>x.id===o.memberId);if(!m) return '';
+  const belt=m.belt||'';
+  let msg,dateLine;
+  if(o.never){msg='Aldrig vurderet';dateLine='Ingen vurdering registreret endnu';}
+  else{
+    const d=new Date(o.info.lastDate+'T12:00:00');
+    const months=Math.round(o.info.trainingDaysSince/8);
+    msg=`⏰ ${months>=1?months+' mdr. siden':'Over tærsklen'}`;
+    dateLine=`Sidst vurderet ${_promoFormatDate(o.info.lastDate)}`;
+  }
+  return `<div class="promo-card overdue" onclick="openAssessmentModal(${m.id})">
+    <div class="promo-card-top">
+      ${_promoAvatar(m)}
+      <div style="flex:1;min-width:0">
+        <div class="promo-name">${m.firstName} ${m.lastName}</div>
+        <div class="promo-belt-row">${_promoBeltPills(belt,'')}</div>
+      </div>
+    </div>
+    <div class="promo-score-row" style="background:#fee2e2">
+      <div>
+        <div style="font-size:.85rem;font-weight:700;color:#dc2626">${msg}</div>
+        <div class="promo-coverage">${dateLine}</div>
+      </div>
+    </div>
+    <div class="promo-meta">
+      <span>🥋 ${o.never?'Ingen vurderinger':o.info.trainingDaysSince+' træninger siden'}</span>
+      <span class="pill" style="background:#fee2e2;color:#dc2626">Påmindelse</span>
+    </div>
+  </div>`;
+}
+function _promoFormatDate(ymd){
+  if(!ymd) return '—';
+  const d=new Date(String(ymd).slice(0,10)+'T12:00:00');
+  return isNaN(d)?ymd:d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
+}
+function _computePromoGroups(){
+  const active=members.filter(m=>!m.archived&&m.status!=='passiv');
+  const ready=[],almost=[],overdue=[];
+  active.forEach(m=>{
+    const s=getPromotionStatus(m.id);
+    if(s&&s.status==='ready') ready.push(s);
+    else if(s&&s.status==='almost') almost.push(s);
+    const o=getPromoOverdue(m.id);
+    if(o) overdue.push(o);
+  });
+  return {ready,almost,overdue};
+}
+function updatePromotionTabVisibility(){
+  const tab=document.getElementById('tab-promotion');
+  if(!tab) return;
+  const g=_computePromoGroups();
+  const total=g.ready.length+g.almost.length+g.overdue.length;
+  tab.style.display=total>0?'':'none';
+}
+function togglePromoFilter(group){
+  if(group==='ready') config.showReady=config.showReady===false?true:false;
+  else if(group==='almost') config.showAlmost=config.showAlmost===false?true:false;
+  save();
+  renderPromotion();
+}
+
+function renderPromotion(){
+  const promoThr=config.promotionScore??4.0;
+  const almostThr=config.almostReadyScore??3.0;
+  const reminderT=config.assessReminderTrainings??24;
+  const showReady=config.showReady!==false;
+  const showAlmost=config.showAlmost!==false;
+  const showOverdue=config.showOverdue===true;
+  const g=_computePromoGroups();
+  const sum=document.getElementById('promoSummary');
+  sum.innerHTML=`
+    <div class="promo-stat promo-stat-btn${showReady?'':' promo-stat-off'}" onclick="togglePromoFilter('ready')" title="Klik for at vise/skjule"><div class="promo-stat-ico" style="background:#dcfce7;color:#16a34a">🏅</div><div><div class="promo-stat-num" style="color:#16a34a">${g.ready.length}</div><div class="promo-stat-lbl">Klar til nyt bælte!</div></div></div>
+    <div class="promo-stat promo-stat-btn${showAlmost?'':' promo-stat-off'}" onclick="togglePromoFilter('almost')" title="Klik for at vise/skjule"><div class="promo-stat-ico" style="background:#fef3c7;color:#d97706">🎯</div><div><div class="promo-stat-num" style="color:#d97706">${g.almost.length}</div><div class="promo-stat-lbl">På vej op!</div></div></div>
+    `;
+  let html='';
+  if(showReady&&g.ready.length){
+    html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til nyt bælte!</h3><span class="promo-badge">${g.ready.length} medlem${g.ready.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${g.ready.map(_promoCardReady).join('')}</div>`;
+  }
+  if(showAlmost&&g.almost.length){
+    html+=`<div class="promo-section-hdr almost"><h3>🎯 På vej op!</h3><span class="promo-badge">${g.almost.length} medlem${g.almost.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${g.almost.map(_promoCardAlmost).join('')}</div>`;
+  }
+  if(!html) html=`<div class="promo-empty">Ingen synlige grupper. Slå grupper til/fra med knapperne ovenfor.</div>`;
+  document.getElementById('promoContent').innerHTML=html;
 }
 
 /* ════════════════════════════════════════
@@ -3489,6 +3814,15 @@ function renderT(){
       daysSince=Math.round((todayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);
     }
     const absWarning=daysSince!==null&&daysSince>=30?`<span title="Ikke set i ${daysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
+    const _aInfo=getLastAssessmentInfo(m.id);
+    const _aThreshold=24;
+    let assessClockBadge='';
+    const _safeName=(m.firstName||'').replace(/'/g,"\\'");
+    if(_aInfo.lastDate!==null && _aInfo.trainingDaysSince>=_aThreshold){
+      const _dObj=new Date(_aInfo.lastDate+'T12:00:00');
+      const _dStr=_dObj.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
+      assessClockBadge=`<span title="Mangler vurdering" onclick="event.stopPropagation();showToast('⏰ ${_safeName} sidst vurderet ${_dStr} · ${_aInfo.trainingDaysSince} træninger siden')" style="cursor:pointer;margin-left:4px;font-size:.85rem">⏰</span>`;
+    }
     const tr=document.createElement('tr');
     tr.dataset.id=m.id;
     const _promoStyle=promotionRowStyle(m.id);
@@ -3506,7 +3840,7 @@ function renderT(){
       </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${bdBadge}${promotionBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td>${grpChip(m.group)}</td>
@@ -3537,6 +3871,18 @@ function _scoreVal(id){
   const v=Object.values(r).map(Number).filter(v=>v>0);
   return v.length?v.reduce((s,x)=>s+x,0)/v.length:-1;
 }
+function effectivePensumBelt(m){
+  if(!m) return '';
+  const whiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu (1 Snip)';
+  if(whiteOrSnip&&(m.gultPensum||getAge(m)>=15)) return '8. Kyu (2 Snip)';
+  return m.belt||'';
+}
+function effectiveNextBelt(m){
+  if(!m) return '';
+  const whiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu (1 Snip)';
+  if(whiteOrSnip&&(m.gultPensum||getAge(m)>=15)) return '7. Kyu (Gult)';
+  return _NEXT_BELT_NAME[m.belt]||'';
+}
 const _NEXT_BELT_NAME={
   '10. Kyu (Hvidt)':'9. Kyu (1 Snip)','9. Kyu (1 Snip)':'8. Kyu (2 Snip)','8. Kyu (2 Snip)':'7. Kyu (Gult)',
   '7. Kyu (Gult)':'6. Kyu (Blåt)','6. Kyu (Blåt)':'5. Kyu (Grønt)',
@@ -3545,31 +3891,58 @@ const _NEXT_BELT_NAME={
   '1. Kyu (Brunt + 2 Snip)':'1. Dan (Sort)',
   '1. Dan (Sort)':'2. Dan (Sort)','2. Dan (Sort)':'3. Dan (Sort)'
 };
+function getLastAssessmentInfo(memberId){
+  const ma=assessments.filter(a=>a.memberId===memberId&&a.date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(!ma.length) return {lastDate:null,trainingDaysSince:null};
+  const lastDate=String(ma[0].date).slice(0,10);
+  const tDays=new Set(config.trainingDays||[2,4]);
+  const cancelled=new Set(cancelledDates||[]);
+  const start=new Date(lastDate+'T12:00:00');
+  const end=new Date();end.setHours(12,0,0,0);
+  let count=0;
+  const d=new Date(start);d.setDate(d.getDate()+1);
+  while(d<=end){
+    if(tDays.has(d.getDay())){
+      const ymd=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(!cancelled.has(ymd)) count++;
+    }
+    d.setDate(d.getDate()+1);
+  }
+  return {lastDate,trainingDaysSince:count};
+}
 function _nextBeltLabel(belt){
   const nb=_NEXT_BELT_NAME[belt];if(!nb)return '';
   const danM=nb.match(/(\d+)\.\s*Dan/i);
   return danM?danM[1]+'. Dan':nb.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
 }
+function _miniBelt(belt){
+  const bc=BC[belt]||'#e0e0e0';
+  const snipMatch=belt.match(/(\d+)\s*Snip/i);
+  const snips=snipMatch?parseInt(snipMatch[1]):0;
+  const snipDivs='<div class="blt-snip"></div>'.repeat(snips);
+  return `<span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.18);min-width:22px">${snipDivs}</span>`;
+}
 function promotionBadge(memberId){
   const threshold=config.promotionScore??4.0;
   const _pm=members.find(x=>x.id===memberId);
   const currentBelt=_pm?.belt||'';
-  const a=[...assessments].filter(x=>x.memberId===memberId&&x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const pensumBelt=effectivePensumBelt(_pm);
+  const a=[...assessments].filter(x=>x.memberId===memberId&&(x.belt===pensumBelt||x.belt===currentBelt)).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!a.length)return '';
   const merged=getMergedRatings(memberId,a[0].id);
-  const pensumSkills=pensum[currentBelt]||[];
+  const pensumSkills=pensum[pensumBelt]||[];
   if(pensumSkills.length&&!pensumSkills.every(sk=>merged[sk]&&merged[sk].val>0))return '';
   const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
   if(!vals.length)return '';
   const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
   if(avg<threshold)return '';
-  const nextBelt=_NEXT_BELT_NAME[currentBelt]||'';
+  const nextBelt=effectiveNextBelt(_pm);
   const nextLabel=_nextBeltLabel(currentBelt);
   const nextColor=BC[nextBelt]||'#ccc';
   const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
   const tc=dark.includes(nextColor)?'#fff':'#333';
   const name=_pm.firstName||'';
-  return ` <span onclick="event.stopPropagation();showToast('🏅 ${name} er klar til ${nextLabel} — gns. score ${avg.toFixed(1)} ★')" style="font-size:.72rem;cursor:pointer;padding:1px 6px;border-radius:8px;background:${nextColor};color:${tc};font-weight:700;border:1px solid rgba(0,0,0,.12);white-space:nowrap">🏅 → ${nextLabel}</span>`;
+  return ` <span onclick="event.stopPropagation();showToast('🏅 ${name} er klar til ${nextLabel} — gns. score ${avg.toFixed(1)} ★')" title="${name} er klar til ${nextLabel}" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;padding:2px 5px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;white-space:nowrap;vertical-align:middle">🏅 ${_miniBelt(currentBelt)}<span style="font-size:.65rem;color:#6b7280">→</span>${_miniBelt(nextBelt)}</span>`;
 }
 // Næste-bælte farve (subtil gradient) når klar til oprykning
 const _NEXT_BELT_COLOR={
@@ -3590,11 +3963,11 @@ function promotionRowStyle(memberId){
   const nc=_NEXT_BELT_COLOR[belt];
   if(!nc)return '';
   const threshold=config.promotionScore??4.0;
-  const currentBelt=belt;
-  const a=[...assessments].filter(x=>x.memberId===memberId&&x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const pensumBelt=effectivePensumBelt(_pm);
+  const a=[...assessments].filter(x=>x.memberId===memberId&&(x.belt===pensumBelt||x.belt===belt)).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!a.length)return '';
   const merged=getMergedRatings(memberId,a[0].id);
-  const pensumSkills=pensum[currentBelt]||[];
+  const pensumSkills=pensum[pensumBelt]||[];
   if(pensumSkills.length&&!pensumSkills.every(sk=>merged[sk]&&merged[sk].val>0))return '';
   const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
   if(!vals.length)return '';
@@ -7098,8 +7471,13 @@ function saveSettings(){
   config.trainingDays=[0,1,2,3,4,5,6].filter(i=>document.getElementById('td'+i)?.checked);
   if(!config.trainingDays.length) config.trainingDays=[2,4]; // fallback
   config.promotionScore=Math.min(5,Math.max(1,Number(document.getElementById('setPromotionScore').value)||4.0));
+  config.almostReadyScore=Math.min(5,Math.max(1,Number(document.getElementById('setAlmostScore').value)||3.0));
+  config.assessReminderTrainings=Math.max(1,Number(document.getElementById('setReminderTrainings').value)||24);
+  config.showReady=document.getElementById('setShowReady').checked;
+  config.showAlmost=document.getElementById('setShowAlmost').checked;
+  config.showOverdue=document.getElementById('setShowOverdue').checked;
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
-  renderM(); renderHistory();
+  renderM(); renderHistory(); updatePromotionTabVisibility();
   if(config.scriptUrl) loadFromCloud();
 }
 
@@ -7438,21 +7816,25 @@ function getMergedRatings(memberId, assessmentId){
   let own={};try{own=JSON.parse(a.ratings||'{}');}catch(e){}
   let prev={};
   if(idx>0){try{prev=JSON.parse(sorted[idx-1].ratings||'{}');}catch(e){}}
-  const hasPensum=!!pensum[a.belt];
-  const beltSkills=pensum[a.belt]||Object.keys(own);
+  const _pm=members.find(x=>x.id===memberId);
+  const effectiveBelt=_pm?effectivePensumBelt(_pm):a.belt;
+  const hasPensum=!!pensum[a.belt]||!!pensum[effectiveBelt];
+  const beltSkills=pensum[a.belt]||pensum[effectiveBelt]||Object.keys(own);
   const merged={};
   beltSkills.forEach(sk=>{
     if(own[sk]&&own[sk]>0) merged[sk]={val:own[sk],carried:false,orphaned:false};
     else if(prev[sk]&&prev[sk]>0) merged[sk]={val:prev[sk],carried:true,orphaned:false};
   });
-  Object.entries(own).forEach(([sk,v])=>{ if(v>0&&!merged[sk]) merged[sk]={val:v,carried:false,orphaned:hasPensum}; });
+  const allValidSkills=new Set([...(pensum[a.belt]||[]),...(pensum[effectiveBelt]||[])]);
+  Object.entries(own).forEach(([sk,v])=>{ if(v>0&&!merged[sk]) merged[sk]={val:v,carried:false,orphaned:hasPensum&&!allValidSkills.has(sk)}; });
   return merged;
 }
 
 function scoreCell(memberId){
   const _scM=members.find(x=>x.id===memberId);
   const currentBelt=_scM?.belt||'';
-  const sorted=assessments.filter(a=>a.memberId===memberId&&a.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const _scPensumBelt=effectivePensumBelt(_scM);
+  const sorted=assessments.filter(a=>a.memberId===memberId&&(a.belt===_scPensumBelt||a.belt===currentBelt)).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
   const latest=sorted[0];
   const merged=getMergedRatings(memberId, latest.id);
@@ -7479,7 +7861,7 @@ function scoreCell(memberId){
   const commentHtml=latest.comment?`<div class="score-tip-comment">"${latest.comment}"</div>`:'';
   const assessorHtml=latest.assessorName?`<div style="font-size:.68rem;color:var(--xtl);margin-top:3px">👤 ${latest.assessorName}</div>`:'';
   const _scMember=members.find(x=>x.id===memberId);
-  const _scBeltSkills=pensum[_scMember?.belt||'']||[];
+  const _scBeltSkills=pensum[effectivePensumBelt(_scMember)]||[];
   let progressTipHtml='';
   if(_scBeltSkills.length){
     const threshold=config.promotionScore??4.0;
@@ -7487,6 +7869,11 @@ function scoreCell(memberId){
     const total=_scBeltSkills.length;
     const pct=Math.round(mastered/total*100);
     const barColor=pct>=100?'#16a34a':pct>=60?'#d97706':'#6366f1';
+    const unrated=_scBeltSkills.filter(sk=>!merged[sk]||!merged[sk].val||merged[sk].val===0);
+    const unratedHtml=unrated.length?`<div style="margin-top:.4rem;padding-top:.4rem;border-top:1px dashed #e2ecec">
+      <div style="font-size:.65rem;color:#9ca3af;font-weight:600;margin-bottom:.25rem">☆ Ikke vurderet (${unrated.length})</div>
+      ${unrated.map(sk=>`<div style="font-size:.68rem;color:#9ca3af;padding:1px 0">${sk}</div>`).join('')}
+    </div>`:'';
     progressTipHtml=`<div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid #edf2f2">
       <div style="display:flex;justify-content:space-between;font-size:.67rem;color:var(--xtl);margin-bottom:.3rem">
         <span>Pensumfremgang (${threshold}★+)</span><span style="font-weight:700;color:${barColor}">${mastered}/${total}</span>
@@ -7494,6 +7881,7 @@ function scoreCell(memberId){
       <div style="background:#e8f0f0;border-radius:4px;height:5px;overflow:hidden">
         <div style="background:${barColor};height:100%;width:${pct}%;border-radius:4px"></div>
       </div>
+      ${unratedHtml}
     </div>`;
   }
   const tip=`<div class="score-tip">
@@ -7554,8 +7942,22 @@ function openAssessmentModal(memberId, editAssessmentId){
      <span style="font-size:.78rem;color:var(--t2);margin-left:.5rem">${existing?'Redigerer: '+dateLabel:'Ny vurdering: '+new Date().toLocaleDateString('da-DK')}</span>
      ${existing?`<button class="btn bg btn-sm" style="margin-left:.5rem;font-size:.72rem" onclick="openAssessmentModal(${memberId})">+ Ny vurdering</button>`:''}`;
 
-  // Pensum-liste (brug bæltet fra vurderingen ved redigering, ellers nuværende bælte)
-  const beltKey=existing?existing.belt:m.belt;
+  // Gult-pensum toggle (kun for hvidt og 1-snip, og kun når alder ikke allerede bestemmer det)
+  const toggleEl=document.getElementById('assessGultToggle');
+  const isWhiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu (1 Snip)';
+  const ageForced=getAge(m)>=15;
+  if(isWhiteOrSnip&&!ageForced){
+    const on=!!m.gultPensum;
+    toggleEl.innerHTML=`<label style="display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;padding:.4rem .75rem;border-radius:10px;border:1px solid ${on?'#f59e0b':'var(--bd)'};background:${on?'#fef3c7':'var(--bg)'}">
+      <input type="checkbox" ${on?'checked':''} onchange="toggleGultPensum(${memberId})" style="accent-color:#f59e0b;width:15px;height:15px">
+      <span style="font-weight:600;color:${on?'#d97706':'var(--t2)'}">🥋 Gult pensum (springer hvid-progression over)</span>
+    </label>`;
+  } else {
+    toggleEl.innerHTML='';
+  }
+
+  // Pensum-liste — brug altid effektivt bælte (tager højde for alder og gultPensum)
+  const beltKey=effectivePensumBelt(m);
   const skills=pensum[beltKey]||[];
   const skillList=document.getElementById('assessSkillList');
   if(!skills.length){
@@ -7563,8 +7965,12 @@ function openAssessmentModal(memberId, editAssessmentId){
   } else {
     skillList.innerHTML=skills.map(skill=>{
       const cur=_assessRatings[skill]||0;
+      const hasNote=!!getSkillNote(skill);
+      const nameHtml=hasNote
+        ? `<span class="assess-skill-name" onclick="showSkillNote('${skill.replace(/'/g,"\\'")}')"  style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${skill} <span style="font-size:.72rem;color:#6366f1">ℹ️</span></span>`
+        : `<span class="assess-skill-name">${skill}</span>`;
       return `<div class="assess-skill-row">
-        <span class="assess-skill-name">${skill}</span>
+        ${nameHtml}
         <div class="assess-stars" id="stars-${CSS.escape(skill)}">
           ${[1,2,3,4,5].map(i=>`<span data-skill="${skill.replace(/"/g,'&quot;')}" data-val="${i}" onclick="setStarRating(this)" title="${i}" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}
         </div>
@@ -7573,13 +7979,94 @@ function openAssessmentModal(memberId, editAssessmentId){
   }
 
   document.getElementById('assessComment').value=existing?existing.comment||'':'';
-  document.querySelector('#assessmentModal .btn.bp').textContent=existing?'💾 Opdater vurdering':'💾 Gem vurdering';
+
+  // Lås vurdering hvis den tilhører en anden bedømmer
+  const saveBtn=document.querySelector('#assessmentModal .btn.bp');
+  const isOwnAssessment=!existing||!existing.assessorName||!_myPresenceName||existing.assessorName===_myPresenceName;
+  if(!isOwnAssessment){
+    saveBtn.disabled=true;
+    saveBtn.textContent='🔒 Kun '+existing.assessorName+' kan redigere';
+    saveBtn.style.opacity='.5';
+    document.getElementById('assessComment').disabled=true;
+    document.getElementById('assessorName').disabled=true;
+    document.querySelectorAll('#assessSkillList .assess-stars span').forEach(s=>s.style.pointerEvents='none');
+    document.getElementById('assessGultToggle').style.pointerEvents='none';
+  } else {
+    saveBtn.disabled=false;
+    saveBtn.style.opacity='';
+    saveBtn.textContent=existing?'💾 Opdater vurdering':'💾 Gem vurdering';
+    document.getElementById('assessComment').disabled=false;
+    document.getElementById('assessorName').disabled=false;
+    document.getElementById('assessGultToggle').style.pointerEvents='';
+  }
+
   renderAssessmentHistory(memberId);
   openModal('assessmentModal');
   // Scroll til toppen af modal (vigtigt ved redigering)
   setTimeout(()=>{const inner=document.querySelector('#assessmentModal .modal');if(inner)inner.scrollTop=0;},50);
 }
 
+function toggleGultPensum(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m) return;
+  m.gultPensum=!m.gultPensum;
+  if(m.gultPensum) gultPensumOverrides[memberId]=true;
+  else delete gultPensumOverrides[memberId];
+  localStorage.setItem('kk2_gultPensum',JSON.stringify(gultPensumOverrides));
+  save();
+  pushToCloud();
+  // Opdater toggle-udseende
+  const on=!!m.gultPensum;
+  const lbl=document.querySelector('#assessGultToggle label');
+  if(lbl){
+    lbl.style.borderColor=on?'#f59e0b':'var(--bd)';
+    lbl.style.background=on?'#fef3c7':'var(--bg)';
+    lbl.querySelector('span').style.color=on?'#d97706':'var(--t2)';
+  }
+  // Genindlæs skill-listen uden at nulstille ratings
+  const beltKey=effectivePensumBelt(m);
+  const skills=pensum[beltKey]||[];
+  const skillList=document.getElementById('assessSkillList');
+  if(!skills.length){
+    skillList.innerHTML='<p style="color:var(--t2);font-size:.85rem;font-style:italic">Ingen pensum defineret for dette bælte.</p>';
+  } else {
+    skillList.innerHTML=skills.map(skill=>{
+      const cur=_assessRatings[skill]||0;
+      const hasNote=!!getSkillNote(skill);
+      const nameHtml=hasNote
+        ?`<span class="assess-skill-name" onclick="showSkillNote('${skill.replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${skill} <span style="font-size:.72rem;color:#6366f1">ℹ️</span></span>`
+        :`<span class="assess-skill-name">${skill}</span>`;
+      return `<div class="assess-skill-row">${nameHtml}<div class="assess-stars" id="stars-${CSS.escape(skill)}">${[1,2,3,4,5].map(i=>`<span data-skill="${skill.replace(/"/g,'&quot;')}" data-val="${i}" onclick="setStarRating(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div></div>`;
+    }).join('');
+  }
+}
+
+function getSkillNote(skill){
+  if(!skill) return null;
+  if(skillNotes[skill]) return skillNotes[skill];
+  const base=skill.replace(/[\s\-+0-9]+$/,'').trim();
+  if(base && base!==skill && skillNotes[base]) return skillNotes[base];
+  const ci=Object.keys(skillNotes).find(k=>k.toLowerCase()===base.toLowerCase());
+  return ci?skillNotes[ci]:null;
+}
+function showSkillNote(skill){
+  const note=getSkillNote(skill);
+  if(!note) return;
+  const existing=document.getElementById('skillNotePopup');
+  if(existing) existing.remove();
+  const pop=document.createElement('div');
+  pop.id='skillNotePopup';
+  pop.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+  pop.onclick=e=>{ if(e.target===pop) pop.remove(); };
+  pop.innerHTML=`<div style="background:#fff;border-radius:14px;padding:1rem 1.1rem;max-width:420px;width:100%;max-height:80vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.6rem">
+      <strong style="font-size:.95rem">📖 ${skill}</strong>
+      <button onclick="document.getElementById('skillNotePopup').remove()" style="border:none;background:#eee;border-radius:8px;padding:.25rem .55rem;cursor:pointer;font-size:.85rem">✕</button>
+    </div>
+    <div style="font-size:.85rem;line-height:1.45;white-space:pre-wrap;color:#333">${note.replace(/</g,'&lt;')}</div>
+  </div>`;
+  document.body.appendChild(pop);
+}
 function setStarRating(el){
   const skill=el.dataset.skill;
   const val=Number(el.dataset.val);
@@ -7596,7 +8083,7 @@ function saveAssessment(){
   const m=members.find(x=>x.id===_assessMemberId);
   if(!m)return;
   const existing=_editingAssessmentId!=null?assessments.find(a=>a.id===_editingAssessmentId):null;
-  const beltKey=existing?existing.belt:m.belt;
+  const beltKey=effectivePensumBelt(m);
   const skills=pensum[beltKey]||[];
   if(skills.length && !Object.keys(_assessRatings).length){
     showToast('⚠️ Giv mindst én rating før du gemmer');
@@ -7614,7 +8101,7 @@ function saveAssessment(){
       id:nextAssessmentId++,
       memberId:_assessMemberId,
       date:new Date().toISOString().slice(0,10),
-      belt:m.belt,
+      belt:effectivePensumBelt(m),
       ratings:JSON.stringify(_assessRatings),
       comment,
       assessorName
@@ -7623,6 +8110,7 @@ function saveAssessment(){
   save();
   pushToCloudNow();
   renderM();
+  updatePromotionTabVisibility();
   const memberId=_assessMemberId;
   _editingAssessmentId=null;
   _assessRatings={};
@@ -7781,7 +8269,7 @@ function renderAssessmentHistory(memberId){
 
   // Pensum-fremgang baseret på seneste vurdering
   const _pm=members.find(x=>x.id===memberId);
-  const _beltKey=_pm?.belt||'';
+  const _beltKey=effectivePensumBelt(_pm);
   const _beltSkills=pensum[_beltKey]||[];
   let progressHtml='';
   if(_beltSkills.length&&histAsc.length){
@@ -7868,7 +8356,9 @@ function showRenameSkillUI(btn){
   const oldName=btn.dataset.oldname;
   const belt=btn.dataset.belt;
   const memberId=Number(btn.dataset.memberid);
-  const currentSkills=(pensum[belt]||[]).filter(sk=>sk!==oldName);
+  const _pm=members.find(x=>x.id===memberId);
+  const effectiveBelt=_pm?effectivePensumBelt(_pm):belt;
+  const currentSkills=[...new Set([...(pensum[effectiveBelt]||[]),...(pensum[belt]||[])])].filter(sk=>sk!==oldName);
   const popup=document.createElement('div');
   popup.className='skill-rename-popup';
   popup.style.cssText='position:fixed;z-index:9999;background:#fff;border:1.5px solid #f97316;border-radius:10px;padding:.8rem 1rem;box-shadow:0 6px 24px rgba(0,0,0,.15);min-width:240px;max-width:300px';
