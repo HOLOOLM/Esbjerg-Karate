@@ -2485,7 +2485,6 @@ function startPresence(){
   pingPresence();
   _presenceInterval=setInterval(pingPresence,90000); // 90 sekunder
   window.addEventListener('beforeunload',leavePresence);
-  _startPeriodicSync();
 }
 function pingPresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
@@ -3447,6 +3446,7 @@ function initApp(){
   document.getElementById('memberModal').addEventListener('change', ()=>{ _memberModalDirty=true; });
   loadCheckInsForDate(currentTrainingDate);
   renderAll();
+  _startPeriodicSync();
   if(config.scriptUrl){
     loadFromCloud(()=>{
       loadCheckInsForDate(currentTrainingDate);
@@ -8292,9 +8292,7 @@ function deleteAssessment(assessmentId, memberId){
   deletedAssessmentIds.add(assessmentId);
   localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
   save();
-  // Push øjeblikkeligt uden debounce så cloud opdateres før næste auto-refresh
-  clearTimeout(_pushTimer);
-  _doPush(0);
+  pushToCloudNow();
   renderAssessmentHistory(memberId);
   // Opdater score-celle i tabellen
   const rowM=document.querySelector(`#tbody-m tr[data-id="${memberId}"]`);
