@@ -2100,6 +2100,7 @@ const SEED = [
    STATE
 ════════════════════════════════════════ */
 let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[];
+let deletedAssessmentIds=new Set();
 let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
 let nextBoardId=1, editingBoardId=null;
 let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
@@ -2329,6 +2330,7 @@ function load(){
     const av=localStorage.getItem('kk2_assessments');
     assessments=av?JSON.parse(av):[];
     nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
+    try{ deletedAssessmentIds=new Set(JSON.parse(localStorage.getItem('kk2_deletedAssessments')||'[]')); }catch(e){ deletedAssessmentIds=new Set(); }
     const pv=localStorage.getItem('kk2_pensum');
     pensum=pv?JSON.parse(pv):{};
     const snv=localStorage.getItem('kk2_skillNotes');
@@ -2811,9 +2813,9 @@ function loadFromCloud(onDone){
       localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
       nextId=members.reduce((x,m)=>Math.max(x,m.id+1),200);
       // Merge assessments: cloud + lokale der ikke findes i cloud (undgår tab ved hurtige gem)
-      const cloudAssess=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date}));
+      const cloudAssess=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date})).filter(a=>!deletedAssessmentIds.has(a.id));
       const cloudIds=new Set(cloudAssess.map(a=>a.id));
-      const localOnly=assessments.filter(a=>!cloudIds.has(a.id));
+      const localOnly=assessments.filter(a=>!cloudIds.has(a.id)&&!deletedAssessmentIds.has(a.id));
       assessments=[...cloudAssess,...localOnly];
       nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
@@ -8277,6 +8279,8 @@ function showAssessPointPopup(assessmentId, event){
 function deleteAssessment(assessmentId, memberId){
   if(!confirm('Slet denne vurdering? Det kan ikke fortrydes.'))return;
   assessments=assessments.filter(a=>a.id!==assessmentId);
+  deletedAssessmentIds.add(assessmentId);
+  localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
   save(); pushToCloud();
   renderAssessmentHistory(memberId);
   // Opdater score-celle i tabellen
