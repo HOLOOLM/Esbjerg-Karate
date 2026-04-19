@@ -8750,16 +8750,17 @@ function showRenameSkillUI(btn){
   confirmBtn.onclick=()=>{
     const newName=sel.value;
     if(!newName){showToast('Vælg et navn fra listen');return;}
-    renameSkillInAssessments(oldName,newName);
+    renameSkillInAssessments(oldName,newName,belt);
     close();
     renderAssessmentHistory(memberId);
-    showToast(`✅ "${oldName}" koblet til "${newName}" i alle vurderinger`);
+    showToast(`✅ "${oldName}" koblet til "${newName}" i ${belt}-vurderinger`);
   };
 }
 
-function renameSkillInAssessments(oldName,newName){
+function renameSkillInAssessments(oldName,newName,belt){
   if(!oldName||!newName||oldName===newName)return;
   assessments.forEach(a=>{
+    if(belt&&a.belt!==belt)return;
     try{
       const r=JSON.parse(a.ratings||'{}');
       if(r[oldName]!==undefined){
