@@ -3650,6 +3650,43 @@ function _promoStarsHtml(v){
   const n=Number(v)||0;
   return '★'.repeat(n)+'<span class="un">'+'☆'.repeat(5-n)+'</span>';
 }
+const _PROMO_MOTIVATION=[
+  'Stærk fremgang siden sidst — bliv ved! 💪',
+  'Du er på rette vej — rigtig flot klaret!',
+  'Hvert træning tæller, og det kan man se! 🥋',
+  'Bedre og bedre — det kan vi godt lide at se!',
+  'Du er stærkere end sidst — fortsæt sådan!',
+  'Positiv udvikling — super godt arbejde!',
+  'Du vokser med opgaven — det er sejt! 🌟',
+  'Fremgang er det bedste tegn — hold fast!',
+  'Du rykker dig — det er alt, der tæller!',
+  'Opadgående kurve — det er vejen frem!',
+  'Du sætter barren højere for dig selv — flot!',
+  'Stærkt — du overgår dig selv siden sidst!',
+  'Du er på vej mod næste bælte! 🏅',
+  'Fremgang taler for sig selv — godt arbejde!',
+  'Keep it up — du er i god udvikling!',
+  'Resultat af hårdt arbejde — flot klaret!',
+  'Du er ikke den samme som sidst — godt!',
+  'Fremad og opad — det er din retning! ⬆️',
+  'Stærk udvikling siden sidst — bliv ved!',
+  'Du leverer — bedre og bedre hver gang!',
+  'Positiv kurve — hold fokus og bliv ved!',
+  'Vi kan se fremgangen — godt gået! 🥋',
+  'Flot! Du er på rette spor mod næste bælte.',
+  'Du forbedrer dig — det er præcis det, vi vil se!',
+  'Næste bælte kommer tættere og tættere! 🏆',
+  'Hård træning betaler sig — det viser tallene!',
+  'Du er i god form — fortsæt den vej!',
+  'Stærk præstation — bedre end sidst, igen!',
+  'Du gør det smukt — fortsæt den positive rejse!',
+  'Fremgang siden sidst — vi er stolte af dig! ⭐',
+];
+function _promoMotivationBanner(s){
+  if(!s.prevAvg||s.latestAvg<s.prevAvg) return '';
+  const msg=_PROMO_MOTIVATION[Math.floor(Math.random()*_PROMO_MOTIVATION.length)];
+  return `<div style="font-size:.72rem;font-weight:600;color:#15803d;background:linear-gradient(90deg,#dcfce7,#f0fdf4);border-radius:8px;padding:.35rem .65rem;margin-bottom:-.1rem;border:1px solid #bbf7d0">${msg}</div>`;
+}
 function _promoCommentsHtml(s){
   const c1=s.comment;
   const c2=s.prevComment;
@@ -3668,6 +3705,7 @@ function _promoCommentsHtml(s){
 function _promoCardReady(s){
   const m=members.find(x=>x.id===s.memberId);if(!m) return '';
   return `<div class="promo-card ready" onclick="openPromoDetail(${m.id})">
+    ${_promoMotivationBanner(s)}
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
@@ -3694,6 +3732,7 @@ function _promoCardAlmost(s){
   const lowSkills=s.weak.filter(w=>w.val<=3);
   const weakHtml=lowSkills.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${lowSkills.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
   return `<div class="promo-card almost" onclick="openPromoDetail(${m.id})">
+    ${_promoMotivationBanner(s)}
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
@@ -3771,14 +3810,17 @@ function _promoDualScoreRow(s){
       </div>
     </div>`;
   }
-  const isBestLatest=s.latestAvg>=s.prevAvg;
-  const bestFmt=(isBestLatest?s.latestAvg:s.prevAvg).toFixed(1).replace('.',',');
-  const prevFmt=(isBestLatest?s.prevAvg:s.latestAvg).toFixed(1).replace('.',',');
-  const bestDate=isBestLatest?s.latestDate:s.prevDate;
-  const prevDateVal=isBestLatest?s.prevDate:s.latestDate;
+  // Seneste altid til venstre, forrige til højre
+  const latestIsBest=s.latestAvg>=s.prevAvg;
   const diff=s.latestAvg-s.prevAvg;
   const arrowCls=diff>=0.15?'up':diff<=-0.15?'down':'';
   const arrow=diff>=0.15?'↑':diff<=-0.15?'↓':'→';
+  const latestFmt=s.latestAvg.toFixed(1).replace('.',',');
+  const prevFmt=s.prevAvg.toFixed(1).replace('.',',');
+  const latestLbl=latestIsBest?'⭐ Bedste':'Laveste';
+  const prevLbl=latestIsBest?'Laveste':'⭐ Bedste';
+  const latestCls=latestIsBest?'best':'prev';
+  const prevCls=latestIsBest?'prev':'best';
   const bothOver=s.latestAvg>=promoThr&&s.prevAvg>=promoThr;
   const noteHtml=s.status==='ready'
     ?(bothOver
@@ -3786,16 +3828,16 @@ function _promoDualScoreRow(s){
       :`<div class="promo-ds-note amber">⚡ Bedste over grænsen — forrige var ikke</div>`)
     :`<div class="promo-ds-note amber">${(promoThr-s.avg).toFixed(1).replace('.',',')} ★ fra grænsen i bedste vurdering</div>`;
   return `<div class="promo-dual-row">
-    <div class="promo-ds-col best">
-      <div class="promo-ds-lbl">Bedste</div>
-      <div class="promo-ds-val">${bestFmt}</div>
-      <div class="promo-ds-sub">${_promoFormatDateShort(bestDate)}</div>
+    <div class="promo-ds-col ${latestCls}">
+      <div class="promo-ds-lbl">${latestLbl}</div>
+      <div class="promo-ds-val">${latestFmt}</div>
+      <div class="promo-ds-sub">${_promoFormatDateShort(s.latestDate)}</div>
     </div>
     <div class="promo-ds-arrow ${arrowCls}">${arrow}</div>
-    <div class="promo-ds-col prev">
-      <div class="promo-ds-lbl">Forrige</div>
+    <div class="promo-ds-col ${prevCls}">
+      <div class="promo-ds-lbl">${prevLbl}</div>
       <div class="promo-ds-val">${prevFmt}</div>
-      <div class="promo-ds-sub">${_promoFormatDateShort(prevDateVal)}</div>
+      <div class="promo-ds-sub">${_promoFormatDateShort(s.prevDate)}</div>
     </div>
   </div>${noteHtml}`;
 }
