@@ -818,6 +818,42 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 #page-promotion .promo-meta{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:#5a6d6d;padding-top:.5rem;border-top:1px solid #e3ecec;gap:.4rem;flex-wrap:wrap}
 #page-promotion .promo-meta .pill{padding:2px 8px;border-radius:8px;font-weight:700;font-size:.68rem;white-space:nowrap}
 #page-promotion .promo-empty{background:#fff;border:1px dashed #e3ecec;border-radius:14px;padding:1.5rem;text-align:center;color:#5a6d6d;font-size:.88rem}
+/* ── Dual-score row i promo-kort ── */
+#page-promotion .promo-dual-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.4rem;padding:.5rem .75rem;background:#f4f7f7;border-radius:10px}
+#page-promotion .promo-ds-col{text-align:center}
+#page-promotion .promo-ds-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9aacac;margin-bottom:2px}
+#page-promotion .promo-ds-val{font-size:1.4rem;font-weight:800;line-height:1}
+#page-promotion .promo-ds-sub{font-size:.64rem;color:#9aacac;margin-top:1px}
+#page-promotion .promo-ds-col.best .promo-ds-val{color:#16a34a}
+#page-promotion .promo-ds-col.prev .promo-ds-val{color:#6366f1}
+#page-promotion .promo-ds-arrow{font-size:1.1rem;font-weight:800;text-align:center;color:#9aacac}
+#page-promotion .promo-ds-arrow.up{color:#16a34a}
+#page-promotion .promo-ds-arrow.down{color:#dc2626}
+#page-promotion .promo-ds-note{font-size:.7rem;font-weight:600;padding:.25rem .5rem;border-radius:6px;text-align:center}
+#page-promotion .promo-ds-note.green{color:#16a34a;background:#f0fff4}
+#page-promotion .promo-ds-note.amber{color:#d97706;background:#fef3c7}
+/* ── Promo detail overlay (slide-up sheet) ── */
+#promoDetailOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:flex-end;justify-content:center}
+#promoDetailOverlay.open{display:flex}
+#promoDetailSheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;padding-bottom:2rem;animation:promoSlideUp .22s ease}
+@keyframes promoSlideUp{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.promo-detail-handle{width:40px;height:4px;background:#d1d5db;border-radius:2px;margin:10px auto 0}
+.promo-detail-hdr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem .4rem}
+.promo-detail-hdr h3{font-size:1rem;font-weight:700;color:#1a2e2e;flex:1;min-width:0}
+.promo-detail-sub{font-size:.74rem;color:var(--xtl);padding:0 1rem .6rem}
+.promo-detail-close{background:none;border:none;font-size:1.2rem;color:var(--xtl);cursor:pointer;padding:.2rem .5rem;border-radius:6px;flex-shrink:0}
+.promo-detail-body{padding:0 1rem}
+.promo-detail-body .status-pill-pd{border-radius:10px;padding:.6rem .85rem;display:flex;align-items:center;gap:.6rem;border-left:4px solid;margin-bottom:.75rem}
+.promo-detail-body .status-pill-pd.green{background:#dcfce7;border-color:#16a34a}
+.promo-detail-body .status-pill-pd.yellow{background:#fef3c7;border-color:#d97706}
+.promo-detail-body .cmp-grid-pd{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.promo-detail-body .cmp-card-pd{border-radius:10px;border:1.5px solid #e2e8f0;padding:.65rem .75rem;position:relative}
+.promo-detail-body .cmp-card-pd.best{border-color:#16a34a;background:#f0fff4}
+.promo-detail-body .cmp-card-pd.prev{border-color:#a5b4fc;background:#f0f4ff}
+.promo-detail-body .cmp-tag-pd{position:absolute;top:6px;right:6px;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:10px}
+.promo-detail-body .cmp-card-pd.best .cmp-tag-pd{background:#16a34a;color:#fff}
+.promo-detail-body .cmp-card-pd.prev .cmp-tag-pd{background:#6366f1;color:#fff}
+.assess-history-item.best-item{border-color:#16a34a!important;border-left:3px solid #16a34a!important}
 @media(max-width:600px){
   #page-promotion .promo-hero{padding:1rem 1.1rem}
   #page-promotion .promo-hero h2{font-size:1.1rem}
@@ -1541,7 +1577,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <div class="page" id="page-promotion">
   <div class="promo-hero">
     <h2>🎯 Graduering</h2>
-    <p>Oversigt over medlemmer tæt på eller klar til næste bælte</p>
+    <p>Baseret på bedste af de 2 seneste vurderinger — tryk på en elev for detaljer</p>
   </div>
   <div class="promo-summary" id="promoSummary"></div>
   <div id="promoContent"></div>
@@ -1593,6 +1629,22 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 <footer>Esbjerg Shuri-Ryu Karate &nbsp;·&nbsp; Strandbygade 53, 6700 Esbjerg &nbsp;·&nbsp; holmoos@mail.dk</footer>
 <div id="toast"></div>
+
+<!-- ══ PROMO DETAIL SHEET ══ -->
+<div id="promoDetailOverlay" onclick="if(event.target===this)closePromoDetail()">
+  <div id="promoDetailSheet">
+    <div class="promo-detail-handle"></div>
+    <div class="promo-detail-hdr">
+      <h3 id="promoDetailName"></h3>
+      <button class="promo-detail-close" onclick="closePromoDetail()">✕</button>
+    </div>
+    <div class="promo-detail-sub" id="promoDetailSub"></div>
+    <div class="promo-detail-body">
+      <div id="promoDetailTop"></div>
+      <div id="promoDetailHistory"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL: TILFØJ / REDIGER MEDLEM ══ -->
 <div class="mbd" id="memberModal">
@@ -3550,13 +3602,20 @@ function getPromotionStatus(memberId){
   const pensumSkills=pensum[pensumBelt]||[];
   const vals=Object.values(merged).map(x=>x.val).filter(v=>v>0);
   if(!vals.length) return null;
-  const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
+  const latestAvg=vals.reduce((s,v)=>s+v,0)/vals.length;
+  let prevAvg=null,prevDate=null,prevId=null;
+  if(ma[1]){
+    const pm=getMergedRatings(memberId,ma[1].id);
+    const pv=Object.values(pm).map(x=>x.val).filter(v=>v>0);
+    if(pv.length){prevAvg=pv.reduce((s,v)=>s+v,0)/pv.length;prevDate=ma[1].date;prevId=ma[1].id;}
+  }
+  const avg=prevAvg!==null?Math.max(latestAvg,prevAvg):latestAvg;
   const ratedCount=pensumSkills.length?pensumSkills.filter(sk=>merged[sk]&&merged[sk].val>0).length:vals.length;
   const total=pensumSkills.length||vals.length;
   const coverage={rated:ratedCount,total};
   const allRated=pensumSkills.length>0&&ratedCount===total;
   const weak=pensumSkills.filter(sk=>!merged[sk]||!merged[sk].val||merged[sk].val<promoThr).map(sk=>({skill:sk,val:merged[sk]?.val||0})).sort((a,b)=>a.val-b.val);
-  const base={memberId,avg,date:ma[0].date,assessorName:ma[0].assessorName||'',comment:ma[0].comment||'',coverage,weak,currentBelt,nextBelt:effectiveNextBelt(_pm)};
+  const base={memberId,avg,date:ma[0].date,assessorName:ma[0].assessorName||'',comment:ma[0].comment||'',coverage,weak,currentBelt,nextBelt:effectiveNextBelt(_pm),latestAvg,prevAvg,latestDate:ma[0].date,prevDate,prevId,latestId:ma[0].id,prevComment:ma[1]?.comment||''};
   if(allRated&&avg>=promoThr) return {...base,status:'ready'};
   if(avg>=almostThr&&avg<promoThr) return {...base,status:'almost'};
   if(avg>=almostThr&&!allRated&&pensumSkills.length) return {...base,status:'almost'};
@@ -3591,11 +3650,24 @@ function _promoStarsHtml(v){
   const n=Number(v)||0;
   return '★'.repeat(n)+'<span class="un">'+'☆'.repeat(5-n)+'</span>';
 }
+function _promoCommentsHtml(s){
+  const c1=s.comment;
+  const c2=s.prevComment;
+  if(!c1&&!c2) return '';
+  const prevAssess=s.prevId?assessments.find(a=>a.id===s.prevId):null;
+  const prevAssessor=prevAssess?.assessorName||'';
+  const item=(txt,date,assessor)=>`<div style="font-size:.74rem;font-style:italic;color:#6b7280;padding:.35rem .55rem;background:#f9fafb;border-radius:7px;border-left:3px solid #e5e7eb">
+    <div style="display:flex;gap:.4rem;align-items:baseline;margin-bottom:.15rem">
+      <span style="font-size:.62rem;font-weight:700;color:#9aacac;white-space:nowrap;flex-shrink:0">${_promoFormatDateShort(date)}</span>
+      ${assessor?`<span style="font-size:.62rem;font-weight:700;color:#9aacac;white-space:nowrap;flex-shrink:0;font-style:normal">👤 ${assessor}</span>`:''}
+    </div>
+    💬 "${txt}"
+  </div>`;
+  return `<div style="display:flex;flex-direction:column;gap:.3rem">${c1?item(c1,s.latestDate,s.assessorName):''}${c2?item(c2,s.prevDate,prevAssessor):''}</div>`;
+}
 function _promoCardReady(s){
   const m=members.find(x=>x.id===s.memberId);if(!m) return '';
-  const color='#16a34a';
-  const pct=Math.round(s.avg/5*100);
-  return `<div class="promo-card ready" onclick="openAssessmentModal(${m.id})">
+  return `<div class="promo-card ready" onclick="openPromoDetail(${m.id})">
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
@@ -3606,18 +3678,9 @@ function _promoCardReady(s){
         </div>
       </div>
     </div>
-    <div class="promo-score-row">
-      <div>
-        <div class="promo-score-big" style="color:${color}">${s.avg.toFixed(1).replace('.',',')}<span class="unit">/ 5</span></div>
-        <div class="promo-coverage">Alle ${s.coverage.total} skills vurderet</div>
-      </div>
-      <div style="flex:1;max-width:130px">
-        <div class="promo-progress-bar"><div class="promo-progress-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div style="font-size:.68rem;color:#5a6d6d;margin-top:3px;text-align:right">${pct}%</div>
-      </div>
-    </div>
-    ${s.comment?`<div style="font-size:.75rem;font-style:italic;color:#6b7280;padding:.45rem .6rem;background:#f9fafb;border-radius:8px;border-left:3px solid #e5e7eb;margin-top:.25rem">💬 "${s.comment}"</div>`:''}
-    ${(()=>{const low=s.weak.filter(w=>w.val<=3&&w.val>0);return low.length?`<div style="margin-top:.6rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${low.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${_promoStarsHtml(w.val)}</span></div>`).join('')}</div>`:'';})()}
+    ${_promoDualScoreRow(s)}
+    ${(()=>{const low=s.weak.filter(w=>w.val<=3&&w.val>0);return low.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${low.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${_promoStarsHtml(w.val)}</span></div>`).join('')}</div>`:'';})()}
+    ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>
@@ -3626,13 +3689,11 @@ function _promoCardReady(s){
 }
 function _promoCardAlmost(s){
   const m=members.find(x=>x.id===s.memberId);if(!m) return '';
-  const color='#d97706';
-  const pct=Math.round(s.avg/5*100);
   const promoThr=config.promotionScore??4.0;
   const gap=(promoThr-s.avg).toFixed(1).replace('.',',');
   const lowSkills=s.weak.filter(w=>w.val<=3);
-  const weakHtml=lowSkills.length?`<div><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${lowSkills.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
-  return `<div class="promo-card almost" onclick="openAssessmentModal(${m.id})">
+  const weakHtml=lowSkills.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${lowSkills.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
+  return `<div class="promo-card almost" onclick="openPromoDetail(${m.id})">
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
@@ -3643,18 +3704,9 @@ function _promoCardAlmost(s){
         </div>
       </div>
     </div>
-    <div class="promo-score-row">
-      <div>
-        <div class="promo-score-big" style="color:${color}">${s.avg.toFixed(1).replace('.',',')}<span class="unit">/ 5</span></div>
-        <div class="promo-coverage">${s.coverage.rated} af ${s.coverage.total} skills vurderet</div>
-      </div>
-      <div style="flex:1;max-width:130px">
-        <div class="promo-progress-bar"><div class="promo-progress-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div style="font-size:.68rem;color:#5a6d6d;margin-top:3px;text-align:right">${pct}%</div>
-      </div>
-    </div>
+    ${_promoDualScoreRow(s)}
     ${weakHtml}
-    ${s.comment?`<div style="font-size:.75rem;font-style:italic;color:#6b7280;padding:.45rem .6rem;background:#f9fafb;border-radius:8px;border-left:3px solid #e5e7eb;margin-top:.25rem">💬 "${s.comment}"</div>`:''}
+    ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>
@@ -3696,6 +3748,56 @@ function _promoFormatDate(ymd){
   if(!ymd) return '—';
   const d=new Date(String(ymd).slice(0,10)+'T12:00:00');
   return isNaN(d)?ymd:d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
+}
+function _promoFormatDateShort(ymd){
+  if(!ymd) return '—';
+  const d=new Date(String(ymd).slice(0,10)+'T12:00:00');
+  return isNaN(d)?ymd:d.toLocaleDateString('da-DK',{day:'numeric',month:'short'});
+}
+function _promoDualScoreRow(s){
+  const promoThr=config.promotionScore??4.0;
+  if(s.prevAvg===null){
+    // Kun én vurdering – vis original enkelt-score
+    const color=s.status==='ready'?'#16a34a':'#d97706';
+    const pct=Math.round(s.avg/5*100);
+    return `<div class="promo-score-row">
+      <div>
+        <div class="promo-score-big" style="color:${color}">${s.avg.toFixed(1).replace('.',',')}<span class="unit">/ 5</span></div>
+        <div class="promo-coverage">${s.coverage.rated===s.coverage.total?'Alle '+s.coverage.total+' skills vurderet':s.coverage.rated+' af '+s.coverage.total+' skills vurderet'}</div>
+      </div>
+      <div style="flex:1;max-width:130px">
+        <div class="promo-progress-bar"><div class="promo-progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div style="font-size:.68rem;color:#5a6d6d;margin-top:3px;text-align:right">${pct}%</div>
+      </div>
+    </div>`;
+  }
+  const isBestLatest=s.latestAvg>=s.prevAvg;
+  const bestFmt=(isBestLatest?s.latestAvg:s.prevAvg).toFixed(1).replace('.',',');
+  const prevFmt=(isBestLatest?s.prevAvg:s.latestAvg).toFixed(1).replace('.',',');
+  const bestDate=isBestLatest?s.latestDate:s.prevDate;
+  const prevDateVal=isBestLatest?s.prevDate:s.latestDate;
+  const diff=s.latestAvg-s.prevAvg;
+  const arrowCls=diff>=0.15?'up':diff<=-0.15?'down':'';
+  const arrow=diff>=0.15?'↑':diff<=-0.15?'↓':'→';
+  const bothOver=s.latestAvg>=promoThr&&s.prevAvg>=promoThr;
+  const noteHtml=s.status==='ready'
+    ?(bothOver
+      ?`<div class="promo-ds-note green">✅ Begge over ${promoThr.toFixed(1).replace('.',',')} — konsistent niveau</div>`
+      :`<div class="promo-ds-note amber">⚡ Bedste over grænsen — forrige var ikke</div>`)
+    :`<div class="promo-ds-note amber">${(promoThr-s.avg).toFixed(1).replace('.',',')} ★ fra grænsen i bedste vurdering</div>`;
+  return `<div class="promo-dual-row">
+    <div class="promo-ds-col best">
+      <div class="promo-ds-lbl">Bedste</div>
+      <div class="promo-ds-val">${bestFmt}</div>
+      <div class="promo-ds-sub">${_promoFormatDateShort(bestDate)}</div>
+    </div>
+    <div class="promo-ds-arrow ${arrowCls}">${arrow}</div>
+    <div class="promo-ds-col prev">
+      <div class="promo-ds-lbl">Forrige</div>
+      <div class="promo-ds-val">${prevFmt}</div>
+      <div class="promo-ds-sub">${_promoFormatDateShort(prevDateVal)}</div>
+    </div>
+  </div>${noteHtml}`;
 }
 function _computePromoGroups(){
   const active=members.filter(m=>!m.archived&&m.status!=='passiv');
@@ -3761,6 +3863,82 @@ function togglePromoGroupFilter(gf,section){
   renderPromotion();
 }
 
+function openPromoDetail(memberId){
+  const m=members.find(x=>x.id===memberId);if(!m) return;
+  const s=getPromotionStatus(memberId);
+  document.getElementById('promoDetailName').textContent=m.firstName+' '+m.lastName;
+  document.getElementById('promoDetailSub').textContent=(m.belt||'')+(m.group?' · '+m.group:'')+(m.age?' · '+m.age+' år':'');
+  const promoThr=config.promotionScore??4.0;
+  let topHtml='';
+  if(s){
+    const isReady=s.status==='ready';
+    const bothOver=s.prevAvg!==null&&s.latestAvg>=promoThr&&s.prevAvg>=promoThr;
+    const statusCls=isReady?'green':'yellow';
+    const statusIcon=isReady?'✅':'⚡';
+    const statusTitle=isReady?'Klar til oprykning!':'Tæt på oprykning';
+    let statusDesc;
+    if(isReady&&bothOver) statusDesc='Begge vurderinger over grænsen — konsistent niveau';
+    else if(isReady) statusDesc=`Bedste vurdering (${s.avg.toFixed(1).replace('.',',')}) over grænsen — forrige var ikke`;
+    else statusDesc=`${(promoThr-s.avg).toFixed(1).replace('.',',')} ★ fra grænsen i bedste vurdering`;
+    topHtml+=`<div class="status-pill-pd ${statusCls}">
+      <span style="font-size:1.1rem">${statusIcon}</span>
+      <div>
+        <div style="font-size:.82rem;font-weight:700;color:#1a2e2e">${statusTitle}</div>
+        <div style="font-size:.71rem;color:#555;margin-top:1px">${statusDesc}</div>
+      </div>
+    </div>`;
+    if(s.prevAvg!==null){
+      const isBestLatest=s.latestAvg>=s.prevAvg;
+      const bestScore=isBestLatest?s.latestAvg:s.prevAvg;
+      const prevScore=isBestLatest?s.prevAvg:s.latestAvg;
+      const bestDate=isBestLatest?s.latestDate:s.prevDate;
+      const prevDateVal=isBestLatest?s.prevDate:s.latestDate;
+      const diff=s.latestAvg-s.prevAvg;
+      const trendTxt=diff>=0.1?`↑ fra ${prevScore.toFixed(1).replace('.',',')}`:diff<=-0.1?`↓ fra ${prevScore.toFixed(1).replace('.',',')}`:'\u2192 Samme niveau';
+      const trendColor=diff>=0.1?'#16a34a':diff<=-0.1?'#dc2626':'#d97706';
+      topHtml+=`<div class="cmp-grid-pd">
+        <div class="cmp-card-pd best">
+          <span class="cmp-tag-pd">BEDSTE</span>
+          <div style="font-size:.68rem;color:#7a9898;font-weight:600;text-transform:uppercase;margin-bottom:.3rem">${_promoFormatDate(bestDate)}</div>
+          <div style="font-size:2rem;font-weight:800;line-height:1;color:#16a34a">${bestScore.toFixed(1).replace('.',',')}<span style="font-size:.85rem;font-weight:400;color:#aaa">/5</span></div>
+          <div style="margin-top:.3rem;font-size:.75rem;font-weight:700;color:${trendColor}">${trendTxt}</div>
+        </div>
+        <div class="cmp-card-pd prev">
+          <span class="cmp-tag-pd">FORRIGE</span>
+          <div style="font-size:.68rem;color:#7a9898;font-weight:600;text-transform:uppercase;margin-bottom:.3rem">${_promoFormatDate(prevDateVal)}</div>
+          <div style="font-size:2rem;font-weight:800;line-height:1;color:#6366f1">${prevScore.toFixed(1).replace('.',',')}<span style="font-size:.85rem;font-weight:400;color:#aaa">/5</span></div>
+          <div style="margin-top:.3rem;font-size:.75rem;font-weight:700;color:#9aacac">Baseline</div>
+        </div>
+      </div>`;
+    }
+  }
+  topHtml+=`<div style="display:flex;justify-content:flex-end;margin-bottom:.75rem">
+    <button class="btn bp btn-sm" style="font-size:.8rem" onclick="closePromoDetail();openAssessmentModal(${memberId})">📋 Ny vurdering</button>
+  </div>`;
+  document.getElementById('promoDetailTop').innerHTML=topHtml;
+  renderAssessmentHistory(memberId,'promoDetailHistory',true);
+  document.getElementById('promoDetailOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closePromoDetail(){
+  document.getElementById('promoDetailOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function deleteAssessmentFromDetail(assessmentId,memberId){
+  if(!confirm('Slet denne vurdering? Det kan ikke fortrydes.'))return;
+  assessments=assessments.filter(a=>a.id!==assessmentId);
+  deletedAssessmentIds.add(assessmentId);
+  localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
+  save();
+  pushToCloudNow();
+  const rowM=document.querySelector(`#tbody-m tr[data-id="${memberId}"]`);
+  if(rowM){const td=rowM.querySelector('td[style*="text-align:center"]');if(td)td.innerHTML=scoreCell(memberId);}
+  showToast('🗑 Vurdering slettet');
+  updatePromotionTabVisibility();
+  const remaining=assessments.filter(a=>a.memberId===memberId);
+  if(remaining.length>0){openPromoDetail(memberId);}
+  else{closePromoDetail();renderPromotion();}
+}
 function renderPromotion(){
   const promoThr=config.promotionScore??4.0;
   const almostThr=config.almostReadyScore??3.0;
@@ -8315,12 +8493,15 @@ function deleteAssessment(assessmentId, memberId){
   // Opdater score-celle i tabellen
   const rowM=document.querySelector(`#tbody-m tr[data-id="${memberId}"]`);
   if(rowM){const td=rowM.querySelector('td[style*="text-align:center"]');if(td)td.innerHTML=scoreCell(memberId);}
+  updatePromotionTabVisibility();
+  renderPromotion();
   showToast('🗑 Vurdering slettet');
 }
 
-function renderAssessmentHistory(memberId){
+function renderAssessmentHistory(memberId,targetId='assessHistory',fromDetail=false){
   const histAsc=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const el=document.getElementById('assessHistory');
+  const el=document.getElementById(targetId);
+  if(!el) return;
   if(!histAsc.length){el.innerHTML='';return;}
 
   // Beregn gennemsnitsscore pr. vurdering (til graf) — inkl. carried-forward
@@ -8410,12 +8591,19 @@ function renderAssessmentHistory(memberId){
 
   // Historik-liste (nyeste øverst)
   const histDesc=[...histAsc].reverse();
+  // Find bedste af de 2 seneste vurderinger (til highlight)
+  let bestOfLast2Id=histDesc.length>0?histDesc[0].id:null;
+  if(histDesc.length>=2){
+    const a0=avgForId(histDesc[0].id),a1=avgForId(histDesc[1].id);
+    bestOfLast2Id=(a0!==null&&a1!==null&&a1>a0)?histDesc[1].id:histDesc[0].id;
+  }
   el.innerHTML=progressHtml+`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
     <div style="font-weight:700;font-size:.85rem;color:var(--t2)">Tidligere vurderinger</div>
     ${histDesc.length?`<button class="btn bs btn-sm" style="font-size:.72rem;padding:.2rem .6rem" onclick="exportAssessmentsExcel(${memberId})">📊 Excel</button>`:''}
   </div>`+
     graphHtml+
     histDesc.map((a,i)=>{
+      const isBest=a.id===bestOfLast2Id&&histDesc.length>=1;
       const merged=getMergedRatings(memberId,a.id);
       const prevMergedH=histDesc[i+1]?getMergedRatings(memberId,histDesc[i+1].id):{};
       const starsHtml=Object.entries(merged).map(([sk,{val,carried,orphaned}])=>{
@@ -8444,18 +8632,25 @@ function renderAssessmentHistory(memberId){
       const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
       const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${a.assessorName}</strong></div>`:'';
       const beltLabel=a.belt?`<span style="font-size:.72rem;font-weight:600;opacity:.7;margin-left:.5rem">${a.belt}</span>`:'';
+      const bestTag=isBest&&histDesc.length>=2?`<span style="font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;background:#dcfce7;color:#16a34a;margin-left:.3rem">⭐ Bedste</span>`:'';
       // Find forrige vurdering (ældre) — histDesc er nyeste øverst, så næste i desc = forrige i tid
       const prevA=histDesc[i+1];
       const curAvg=avgForId(a.id);
       const prevAvg=prevA?avgForId(prevA.id):null;
       const arrow=trendArrow(curAvg,prevAvg);
       const avgLabel=curAvg!==null?`<span style="font-size:.78rem;font-weight:700;color:#6366f1;margin-left:.4rem">${curAvg}/5</span>`:'';
-      return `<div class="assess-history-item">
-        <div class="assess-history-date" style="display:flex;justify-content:space-between;align-items:center">
-          <span style="display:flex;align-items:center;gap:.3rem">${a.date}${beltLabel}${avgLabel}${arrow}</span>
+      const editBtn=fromDetail
+        ?`<button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="closePromoDetail();openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>`
+        :`<button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>`;
+      const delBtn=fromDetail
+        ?`<button class="btn bdr btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="deleteAssessmentFromDetail(${a.id},${memberId})">🗑</button>`
+        :`<button class="btn bdr btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="deleteAssessment(${a.id},${memberId})">🗑</button>`;
+      return `<div class="assess-history-item${isBest&&histDesc.length>=2?' best-item':''}">
+        <div class="assess-history-date" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.25rem">
+          <span style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">${a.date}${beltLabel}${avgLabel}${arrow}${bestTag}</span>
           <div style="display:flex;gap:.3rem">
-            <button class="btn bg btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="openAssessmentModal(${memberId},${a.id})">✏️ Rediger</button>
-            <button class="btn bdr btn-sm" style="font-size:.72rem;padding:.15rem .5rem" onclick="deleteAssessment(${a.id},${memberId})">🗑</button>
+            ${editBtn}
+            ${delBtn}
           </div>
         </div>
         ${starsHtml||'<div style="font-size:.8rem;color:var(--t2);font-style:italic">Ingen ratings</div>'}
