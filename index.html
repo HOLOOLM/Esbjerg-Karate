@@ -2884,15 +2884,16 @@ function loadFromCloud(onDone){
       const cloudAssess=(d.assessments||[]).map(a=>({...a,date:a.date?String(a.date).slice(0,10):a.date})).filter(a=>!deletedAssessmentIds.has(a.id));
       const cloudIds=new Set(cloudAssess.map(a=>a.id));
       const localOnly=assessments.filter(a=>!cloudIds.has(a.id)&&!deletedAssessmentIds.has(a.id));
-      // Bevar lokale vurderinger hvis vores data er nyere end det cloud returnerede.
-      // cloud-svar kan være konstrueret FØR vores seneste push nåede Sheets (_savedAt afslører dette).
-      const _cloudSavedAt=(d.config&&d.config._savedAt)||d._savedAt||0;
-      const _localSavedAt=config._savedAt||0;
-      if(_localSavedAt>_cloudSavedAt||_hasPending||_isSyncing){
-        const localMap=new Map(assessments.map(a=>[a.id,a]));
+      // Merge: for vurderinger der findes i begge — brug den med nyest updatedAt.
+      // Hvis push er undervejs, bevar altid lokal (cloud-svar kan være forældet).
+      const localMap=new Map(assessments.map(a=>[a.id,a]));
+      if(_hasPending||_isSyncing){
         assessments=[...cloudAssess.map(a=>localMap.get(a.id)||a),...localOnly];
       }else{
-        assessments=[...cloudAssess,...localOnly];
+        assessments=[...cloudAssess.map(ca=>{
+          const la=localMap.get(ca.id);
+          return la&&(la.updatedAt||0)>(Number(ca.updatedAt)||0)?la:ca;
+        }),...localOnly];
       }
       // Rens lokale assessments for slettede IDs
       assessments=assessments.filter(a=>!deletedAssessmentIds.has(a.id));
@@ -8439,6 +8440,7 @@ function saveAssessment(){
     existing.ratings=JSON.stringify(_assessRatings);
     existing.comment=comment;
     existing.assessorName=assessorName;
+    existing.updatedAt=Date.now();
   } else {
     assessments.push({
       id:nextAssessmentId++,
@@ -8447,7 +8449,8 @@ function saveAssessment(){
       belt:effectivePensumBelt(m),
       ratings:JSON.stringify(_assessRatings),
       comment,
-      assessorName
+      assessorName,
+      updatedAt:Date.now()
     });
   }
   save();
@@ -8763,6 +8766,7 @@ function renameSkillInAssessments(oldName,newName){
         if(r[newName]===undefined||r[newName]===0) r[newName]=r[oldName];
         delete r[oldName];
         a.ratings=JSON.stringify(r);
+        a.updatedAt=Date.now();
       }
     }catch(e){}
   });
