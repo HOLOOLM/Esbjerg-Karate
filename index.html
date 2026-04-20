@@ -798,6 +798,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 #page-promotion .promo-card.ready::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#16a34a}
 #page-promotion .promo-card.almost::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#d97706}
 #page-promotion .promo-card.overdue::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#dc2626}
+#page-promotion .promo-card.grad-wish{border-color:#a78bfa;box-shadow:0 1px 8px rgba(124,58,237,.15)}
+#page-promotion .promo-card.grad-wish::before{background:#7c3aed}
+#page-promotion .promo-section-hdr.overdue .promo-badge{background:#f5f3ff;color:#7c3aed}
 #page-promotion .promo-card-top{display:flex;align-items:center;gap:.75rem}
 #page-promotion .promo-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#a5d6a7,#2c4a4a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0}
 #page-promotion .promo-name{font-weight:700;font-size:.95rem;color:#1a2e2e}
@@ -1867,7 +1870,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="mclose" onclick="safeCloseModal('assessmentModal')">✕</button>
     </div>
     <div id="assessBeltBar" style="margin-bottom:.6rem"></div>
-    <div id="assessGultToggle" style="margin-bottom:1rem"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+      <div id="assessGultToggle"></div>
+      <div id="assessGradToggle"></div>
+    </div>
     <div id="assessSkillList"></div>
     <div style="margin-top:.8rem">
       <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Bedømt af <span style="color:#dc2626">*</span></label>
@@ -3599,7 +3605,7 @@ function switchTab(tab){
 /* ════════════════════════════════════════
    OPRYKNING DASHBOARD
 ════════════════════════════════════════ */
-function getPromotionStatus(memberId){
+function getPromotionStatus(memberId,forceReturn=false){
   const _pm=members.find(x=>x.id===memberId);
   if(!_pm) return null;
   const currentBelt=_pm.belt||'';
@@ -3629,6 +3635,7 @@ function getPromotionStatus(memberId){
   if(allRated&&avg>=promoThr) return {...base,status:'ready'};
   if(avg>=almostThr&&avg<promoThr) return {...base,status:'almost'};
   if(avg>=almostThr&&!allRated&&pensumSkills.length) return {...base,status:'almost'};
+  if(forceReturn) return {...base,status:'almost'}; // returnér altid data til fokus-sektionen
   return null;
 }
 function getPromoOverdue(memberId){
@@ -3663,7 +3670,7 @@ function _promoStarsHtml(v){
 const _PROMO_MOTIVATION=[
   'Stærk fremgang siden sidst — bliv ved! 💪',
   'Du er på rette vej — rigtig flot klaret!',
-  'Hvert træning tæller, og det kan man se! 🥋',
+  'Hver træning tæller, og det kan man se! 🥋',
   'Bedre og bedre — det kan vi godt lide at se!',
   'Du er stærkere end sidst — fortsæt sådan!',
   'Positiv udvikling — super godt arbejde!',
@@ -3712,9 +3719,20 @@ function _promoCommentsHtml(s){
   </div>`;
   return `<div style="display:flex;flex-direction:column;gap:.3rem">${c1?item(c1,s.latestDate,s.assessorName):''}${c2?item(c2,s.prevDate,prevAssessor):''}</div>`;
 }
+function _gradWishBanner(m){
+  if(!m.ønskerGraduering) return '';
+  return `<div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;margin-bottom:.3rem;border-radius:10px;background:linear-gradient(90deg,#ede9fe,#f5f3ff);border:1.5px solid #a78bfa;font-size:.82rem;font-weight:800;color:#5b21b6;letter-spacing:-.01em">🎓 <span>Ønsker op til graduering</span></div>`;
+}
+function _promoCardFocus(item){
+  // Har vurderingsdata (status='almost') → brug almost-kort stil
+  if(item.status) return _promoCardAlmost(item);
+  // Ingen vurdering endnu → brug overdue-kort stil
+  return _promoCardOverdue(item);
+}
 function _promoCardReady(s){
   const m=members.find(x=>x.id===s.memberId);if(!m) return '';
-  return `<div class="promo-card ready" onclick="openPromoDetail(${m.id})">
+  return `<div class="promo-card ready${m.ønskerGraduering?' grad-wish':''}" onclick="openPromoDetail(${m.id})">
+    ${_gradWishBanner(m)}
     ${_promoMotivationBanner(s)}
     <div class="promo-card-top">
       ${_promoAvatar(m)}
@@ -3741,7 +3759,8 @@ function _promoCardAlmost(s){
   const gap=(promoThr-s.avg).toFixed(1).replace('.',',');
   const lowSkills=s.weak.filter(w=>w.val<=3);
   const weakHtml=lowSkills.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${lowSkills.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
-  return `<div class="promo-card almost" onclick="openPromoDetail(${m.id})">
+  return `<div class="promo-card almost${m.ønskerGraduering?' grad-wish':''}" onclick="openPromoDetail(${m.id})">
+    ${_gradWishBanner(m)}
     ${_promoMotivationBanner(s)}
     <div class="promo-card-top">
       ${_promoAvatar(m)}
@@ -3773,7 +3792,8 @@ function _promoCardOverdue(o){
     msg=`⏰ ${months>=1?months+' mdr. siden':'Over tærsklen'}`;
     dateLine=`Sidst vurderet ${_promoFormatDate(o.info.lastDate)}`;
   }
-  return `<div class="promo-card overdue" onclick="openAssessmentModal(${m.id})">
+  return `<div class="promo-card overdue${m.ønskerGraduering?' grad-wish':''}" onclick="openAssessmentModal(${m.id})">
+    ${_gradWishBanner(m)}
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
@@ -3781,15 +3801,15 @@ function _promoCardOverdue(o){
         <div class="promo-belt-row">${_promoBeltPills(belt,'')}</div>
       </div>
     </div>
-    <div class="promo-score-row" style="background:#fee2e2">
+    <div class="promo-score-row" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'}">
       <div>
-        <div style="font-size:.85rem;font-weight:700;color:#dc2626">${msg}</div>
+        <div style="font-size:.85rem;font-weight:700;color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${msg}</div>
         <div class="promo-coverage">${dateLine}</div>
       </div>
     </div>
     <div class="promo-meta">
       <span>🥋 ${o.never?'Ingen vurderinger':o.info.trainingDaysSince+' træninger siden'}</span>
-      <span class="pill" style="background:#fee2e2;color:#dc2626">Påmindelse</span>
+      <span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>
     </div>
   </div>`;
 }
@@ -3853,14 +3873,7 @@ function _promoDualScoreRow(s){
 }
 function _computePromoGroups(){
   const active=members.filter(m=>!m.archived&&m.status!=='passiv');
-  const ready=[],almost=[],overdue=[];
-  active.forEach(m=>{
-    const s=getPromotionStatus(m.id);
-    if(s&&s.status==='ready') ready.push(s);
-    else if(s&&s.status==='almost') almost.push(s);
-    const o=getPromoOverdue(m.id);
-    if(o) overdue.push(o);
-  });
+  const ready=[],almost=[],focus=[];
   const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   const GROUP_ORDER=['Børnehold','Basis-hold','Avanceret'];
   const promoSort=(a,b)=>{
@@ -3872,13 +3885,29 @@ function _computePromoGroups(){
     const ba=BELT_ORDER.indexOf(ma.belt),bb=BELT_ORDER.indexOf(mb.belt);
     const biA=ba===-1?BELT_ORDER.length:ba, biB=bb===-1?BELT_ORDER.length:bb;
     if(biA!==biB) return biA-biB;
-    // Samme bælte: nyest startdato først, ældst sidst (størst anciennitet sidst)
     const sa=ma.startDate||'',sb=mb.startDate||'';
-    return sb.localeCompare(sa); // nyere dato = lavere anciennitet = kommer først
+    return sb.localeCompare(sa);
   };
+  active.forEach(m=>{
+    const s=getPromotionStatus(m.id);
+    if(s&&s.status==='ready'){
+      ready.push(s);
+    } else if(s&&s.status==='almost'){
+      // Score bestemmer altid sektionen — badge er kun visuelt
+      almost.push(s);
+    } else if(m.ønskerGraduering){
+      // Ønsker graduering men score under tærsklen → Kræver fokus
+      // forceReturn=true sikrer at vi altid får vurderingsdata med, selv under almostThr
+      const s2=getPromotionStatus(m.id,true);
+      if(s2) focus.push(s2);
+      else focus.push({memberId:m.id,never:true,info:{lastDate:null,trainingDaysSince:0}});
+    }
+  });
   ready.sort(promoSort);
   almost.sort(promoSort);
-  return {ready,almost,overdue};
+  // Fokus: sortér efter score (højest score øverst — tættest på klar)
+  focus.sort((a,b)=>(b.avg??-1)-(a.avg??-1));
+  return {ready,almost,overdue:focus};
 }
 function updatePromotionTabVisibility(){
   const tab=document.getElementById('tab-promotion');
@@ -3890,12 +3919,16 @@ function updatePromotionTabVisibility(){
 function togglePromoFilter(group){
   const showReady=config.showReady!==false;
   const showAlmost=config.showAlmost!==false;
+  const showOverdue=config.showOverdue!==false;
   if(group==='ready'){
-    if(showReady&&!showAlmost){ config.showReady=true; config.showAlmost=true; }
-    else { config.showReady=true; config.showAlmost=false; }
+    if(showReady&&!showAlmost&&!showOverdue){ config.showReady=true; config.showAlmost=true; config.showOverdue=true; }
+    else { config.showReady=true; config.showAlmost=false; config.showOverdue=false; }
   } else if(group==='almost'){
-    if(showAlmost&&!showReady){ config.showReady=true; config.showAlmost=true; }
-    else { config.showReady=false; config.showAlmost=true; }
+    if(showAlmost&&!showReady&&!showOverdue){ config.showReady=true; config.showAlmost=true; config.showOverdue=true; }
+    else { config.showReady=false; config.showAlmost=true; config.showOverdue=false; }
+  } else if(group==='overdue'){
+    if(showOverdue&&!showReady&&!showAlmost){ config.showReady=true; config.showAlmost=true; config.showOverdue=true; }
+    else { config.showReady=false; config.showAlmost=false; config.showOverdue=true; }
   }
   config.promoGroupFilter=null;
   save();
@@ -3997,7 +4030,7 @@ function renderPromotion(){
   const reminderT=config.assessReminderTrainings??24;
   const showReady=config.showReady!==false;
   const showAlmost=config.showAlmost!==false;
-  const showOverdue=config.showOverdue===true;
+  const showOverdue=config.showOverdue!==false;
   const gf=config.promoGroupFilter||null;
   const g=_computePromoGroups();
   const _filterByGroup=(arr,section)=>{
@@ -4021,7 +4054,7 @@ function renderPromotion(){
       <div class="promo-stat-ico" style="background:#dcfce7;color:#16a34a">🏅</div>
       <div>
         <div class="promo-stat-num" style="color:#16a34a">${g.ready.length}</div>
-        <div class="promo-stat-lbl">Klar til nyt bælte!</div>
+        <div class="promo-stat-lbl">Klar til oprykning</div>
         <div style="font-size:.7rem;margin-top:3px;line-height:1.3">${_tileBreakdown(g.ready,'ready')}</div>
       </div>
     </div>
@@ -4029,19 +4062,31 @@ function renderPromotion(){
       <div class="promo-stat-ico" style="background:#fef3c7;color:#d97706">🎯</div>
       <div>
         <div class="promo-stat-num" style="color:#d97706">${g.almost.length}</div>
-        <div class="promo-stat-lbl">På vej op!</div>
+        <div class="promo-stat-lbl">Tæt på</div>
         <div style="font-size:.7rem;margin-top:3px;line-height:1.3">${_tileBreakdown(g.almost,'almost')}</div>
       </div>
     </div>
+    ${g.overdue.length?`<div class="promo-stat promo-stat-btn${showOverdue?'':' promo-stat-off'}" onclick="togglePromoFilter('overdue')" title="Klik for at vise/skjule">
+      <div class="promo-stat-ico" style="background:#f5f3ff;color:#7c3aed">💪</div>
+      <div>
+        <div class="promo-stat-num" style="color:#7c3aed">${g.overdue.length}</div>
+        <div class="promo-stat-lbl">Kræver fokus</div>
+        <div style="font-size:.7rem;margin-top:3px;line-height:1.3">${_tileBreakdown(g.overdue,'overdue')}</div>
+      </div>
+    </div>`:''}
     `;
   const readyArr=_filterByGroup(g.ready,'ready');
   const almostArr=_filterByGroup(g.almost,'almost');
+  const overdueArr=g.overdue;
   let html='';
   if(showReady&&readyArr.length){
-    html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til nyt bælte!</h3><span class="promo-badge">${readyArr.length} medlem${readyArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${readyArr.map(_promoCardReady).join('')}</div>`;
+    html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til oprykning</h3><span class="promo-badge">${readyArr.length} medlem${readyArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${readyArr.map(_promoCardReady).join('')}</div>`;
   }
   if(showAlmost&&almostArr.length){
-    html+=`<div class="promo-section-hdr almost"><h3>🎯 På vej op!</h3><span class="promo-badge">${almostArr.length} medlem${almostArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${almostArr.map(_promoCardAlmost).join('')}</div>`;
+    html+=`<div class="promo-section-hdr almost"><h3>🎯 Tæt på</h3><span class="promo-badge">${almostArr.length} medlem${almostArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${almostArr.map(_promoCardAlmost).join('')}</div>`;
+  }
+  if(showOverdue&&overdueArr.length){
+    html+=`<div class="promo-section-hdr overdue" style="--hdr-color:#7c3aed"><h3>💪 Kræver fokus</h3><span class="promo-badge" style="background:#f5f3ff;color:#7c3aed">${overdueArr.length} elev${overdueArr.length===1?'':'er'} ønsker op</span><div class="promo-line"></div></div><div class="promo-grid">${overdueArr.map(_promoCardFocus).join('')}</div>`;
   }
   if(!html) html=`<div class="promo-empty">Ingen synlige grupper. Slå grupper til/fra med knapperne ovenfor.</div>`;
   document.getElementById('promoContent').innerHTML=html;
@@ -4184,7 +4229,7 @@ function renderT(){
       </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td>${grpChip(m.group)}</td>
@@ -4414,7 +4459,7 @@ function renderM(){
     tr.innerHTML=`
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
@@ -8300,6 +8345,14 @@ function openAssessmentModal(memberId, editAssessmentId){
     toggleEl.innerHTML='';
   }
 
+  // Graduering-ønske toggle (altid synlig)
+  const gradToggleEl=document.getElementById('assessGradToggle');
+  const gradOn=!!m.ønskerGraduering;
+  gradToggleEl.innerHTML=`<label style="display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;padding:.4rem .75rem;border-radius:10px;border:1px solid ${gradOn?'#7c3aed':'var(--bd)'};background:${gradOn?'#f5f3ff':'var(--bg)'}">
+    <input type="checkbox" ${gradOn?'checked':''} onchange="toggleØnskerGraduering(${memberId})" style="accent-color:#7c3aed;width:15px;height:15px">
+    <span style="font-weight:600;color:${gradOn?'#6d28d9':'var(--t2)'}">🎓 Ønsker op til graduering</span>
+  </label>`;
+
   // Pensum-liste — brug altid effektivt bælte (tager højde for alder og gultPensum)
   const beltKey=effectivePensumBelt(m);
   const skills=pensum[beltKey]||[];
@@ -8335,6 +8388,7 @@ function openAssessmentModal(memberId, editAssessmentId){
     document.getElementById('assessorName').disabled=true;
     document.querySelectorAll('#assessSkillList .assess-stars span').forEach(s=>s.style.pointerEvents='none');
     document.getElementById('assessGultToggle').style.pointerEvents='none';
+    document.getElementById('assessGradToggle').style.pointerEvents='none';
   } else {
     saveBtn.disabled=false;
     saveBtn.style.opacity='';
@@ -8342,12 +8396,35 @@ function openAssessmentModal(memberId, editAssessmentId){
     document.getElementById('assessComment').disabled=false;
     document.getElementById('assessorName').disabled=false;
     document.getElementById('assessGultToggle').style.pointerEvents='';
+    document.getElementById('assessGradToggle').style.pointerEvents='';
   }
 
   renderAssessmentHistory(memberId);
   openModal('assessmentModal');
   // Scroll til toppen af modal (vigtigt ved redigering)
   setTimeout(()=>{const inner=document.querySelector('#assessmentModal .modal');if(inner)inner.scrollTop=0;},50);
+}
+
+function toggleØnskerGraduering(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m) return;
+  m.ønskerGraduering=!m.ønskerGraduering;
+  save();
+  pushToCloud();
+  const on=!!m.ønskerGraduering;
+  const lbl=document.querySelector('#assessGradToggle label');
+  if(lbl){
+    lbl.style.borderColor=on?'#7c3aed':'var(--bd)';
+    lbl.style.background=on?'#f5f3ff':'var(--bg)';
+    lbl.querySelector('span').style.color=on?'#6d28d9':'var(--t2)';
+  }
+  renderAll();
+  if(document.getElementById('page-promotion').classList.contains('active')) renderPromotion();
+}
+function graduationWishBadge(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m||!m.ønskerGraduering) return '';
+  return ` <span title="${m.firstName} ønsker at gå op til graduering" onclick="event.stopPropagation();showToast('🎓 ${m.firstName} ønsker at gå op til graduering')" style="display:inline-flex;align-items:center;cursor:pointer;padding:1px 5px;border-radius:8px;background:#f5f3ff;border:1px solid #ddd6fe;white-space:nowrap;vertical-align:middle;font-size:.72rem;font-weight:700;color:#6d28d9">🎓</span>`;
 }
 
 function toggleGultPensum(memberId){
