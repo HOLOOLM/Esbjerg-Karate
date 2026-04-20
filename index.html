@@ -1583,6 +1583,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <p>Baseret på bedste af de 2 seneste vurderinger — tryk på en elev for detaljer</p>
   </div>
   <div class="promo-summary" id="promoSummary"></div>
+  <div id="promoGradFilter" style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap"></div>
   <div id="promoContent"></div>
 </div>
 
@@ -4075,9 +4076,24 @@ function renderPromotion(){
       </div>
     </div>`:''}
     `;
-  const readyArr=_filterByGroup(g.ready,'ready');
-  const almostArr=_filterByGroup(g.almost,'almost');
-  const overdueArr=g.overdue;
+  // 🎓 Graduering-ønske filter
+  const gradFilter=config.promoGradFilter||null; // null=alle, 'wants'=ønsker, 'nowants'=ønsker ikke
+  const _filterByGrad=arr=>arr.filter(e=>{
+    if(!gradFilter) return true;
+    const m=members.find(x=>x.id===e.memberId);
+    if(!m) return false;
+    return gradFilter==='wants'?!!m.ønskerGraduering:!m.ønskerGraduering;
+  });
+  const gradTotal=members.filter(m=>!m.archived&&m.status!=='passiv'&&m.ønskerGraduering).length;
+  const gradFilterEl=document.getElementById('promoGradFilter');
+  gradFilterEl.innerHTML=gradTotal?`
+    <button onclick="togglePromoGradFilter('wants')" style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid ${gradFilter==='wants'?'#7c3aed':'#ddd6fe'};background:${gradFilter==='wants'?'#f5f3ff':'#fff'};color:${gradFilter==='wants'?'#6d28d9':'#7c3aed'}">🎓 Ønsker graduering <span style="background:#ede9fe;color:#6d28d9;border-radius:10px;padding:0 6px;font-size:.72rem">${gradTotal}</span></button>
+    <button onclick="togglePromoGradFilter('nowants')" style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid ${gradFilter==='nowants'?'#6b7280':'#e5e7eb'};background:${gradFilter==='nowants'?'#f3f4f6':'#fff'};color:${gradFilter==='nowants'?'#374151':'#6b7280'}">Uden ønske</button>
+  `:'';
+
+  const readyArr=_filterByGrad(_filterByGroup(g.ready,'ready'));
+  const almostArr=_filterByGrad(_filterByGroup(g.almost,'almost'));
+  const overdueArr=_filterByGrad(g.overdue);
   let html='';
   if(showReady&&readyArr.length){
     html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til oprykning</h3><span class="promo-badge">${readyArr.length} medlem${readyArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${readyArr.map(_promoCardReady).join('')}</div>`;
@@ -4090,6 +4106,11 @@ function renderPromotion(){
   }
   if(!html) html=`<div class="promo-empty">Ingen synlige grupper. Slå grupper til/fra med knapperne ovenfor.</div>`;
   document.getElementById('promoContent').innerHTML=html;
+}
+function togglePromoGradFilter(val){
+  config.promoGradFilter=config.promoGradFilter===val?null:val;
+  save();
+  renderPromotion();
 }
 
 /* ════════════════════════════════════════
