@@ -463,7 +463,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-members table{min-width:820px}
   #page-dashboard table{min-width:640px}
   /* E-mail + navn wrapper så de ikke overlapper score/hold-kolonner */
-  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:200px}
+  #page-dashboard td .me,#page-members td .me{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
   #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:200px}
   #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child,#page-training .mrow>div:last-child{min-width:0;flex:1}
 }
@@ -526,7 +526,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-dashboard table{min-width:580px}
 
   /* E-mail (og navn) må wrappe i medlems-/dashboard-tabel så lange mails ikke overlapper score/hold */
-  #page-dashboard td .me,#page-members td .me{white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.25;max-width:180px}
+  #page-dashboard td .me,#page-members td .me{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
   #page-dashboard td .mn,#page-members td .mn{white-space:normal;word-break:break-word;max-width:180px}
   #page-dashboard .mrow>div:last-child,#page-members .mrow>div:last-child,#page-training .mrow>div:last-child{min-width:0;flex:1}
 
@@ -4185,10 +4185,11 @@ function updateStats(){
   const _partial=act.filter(m=>effectivePaymentStatus(m)==='partial').length;
   const _unpaid=act.filter(m=>['unpaid','overdue'].includes(effectivePaymentStatus(m))).length;
   const _archivedPaid=members.filter(m=>m.archived&&effectivePaymentStatus(m)==='paid').length;
+  const _passivePaid=members.filter(m=>!m.archived&&m.status==='passiv'&&effectivePaymentStatus(m)==='paid').length;
   document.getElementById('s4').textContent=_paid+(_archivedPaid>0?'+'+_archivedPaid:'');
   document.getElementById('s5').textContent=_partial+_unpaid;
   const sub4=document.getElementById('s4sub');
-  if(sub4) sub4.textContent=_archivedPaid>0?`+${_archivedPaid} arkiverede betalt`:'';
+  if(sub4){const _sub4Lines=[];if(_archivedPaid>0)_sub4Lines.push(`+${_archivedPaid} arkiverede`);if(_passivePaid>0)_sub4Lines.push(`+${_passivePaid} passive`);sub4.innerHTML=_sub4Lines.join('<br>');}
   const sub=document.getElementById('s5sub');
   if(sub) sub.textContent=_partial>0?`${_partial} delvist · ${_unpaid} ubetalt`:'';
   // Attendance pill (kun aktive tæller)
@@ -4625,9 +4626,11 @@ function updateMemberStats(){
   const aktive=nonArchived.filter(m=>m.status!=='passiv');
   const passive=nonArchived.filter(m=>m.status==='passiv');
   const _archivedPaid=members.filter(m=>m.archived&&effectivePaymentStatus(m)==='paid').length;
+  const _passivePaid=passive.filter(m=>effectivePaymentStatus(m)==='paid').length;
   const _activePaid=aktive.filter(m=>effectivePaymentStatus(m)==='paid').length;
   const betaltSv=_activePaid+(_archivedPaid>0?'+'+_archivedPaid:'');
   const ikkeBetalt=aktive.filter(m=>effectivePaymentStatus(m)!=='paid').length;
+  const _subLines=[];if(_archivedPaid>0)_subLines.push(`+${_archivedPaid} arkiverede betalt`);if(_passivePaid>0)_subLines.push(`+${_passivePaid} passive betalt`);
   el.innerHTML=`
     <div class="m-stat ms-aktiv">
       <div class="msi">👥</div>
@@ -4639,7 +4642,7 @@ function updateMemberStats(){
     </div>
     <div class="m-stat ms-paid" onclick="showPaidModal()" style="cursor:pointer" title="Klik for at se hvem der har betalt">
       <div class="msi">✅</div>
-      <div class="msb"><div class="msv">${betaltSv}</div><div class="msl">Betalt kontingent</div>${_archivedPaid>0?`<div style="font-size:.63rem;color:var(--xtl);margin-top:1px">+${_archivedPaid} arkiverede betalt</div>`:''}</div>
+      <div class="msb"><div class="msv">${betaltSv}</div><div class="msl">Betalt kontingent</div>${_subLines.length?`<div style="font-size:.63rem;color:var(--xtl);margin-top:1px">${_subLines.join(' · ')}</div>`:''}</div>
     </div>
     <div class="m-stat ms-unpaid" onclick="showUnpaidModal()" style="cursor:pointer" title="Klik for at se hvem der mangler at betale">
       <div class="msi">⏳</div>
@@ -4811,68 +4814,69 @@ function showUnpaidModal(){
 }
 
 function showPaidModal(){
-  // Inkluderer alle ikke-arkiverede (også passive, da "Indbetalt i alt" gør det)
-  const all=members.filter(m=>!m.archived);
-  const paidList=all
-    .filter(m=>(Number(m.betaltBeløb)||0)>0)
-    .map(m=>{
-      const exp=getExpectedAmount(m);
-      const paid=Number(m.betaltBeløb)||0;
-      const rest=Math.max(0,exp-paid);
-      const st=effectivePaymentStatus(m);
-      return {m,exp,paid,rest,st,age:getAge(m)};
-    })
-    .sort((a,b)=>b.paid-a.paid);
+  const toEntry=m=>{const exp=getExpectedAmount(m),paid=Number(m.betaltBeløb)||0;return{m,exp,paid,rest:Math.max(0,exp-paid),st:effectivePaymentStatus(m),age:getAge(m)};};
+  const activePaid=members.filter(m=>!m.archived&&m.status!=='passiv'&&(Number(m.betaltBeløb)||0)>0).map(toEntry).sort((a,b)=>b.paid-a.paid);
+  const passivePaid=members.filter(m=>!m.archived&&m.status==='passiv'&&(Number(m.betaltBeløb)||0)>0).map(toEntry).sort((a,b)=>b.paid-a.paid);
 
   const fmt=n=>Math.round(n).toLocaleString('da-DK')+' kr';
-  const totalPaid=paidList.reduce((s,x)=>s+x.paid,0);
-  const fullyPaid=paidList.filter(x=>x.st==='paid').length;
-  const partialPaid=paidList.filter(x=>x.st==='partial').length;
+  const statusBadge=(st)=>{
+    if(st==='paid')    return `<span class="amt-badge amt-paid">✅ Betalt</span>`;
+    if(st==='partial') return `<span class="amt-badge amt-partial">⚠️ Delvis</span>`;
+    if(st==='overdue') return `<span class="amt-badge amt-overdue">🔴 Overskredet</span>`;
+    return `<span class="amt-badge amt-unpaid">❌ Ikke betalt</span>`;
+  };
+  const rowsHtml=list=>list.map(x=>`
+    <tr style="border-bottom:1px solid #eef3f3">
+      <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}</td>
+      <td style="padding:.5rem;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
+      <td style="padding:.5rem;text-align:right;color:var(--xtl)">${fmt(x.exp)}</td>
+      <td style="padding:.5rem;text-align:right;font-weight:700;color:#15803d">${fmt(x.paid)}</td>
+      <td style="padding:.5rem;text-align:right;color:${x.rest>0?'#c2410c':'var(--xtl)'}">${fmt(x.rest)}</td>
+      <td style="padding:.5rem">${statusBadge(x.st)}</td>
+    </tr>`).join('');
+  const tableHtml=list=>`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.85rem">
+    <thead><tr style="background:#f5f9f9;text-align:left">
+      <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Navn</th>
+      <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Alder</th>
+      <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Forventet</th>
+      <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Betalt</th>
+      <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Rest</th>
+      <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Status</th>
+    </tr></thead>
+    <tbody>${rowsHtml(list)}</tbody>
+  </table></div>`;
+
+  const activeTotal=activePaid.reduce((s,x)=>s+x.paid,0);
+  const passiveTotal=passivePaid.reduce((s,x)=>s+x.paid,0);
+  const archivedTotal=members.filter(m=>m.archived).reduce((s,m)=>s+(Number(m.betaltBeløb)||0),0);
+  const totalPaid=activeTotal+passiveTotal+archivedTotal;
+  const fullyPaid=activePaid.filter(x=>x.st==='paid').length;
+  const partialPaid=activePaid.filter(x=>x.st==='partial').length;
 
   let html='';
-  if(paidList.length===0){
+  if(activePaid.length===0&&passivePaid.length===0&&archivedTotal===0){
     html=`<div style="padding:2rem;text-align:center;color:var(--xtl)">
       <div style="font-size:2.5rem;margin-bottom:.5rem">💤</div>
       <div style="font-size:1rem;font-weight:600;color:var(--tt)">Ingen har indbetalt endnu</div>
     </div>`;
   } else {
-    const statusBadge=(st)=>{
-      if(st==='paid')    return `<span class="amt-badge amt-paid">✅ Betalt</span>`;
-      if(st==='partial') return `<span class="amt-badge amt-partial">⚠️ Delvis</span>`;
-      if(st==='overdue') return `<span class="amt-badge amt-overdue">🔴 Overskredet</span>`;
-      return `<span class="amt-badge amt-unpaid">❌ Ikke betalt</span>`;
-    };
-    html=`
-      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#065f46">
-        <div style="font-weight:700;margin-bottom:.3rem">Oversigt:</div>
-        <div>✅ ${fullyPaid} har betalt fuldt · ⚠️ ${partialPaid} har betalt delvist</div>
-        <div style="margin-top:.3rem;font-weight:700">Indbetalt i alt: ${fmt(totalPaid)}</div>
-      </div>
-      <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
-        <thead>
-          <tr style="background:#f5f9f9;text-align:left">
-            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Navn</th>
-            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Alder</th>
-            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Forventet</th>
-            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Betalt</th>
-            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8;text-align:right">Rest</th>
-            <th style="padding:.5rem;border-bottom:1.5px solid #dde8e8">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${paidList.map(x=>`
-            <tr style="border-bottom:1px solid #eef3f3">
-              <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}${x.m.status==='passiv'?' <span style="font-size:.7rem;color:var(--xtl);font-weight:400">(passiv)</span>':''}</td>
-              <td style="padding:.5rem;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
-              <td style="padding:.5rem;text-align:right;color:var(--xtl)">${fmt(x.exp)}</td>
-              <td style="padding:.5rem;text-align:right;font-weight:700;color:#15803d">${fmt(x.paid)}</td>
-              <td style="padding:.5rem;text-align:right;color:${x.rest>0?'#c2410c':'var(--xtl)'}">${fmt(x.rest)}</td>
-              <td style="padding:.5rem">${statusBadge(x.st)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
+    const extraLines=[];
+    if(passiveTotal>0) extraLines.push(`💤 ${passivePaid.length} passive: ${fmt(passiveTotal)}`);
+    if(archivedTotal>0) extraLines.push(`🗄 Arkiverede: ${fmt(archivedTotal)}`);
+    html=`<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.85rem;color:#065f46">
+      <div style="font-weight:700;margin-bottom:.3rem">Oversigt:</div>
+      <div>✅ ${fullyPaid} aktive betalt fuldt · ⚠️ ${partialPaid} delvist</div>
+      ${extraLines.length?`<div style="margin-top:.2rem;opacity:.85">${extraLines.join(' · ')}</div>`:''}
+      <div style="margin-top:.3rem;font-weight:700">Indbetalt i alt: ${fmt(totalPaid)}</div>
+    </div>`;
+    if(activePaid.length>0) html+=tableHtml(activePaid);
+    if(passivePaid.length>0) html+=`
+      <div style="margin-top:1.2rem;border-top:1px solid #e2e8f0;padding-top:.8rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+          <span style="font-size:.85rem">💤</span>
+          <span style="font-size:.78rem;font-weight:700;color:#64748b">Passive medlemmer (${passivePaid.length})</span>
+        </div>
+        ${tableHtml(passivePaid)}
       </div>`;
   }
   document.getElementById('paidModalContent').innerHTML=html;
@@ -8938,8 +8942,9 @@ function showAssessPointPopup(assessmentId, event){
     if(diff!==null&&diff>0) changeHtml=`<span style="color:#16a34a;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↑ ${'★'.repeat(diff)}</span>`;
     else if(diff!==null&&diff<0) changeHtml=`<span style="color:#dc2626;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↓ ${'★'.repeat(Math.abs(diff))}</span>`;
     const starColor=carried?'#c4b5a0':'#f59e0b';
+    const _infoBtn=getSkillNote(sk)?` <span style="font-size:.65rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote('${sk.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">ℹ️</span>`:'';
     return `<div style="display:flex;align-items:center;font-size:.78rem;padding:.15rem 0;gap:.3rem;${carried?'opacity:.75':''}">
-      <span style="flex:1;color:#374151${carried?';font-style:italic':''}">${sk}${carried?' <span style="font-size:.65rem;color:#9ca3af">↺</span>':''}</span>
+      <span style="flex:1;color:#374151${carried?';font-style:italic':''}">${sk}${carried?' <span style="font-size:.65rem;color:#9ca3af">↺</span>':''}${_infoBtn}</span>
       ${changeHtml}
       <span style="color:${starColor};letter-spacing:.05rem;flex-shrink:0;width:5.2rem;text-align:right;display:inline-block">${'★'.repeat(vn)}${'☆'.repeat(5-vn)}</span>
     </div>`;
@@ -9110,12 +9115,15 @@ function renderAssessmentHistory(memberId,targetId='assessHistory',fromDetail=fa
             style="font-size:.66rem;padding:1px 6px;border-radius:4px;background:#fff7ed;border:1px solid #f97316;color:#ea580c;cursor:pointer;white-space:nowrap;flex-shrink:0">⚠️ Omdøb</button>
           <span class="assess-history-stars" style="color:#f97316">${filled}</span>
         </div>`;}
+        const _hasNote=!!getSkillNote(sk);
+        const _safeSkOnclick=sk.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const _infoBtn=_hasNote?` <span style="font-size:.68rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote('${_safeSkOnclick}')" title="Vis info">ℹ️</span>`:'';
         if(carried) return `<div class="assess-history-skill" style="opacity:.7">
-          <span style="font-style:italic;color:var(--t2);flex:1">${sk} <span style="font-size:.68rem;color:#9ca3af" title="Fra forrige vurdering">↺</span></span>
+          <span style="font-style:italic;color:var(--t2);flex:1">${sk} <span style="font-size:.68rem;color:#9ca3af" title="Fra forrige vurdering">↺</span>${_infoBtn}</span>
           ${changeHtml}
           <span class="assess-history-stars" style="color:#c4b5a0">${filled}</span>
         </div>`;
-        return `<div class="assess-history-skill"><span style="flex:1">${sk}</span>${changeHtml}<span class="assess-history-stars">${filled}</span></div>`;
+        return `<div class="assess-history-skill"><span style="flex:1">${sk}${_infoBtn}</span>${changeHtml}<span class="assess-history-stars">${filled}</span></div>`;
       }).join('');
       const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
       const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${a.assessorName}</strong></div>`:'';
