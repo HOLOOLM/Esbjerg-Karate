@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Min udvikling — Karateklubben</title>
+<title>Min udvikling — Esbjerg Shuri-Ryu Karate</title>
 <style>
 :root{
   --xtd:#1a2e2e; --xtm:#4a6060; --xtl:#9aacac; --t2:#4b5563;
@@ -19,7 +19,10 @@ body{min-height:100vh}
 /* LOGIN */
 .login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--xtd) 0%,var(--xtm) 100%)}
 .login-card{background:var(--card);border-radius:var(--br);box-shadow:0 10px 40px rgba(0,0,0,.15);padding:32px 24px;max-width:380px;width:100%;text-align:center}
-.login-card h1{margin:0 0 8px;font-size:26px;color:var(--xtd)}
+.login-card h1{margin:0 0 4px;font-size:20px;color:var(--xtd)}
+.login-badge{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px}
+.login-badge img{width:72px;height:72px;border-radius:50%;object-fit:cover;box-shadow:0 3px 12px rgba(0,0,0,.2);flex-shrink:0}
+.login-badge-emoji{width:52px;height:52px;background:var(--xtd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
 .login-card p{margin:0 0 24px;color:var(--muted);font-size:14px}
 .login-card input{width:100%;padding:14px;border:1.5px solid #d5dcdc;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none}
 .login-card input:focus{border-color:var(--xtm)}
@@ -80,7 +83,21 @@ body{min-height:100vh}
 .badge.green{background:linear-gradient(135deg,#dcfce7,#86efac);border-color:#22c55e;color:#166534}
 .badge.fire{background:linear-gradient(135deg,#fee2e2,#fca5a5);border-color:#ef4444;color:#991b1b}
 
-.streak-box{background:linear-gradient(90deg,#fff7ed,#fef3c7);border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.streak-box{background:linear-gradient(90deg,#fff7ed,#fef3c7);border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
+
+/* Beskeder */
+.msg-bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.45;max-width:88%;word-break:break-word}
+.msg-bubble.trainer{background:var(--xtd);color:#fff;border-radius:12px 12px 4px 12px;align-self:flex-end}
+.msg-bubble.student{background:#f3f4f6;color:var(--xtd);border-radius:12px 12px 12px 4px;align-self:flex-start}
+.msg-meta{font-size:10px;opacity:.6;margin-top:3px}
+.msg-send-btn{background:var(--xtd);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;align-self:flex-end}
+.msg-send-btn:disabled{opacity:.5;cursor:not-allowed}
+.mention-dd{position:absolute;bottom:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);overflow:hidden;z-index:200;display:none}
+.mention-item{padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s}
+.mention-item:hover{background:#f1f4f4}
+.mention-av{width:30px;height:30px;border-radius:50%;background:var(--xtd);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0}
+.tag-pill{display:inline-flex;align-items:center;gap:5px;background:#eef2ff;color:#4338ca;border-radius:20px;padding:3px 10px 3px 8px;font-size:12px;font-weight:600;margin-bottom:6px}
+.tag-pill button{background:none;border:none;cursor:pointer;font-size:.75rem;color:#6366f1;padding:0;line-height:1}
 .streak-flame{font-size:28px;filter:drop-shadow(0 2px 3px rgba(239,68,68,.3))}
 .streak-text{flex:1}
 .streak-num{font-size:18px;font-weight:700;color:#92400e}
@@ -176,7 +193,11 @@ svg.chart{width:100%;height:150px;display:block}
 
 <div id="loginView" class="login">
   <div class="login-card">
-    <h1>🥋 Min udvikling</h1>
+    <div class="login-badge">
+      <img src="shuri-ryu.jpg" alt="Esbjerg Shuri-Ryu Karate">
+      <div class="login-badge-emoji">🥋</div>
+    </div>
+    <h1>Esbjerg Shuri-Ryu Karate</h1>
     <p>Log ind med din email for at se dine vurderinger og fremskridt.</p>
     <div id="loginErr" class="login-err"></div>
     <input id="emailInput" type="email" placeholder="din@email.dk" autocomplete="email">
@@ -187,7 +208,7 @@ svg.chart{width:100%;height:150px;display:block}
 
 <div id="dashView" class="dash">
   <div class="topbar">
-    <h2>🥋 Min udvikling</h2>
+    <h2>Esbjerg Shuri-Ryu Karate</h2>
     <button class="logout" onclick="doLogout()">Log ud</button>
   </div>
   <div class="wrap">
@@ -239,6 +260,25 @@ svg.chart{width:100%;height:150px;display:block}
       <h3>🎯 Fremgang per skill</h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tryk på en skill for at se alle dine vurderinger af den</div>
       <div id="skills" class="skills"></div>
+    </div>
+
+    <div class="card" id="notesCard" style="display:none">
+      <h3>💬 Trænernes noter</h3>
+      <div id="notesBox"></div>
+    </div>
+
+    <div class="card">
+      <h3>✉️ Beskeder til trænerne</h3>
+      <div id="msgThread" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:320px;overflow-y:auto"></div>
+      <div id="tagBadge" style="display:none"></div>
+      <div style="position:relative">
+        <div id="mentionDropdown" class="mention-dd"></div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <textarea id="msgInput" rows="2" placeholder="Skriv en besked… brug @ for at tagge en træner" style="flex:1;border:1.5px solid #d5dcdc;border-radius:10px;padding:10px;font-size:14px;resize:none;font-family:inherit;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--xtm)'" onblur="this.style.borderColor='#d5dcdc'" oninput="onMsgInput(event)"></textarea>
+          <button class="msg-send-btn" id="msgSendBtn" onclick="sendStudentMessage()">Send</button>
+        </div>
+      </div>
+      <div id="msgStatus" style="font-size:11px;color:var(--muted);margin-top:6px;min-height:14px"></div>
     </div>
 
   </div>
@@ -354,6 +394,250 @@ function doLogin(){
   });
 }
 
+let _taggedInstructorId = 0;
+let _taggedInstructorName = '';
+let _mentionQuery = null; // null = not in mention mode, string = current query
+let _showAllMessages = false;
+
+function formatMsgDate(d){
+  if(!d) return '';
+  const dt = new Date(d);
+  if(isNaN(dt.getTime())) return String(d);
+  const pad = n=>String(n).padStart(2,'0');
+  const dd = pad(dt.getDate()), mm = pad(dt.getMonth()+1), yy = dt.getFullYear();
+  // Show time only if not midnight (legacy date-only messages)
+  const hh = dt.getHours(), mi = dt.getMinutes();
+  const hasTime = String(d).includes('T');
+  return hasTime ? `${dd}/${mm}/${yy} ${pad(hh)}:${pad(mi)}` : `${dd}/${mm}/${yy}`;
+}
+
+function renderMessages(){
+  if(!CURRENT) return;
+  const allMsgs = (CURRENT.messages || []).slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+  // Mark trainer messages as read by student
+  const m0 = CURRENT.member || {};
+  const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
+  if(myName){
+    allMsgs.forEach(msg=>{
+      if(msg.sender==='trainer'){
+        const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+        if(rb.indexOf(myName)===-1){
+          rb.push(myName);
+          msg.readBy = rb.join(', ');
+          _studentMsgJsonp('markMessageRead', {id: msg.id, reader: myName});
+        }
+      }
+    });
+  }
+  const el = document.getElementById('msgThread');
+  if(!el) return;
+  if(!allMsgs.length){
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;font-style:italic;text-align:center;padding:8px 0">Ingen beskeder endnu — send en besked til trænerne herunder.</div>';
+    return;
+  }
+  const instructors = CURRENT.instructors || [];
+  const collapsed = !_showAllMessages && allMsgs.length > 10;
+  const msgs = collapsed ? allMsgs.slice(-10) : allMsgs;
+  const hidden = allMsgs.length - msgs.length;
+  const showBtn = collapsed ? `<div style="text-align:center;margin-bottom:8px"><button onclick="_showAllMessages=true;renderMessages()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">⬆ Vis ${hidden} ældre beskeder</button></div>` : '';
+  const collapseBtn = (_showAllMessages && allMsgs.length > 10) ? `<div style="text-align:center;margin-bottom:8px"><button onclick="_showAllMessages=false;renderMessages()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">⬇ Skjul ældre</button></div>` : '';
+  el.innerHTML = showBtn + collapseBtn + msgs.map(m=>{
+    const taggedId = Number(m.taggedMemberId) || 0;
+    let tagChip = '';
+    if(taggedId){
+      const inst = instructors.find(i=>Number(i.id)===taggedId);
+      const tagName = inst ? (inst.firstName+' '+(inst.lastName||'')).trim() : '#'+taggedId;
+      tagChip = `<span style="font-size:10px;background:#eef2ff;color:#4338ca;border-radius:12px;padding:1px 7px;font-weight:600">@${escapeHtml(tagName)}</span>`;
+    }
+    const isOwn = m.sender === 'student';
+    const actions = isOwn ? `<div style="display:flex;gap:6px;margin-top:3px;opacity:.7">
+      <button onclick="editStudentMessage(${Number(m.id)})" title="Rediger" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button>
+      <button onclick="deleteStudentMessage(${Number(m.id)})" title="Slet" style="background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>
+    </div>` : '';
+    const readByList = (m.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+    let readInfo = '';
+    if(isOwn && readByList.length){
+      readInfo = `<div style="font-size:10px;color:var(--muted);margin-top:2px">👁️ Læst af ${escapeHtml(readByList.join(', '))}</div>`;
+    }
+    return `
+    <div style="display:flex;flex-direction:column;align-items:${m.sender==='trainer'?'flex-end':'flex-start'}">
+      ${tagChip ? `<div style="margin-bottom:2px">${tagChip}</div>` : ''}
+      <div class="msg-bubble ${m.sender}">${escapeHtml(m.text)}
+        <div class="msg-meta">${escapeHtml(m.senderName||'')} · ${escapeHtml(formatMsgDate(m.date))}</div>
+      </div>
+      ${readInfo}
+      ${actions}
+    </div>`;
+  }).join('');
+  setTimeout(()=>{ el.scrollTop = el.scrollHeight; }, 50);
+}
+
+function _studentMsgJsonp(action, params){
+  return new Promise((resolve)=>{
+    const name = '_gm'+Date.now()+Math.floor(Math.random()*1000);
+    const s = document.createElement('script');
+    let timer;
+    const cleanup = ()=>{ clearTimeout(timer); delete window[name]; if(s.parentNode) s.parentNode.removeChild(s); };
+    window[name] = function(d){ cleanup(); resolve(d||{ok:false}); };
+    timer = setTimeout(()=>{ cleanup(); resolve({ok:false,error:'timeout'}); }, 10000);
+    s.onerror = ()=>{ cleanup(); resolve({ok:false,error:'network'}); };
+    const qs = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    s.src = SCRIPT_URL+'?action='+action+'&'+qs+'&callback='+name+'&t='+Date.now();
+    document.head.appendChild(s);
+  });
+}
+
+async function editStudentMessage(id){
+  if(!CURRENT) return;
+  const m = (CURRENT.messages||[]).find(x=>Number(x.id)===Number(id));
+  if(!m) return;
+  const newText = prompt('Rediger besked:', m.text);
+  if(newText === null) return;
+  const trimmed = newText.trim();
+  if(!trimmed){ alert('Beskeden kan ikke være tom.'); return; }
+  if(trimmed === m.text) return;
+  const memberId = (CURRENT.member||{}).id || 0;
+  const res = await _studentMsgJsonp('editMessage', {id, memberId, text: trimmed});
+  if(res.ok){
+    m.text = trimmed;
+    renderMessages();
+  } else {
+    alert('⚠️ Kunne ikke redigere — prøv igen.');
+  }
+}
+
+async function deleteStudentMessage(id){
+  if(!CURRENT) return;
+  if(!confirm('Slet denne besked?')) return;
+  const memberId = (CURRENT.member||{}).id || 0;
+  const res = await _studentMsgJsonp('deleteMessage', {id, memberId});
+  if(res.ok){
+    CURRENT.messages = (CURRENT.messages||[]).filter(x=>Number(x.id)!==Number(id));
+    renderMessages();
+  } else {
+    alert('⚠️ Kunne ikke slette — prøv igen.');
+  }
+}
+
+function onMsgInput(e){
+  const ta = e.target;
+  const val = ta.value;
+  const pos = ta.selectionStart;
+  // find last @ before cursor
+  const before = val.slice(0, pos);
+  const atIdx = before.lastIndexOf('@');
+  if(atIdx === -1 || (atIdx > 0 && /\S/.test(val[atIdx-1]))){
+    _mentionQuery = null;
+    hideMentionDropdown();
+    return;
+  }
+  const query = before.slice(atIdx+1).toLowerCase();
+  // only show if no space in query yet
+  if(/\s/.test(query)){
+    _mentionQuery = null;
+    hideMentionDropdown();
+    return;
+  }
+  _mentionQuery = query;
+  const instructors = CURRENT ? (CURRENT.instructors || []) : [];
+  const filtered = instructors.filter(i=>{
+    const full = ((i.firstName||'')+' '+(i.lastName||'')).toLowerCase();
+    return full.includes(query);
+  });
+  showMentionDropdown(filtered, atIdx, pos);
+}
+
+function showMentionDropdown(filtered, atIdx, pos){
+  const dd = document.getElementById('mentionDropdown');
+  if(!dd) return;
+  if(!filtered.length){ dd.style.display='none'; return; }
+  dd.innerHTML = filtered.map(i=>{
+    const full = ((i.firstName||'')+' '+(i.lastName||'')).trim();
+    const av = ((i.firstName||'')[0]||'').toUpperCase() + ((i.lastName||'')[0]||'').toUpperCase();
+    return `<div class="mention-item" data-id="${Number(i.id)}" data-name="${escapeHtml(full)}" data-at="${atIdx}" data-pos="${pos}">
+      <div class="mention-av">${av}</div>
+      <span style="font-size:13px;font-weight:600">${escapeHtml(full)}</span>
+    </div>`;
+  }).join('');
+  // Wire up mousedown (before blur) for each item
+  dd.querySelectorAll('.mention-item').forEach(it=>{
+    it.addEventListener('mousedown', (ev)=>{
+      ev.preventDefault();
+      selectMention(Number(it.dataset.id), it.dataset.name, Number(it.dataset.at), Number(it.dataset.pos));
+    });
+  });
+  dd.style.display = 'block';
+}
+
+function hideMentionDropdown(){
+  const dd = document.getElementById('mentionDropdown');
+  if(dd) dd.style.display = 'none';
+}
+
+function selectMention(id, name, atIdx, pos){
+  _taggedInstructorId = id;
+  _taggedInstructorName = name;
+  hideMentionDropdown();
+  // Replace the @query in the textarea with the name
+  const ta = document.getElementById('msgInput');
+  if(ta){
+    const val = ta.value;
+    ta.value = val.slice(0, atIdx) + val.slice(pos);
+    ta.focus();
+  }
+  // Show tag pill
+  const tb = document.getElementById('tagBadge');
+  if(tb){
+    tb.style.display = 'block';
+    tb.innerHTML = `<span class="tag-pill">@${escapeHtml(name)}<button onclick="clearTag()" title="Fjern tag">✕</button></span>`;
+  }
+}
+
+function clearTag(){
+  _taggedInstructorId = 0;
+  _taggedInstructorName = '';
+  const tb = document.getElementById('tagBadge');
+  if(tb){ tb.style.display='none'; tb.innerHTML=''; }
+}
+
+function sendStudentMessage(){
+  if(!CURRENT) return;
+  const ta = document.getElementById('msgInput');
+  const btn = document.getElementById('msgSendBtn');
+  const status = document.getElementById('msgStatus');
+  const text = (ta.value||'').trim();
+  if(!text){ status.textContent = 'Skriv en besked først.'; return; }
+  const m = CURRENT.member || {};
+  const senderName = ((m.firstName||'')+' '+(m.lastName||'')).trim() || 'Elev';
+  btn.disabled = true;
+  status.textContent = 'Sender…';
+  const name = '_gsm'+Date.now();
+  const s = document.createElement('script');
+  let timer;
+  const cleanup = ()=>{ clearTimeout(timer); delete window[name]; if(s.parentNode) s.parentNode.removeChild(s); };
+  const taggedId = _taggedInstructorId || 0;
+  window[name] = function(d){
+    cleanup();
+    if(d && d.ok){
+      const newMsg = {id: Date.now(), memberId: m.id, date: new Date().toISOString(), sender:'student', senderName, text, read:false, taggedMemberId: taggedId, readBy:''};
+      if(!CURRENT.messages) CURRENT.messages = [];
+      CURRENT.messages.push(newMsg);
+      renderMessages();
+      ta.value = '';
+      clearTag();
+      status.textContent = '✅ Besked sendt!';
+      setTimeout(()=>{ status.textContent=''; }, 3000);
+    } else {
+      status.textContent = '⚠️ Kunne ikke sende — prøv igen.';
+    }
+    btn.disabled = false;
+  };
+  timer = setTimeout(()=>{ cleanup(); status.textContent='⚠️ Timeout — prøv igen.'; btn.disabled=false; }, 10000);
+  s.onerror = ()=>{ cleanup(); status.textContent='⚠️ Netværksfejl.'; btn.disabled=false; };
+  s.src = SCRIPT_URL+'?action=sendMessage&memberId='+encodeURIComponent(m.id||'')+'&senderName='+encodeURIComponent(senderName)+'&text='+encodeURIComponent(text)+'&taggedMemberId='+encodeURIComponent(taggedId)+'&callback='+name+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+
 function doLogout(){
   try{ sessionStorage.removeItem('kk2_student_email'); }catch(e){}
   document.getElementById('dashView').classList.remove('show');
@@ -391,7 +675,7 @@ function avgOf(r){
 }
 function starStr(n){
   const v = Math.max(0, Math.min(5, Math.round(n||0)));
-  return '★'.repeat(v) + '☆'.repeat(5-v);
+  return '★'.repeat(v);
 }
 function trendMark(curr, prev){
   if(prev==null || curr==null) return '';
@@ -477,6 +761,28 @@ function computeBadges(d, assessments){
   return badges;
 }
 
+function getSkillNote(skill){
+  const notes = (CURRENT && CURRENT.skillNotes) || {};
+  if(!skill) return null;
+  if(notes[skill]) return notes[skill];
+  const base = skill.replace(/[\s\-+0-9]+$/,'').trim();
+  if(base && base !== skill && notes[base]) return notes[base];
+  const ci = Object.keys(notes).find(k => k.toLowerCase() === base.toLowerCase());
+  return ci ? notes[ci] : null;
+}
+function showSkillNote(skill){
+  const note = getSkillNote(skill);
+  if(!note) return;
+  const existing = document.getElementById('skillNotePopup');
+  if(existing) existing.remove();
+  const pop = document.createElement('div');
+  pop.id = 'skillNotePopup';
+  pop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+  pop.onclick = e => { if(e.target === pop) pop.remove(); };
+  pop.innerHTML = '<div style="background:#fff;border-radius:14px;padding:1rem 1.1rem;max-width:420px;width:100%;max-height:80vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.25)"><div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.6rem"><strong style="font-size:.95rem">📖 '+escapeHtml(skill)+'</strong><button onclick="document.getElementById(\'skillNotePopup\').remove()" style="border:none;background:#eee;border-radius:8px;padding:.25rem .55rem;cursor:pointer;font-size:.85rem">✕</button></div><div style="font-size:.85rem;line-height:1.45;white-space:pre-wrap;color:#333">'+escapeHtml(note)+'</div></div>';
+  document.body.appendChild(pop);
+}
+
 function renderDashboard(d){
   CURRENT = d;
   const m = d.member || {};
@@ -555,6 +861,29 @@ function renderDashboard(d){
     pensumCard.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:10px">Ingen pensum-data for '+escapeHtml(m.belt||'dit bælte')+' endnu.</div>';
   }
 
+  // Trænernes noter (seneste 5 vurderinger med kommentar)
+  const withComment = assessments.filter(a => a.comment && String(a.comment).trim());
+  const notesCard = document.getElementById('notesCard');
+  const notesBox = document.getElementById('notesBox');
+  if(withComment.length){
+    notesCard.style.display = '';
+    notesBox.innerHTML = withComment.slice(0,5).map(a => {
+      const safeId = JSON.stringify(a.id);
+      return '<div onclick="openAssessModal('+safeId+')" style="cursor:pointer;padding:10px 12px;background:#fafbfb;border-left:3px solid var(--xtm);border-radius:6px;margin-bottom:8px;transition:background .15s" onmouseover="this.style.background=\'#f1f4f4\'" onmouseout="this.style.background=\'#fafbfb\'">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
+        '<span style="font-size:11px;font-weight:700;color:var(--xtm)">'+fmtDate(a.date)+'</span>'+
+        (a.assessorName ? '<span style="font-size:11px;color:var(--muted)">👤 '+escapeHtml(a.assessorName)+'</span>' : '')+
+        '</div>'+
+        '<div style="font-size:13px;font-style:italic;color:var(--xtd)">"'+escapeHtml(String(a.comment).trim())+'"</div>'+
+        '</div>';
+    }).join('');
+  } else {
+    notesCard.style.display = 'none';
+  }
+
+  // Beskeder
+  renderMessages();
+
   // Graph
   renderGraph(assessments);
 
@@ -600,11 +929,18 @@ function renderDashboard(d){
       const curr = latestBySkill[k];
       const prev = prevBySkill[k];
       const cls = curr >= 3 ? 'ok' : curr >= 2 ? 'warn' : 'bad';
+      const hasPrev = prev !== undefined;
+      const improved = hasPrev && curr > prev;
+      const declined = hasPrev && curr < prev;
+      const starColor = improved ? '#16a34a' : declined ? '#dc2626' : '#f59e0b';
+      const nameStyle = improved ? 'color:#16a34a;font-weight:600' : '';
       const safeK = String(k).replace(/'/g,"\\'");
+      const note = getSkillNote(k);
+      const infoBtn = note ? ' <span style="font-size:.65rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote(\''+safeK+'\')">ℹ️</span>' : '';
       return '<div class="skill-row" onclick="openSkillModal(\''+safeK+'\')">'+
         '<div class="dot '+cls+'"></div>'+
-        '<div class="skill-name">'+escapeHtml(k)+'</div>'+
-        '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+' ★ '+trendMark(curr,prev)+'<span class="chev" style="font-size:14px">›</span></div></div>';
+        '<div class="skill-name" style="'+nameStyle+'">'+escapeHtml(k)+infoBtn+'</div>'+
+        '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+'<span style="color:'+starColor+'"> ★</span> '+trendMark(curr,prev)+'<span class="chev" style="font-size:14px">›</span></div></div>';
     }).join('');
   }
 
@@ -618,7 +954,7 @@ function renderDashboard(d){
 function renderGraph(assessments){
   const box = document.getElementById('graphBox');
   const last = assessments.slice(0,8).reverse();
-  const pts = last.map(a => ({date:a.date, avg:avgOf(ratingsOf(a))})).filter(p=>p.avg!=null);
+  const pts = last.map(a => ({id:a.id, date:a.date, avg:avgOf(ratingsOf(a))})).filter(p=>p.avg!=null);
   if(pts.length < 2){ box.innerHTML = '<div class="empty">Endnu ikke nok data til graf — kommer efter et par vurderinger.</div>'; return; }
   const W=300, H=150, PL=28, PR=8, PT=12, PB=22;
   const iW=W-PL-PR, iH=H-PT-PB;
@@ -635,7 +971,7 @@ function renderGraph(assessments){
   const dots = pts.map((p,i)=>{
     const cx=toX(p.date).toFixed(1), cy=toY(p.avg).toFixed(1);
     const color = i===pts.length-1 ? '#16a34a' : '#6366f1';
-    return '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="'+color+'" stroke="#fff" stroke-width="2"/>';
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="'+color+'" stroke="#fff" stroke-width="2" style="cursor:pointer" onclick="showGraphPointPopup('+JSON.stringify(p.id)+',event)"/>';
   }).join('');
   const yStep = yRange<=1?0.5:1;
   const yStart = Math.ceil(yMin/yStep)*yStep;
@@ -650,6 +986,58 @@ function renderGraph(assessments){
     '<text x="'+(PL+iW)+'" y="'+(H-4)+'" text-anchor="end" font-size="9" fill="#9aacac">'+fmtShort(pts[pts.length-1].date)+'</text>'+
     '<polyline points="'+linePts+'" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round"/>'+
     dots+'</svg>';
+}
+
+// ── Graf-punkt popup ──
+function showGraphPointPopup(assessmentId, event){
+  event.stopPropagation();
+  const existing = document.getElementById('graphPointPopup');
+  if(existing){ existing.remove(); if(existing.dataset.id == assessmentId) return; }
+  if(!CURRENT) return;
+  const assessments = CURRENT.sortedAssessments || [];
+  const idx = assessments.findIndex(a => a.id == assessmentId);
+  if(idx === -1) return;
+  const a = assessments[idx];
+  const curr = ratingsOf(a);
+  const avg = avgOf(curr);
+  if(avg === null) return;
+  const prevA = assessments[idx + 1] || null;
+  const prev = prevA ? ratingsOf(prevA) : {};
+  const prevAvg = prevA ? avgOf(prev) : null;
+  const diff = prevAvg !== null ? avg - prevAvg : null;
+  const overallArrow = diff === null ? '' : diff >= 0.2
+    ? '<span style="color:#16a34a;font-weight:900;font-size:1.3rem;line-height:1">↑</span>'
+    : diff <= -0.2
+    ? '<span style="color:#dc2626;font-weight:900;font-size:1.3rem;line-height:1">↓</span>'
+    : '<span style="color:#d97706;font-weight:900;font-size:1.3rem;line-height:1">→</span>';
+  const pensumForBelt = (CURRENT.pensum || {})[a.belt] || [];
+  const skillKeys = Object.keys(curr).sort((x, y) => {
+    const xi = pensumForBelt.indexOf(x), yi = pensumForBelt.indexOf(y);
+    if(xi !== -1 && yi !== -1) return xi - yi;
+    if(xi !== -1) return -1; if(yi !== -1) return 1;
+    return x.localeCompare(y, 'da');
+  });
+  const skillsHtml = skillKeys.map(sk => {
+    const v = Number(curr[sk]) || 0;
+    const p = prev[sk] !== undefined ? Number(prev[sk]) : null;
+    const d = p !== null ? v - p : null;
+    let changeHtml = '';
+    if(d !== null && d > 0) changeHtml = '<span style="color:#16a34a;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↑ '+'★'.repeat(d)+'</span>';
+    else if(d !== null && d < 0) changeHtml = '<span style="color:#dc2626;font-size:.75rem;font-weight:900;white-space:nowrap;flex-shrink:0">↓ '+'★'.repeat(Math.abs(d))+'</span>';
+    return '<div style="display:flex;align-items:center;font-size:.78rem;padding:.15rem 0;gap:.3rem"><span style="flex:1;color:#374151">'+escapeHtml(sk)+'</span>'+changeHtml+'<span style="color:#f59e0b;letter-spacing:.05rem;flex-shrink:0;text-align:right;display:inline-block">'+'★'.repeat(v)+'</span></div>';
+  }).join('');
+  const pop = document.createElement('div');
+  pop.id = 'graphPointPopup';
+  pop.dataset.id = assessmentId;
+  pop.style.cssText = 'position:fixed;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:.7rem .9rem;min-width:210px;max-width:280px;z-index:9999;font-size:.82rem';
+  pop.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem"><div><div style="font-weight:700;color:#111">'+fmtDate(a.date)+'</div><div style="font-size:.78rem;color:#6b7280;margin-top:.1rem">👤 Bedømt af: <strong>'+escapeHtml(a.assessorName||'Ikke angivet')+'</strong></div></div><div style="display:flex;align-items:center;gap:.3rem">'+overallArrow+'<div style="font-size:1.1rem;font-weight:800;color:#6366f1">'+avg.toFixed(1).replace('.',',')+'<span style="font-size:.7rem;font-weight:400;color:#9ca3af">/5</span></div></div></div><div style="border-top:1px solid #f3f4f6;padding-top:.4rem">'+(skillsHtml||'<span style="color:#9ca3af;font-style:italic">Ingen ratings</span>')+'</div><button onclick="document.getElementById(\'graphPointPopup\').remove()" style="position:absolute;top:.3rem;right:.5rem;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:.85rem">✕</button>';
+  document.body.appendChild(pop);
+  const rect = pop.getBoundingClientRect();
+  let x = event.clientX + 12, y = event.clientY - 20;
+  if(x + 260 > window.innerWidth) x = event.clientX - 270;
+  if(y + rect.height > window.innerHeight) y = event.clientY - rect.height - 10;
+  pop.style.left = x + 'px'; pop.style.top = y + 'px';
+  setTimeout(() => document.addEventListener('click', function h(){ document.getElementById('graphPointPopup')?.remove(); document.removeEventListener('click', h); }, {once:true}), 50);
 }
 
 // ── Assessment detail modal ──
@@ -702,10 +1090,12 @@ function openAssessModal(aid){
     } else if(v>0 && !p){
       delta = '<span class="delta new">NY</span>';
     }
-    const stars = v>0 ? ('★'.repeat(v)+'☆'.repeat(5-v)) : '☆☆☆☆☆';
+    const stars = '★'.repeat(v);
     const safeSk = String(sk).replace(/'/g,"\\'");
+    const skNote = getSkillNote(sk);
+    const skInfoBtn = skNote ? ' <span style="font-size:.65rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote(\''+safeSk+'\')">ℹ️</span>' : '';
     return '<div class="skill-line clickable" onclick="closeAssessModal();openSkillModal(\''+safeSk+'\')">'+
-      '<div class="n">'+escapeHtml(sk)+'</div>'+
+      '<div class="n">'+escapeHtml(sk)+skInfoBtn+'</div>'+
       delta+
       '<span class="stars-big">'+stars+'</span>'+
       '</div>';
@@ -750,7 +1140,7 @@ function openSkillModal(skill){
         '<div class="sh-date">'+fmtDate(a.date)+'</div>'+
         '<div class="sh-belt">'+beltVisual(a.belt)+' '+escapeHtml(a.belt||'')+'</div></div>'+
         '<div style="display:flex;align-items:center;gap:8px">'+delta+
-        '<span class="sh-stars">'+('★'.repeat(v)+'☆'.repeat(5-v))+'</span></div></div>';
+        '<span class="sh-stars">'+'★'.repeat(v)+'</span></div></div>';
     }).join('');
     // Mini-graf hvis 2+
     let mini = '';
