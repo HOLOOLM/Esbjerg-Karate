@@ -6,21 +6,22 @@
 <title>Min udvikling — Karateklubben</title>
 <style>
 :root{
-  --xtd:#1a2e2e; --xtm:#4a6060; --xtl:#e8ecec;
+  --xtd:#1a2e2e; --xtm:#4a6060; --xtl:#9aacac; --t2:#4b5563;
   --bg:#f4f6f6; --card:#ffffff; --ink:#1a2e2e; --muted:#6b7878;
-  --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626;
+  --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626; --indigo:#6366f1;
   --br:12px; --sh:0 2px 8px rgba(26,46,46,.08);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 body{min-height:100vh}
-.wrap{max-width:720px;margin:0 auto;padding:16px}
+.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:40px}
 
+/* LOGIN */
 .login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--xtd) 0%,var(--xtm) 100%)}
-.login-card{background:var(--card);border-radius:var(--br);box-shadow:var(--sh);padding:32px 24px;max-width:380px;width:100%;text-align:center}
+.login-card{background:var(--card);border-radius:var(--br);box-shadow:0 10px 40px rgba(0,0,0,.15);padding:32px 24px;max-width:380px;width:100%;text-align:center}
 .login-card h1{margin:0 0 8px;font-size:26px;color:var(--xtd)}
 .login-card p{margin:0 0 24px;color:var(--muted);font-size:14px}
-.login-card input{width:100%;padding:14px 14px;border:1.5px solid #d5dcdc;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none}
+.login-card input{width:100%;padding:14px;border:1.5px solid #d5dcdc;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none}
 .login-card input:focus{border-color:var(--xtm)}
 .login-card button{width:100%;padding:14px;background:var(--xtd);color:#fff;border:0;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer}
 .login-card button:hover{background:var(--xtm)}
@@ -29,100 +30,146 @@ body{min-height:100vh}
 .login-err.show{display:block}
 .loading{color:var(--muted);font-size:13px;margin-top:10px;display:none}
 .loading.show{display:block}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--xtd);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:middle;margin-right:6px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--xtd);border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
 
+/* DASHBOARD */
 .dash{display:none}
 .dash.show{display:block}
-.topbar{background:var(--xtd);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
-.topbar h2{margin:0;font-size:18px;font-weight:600}
+.topbar{background:var(--xtd);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.topbar h2{margin:0;font-size:17px;font-weight:600}
 .logout{background:rgba(255,255,255,.15);color:#fff;border:0;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer}
 .logout:hover{background:rgba(255,255,255,.25)}
 
 .card{background:var(--card);border-radius:var(--br);box-shadow:var(--sh);padding:18px;margin-bottom:14px}
-.card h3{margin:0 0 12px;font-size:15px;color:var(--xtd);font-weight:600}
+.card h3{margin:0 0 12px;font-size:15px;color:var(--xtd);font-weight:600;display:flex;align-items:center;gap:6px}
 
-.profile{display:flex;align-items:center;gap:14px}
-.photo{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--xtm),var(--xtd));color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;flex-shrink:0;overflow:hidden;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+/* HERO profile */
+.hero{background:linear-gradient(135deg,var(--xtd) 0%,var(--xtm) 100%);color:#fff;border-radius:var(--br);padding:20px 18px;margin-bottom:14px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none}
+.hero-row{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.photo{width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;flex-shrink:0;overflow:hidden;border:3px solid rgba(255,255,255,.3);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
-.profile-info{flex:1;min-width:0}
-.profile-name{font-size:19px;font-weight:700;margin:0 0 4px}
-.belt-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#fef3c7;color:#92400e}
-.stats-row{display:flex;gap:8px;margin-top:10px}
-.stat{flex:1;background:#f1f4f4;border-radius:8px;padding:8px;text-align:center}
-.stat-num{font-size:18px;font-weight:700;color:var(--xtd)}
-.stat-lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.hero-info{flex:1;min-width:0}
+.hero-name{font-size:20px;font-weight:700;margin:0 0 6px;line-height:1.2}
+.hero-group{font-size:12px;opacity:.85;margin-bottom:8px}
+.hero-belt-box{display:flex;align-items:center;gap:8px}
 
+/* Belt visual */
+.blt{display:inline-flex;align-items:center;height:14px;border-radius:3px;overflow:hidden;position:relative;min-width:42px;border:1px solid rgba(0,0,0,.18);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.blt-snip{width:3px;height:100%;background:rgba(255,255,255,.75);margin-left:4px;flex-shrink:0}
+.belt-label{font-size:12px;font-weight:600;opacity:.95}
+
+/* Stats row */
+.stats-row{display:flex;gap:8px;margin-top:14px;position:relative;z-index:1}
+.stat{flex:1;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:background .15s}
+.stat:hover{background:rgba(255,255,255,.2)}
+.stat-num{font-size:20px;font-weight:700;line-height:1.1}
+.stat-lbl{font-size:10.5px;opacity:.85;margin-top:3px}
+
+/* Motivation banner */
+.motiv{background:linear-gradient(90deg,#dcfce7,#f0fdf4);border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;color:#15803d;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(22,163,74,.08)}
+.motiv::before{content:"✨";font-size:18px}
+
+/* Badges */
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;color:#92400e;display:inline-flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(245,158,11,.15)}
+.badge.gold{background:linear-gradient(135deg,#fef3c7,#f59e0b);color:#78350f}
+.badge.silver{background:linear-gradient(135deg,#f3f4f6,#d1d5db);border-color:#9ca3af;color:#374151}
+.badge.bronze{background:linear-gradient(135deg,#fed7aa,#fb923c);border-color:#ea580c;color:#7c2d12}
+.badge.green{background:linear-gradient(135deg,#dcfce7,#86efac);border-color:#22c55e;color:#166534}
+.badge.fire{background:linear-gradient(135deg,#fee2e2,#fca5a5);border-color:#ef4444;color:#991b1b}
+
+.streak-box{background:linear-gradient(90deg,#fff7ed,#fef3c7);border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.streak-flame{font-size:28px;filter:drop-shadow(0 2px 3px rgba(239,68,68,.3))}
+.streak-text{flex:1}
+.streak-num{font-size:18px;font-weight:700;color:#92400e}
+.streak-sub{font-size:11px;color:#78350f;opacity:.8}
+
+/* Pensum */
+.pensum-card{background:linear-gradient(135deg,#f8fafc,#eef2f6);border:1px solid #e2e8f0;border-radius:10px;padding:13px 15px;margin-bottom:0}
+.pensum-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:6px}
+.pensum-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.pensum-count{font-size:13px;font-weight:700;color:var(--xtd)}
+.pensum-bar{background:#e2e8f0;border-radius:6px;height:10px;overflow:hidden;position:relative}
+.pensum-fill{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--indigo),#4f46e5)}
+.pensum-fill.complete{background:linear-gradient(90deg,var(--ok),#059669)}
+.pensum-fill.nearly{background:linear-gradient(90deg,#d97706,#f59e0b)}
+.pensum-done{font-size:12px;color:var(--ok);margin-top:8px;font-weight:600}
+
+/* Graph */
 .graph{background:#fafbfb;border-radius:8px;padding:10px 4px 4px}
-svg.chart{width:100%;height:140px;display:block}
+svg.chart{width:100%;height:150px;display:block}
 .graph-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:4px 8px 0}
 .empty{text-align:center;color:var(--muted);font-size:13px;padding:20px}
 
+/* Assessment list */
 .alist{list-style:none;padding:0;margin:0}
-.alist li{padding:10px 0;border-bottom:1px solid #eef1f1;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.alist li{padding:12px 10px;border-bottom:1px solid #eef1f1;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;transition:background .15s;margin:0 -10px;border-radius:6px}
 .alist li:last-child{border-bottom:0}
+.alist li:hover{background:#f4f6f6}
 .a-date{font-size:13px;font-weight:600}
 .a-by{font-size:11px;color:var(--muted)}
-.a-avg{font-size:15px;font-weight:700;color:var(--xtd)}
+.a-right{text-align:right;display:flex;align-items:center;gap:6px}
+.a-avg{font-size:16px;font-weight:700;color:var(--xtd)}
 .stars{color:var(--warn);font-size:11px;letter-spacing:1px}
-.trend{font-size:.8rem;font-weight:800;margin-left:4px}
+.trend{font-size:.85rem;font-weight:800;margin-left:3px}
 .trend.up{color:var(--ok)}
 .trend.down{color:var(--bad)}
 .trend.same{color:#9aacac}
+.chev{color:var(--muted);font-size:18px;margin-left:2px}
 
-.skills{display:grid;grid-template-columns:1fr;gap:6px}
-.skill-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fafbfb;border-radius:6px}
+/* Skills grid in main card */
+.skills{display:grid;grid-template-columns:1fr;gap:5px}
+.skill-row{display:flex;align-items:center;gap:10px;padding:9px 10px;background:#fafbfb;border-radius:6px;cursor:pointer;transition:background .15s}
+.skill-row:hover{background:#f1f4f4}
 .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .dot.ok{background:var(--ok)}
 .dot.warn{background:var(--warn)}
 .dot.bad{background:var(--bad)}
 .dot.none{background:#d5dcdc}
-.skill-name{flex:1;font-size:13px}
-.skill-avg{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px}
-
-.qr-card{text-align:center}
-.qr-box{display:inline-block;padding:14px;background:#fff;border:2px solid var(--xtl);border-radius:8px;margin:8px 0}
-.qr-fake{width:160px;height:160px;background:
-  repeating-linear-gradient(90deg,#1a2e2e 0 6px,transparent 6px 12px),
-  repeating-linear-gradient(0deg,#1a2e2e 0 6px,transparent 6px 12px);
-  background-color:#fff;opacity:.85;border-radius:4px;position:relative}
-.qr-fake::before,.qr-fake::after{content:"";position:absolute;width:36px;height:36px;border:6px solid #1a2e2e;background:#fff;top:6px;left:6px}
-.qr-fake::after{left:auto;right:6px}
-.qr-url{font-size:12px;color:var(--muted);word-break:break-all;background:#f1f4f4;padding:8px;border-radius:6px;margin-top:8px;font-family:monospace}
-.qr-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
-
-/* Clickable assessment rows */
-.alist li.clickable{cursor:pointer;transition:background .15s;margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:6px}
-.alist li.clickable:hover{background:#f1f4f4}
-.chev{color:var(--muted);font-size:14px;margin-left:6px}
-
-/* Pensum-progress bar */
-.pensum-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:14px}
-.pensum-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.pensum-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.pensum-count{font-size:13px;font-weight:700;color:var(--xtd)}
-.pensum-bar{background:#e2e8f0;border-radius:6px;height:8px;overflow:hidden}
-.pensum-fill{height:100%;border-radius:6px;transition:width .5s}
+.skill-name{flex:1;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.skill-avg{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px;white-space:nowrap}
 
 /* Modal */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .modal-backdrop.show{display:flex}
-.modal{background:#fff;border-radius:var(--br);max-width:520px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.2);margin:auto}
+.modal{background:#fff;border-radius:var(--br);max-width:540px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);margin:auto;animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
 .modal-head{padding:16px 18px;border-bottom:1px solid #eef1f1;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .modal-title{font-size:17px;font-weight:700;color:var(--xtd)}
-.modal-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .modal-close{background:transparent;border:0;font-size:22px;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1}
-.modal-body{padding:14px 18px 18px;max-height:70vh;overflow-y:auto;overscroll-behavior:contain}
+.modal-close:hover{color:var(--xtd)}
+.modal-body{padding:14px 18px 18px;max-height:72vh;overflow-y:auto;overscroll-behavior:contain}
 
-.skill-line{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f4f6f6;font-size:13px}
+.skill-line{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f4f6f6;font-size:13px}
 .skill-line:last-child{border-bottom:0}
+.skill-line.clickable{cursor:pointer;margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:5px}
+.skill-line.clickable:hover{background:#f4f6f6}
 .skill-line .n{flex:1;min-width:0}
-.skill-line .stars-big{color:var(--warn);font-size:13px;letter-spacing:1px}
+.skill-line .stars-big{color:var(--warn);font-size:14px;letter-spacing:1px}
 .skill-line .delta{font-size:.72rem;font-weight:800;white-space:nowrap}
 .skill-line .delta.up{color:var(--ok)}
 .skill-line .delta.down{color:var(--bad)}
+.skill-line .delta.new{color:var(--indigo)}
 .comment-box{background:#fafbfb;border-left:3px solid var(--xtm);padding:10px 12px;margin-top:14px;border-radius:6px;font-style:italic;font-size:13px;color:var(--xtd)}
-.avg-pill{display:inline-block;background:#eef2ff;color:#4338ca;font-weight:700;font-size:12px;padding:3px 10px;border-radius:20px}
+.avg-pill{display:inline-block;background:#eef2ff;color:#4338ca;font-weight:700;font-size:12px;padding:4px 11px;border-radius:20px}
+
+/* Training list */
+.train-month{font-size:12px;font-weight:700;color:var(--xtd);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.03em}
+.train-month:first-child{margin-top:0}
+.train-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fafbfb;border-radius:6px;margin-bottom:4px;font-size:13px}
+.train-date{font-weight:600;color:var(--xtd)}
+.train-name{color:var(--muted);font-size:12px}
+
+/* Skill history modal */
+.sh-item{display:flex;justify-content:space-between;align-items:center;padding:9px 10px;background:#fafbfb;border-radius:6px;margin-bottom:5px}
+.sh-left{min-width:0}
+.sh-date{font-size:13px;font-weight:600}
+.sh-belt{font-size:11px;color:var(--muted)}
+.sh-stars{color:var(--warn);font-size:13px;letter-spacing:1px;white-space:nowrap}
+.sh-empty{text-align:center;color:var(--muted);padding:18px;font-size:13px}
 </style>
 </head>
 <body>
@@ -145,19 +192,36 @@ svg.chart{width:100%;height:140px;display:block}
   </div>
   <div class="wrap">
 
-    <div class="card">
-      <div class="profile">
+    <div class="hero">
+      <div class="hero-row">
         <div id="photo" class="photo">?</div>
-        <div class="profile-info">
-          <div id="name" class="profile-name">—</div>
-          <span id="belt" class="belt-badge">—</span>
+        <div class="hero-info">
+          <div id="name" class="hero-name">—</div>
+          <div id="group" class="hero-group">—</div>
+          <div class="hero-belt-box">
+            <span id="beltVisual"></span>
+            <span id="beltLabel" class="belt-label"></span>
+          </div>
         </div>
       </div>
       <div class="stats-row">
-        <div class="stat"><div id="stTrain" class="stat-num">–</div><div class="stat-lbl">træninger i år</div></div>
-        <div class="stat"><div id="stVurd" class="stat-num">–</div><div class="stat-lbl">vurderinger</div></div>
+        <div class="stat" onclick="openTrainingsModal()"><div id="stTrain" class="stat-num">–</div><div class="stat-lbl">træninger i år</div></div>
+        <div class="stat" onclick="openAllAssessments()"><div id="stVurd" class="stat-num">–</div><div class="stat-lbl">vurderinger</div></div>
         <div class="stat"><div id="stSnit" class="stat-num">–</div><div class="stat-lbl">seneste snit</div></div>
       </div>
+    </div>
+
+    <div id="motivBox"></div>
+
+    <div id="streakBox"></div>
+
+    <div class="card">
+      <h3>🏅 Dine badges</h3>
+      <div id="badgesBox" class="badges"></div>
+    </div>
+
+    <div class="card">
+      <div id="pensumCard"></div>
     </div>
 
     <div class="card">
@@ -165,30 +229,16 @@ svg.chart{width:100%;height:140px;display:block}
       <div id="graphBox" class="graph"></div>
     </div>
 
-    <div id="pensumCard"></div>
-
     <div class="card">
       <h3>📝 Seneste vurderinger</h3>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Klik på en vurdering for at se alle detaljer</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tryk på en vurdering for at se alle detaljer</div>
       <ul id="alist" class="alist"></ul>
     </div>
 
     <div class="card">
       <h3>🎯 Fremgang per skill</h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tryk på en skill for at se alle dine vurderinger af den</div>
       <div id="skills" class="skills"></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:10px;display:flex;gap:14px;flex-wrap:wrap">
-        <span><span class="dot ok" style="display:inline-block;vertical-align:middle;margin-right:4px"></span>3,0+</span>
-        <span><span class="dot warn" style="display:inline-block;vertical-align:middle;margin-right:4px"></span>2,0–2,9</span>
-        <span><span class="dot bad" style="display:inline-block;vertical-align:middle;margin-right:4px"></span>under 2,0</span>
-        <span><span class="trend up">↑</span> op siden sidst · <span class="trend down">↓</span> ned · <span class="trend same">→</span> uændret</span>
-      </div>
-    </div>
-
-    <div class="card qr-card">
-      <h3>📱 Del denne side</h3>
-      <div class="qr-box"><div class="qr-fake"></div></div>
-      <div id="qrUrl" class="qr-url"></div>
-      <div class="qr-note">Elever scanner QR → taster deres email → ser kun deres egen udvikling.<br><em>Ægte privacy: Apps Script filtrerer server-side, så browseren aldrig ser andres data.</em></div>
     </div>
 
   </div>
@@ -198,7 +248,7 @@ svg.chart{width:100%;height:140px;display:block}
 <div id="assessModal" class="modal-backdrop" onclick="if(event.target===this)closeAssessModal()">
   <div class="modal">
     <div class="modal-head">
-      <div>
+      <div style="flex:1;min-width:0">
         <div id="modalTitle" class="modal-title">Vurdering</div>
         <div id="modalSub" class="modal-sub"></div>
       </div>
@@ -208,8 +258,65 @@ svg.chart{width:100%;height:140px;display:block}
   </div>
 </div>
 
+<!-- Skill history modal -->
+<div id="skillModal" class="modal-backdrop" onclick="if(event.target===this)closeSkillModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="flex:1;min-width:0">
+        <div id="skillTitle" class="modal-title">Skill-historik</div>
+        <div id="skillSub" class="modal-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeSkillModal()">✕</button>
+    </div>
+    <div id="skillBody" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- Trainings modal -->
+<div id="trainModal" class="modal-backdrop" onclick="if(event.target===this)closeTrainingsModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="flex:1;min-width:0">
+        <div class="modal-title">🥋 Dine træninger</div>
+        <div id="trainSub" class="modal-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeTrainingsModal()">✕</button>
+    </div>
+    <div id="trainBody" class="modal-body"></div>
+  </div>
+</div>
+
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
+
+// Belt colors — matcher hovedappen
+const BC = {
+  '10. Kyu (Hvidt)':'#e8e8e8','9. Kyu (1 Snip)':'#e0e0e0','8. Kyu (2 Snip)':'#d0d0d0',
+  '7. Kyu (Gult)':'#f7e040','6. Kyu (Blåt)':'#2980b9','5. Kyu (Grønt)':'#27ae60',
+  '4. Kyu (Violet)':'#8e44ad','3. Kyu (Brunt)':'#8d5524','2. Kyu (Brunt + 1 Snip)':'#7a4820',
+  '1. Kyu (Brunt + 2 Snip)':'#6b3d18','1. Dan (Sort)':'#212121','2. Dan (Sort)':'#161616','3. Dan (Sort)':'#0a0a0a'
+};
+
+// 30 opmuntringssætninger (fra hovedappen)
+const MOTIVATION = [
+  'Stærk fremgang siden sidst — bliv ved! 💪','Du er på rette vej — rigtig flot klaret!',
+  'Hver træning tæller, og det kan man se! 🥋','Bedre og bedre — det kan vi godt lide at se!',
+  'Du er stærkere end sidst — fortsæt sådan!','Positiv udvikling — super godt arbejde!',
+  'Du vokser med opgaven — det er sejt! 🌟','Fremgang er det bedste tegn — hold fast!',
+  'Du rykker dig — det er alt, der tæller!','Opadgående kurve — det er vejen frem!',
+  'Du sætter barren højere for dig selv — flot!','Stærkt — du overgår dig selv siden sidst!',
+  'Du er på vej mod næste bælte! 🏅','Fremgang taler for sig selv — godt arbejde!',
+  'Keep it up — du er i god udvikling!','Resultat af hårdt arbejde — flot klaret!',
+  'Du er ikke den samme som sidst — godt!','Fremad og opad — det er din retning! ⬆️',
+  'Stærk udvikling siden sidst — bliv ved!','Du leverer — bedre og bedre hver gang!',
+  'Positiv kurve — hold fokus og bliv ved!','Vi kan se fremgangen — godt gået! 🥋',
+  'Flot! Du er på rette spor mod næste bælte.','Du forbedrer dig — det er præcis det, vi vil se!',
+  'Næste bælte kommer tættere og tættere! 🏆','Hård træning betaler sig — det viser tallene!',
+  'Du er i god form — fortsæt den vej!','Stærk præstation — bedre end sidst, igen!',
+  'Du gør det smukt — fortsæt den positive rejse!','Fremgang siden sidst — vi er stolte af dig! ⭐'
+];
+
+let CURRENT = null;
 
 function fetchStudent(email, cb){
   const name = '_gs'+Date.now();
@@ -234,14 +341,12 @@ function doLogin(){
   const input = document.getElementById('emailInput').value.trim().toLowerCase();
   document.getElementById('loginErr').classList.remove('show');
   if(!input){ showErr('Indtast din email først.'); return; }
-
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginStatus').classList.add('show');
-
   fetchStudent(input, (err, d)=>{
     if(err){ showErr('Kunne ikke hente data: '+err.message); return; }
     if(!d || !d.ok){
-      showErr(d && d.error ? d.error : 'Vi kunne ikke finde en elev med den email. Spørg din træner.');
+      showErr(d && d.error ? d.error : 'Vi kunne ikke finde en elev med den email.');
       return;
     }
     try{ sessionStorage.setItem('kk2_student_email', input); }catch(e){}
@@ -258,54 +363,119 @@ function doLogout(){
   document.getElementById('loginStatus').classList.remove('show');
 }
 
-function initials(first, last){
-  return ((first||'')[0]||'') + ((last||'')[0]||'');
-}
-
-function photoUrl(photoId, sz){
-  return 'https://lh3.googleusercontent.com/d/'+photoId+'=s'+(sz||140);
-}
+function initials(f,l){ return ((f||'')[0]||'') + ((l||'')[0]||''); }
+function photoUrl(id, sz){ return 'https://lh3.googleusercontent.com/d/'+id+'=s'+(sz||160); }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function fmtDate(d){
   if(!d) return '—';
-  const s = String(d).slice(0,10);
-  const parts = s.split('-');
+  const s = String(d).slice(0,10); const parts = s.split('-');
   if(parts.length!==3) return s;
   const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
   return parseInt(parts[2],10)+'. '+months[parseInt(parts[1],10)-1]+' '+parts[0];
 }
-
+function monthLabel(d){
+  const parts = String(d).slice(0,10).split('-');
+  const months = ['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
+  return months[parseInt(parts[1],10)-1]+' '+parts[0];
+}
 function ratingsOf(a){
   if(!a || !a.ratings) return {};
   if(typeof a.ratings === 'object') return a.ratings;
   try{ return JSON.parse(a.ratings) || {}; }catch(e){ return {}; }
 }
-
 function avgOf(r){
   const vals = Object.values(r).map(Number).filter(v=>v>0);
   if(!vals.length) return null;
   return vals.reduce((s,v)=>s+v,0) / vals.length;
 }
-
-function starStr(avg){
-  if(avg==null) return '';
-  const full = Math.max(0, Math.min(5, Math.round(avg)));
-  return '★'.repeat(full) + '☆'.repeat(5-full);
+function starStr(n){
+  const v = Math.max(0, Math.min(5, Math.round(n||0)));
+  return '★'.repeat(v) + '☆'.repeat(5-v);
 }
-
 function trendMark(curr, prev){
-  if(prev==null) return '';
+  if(prev==null || curr==null) return '';
   const d = curr - prev;
-  if(d >= 0.15) return '<span class="trend up">↑</span>';
-  if(d <= -0.15) return '<span class="trend down">↓</span>';
+  if(d >= 0.2) return '<span class="trend up">↑</span>';
+  if(d <= -0.2) return '<span class="trend down">↓</span>';
   return '<span class="trend same">→</span>';
 }
 
-function escapeHtml(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function beltVisual(belt){
+  if(!belt) return '';
+  const bc = BC[belt] || '#888';
+  const snipMatch = belt.match(/(\d+)\s*Snip/i);
+  const snips = snipMatch ? parseInt(snipMatch[1],10) : 0;
+  const snipDivs = '<div class="blt-snip"></div>'.repeat(snips);
+  return '<span class="blt" style="background:'+bc+'">'+snipDivs+'</span>';
 }
 
-let CURRENT = null;
+function calcStreak(trainingDates){
+  if(!trainingDates || !trainingDates.length) return 0;
+  // Consecutive weeks counting backwards from this week
+  const dates = trainingDates.map(t => new Date(t.date)).sort((a,b)=>b-a);
+  const weeks = new Set();
+  dates.forEach(d=>{
+    const y = d.getFullYear();
+    const onejan = new Date(y,0,1);
+    const w = Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+    weeks.add(y+'-'+w);
+  });
+  const now = new Date();
+  const yNow = now.getFullYear();
+  const onejan = new Date(yNow,0,1);
+  const wNow = Math.ceil((((now-onejan)/86400000)+onejan.getDay()+1)/7);
+  let streak = 0;
+  let y = yNow, w = wNow;
+  while(weeks.has(y+'-'+w)){
+    streak++;
+    w--;
+    if(w<1){ y--; w=52; }
+    if(streak>99) break;
+  }
+  return streak;
+}
+
+function computeBadges(d, assessments){
+  const badges = [];
+  const train = (d.trainingDates||[]).length;
+  if(train >= 100) badges.push({cls:'gold', emoji:'🏆', text:'100+ træninger'});
+  else if(train >= 50) badges.push({cls:'silver', emoji:'🥈', text:'50+ træninger'});
+  else if(train >= 25) badges.push({cls:'bronze', emoji:'🥉', text:'25+ træninger'});
+  else if(train >= 10) badges.push({cls:'', emoji:'🎯', text:'10+ træninger'});
+
+  if(assessments.length >= 10) badges.push({cls:'', emoji:'📋', text:'10+ vurderinger'});
+  else if(assessments.length >= 5) badges.push({cls:'', emoji:'📋', text:'5+ vurderinger'});
+
+  // Improvement streak — hvor mange på stribe vurderinger i træk er blevet bedre?
+  let impStreak = 0;
+  for(let i=0;i<assessments.length-1;i++){
+    const cur = avgOf(ratingsOf(assessments[i]));
+    const prev = avgOf(ratingsOf(assessments[i+1]));
+    if(cur!=null && prev!=null && cur > prev) impStreak++;
+    else break;
+  }
+  if(impStreak >= 3) badges.push({cls:'green', emoji:'📈', text:impStreak+' fremgange i træk'});
+
+  // Alle 5-stjerner på seneste vurdering?
+  if(assessments.length){
+    const r = ratingsOf(assessments[0]);
+    const vals = Object.values(r).map(Number).filter(v=>v>0);
+    if(vals.length>=3 && vals.every(v=>v===5)) badges.push({cls:'gold', emoji:'⭐', text:'Perfekt vurdering'});
+    else if(vals.length>=3 && vals.every(v=>v>=4)) badges.push({cls:'green', emoji:'🌟', text:'Stærk på tværs'});
+  }
+
+  // Pensum-fremgang
+  const pensum = (d.pensum||{})[(d.member||{}).belt] || [];
+  if(pensum.length && assessments.length){
+    const latest = ratingsOf(assessments[0]);
+    const mastered = pensum.filter(s => Number(latest[s]||0) >= 4).length;
+    if(mastered === pensum.length) badges.push({cls:'gold', emoji:'🎖️', text:'Pensum mestret'});
+    else if(mastered/pensum.length >= 0.75) badges.push({cls:'green', emoji:'📚', text:'75% af pensum'});
+  }
+
+  return badges;
+}
 
 function renderDashboard(d){
   CURRENT = d;
@@ -316,66 +486,56 @@ function renderDashboard(d){
     .filter(a => a.date)
     .sort((a,b)=> b.date.localeCompare(a.date) || (Number(b.id)||0)-(Number(a.id)||0));
   CURRENT.sortedAssessments = assessments;
-  const trainCount = d.trainingsThisYear || 0;
+  const trainingDates = d.trainingDates || [];
 
-  const fullName = ((m.firstName||'')+' '+(m.lastName||'')).trim() || m.name || '—';
+  // Hero
+  const fullName = ((m.firstName||'')+' '+(m.lastName||'')).trim() || '—';
   document.getElementById('name').textContent = fullName;
-  document.getElementById('belt').textContent = m.belt || '—';
+  document.getElementById('group').textContent = m.group ? '🥋 '+m.group : '';
+  document.getElementById('beltVisual').innerHTML = beltVisual(m.belt);
+  document.getElementById('beltLabel').textContent = m.belt || '';
 
   const photoEl = document.getElementById('photo');
   if(m.photoId){
     photoEl.innerHTML = '<img src="'+photoUrl(m.photoId,200)+'" alt="" onerror="this.parentElement.textContent=\''+escapeHtml(initials(m.firstName,m.lastName))+'\'">';
   } else {
-    photoEl.textContent = initials(m.firstName, m.lastName) || '?';
+    photoEl.textContent = initials(m.firstName,m.lastName) || '?';
   }
 
+  // Stats
   const lastAvg = assessments.length ? avgOf(ratingsOf(assessments[0])) : null;
   const prevAvg = assessments.length>1 ? avgOf(ratingsOf(assessments[1])) : null;
-  document.getElementById('stTrain').textContent = trainCount;
+  document.getElementById('stTrain').textContent = d.trainingsThisYear || 0;
   document.getElementById('stVurd').textContent = assessments.length;
   const snitEl = document.getElementById('stSnit');
-  if(lastAvg!=null){
-    snitEl.innerHTML = lastAvg.toFixed(1).replace('.',',') + ' ' + trendMark(lastAvg, prevAvg);
-  } else snitEl.textContent = '–';
+  snitEl.innerHTML = lastAvg!=null ? lastAvg.toFixed(1).replace('.',',')+' '+trendMark(lastAvg,prevAvg) : '–';
 
-  // Graph
-  const graphBox = document.getElementById('graphBox');
-  const last = assessments.slice(0,8).reverse();
-  const avgs = last.map(a => avgOf(ratingsOf(a))).filter(v=>v!=null);
-  if(avgs.length < 2){
-    graphBox.innerHTML = '<div class="empty">Endnu ikke nok data til graf — kommer efter et par vurderinger.</div>';
+  // Motivation banner (hvis fremgang)
+  const motivBox = document.getElementById('motivBox');
+  if(lastAvg!=null && prevAvg!=null && lastAvg > prevAvg + 0.05){
+    const msg = MOTIVATION[Math.floor(Math.random()*MOTIVATION.length)];
+    motivBox.innerHTML = '<div class="motiv">'+escapeHtml(msg)+'</div>';
+  } else motivBox.innerHTML = '';
+
+  // Streak
+  const streak = calcStreak(trainingDates);
+  const streakEl = document.getElementById('streakBox');
+  if(streak >= 2){
+    streakEl.innerHTML = '<div class="streak-box"><div class="streak-flame">🔥</div>'+
+      '<div class="streak-text"><div class="streak-num">'+streak+' ugers streak</div>'+
+      '<div class="streak-sub">Du har trænet '+streak+' uger i træk — imponerende!</div></div></div>';
+  } else streakEl.innerHTML = '';
+
+  // Badges
+  const badges = computeBadges(d, assessments);
+  const badgesEl = document.getElementById('badgesBox');
+  if(badges.length){
+    badgesEl.innerHTML = badges.map(b => '<div class="badge '+b.cls+'">'+b.emoji+' '+escapeHtml(b.text)+'</div>').join('');
   } else {
-    const W = 300, H = 140, PAD = 20;
-    const xs = avgs.map((_,i)=> PAD + i*((W-2*PAD)/(avgs.length-1)));
-    const ys = avgs.map(v => H-PAD - ((v-1)/4)*(H-2*PAD));
-    const points = xs.map((x,i)=>x+','+ys[i]).join(' ');
-    const dots = xs.map((x,i)=>'<circle cx="'+x+'" cy="'+ys[i]+'" r="4" fill="'+(i===xs.length-1?'#16a34a':'#1a2e2e')+'"/>').join('');
-    graphBox.innerHTML =
-      '<svg class="chart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+
-      '<line x1="0" y1="30" x2="'+W+'" y2="30" stroke="#eef1f1"/>'+
-      '<line x1="0" y1="70" x2="'+W+'" y2="70" stroke="#eef1f1"/>'+
-      '<line x1="0" y1="110" x2="'+W+'" y2="110" stroke="#eef1f1"/>'+
-      '<polyline points="'+points+'" fill="none" stroke="#4a6060" stroke-width="2.5" stroke-linejoin="round"/>'+
-      dots+'</svg>'+
-      '<div class="graph-legend"><span>'+fmtDate(last[0].date)+'</span><span>'+fmtDate(last[last.length-1].date)+'</span></div>';
+    badgesEl.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0">Endnu ingen badges — bliv ved med at træne!</div>';
   }
 
-  // Assessments list — clickable
-  const ul = document.getElementById('alist');
-  if(!assessments.length){
-    ul.innerHTML = '<li><div class="empty" style="padding:6px 0">Ingen vurderinger endnu.</div></li>';
-  } else {
-    ul.innerHTML = assessments.slice(0,8).map((a,i)=>{
-      const avg = avgOf(ratingsOf(a));
-      const prev = assessments[i+1] ? avgOf(ratingsOf(assessments[i+1])) : null;
-      const by = a.assessorName || '—';
-      return '<li class="clickable" onclick="openAssessModal('+a.id+')"><div><div class="a-date">'+fmtDate(a.date)+'</div><div class="a-by">'+escapeHtml(by)+'</div></div>'+
-        '<div style="text-align:right;display:flex;align-items:center;gap:4px"><div><div class="a-avg">'+(avg!=null?avg.toFixed(1).replace('.',','):'–')+' '+trendMark(avg,prev)+
-        '</div><div class="stars">'+starStr(avg)+'</div></div><span class="chev">›</span></div></li>';
-    }).join('');
-  }
-
-  // Pensum-progress baseret på seneste vurdering + medlemmets bælte
+  // Pensum-progress
   const pensumCard = document.getElementById('pensumCard');
   const beltSkills = pensum[m.belt] || [];
   if(beltSkills.length && assessments.length){
@@ -384,30 +544,54 @@ function renderDashboard(d){
     const mastered = beltSkills.filter(sk => Number(latestR[sk]||0) >= threshold).length;
     const total = beltSkills.length;
     const pct = Math.round(mastered/total*100);
-    const color = pct>=100 ? 'var(--ok)' : pct>=60 ? '#d97706' : 'var(--xtm)';
+    const fillCls = pct>=100 ? 'complete' : pct>=60 ? 'nearly' : '';
     pensumCard.innerHTML = '<div class="pensum-card">'+
       '<div class="pensum-head"><span class="pensum-label">📊 Pensumfremgang · '+escapeHtml(m.belt||'')+'</span>'+
       '<span class="pensum-count" style="color:'+(mastered===total?'var(--ok)':'var(--xtd)')+'">'+mastered+' / '+total+' på '+threshold+'★+</span></div>'+
-      '<div class="pensum-bar"><div class="pensum-fill" style="background:'+color+';width:'+pct+'%"></div></div>'+
-      (mastered===total?'<div style="font-size:12px;color:var(--ok);margin-top:6px;font-weight:600">✅ Alle pensumkrav opfyldt — klar til oprykning!</div>':'')+
+      '<div class="pensum-bar"><div class="pensum-fill '+fillCls+'" style="width:'+pct+'%"></div></div>'+
+      (mastered===total?'<div class="pensum-done">✅ Alle pensumkrav opfyldt — klar til oprykning!</div>':'')+
       '</div>';
   } else {
-    pensumCard.innerHTML = '';
+    pensumCard.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:10px">Ingen pensum-data for '+escapeHtml(m.belt||'dit bælte')+' endnu.</div>';
   }
 
-  // Skills: compare latest rating per skill to previous rating for same skill
-  const latestBySkill = {};
-  const prevBySkill = {};
-  assessments.forEach(a=>{
+  // Graph
+  renderGraph(assessments);
+
+  // Assessment list
+  const ul = document.getElementById('alist');
+  if(!assessments.length){
+    ul.innerHTML = '<li style="cursor:default"><div class="empty" style="padding:6px 0;width:100%">Ingen vurderinger endnu.</div></li>';
+  } else {
+    ul.innerHTML = assessments.slice(0,8).map((a,i)=>{
+      const avg = avgOf(ratingsOf(a));
+      const prev = assessments[i+1] ? avgOf(ratingsOf(assessments[i+1])) : null;
+      const by = a.assessorName || '—';
+      return '<li onclick="openAssessModal('+a.id+')"><div><div class="a-date">'+fmtDate(a.date)+'</div><div class="a-by">'+escapeHtml(by)+'</div></div>'+
+        '<div class="a-right"><div style="text-align:right"><div class="a-avg">'+(avg!=null?avg.toFixed(1).replace('.',','):'–')+' '+trendMark(avg,prev)+
+        '</div><div class="stars">'+starStr(avg)+'</div></div><span class="chev">›</span></div></li>';
+    }).join('');
+  }
+
+  // Skills: aggregate latest + prev per skill across assessments
+  const latestBySkill = {}, prevBySkill = {};
+  assessments.forEach(a => {
     const r = ratingsOf(a);
-    Object.keys(r).forEach(k=>{
+    Object.keys(r).forEach(k => {
       const v = Number(r[k]);
       if(!v) return;
       if(latestBySkill[k] === undefined){ latestBySkill[k] = v; }
       else if(prevBySkill[k] === undefined){ prevBySkill[k] = v; }
     });
   });
-  const skillNames = Object.keys(latestBySkill).sort();
+  const beltSkillsSet = new Set(beltSkills);
+  const skillNames = Object.keys(latestBySkill).sort((a,b)=>{
+    const ai = beltSkills.indexOf(a), bi = beltSkills.indexOf(b);
+    if(ai!==-1 && bi!==-1) return ai-bi;
+    if(ai!==-1) return -1;
+    if(bi!==-1) return 1;
+    return a.localeCompare(b,'da');
+  });
   const skillsEl = document.getElementById('skills');
   if(!skillNames.length){
     skillsEl.innerHTML = '<div class="empty">Ingen skill-data endnu.</div>';
@@ -416,13 +600,13 @@ function renderDashboard(d){
       const curr = latestBySkill[k];
       const prev = prevBySkill[k];
       const cls = curr >= 3 ? 'ok' : curr >= 2 ? 'warn' : 'bad';
-      return '<div class="skill-row"><div class="dot '+cls+'"></div>'+
+      const safeK = String(k).replace(/'/g,"\\'");
+      return '<div class="skill-row" onclick="openSkillModal(\''+safeK+'\')">'+
+        '<div class="dot '+cls+'"></div>'+
         '<div class="skill-name">'+escapeHtml(k)+'</div>'+
-        '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+' ★ '+trendMark(curr,prev)+'</div></div>';
+        '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+' ★ '+trendMark(curr,prev)+'<span class="chev" style="font-size:14px">›</span></div></div>';
     }).join('');
   }
-
-  document.getElementById('qrUrl').textContent = location.href.split('?')[0].split('#')[0];
 
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('dashView').classList.add('show');
@@ -431,69 +615,97 @@ function renderDashboard(d){
   window.scrollTo(0,0);
 }
 
-function openAssessModal(assessmentId){
+function renderGraph(assessments){
+  const box = document.getElementById('graphBox');
+  const last = assessments.slice(0,8).reverse();
+  const pts = last.map(a => ({date:a.date, avg:avgOf(ratingsOf(a))})).filter(p=>p.avg!=null);
+  if(pts.length < 2){ box.innerHTML = '<div class="empty">Endnu ikke nok data til graf — kommer efter et par vurderinger.</div>'; return; }
+  const W=300, H=150, PL=28, PR=8, PT=12, PB=22;
+  const iW=W-PL-PR, iH=H-PT-PB;
+  const minD=new Date(pts[0].date).getTime(), maxD=new Date(pts[pts.length-1].date).getTime();
+  const dRange=maxD-minD||1;
+  const avgs=pts.map(p=>p.avg);
+  const rawMin=Math.min.apply(null,avgs), rawMax=Math.max.apply(null,avgs);
+  const pad=Math.max((rawMax-rawMin)*0.4, 0.4);
+  const yMin=Math.max(1,rawMin-pad), yMax=Math.min(5,rawMax+pad);
+  const yRange=yMax-yMin||1;
+  const toX=d=>PL+((new Date(d).getTime()-minD)/dRange)*iW;
+  const toY=v=>PT+iH-((v-yMin)/yRange)*iH;
+  const linePts = pts.map(p=>toX(p.date).toFixed(1)+','+toY(p.avg).toFixed(1)).join(' ');
+  const dots = pts.map((p,i)=>{
+    const cx=toX(p.date).toFixed(1), cy=toY(p.avg).toFixed(1);
+    const color = i===pts.length-1 ? '#16a34a' : '#6366f1';
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="'+color+'" stroke="#fff" stroke-width="2"/>';
+  }).join('');
+  const yStep = yRange<=1?0.5:1;
+  const yStart = Math.ceil(yMin/yStep)*yStep;
+  const yTicks=[]; for(let v=yStart; v<=yMax+0.001; v=Math.round((v+yStep)*10)/10) yTicks.push(Math.round(v*10)/10);
+  const yLines = yTicks.map(v=>'<line x1="'+PL+'" y1="'+toY(v).toFixed(1)+'" x2="'+(PL+iW)+'" y2="'+toY(v).toFixed(1)+'" stroke="#eef1f1"/><text x="'+(PL-4)+'" y="'+(toY(v)+3.5).toFixed(1)+'" text-anchor="end" font-size="9" fill="#9aacac">'+v+'</text>').join('');
+  const fmtShort = d=>{ const p=d.split('-'); return p[2]+'/'+p[1]; };
+  box.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;overflow:visible;display:block">'+
+    yLines+
+    '<line x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+(PT+iH)+'" stroke="#d5dcdc"/>'+
+    '<line x1="'+PL+'" y1="'+(PT+iH)+'" x2="'+(PL+iW)+'" y2="'+(PT+iH)+'" stroke="#d5dcdc"/>'+
+    '<text x="'+PL+'" y="'+(H-4)+'" text-anchor="start" font-size="9" fill="#9aacac">'+fmtShort(pts[0].date)+'</text>'+
+    '<text x="'+(PL+iW)+'" y="'+(H-4)+'" text-anchor="end" font-size="9" fill="#9aacac">'+fmtShort(pts[pts.length-1].date)+'</text>'+
+    '<polyline points="'+linePts+'" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round"/>'+
+    dots+'</svg>';
+}
+
+// ── Assessment detail modal ──
+function openAssessModal(aid){
   if(!CURRENT) return;
   const assessments = CURRENT.sortedAssessments || [];
-  const idx = assessments.findIndex(a => a.id === assessmentId);
+  const idx = assessments.findIndex(a => a.id === aid);
   if(idx === -1) return;
   const a = assessments[idx];
   const prevA = assessments[idx+1] || null;
   const curr = ratingsOf(a);
   const prev = prevA ? ratingsOf(prevA) : {};
-  const pensum = (CURRENT.pensum || {})[a.belt || (CURRENT.member||{}).belt] || [];
-
+  // Vis ratings i denne vurdering (ikke pensum for et andet bælte)
   const avg = avgOf(curr);
   const prevAvg = prevA ? avgOf(prev) : null;
 
-  document.getElementById('modalTitle').textContent = 'Vurdering ' + fmtDate(a.date);
-  const subParts = [];
-  if(a.belt) subParts.push('🥋 '+escapeHtml(a.belt));
-  if(a.assessorName) subParts.push('👤 '+escapeHtml(a.assessorName));
-  document.getElementById('modalSub').innerHTML = subParts.join(' · ');
-
-  // Merge alle skills der optræder (pensum + ratings + prev)
-  const allSkills = new Set();
-  pensum.forEach(s => allSkills.add(s));
-  Object.keys(curr).forEach(s => allSkills.add(s));
-  Object.keys(prev).forEach(s => allSkills.add(s));
-  const skillList = [...allSkills].sort((x,y)=>{
-    const xi = pensum.indexOf(x), yi = pensum.indexOf(y);
+  const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
+  const pensumSet = new Set(pensumForBelt);
+  const skillKeys = Object.keys(curr).sort((x,y)=>{
+    const xi = pensumForBelt.indexOf(x), yi = pensumForBelt.indexOf(y);
     if(xi!==-1 && yi!==-1) return xi-yi;
     if(xi!==-1) return -1;
     if(yi!==-1) return 1;
     return x.localeCompare(y,'da');
   });
 
-  const threshold = 4;
-  const inPensum = new Set(pensum);
-  const mastered = pensum.filter(s => Number(curr[s]||0) >= threshold).length;
-  const pTotal = pensum.length;
+  document.getElementById('modalTitle').textContent = 'Vurdering ' + fmtDate(a.date);
+  const sub = [];
+  if(a.belt){ sub.push(beltVisual(a.belt)+' <span>'+escapeHtml(a.belt)+'</span>'); }
+  if(a.assessorName) sub.push('👤 '+escapeHtml(a.assessorName));
+  document.getElementById('modalSub').innerHTML = sub.join(' · ');
 
   let header = '';
-  if(avg != null){
-    header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+  if(avg!=null){
+    const mastered = pensumForBelt.filter(s => Number(curr[s]||0)>=4).length;
+    header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
       '<span class="avg-pill">Snit '+avg.toFixed(1).replace('.',',')+' / 5 '+trendMark(avg,prevAvg)+'</span>'+
-      (pTotal?'<span style="font-size:12px;color:var(--muted)">Pensum: <strong style="color:var(--xtd)">'+mastered+' / '+pTotal+'</strong> på '+threshold+'★+</span>':'')+
+      (pensumForBelt.length?'<span style="font-size:12px;color:var(--muted)">Pensum: <strong style="color:var(--xtd)">'+mastered+' / '+pensumForBelt.length+'</strong> på 4★+</span>':'')+
       '</div>';
   }
 
-  const rows = skillList.map(sk=>{
+  const rows = skillKeys.map(sk=>{
     const v = Number(curr[sk]||0);
     const p = Number(prev[sk]||0);
-    const inP = inPensum.has(sk);
     let delta = '';
     if(v>0 && p>0){
-      const d = v-p;
-      if(d>0) delta = '<span class="delta up">↑ '+'★'.repeat(d)+'</span>';
-      else if(d<0) delta = '<span class="delta down">↓ '+'★'.repeat(-d)+'</span>';
+      const diff = v-p;
+      if(diff>0) delta = '<span class="delta up">↑ '+'★'.repeat(diff)+'</span>';
+      else if(diff<0) delta = '<span class="delta down">↓ '+'★'.repeat(-diff)+'</span>';
     } else if(v>0 && !p){
-      delta = '<span class="delta up" title="Ny vurdering">NY</span>';
+      delta = '<span class="delta new">NY</span>';
     }
-    const stars = v>0 ? ('★'.repeat(v)+'☆'.repeat(5-v)) : '<span style="color:#d5dcdc">☆☆☆☆☆</span>';
-    const nameStyle = inP ? '' : 'color:var(--muted);font-style:italic';
-    const notPensumTag = inP ? '' : ' <span style="font-size:10px;color:var(--muted);font-weight:normal">(udenfor pensum)</span>';
-    return '<div class="skill-line">'+
-      '<div class="n" style="'+nameStyle+'">'+escapeHtml(sk)+notPensumTag+'</div>'+
+    const stars = v>0 ? ('★'.repeat(v)+'☆'.repeat(5-v)) : '☆☆☆☆☆';
+    const safeSk = String(sk).replace(/'/g,"\\'");
+    return '<div class="skill-line clickable" onclick="closeAssessModal();openSkillModal(\''+safeSk+'\')">'+
+      '<div class="n">'+escapeHtml(sk)+'</div>'+
       delta+
       '<span class="stars-big">'+stars+'</span>'+
       '</div>';
@@ -505,14 +717,104 @@ function openAssessModal(assessmentId){
   document.getElementById('assessModal').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
-
 function closeAssessModal(){
   document.getElementById('assessModal').classList.remove('show');
   document.body.style.overflow = '';
 }
 
+// ── Skill history modal ──
+function openSkillModal(skill){
+  if(!CURRENT) return;
+  const assessments = CURRENT.sortedAssessments || [];
+  const hits = assessments.filter(a => {
+    const r = ratingsOf(a);
+    return Number(r[skill]||0) > 0;
+  }).slice(0,10);
+
+  document.getElementById('skillTitle').textContent = skill;
+  document.getElementById('skillSub').innerHTML = hits.length ? 'Dine '+hits.length+' seneste vurderinger af denne skill' : '';
+
+  if(!hits.length){
+    document.getElementById('skillBody').innerHTML = '<div class="sh-empty">Denne skill er endnu ikke blevet vurderet.</div>';
+  } else {
+    const rows = hits.map((a,i)=>{
+      const v = Number(ratingsOf(a)[skill]||0);
+      const prev = hits[i+1] ? Number(ratingsOf(hits[i+1])[skill]||0) : 0;
+      let delta = '';
+      if(v>0 && prev>0){
+        const d = v-prev;
+        if(d>0) delta = '<span class="delta up">↑ '+'★'.repeat(d)+'</span>';
+        else if(d<0) delta = '<span class="delta down">↓ '+'★'.repeat(-d)+'</span>';
+      }
+      return '<div class="sh-item"><div class="sh-left">'+
+        '<div class="sh-date">'+fmtDate(a.date)+'</div>'+
+        '<div class="sh-belt">'+beltVisual(a.belt)+' '+escapeHtml(a.belt||'')+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+delta+
+        '<span class="sh-stars">'+('★'.repeat(v)+'☆'.repeat(5-v))+'</span></div></div>';
+    }).join('');
+    // Mini-graf hvis 2+
+    let mini = '';
+    if(hits.length>=2){
+      const pts = hits.slice().reverse().map(a => Number(ratingsOf(a)[skill]||0));
+      const W=280,H=60,PL=6,PR=6,PT=6,PB=6, iW=W-PL-PR, iH=H-PT-PB;
+      const toX=i=>PL+(pts.length<=1?iW/2:i*(iW/(pts.length-1)));
+      const toY=v=>PT+iH-((v-1)/4)*iH;
+      const line = pts.map((v,i)=>toX(i).toFixed(1)+','+toY(v).toFixed(1)).join(' ');
+      const dots = pts.map((v,i)=>'<circle cx="'+toX(i).toFixed(1)+'" cy="'+toY(v).toFixed(1)+'" r="3" fill="#6366f1"/>').join('');
+      mini = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:60px;background:#fafbfb;border-radius:6px;margin-bottom:10px">'+
+        '<polyline points="'+line+'" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round"/>'+dots+'</svg>';
+    }
+    document.getElementById('skillBody').innerHTML = mini + rows;
+  }
+  document.getElementById('skillModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeSkillModal(){
+  document.getElementById('skillModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ── Trainings modal ──
+function openTrainingsModal(){
+  if(!CURRENT) return;
+  const trains = CURRENT.trainingDates || [];
+  document.getElementById('trainSub').textContent = trains.length + ' træninger i alt · ' + (CURRENT.trainingsThisYear||0) + ' i år';
+  if(!trains.length){
+    document.getElementById('trainBody').innerHTML = '<div class="sh-empty">Ingen registrerede træninger endnu.</div>';
+  } else {
+    // Grupper pr. måned
+    const byMonth = {};
+    trains.forEach(t=>{
+      const key = String(t.date).slice(0,7);
+      if(!byMonth[key]) byMonth[key] = [];
+      byMonth[key].push(t);
+    });
+    const keys = Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
+    document.getElementById('trainBody').innerHTML = keys.map(k=>{
+      const items = byMonth[k].map(t => '<div class="train-item"><div class="train-date">'+fmtDate(t.date)+'</div><div class="train-name">'+escapeHtml(t.name||'Træning')+'</div></div>').join('');
+      return '<div class="train-month">'+monthLabel(k+'-01')+' · '+byMonth[k].length+'</div>'+items;
+    }).join('');
+  }
+  document.getElementById('trainModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeTrainingsModal(){
+  document.getElementById('trainModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function openAllAssessments(){
+  // Scroll til listen
+  const el = document.querySelector('.alist');
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape' && document.getElementById('assessModal').classList.contains('show')) closeAssessModal();
+  if(e.key==='Escape'){
+    if(document.getElementById('assessModal').classList.contains('show')) closeAssessModal();
+    else if(document.getElementById('skillModal').classList.contains('show')) closeSkillModal();
+    else if(document.getElementById('trainModal').classList.contains('show')) closeTrainingsModal();
+  }
 });
 
 document.getElementById('emailInput').addEventListener('keydown', e=>{
