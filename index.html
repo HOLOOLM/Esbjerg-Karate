@@ -873,6 +873,53 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #page-promotion .promo-score-big{font-size:1.25rem}
   #page-promotion .promo-progress-bar{max-width:90px}
 }
+
+/* ── Hurtig vurder panel ── */
+.hv-panel{position:fixed;inset:0;z-index:9000;background:#f0f4f4;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.hv-panel.open{transform:translateY(0)}
+.hv-topbar{background:var(--xtd);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:.7rem;flex-shrink:0;position:sticky;top:0;z-index:2}
+.hv-topbar .hv-title{flex:1;font-size:.95rem;font-weight:700}
+.hv-chip-count{background:rgba(255,255,255,.18);border-radius:20px;padding:.2rem .75rem;font-size:.75rem;white-space:nowrap}
+.hv-body{flex:1;overflow-y:auto;padding:1rem;padding-bottom:5rem}
+.hv-step{background:#fff;border:1px solid #e3ecec;border-radius:14px;padding:1rem 1.1rem;margin-bottom:.9rem}
+.hv-step-hdr{display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem}
+.hv-step-num{width:26px;height:26px;border-radius:50%;background:var(--xtd);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;flex-shrink:0}
+.hv-step-num.done{background:#16a34a}
+.hv-step-title{font-size:.95rem;font-weight:700;color:#1a2e2e}
+.hv-chip-grid{display:flex;flex-wrap:wrap;gap:.4rem}
+.hv-chip{padding:.4rem .8rem;border-radius:18px;font-size:.78rem;font-weight:600;border:1.5px solid #dde8e8;background:#fff;color:#4a6060;cursor:pointer;user-select:none;transition:all .15s;display:inline-flex;align-items:center;gap:.3rem}
+.hv-chip.on{background:linear-gradient(135deg,#2c4a4a,#3d6464);color:#fff;border-color:#2c4a4a}
+.hv-chip .cnt{background:rgba(255,255,255,.25);padding:0 5px;border-radius:8px;font-size:.68rem;font-weight:700}
+.hv-chip:not(.on) .cnt{background:#f0f4f4;color:#6a7b7b}
+.hv-member-blk{margin-top:.9rem;padding-top:.9rem;border-top:1px dashed #e3ecec}
+.hv-member-blk:first-child{margin-top:0;padding-top:0;border-top:none}
+.hv-blk-hdr{font-size:.9rem;font-weight:800;color:#1a2e2e;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+.hv-row{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;padding:.5rem 0;border-bottom:1px solid #f0f4f4}
+.hv-row:last-child{border-bottom:none}
+.hv-mav{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4a7a7a,#2c4a4a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;flex-shrink:0}
+.hv-stars span{font-size:1.4rem;color:#d4d4d4;cursor:pointer;user-select:none;padding:0 2px;transition:color .1s;line-height:1}
+.hv-stars span.on{color:#f59e0b}
+.hv-savebar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e3ecec;padding:.85rem 1rem;display:flex;gap:.6rem;align-items:center;z-index:20;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.hv-savebar-info{flex:1;font-size:.76rem;color:#6a7b7b;font-weight:600;line-height:1.3}
+
+/* ── Inbox / Beskeder ── */
+.inbox-panel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:9500;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.inbox-panel.open{transform:translateX(0)}
+.inbox-topbar{background:var(--xtd);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:.7rem;flex-shrink:0}
+.inbox-topbar .inbox-title{flex:1;font-weight:700;font-size:.95rem}
+.inbox-list-item{padding:.85rem 1rem;border-bottom:1px solid #f0f4f4;cursor:pointer;transition:background .15s}
+.inbox-list-item:hover{background:#f8fafa}
+.inbox-list-item.unread{background:#f0f9ff}
+.inbox-item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem}
+.inbox-item-name{font-weight:700;font-size:.88rem;color:#1a2e2e}
+.inbox-item-date{font-size:.72rem;color:#9aacac}
+.inbox-item-preview{font-size:.78rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-msg{max-width:82%;padding:.5rem .75rem;border-radius:12px;font-size:.82rem;line-height:1.45;word-break:break-word}
+.inbox-msg.trainer{background:#1a2e2e;color:#fff;border-radius:12px 12px 4px 12px;align-self:flex-end}
+.inbox-msg.student{background:#f3f4f6;color:#1a2e2e;border-radius:12px 12px 12px 4px;align-self:flex-start}
+.inbox-msg-meta{font-size:.65rem;opacity:.6;margin-top:.2rem}
+.notif-btn{position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.3rem .65rem;font-size:1rem;cursor:pointer;line-height:1}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none}
 </style>
 </head>
 <body>
@@ -965,6 +1012,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="hdate" id="headerDate"></div>
     <div id="syncStatus" style="font-size:.75rem;display:none;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12)"></div>
     <div id="presenceBar" style="display:none;font-size:.73rem;padding:.2rem .6rem;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap" title="Online brugere"></div>
+    <button class="notif-btn" id="notifBtn" onclick="openInbox()" title="Beskeder fra elever">💬<span id="notifBadge" class="notif-badge" style="display:none">0</span></button>
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
     <button class="btn bg btn-sm" onclick="openGlobalSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Global søgning">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
@@ -1058,6 +1106,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <button class="btn bg btn-sm" onclick="resetAllCheckIns()">🔄 Nulstil</button>
       <button class="btn bs btn-sm" onclick="markAllPresent()">☑️ Marker alle</button>
       <button class="btn bg btn-sm" onclick="openNotesModal()">📝 Note</button>
+      <button class="btn bp btn-sm" onclick="openHv()">⚡ Quick rating</button>
       <button class="btn bp btn-sm" onclick="saveSession()">💾 Gem session</button>
     </div>
   </div>
@@ -1111,6 +1160,35 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="tbl-footer"><button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button></div>
   </div>
 </div>
+
+<!-- ══ HURTIG VURDER PANEL ══ -->
+<div id="hvPanel" class="hv-panel">
+  <div class="hv-topbar">
+    <button onclick="closeHv()" style="background:none;border:none;color:rgba(255,255,255,.8);font-size:1.2rem;cursor:pointer;padding:0;line-height:1">←</button>
+    <span class="hv-title">⚡ Quick rating</span>
+    <span class="hv-chip-count" id="hvPresentChip">0 tilstede</span>
+  </div>
+  <div class="hv-body" id="hvBody"></div>
+  <div class="hv-savebar">
+    <div class="hv-savebar-info" id="hvSaveInfo">Vælg bedømmer og mindst én færdighed</div>
+    <button class="btn bp" id="hvSaveBtn" onclick="saveHv()" disabled style="white-space:nowrap">💾 Gem vurderinger</button>
+  </div>
+</div>
+
+<!-- ══ INBOX PANEL ══ -->
+<div id="inboxPanel" class="inbox-panel">
+  <div class="inbox-topbar">
+    <button onclick="closeInbox()" style="background:none;border:none;color:rgba(255,255,255,.8);font-size:1.2rem;cursor:pointer;padding:0;line-height:1">←</button>
+    <span class="inbox-title">💬 Beskeder</span>
+    <button id="inboxBackBtn" onclick="showInboxList()" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.2rem .65rem;font-size:.78rem;cursor:pointer">← Alle</button>
+  </div>
+  <div id="inboxContent" style="flex:1;overflow-y:auto;display:flex;flex-direction:column"></div>
+  <div id="inboxReplyBar" style="display:none;padding:.75rem 1rem;border-top:1px solid #f0f4f4;display:none;gap:.5rem;align-items:flex-end">
+    <textarea id="inboxReplyText" rows="2" placeholder="Skriv svar…" style="flex:1;border:1.5px solid #c8dede;border-radius:10px;padding:.55rem .75rem;font-size:.85rem;resize:none;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInboxReply()}"></textarea>
+    <button onclick="sendInboxReply()" class="btn bp btn-sm">Send</button>
+  </div>
+</div>
+<div id="inboxOverlay" onclick="closeInbox()" style="display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.3)"></div>
 
 <!-- ══ PAGE: HISTORY ══ -->
 <div class="page" id="page-history">
@@ -2203,7 +2281,8 @@ const SEED = [
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[];
+let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[], messages=[];
+let nextMessageId=1;
 let deletedAssessmentIds=new Set();
 let deletedBoardIds=new Set();
 let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
@@ -2447,7 +2526,10 @@ function load(){
     try{ deletedBoardIds=new Set(JSON.parse(localStorage.getItem('kk2_deletedBoards')||'[]')); }catch(e){ deletedBoardIds=new Set(); }
     const gpv=localStorage.getItem('kk2_gultPensum');
     gultPensumOverrides=gpv?JSON.parse(gpv):{};
-  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; }
+    const msgv=localStorage.getItem('kk2_messages');
+    messages=msgv?JSON.parse(msgv):[];
+    nextMessageId=messages.reduce((x,m)=>Math.max(x,(m.id||0)+1),1);
+  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; messages=[]; }
 }
 function save(){
   config._savedAt=Date.now();
@@ -2457,6 +2539,7 @@ function save(){
   localStorage.setItem('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
   localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
   localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
+  localStorage.setItem('kk2_messages',JSON.stringify(messages));
   localStorage.setItem('kk2_config',JSON.stringify(config));
   if(cloudLoaded) pushToCloud();
 }
@@ -2849,7 +2932,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -2971,6 +3054,15 @@ function loadFromCloud(onDone){
       pensum=d.pensum||{};
       localStorage.setItem('kk2_pensum',JSON.stringify(pensum));
       if(d.skillNotes){ skillNotes=d.skillNotes; localStorage.setItem('kk2_skillNotes',JSON.stringify(skillNotes)); }
+      // Merge beskeder fra cloud (bevar lokale ulæste, tilføj nye fra elever)
+      if(Array.isArray(d.messages)){
+        const localIds=new Set(messages.map(m=>m.id));
+        d.messages.forEach(m=>{ if(!localIds.has(m.id)) messages.push(m); });
+        messages.sort((a,b)=>new Date(a.date)-new Date(b.date));
+        nextMessageId=messages.reduce((x,m)=>Math.max(x,(m.id||0)+1),1);
+        localStorage.setItem('kk2_messages',JSON.stringify(messages));
+        updateNotifBadge();
+      }
       // Bestyrelse: hent fra Sheets KUN hvis svaret eksplicit indeholder boardMeetings
       // (undefined = gammelt apps-script uden boardMeetings support → bevar lokale data)
       if(Array.isArray(d.deletedBoardIds)&&d.deletedBoardIds.length){
@@ -3543,6 +3635,7 @@ function checkLock(){
 
 document.addEventListener('DOMContentLoaded',()=>{
   load(); // load config + data first
+  updateNotifBadge();
   // Sæt badge-billeder straks — lockBadgeImg vises FØR login, så det skal ske her
   try{['headerBadgeImg','lockBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el&&typeof SHURI_BADGE!=='undefined')el.src=SHURI_BADGE;});}catch(e){}
   const locked=checkLock();
@@ -9664,6 +9757,401 @@ function exportBoardToPDF(id){
   const w=window.open('','_blank','width=850,height=1100');
   w.document.write(html);
   w.document.close();
+}
+
+/* ═══════════════════════════════════════════════════
+   HURTIG VURDER
+═══════════════════════════════════════════════════ */
+let _hvSkills=[], _hvRatings={}, _hvAssessor='', _hvNotes={};
+
+function openHv(){
+  const present=members.filter(m=>m.checkedIn&&!m.archived);
+  if(!present.length){showToast('⚠️ Ingen er tjekket ind endnu');return;}
+  _hvSkills=[];_hvRatings={};_hvAssessor='';_hvNotes={};
+  renderHv();
+  document.getElementById('hvPanel').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeHv(){
+  document.getElementById('hvPanel').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+const HV_GROUPS=['Ippon','Taezu','Kihon'];
+function hvGroupOf(skill){
+  const lower=String(skill||'').toLowerCase();
+  for(const g of HV_GROUPS){ if(lower.startsWith(g.toLowerCase())) return g; }
+  return skill;
+}
+function hvMemberSkillsInGroup(m,group){
+  return (pensum[m.belt]||[]).filter(s=>hvGroupOf(s)===group);
+}
+
+function renderHv(){
+  const present=members.filter(m=>m.checkedIn&&!m.archived);
+  document.getElementById('hvPresentChip').textContent=present.length+' tilstede';
+  const groupSet=new Set();
+  present.forEach(m=>(pensum[m.belt]||[]).forEach(s=>groupSet.add(hvGroupOf(s))));
+  const allGroups=[...groupSet].sort((a,b)=>{
+    const ai=HV_GROUPS.indexOf(a), bi=HV_GROUPS.indexOf(b);
+    if(ai>=0&&bi>=0) return ai-bi;
+    if(ai>=0) return -1;
+    if(bi>=0) return 1;
+    return a.localeCompare(b,'da');
+  });
+  const instructors=members.filter(x=>!x.archived&&(x.role==='Instruktør'||x.role==='Hjælpetræner'))
+    .sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da'));
+
+  let html=`<div class="hv-step">
+    <div class="hv-step-hdr">
+      <div class="hv-step-num${_hvAssessor?' done':''}">1</div>
+      <div class="hv-step-title">Hvem bedømmer?</div>
+    </div>
+    <select onchange="setHvAssessor(this.value)" style="width:100%;padding:.7rem .8rem;border:1.5px solid ${_hvAssessor?'#c8dede':'#ef4444'};border-radius:10px;font-size:.9rem;font-weight:600;color:#1a2e2e;background:#fff;font-family:inherit;outline:none">
+      <option value="">— Vælg bedømmer —</option>
+      ${instructors.map(x=>`<option value="${x.firstName} ${x.lastName}"${_hvAssessor===x.firstName+' '+x.lastName?' selected':''}>${x.firstName} ${x.lastName} (${x.role})</option>`).join('')}
+    </select>
+  </div>
+  <div class="hv-step">
+    <div class="hv-step-hdr">
+      <div class="hv-step-num${_hvSkills.length?' done':''}">2</div>
+      <div class="hv-step-title">Vælg færdigheder</div>
+      <div style="margin-left:auto;font-size:.74rem;color:#6a7b7b;font-weight:500">${_hvSkills.length?_hvSkills.length+' valgt':'Vælg mindst én'}</div>
+    </div>
+    ${allGroups.length?`<div class="hv-chip-grid">${allGroups.map(g=>{
+      const cnt=present.filter(m=>hvMemberSkillsInGroup(m,g).length>0).length;
+      const on=_hvSkills.includes(g);
+      return `<div class="hv-chip${on?' on':''}" onclick="toggleHvSkill('${String(g).replace(/'/g,"\\'")}')"> ${g} <span class="cnt">${cnt}</span></div>`;
+    }).join('')}</div>`:'<div style="color:#9aacac;font-style:italic;font-size:.82rem">Ingen pensum fundet for tilstedeværende medlemmer.</div>'}
+  </div>`;
+
+  if(_hvSkills.length){
+    html+=`<div class="hv-step"><div class="hv-step-hdr"><div class="hv-step-num${Object.keys(_hvRatings).length?' done':''}">3</div><div class="hv-step-title">Giv stjerner</div></div>`;
+    _hvSkills.forEach(group=>{
+      const eligible=present.filter(m=>hvMemberSkillsInGroup(m,group).length>0);
+      if(!eligible.length)return;
+      const grpNote=getSkillNote(group);
+      const grpInfo=grpNote?` <span style="font-size:.8rem;color:#6366f1;cursor:pointer" title="Vis info" onclick="event.stopPropagation();showSkillNote('${String(group).replace(/'/g,"\\'")}')">ℹ️</span>`:'';
+      html+=`<div class="hv-member-blk"><div class="hv-blk-hdr">📚 ${group}${grpInfo} <span style="font-size:.7rem;color:#6a7b7b;font-weight:500">${eligible.length} elev${eligible.length>1?'er':''}</span></div>`;
+      eligible.forEach(m=>{
+        const memberSkills=hvMemberSkillsInGroup(m,group);
+        const specific=memberSkills[0]; // use first matching pensum skill
+        const cur=(_hvRatings[m.id]||{})[specific]||0;
+        const ini=(m.firstName[0]||'')+(m.lastName[0]||'');
+        const specificLbl=(specific!==group)?` <span style="font-size:.68rem;color:#6a7b7b;font-weight:500">(${specific})</span>`:'';
+        html+=`<div class="hv-row">
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div class="hv-mav">${ini}</div>
+            <div><div style="font-size:.86rem;font-weight:600;color:#1a2e2e">${m.firstName} ${m.lastName}${specificLbl}</div><div style="font-size:.68rem;color:#6a7b7b">${m.belt||''}</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.4rem">
+            <div class="hv-stars">${[1,2,3,4,5].map(i=>`<span data-mid="${m.id}" data-skill="${String(specific).replace(/"/g,'&quot;')}" data-val="${i}" onclick="setHvStar(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div>
+            <button onclick="openHvNote(${m.id})" title="${_hvNotes[m.id]?'Rediger note':'Tilføj note'}" style="background:${_hvNotes[m.id]?'#fef3c7':'transparent'};border:1px solid ${_hvNotes[m.id]?'#fcd34d':'#d5dcdc'};border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.9rem;line-height:1">${_hvNotes[m.id]?'📝':'✏️'}</button>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  }
+
+  document.getElementById('hvBody').innerHTML=html;
+  _hvUpdateSaveBar();
+}
+
+function _hvUpdateSaveBar(){
+  const rated=Object.keys(_hvRatings).filter(mid=>Object.keys(_hvRatings[mid]||{}).length>0).length;
+  const ok=_hvAssessor&&rated>0;
+  const btn=document.getElementById('hvSaveBtn');
+  const info=document.getElementById('hvSaveInfo');
+  if(btn) btn.disabled=!ok;
+  if(info){
+    if(!_hvAssessor) info.textContent='Vælg bedømmer for at fortsætte';
+    else if(!_hvSkills.length) info.textContent='Vælg mindst én færdighed';
+    else if(!rated) info.textContent='Giv stjerner til mindst ét medlem';
+    else info.textContent=rated+' vurdering'+(rated>1?'er':'')+' klar til gem';
+  }
+}
+
+function setHvAssessor(val){_hvAssessor=val;renderHv();}
+
+function openHvNote(mid){
+  const m=members.find(x=>x.id===mid);
+  if(!m)return;
+  const existing=_hvNotes[mid]||'';
+  closeHvNote();
+  const overlay=document.createElement('div');
+  overlay.id='hvNoteOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem';
+  overlay.onclick=(e)=>{if(e.target===overlay)closeHvNote();};
+  overlay.innerHTML=`<div style="background:#fff;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.25);width:100%;max-width:380px;padding:1.1rem 1.15rem">
+    <div style="font-size:.92rem;font-weight:700;color:#1a2e2e;margin-bottom:.2rem">📝 Note til ${m.firstName} ${m.lastName}</div>
+    <div style="font-size:.72rem;color:#6a7b7b;margin-bottom:.7rem">Kommentar der gemmes sammen med vurderingen</div>
+    <textarea id="hvNoteInput" rows="4" placeholder="Skriv note…" style="width:100%;border:1.5px solid #c8dede;border-radius:10px;padding:.6rem .75rem;font-size:.9rem;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box">${(existing||'').replace(/</g,'&lt;')}</textarea>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.8rem">
+      ${existing?`<button onclick="saveHvNote(${mid},'')" style="background:none;border:1px solid #fca5a5;color:#dc2626;border-radius:8px;padding:.5rem .85rem;font-size:.82rem;font-weight:600;cursor:pointer">Slet note</button>`:''}
+      <button onclick="closeHvNote()" style="background:#f1f4f4;border:1px solid #d5dcdc;color:#1a2e2e;border-radius:8px;padding:.5rem .85rem;font-size:.82rem;font-weight:600;cursor:pointer">Annuller</button>
+      <button onclick="saveHvNote(${mid})" style="background:#1a2e2e;border:0;color:#fff;border-radius:8px;padding:.5rem .95rem;font-size:.82rem;font-weight:600;cursor:pointer">Gem</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>{const ta=document.getElementById('hvNoteInput');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}},30);
+}
+function closeHvNote(){const o=document.getElementById('hvNoteOverlay');if(o)o.remove();}
+function saveHvNote(mid,forced){
+  const ta=document.getElementById('hvNoteInput');
+  const val=(forced!==undefined?forced:(ta?ta.value:'')).trim();
+  if(val)_hvNotes[mid]=val; else delete _hvNotes[mid];
+  closeHvNote();
+  renderHv();
+}
+
+function toggleHvSkill(skill){
+  const idx=_hvSkills.indexOf(skill);
+  if(idx>=0){
+    _hvSkills.splice(idx,1);
+    // Clear ratings for every specific pensum skill whose group matches this chip
+    Object.keys(_hvRatings).forEach(mid=>{
+      Object.keys(_hvRatings[mid]||{}).forEach(sp=>{
+        if(hvGroupOf(sp)===skill) delete _hvRatings[mid][sp];
+      });
+      if(!Object.keys(_hvRatings[mid]||{}).length) delete _hvRatings[mid];
+    });
+  }else{
+    _hvSkills.push(skill);
+  }
+  renderHv();
+}
+
+function setHvStar(el){
+  const mid=Number(el.dataset.mid);
+  const skill=el.dataset.skill;
+  const val=Number(el.dataset.val);
+  if(!_hvRatings[mid])_hvRatings[mid]={};
+  _hvRatings[mid][skill]=(_hvRatings[mid][skill]===val)?0:val;
+  if(!_hvRatings[mid][skill])delete _hvRatings[mid][skill];
+  if(!Object.keys(_hvRatings[mid]).length)delete _hvRatings[mid];
+  const cur=(_hvRatings[mid]||{})[skill]||0;
+  el.parentElement.querySelectorAll('span').forEach(s=>{
+    const sv=Number(s.dataset.val);
+    s.className=sv<=cur?'on':'';
+    s.textContent=sv<=cur?'★':'☆';
+  });
+  _hvUpdateSaveBar();
+}
+
+function saveHv(){
+  if(!_hvAssessor){showToast('⚠️ Vælg bedømmer');return;}
+  const today=currentTrainingDate;
+  let saved=0;
+  Object.entries(_hvRatings).forEach(([midStr,skillRatings])=>{
+    if(!Object.keys(skillRatings).length)return;
+    const mid=Number(midStr);
+    const m=members.find(x=>x.id===mid);
+    if(!m)return;
+    const note=_hvNotes[mid]||'';
+    const existing=assessments.find(a=>a.memberId===mid&&a.date===today);
+    if(existing){
+      const er=JSON.parse(existing.ratings||'{}');
+      Object.assign(er,skillRatings);
+      existing.ratings=JSON.stringify(er);
+      existing.assessorName=_hvAssessor;
+      existing.updatedAt=Date.now();
+      if(note) existing.comment=existing.comment?existing.comment+'\n'+note:note;
+    }else{
+      assessments.push({id:nextAssessmentId++,memberId:mid,date:today,belt:m.belt||'',ratings:JSON.stringify(skillRatings),comment:note,assessorName:_hvAssessor,updatedAt:Date.now()});
+    }
+    saved++;
+  });
+  if(!saved){showToast('⚠️ Ingen vurderinger at gemme');return;}
+  save();pushToCloudNow();
+  closeHv();
+  renderT();
+  showToast('✅ '+saved+' vurdering'+(saved>1?'er':'')+' gemt');
+}
+
+/* ═══════════════════════════════════════════════════
+   INBOX / BESKEDER
+═══════════════════════════════════════════════════ */
+let _inboxActiveMember=null;
+
+function updateNotifBadge(){
+  const n=messages.filter(m=>m.sender==='student'&&!m.read).length;
+  const badge=document.getElementById('notifBadge');
+  if(!badge)return;
+  badge.textContent=n>9?'9+':n;
+  badge.style.display=n>0?'flex':'none';
+}
+
+function openInbox(){
+  _inboxActiveMember=null;
+  showInboxList();
+  document.getElementById('inboxPanel').classList.add('open');
+  document.getElementById('inboxOverlay').style.display='block';
+}
+function closeInbox(){
+  document.getElementById('inboxPanel').classList.remove('open');
+  document.getElementById('inboxOverlay').style.display='none';
+}
+
+function showInboxList(){
+  _inboxActiveMember=null;
+  document.getElementById('inboxBackBtn').style.display='none';
+  document.getElementById('inboxReplyBar').style.display='none';
+  const threads={};
+  messages.forEach(msg=>{
+    if(!threads[msg.memberId])threads[msg.memberId]=[];
+    threads[msg.memberId].push(msg);
+  });
+  const list=Object.entries(threads).map(([mid,msgs])=>{
+    const latest=msgs[msgs.length-1];
+    const unread=msgs.filter(m=>m.sender==='student'&&!m.read).length;
+    const member=members.find(m=>m.id===Number(mid));
+    return{mid:Number(mid),latest,unread,member};
+  }).sort((a,b)=>new Date(b.latest.date)-new Date(a.latest.date));
+  const el=document.getElementById('inboxContent');
+  if(!list.length){
+    el.innerHTML='<div style="padding:2.5rem 1rem;text-align:center;color:#9aacac;font-style:italic;font-size:.88rem">Ingen beskeder endnu.<br><br>Elever kan sende beskeder fra Min Udvikling.</div>';
+    return;
+  }
+  el.innerHTML=list.map(t=>{
+    const name=t.member?t.member.firstName+' '+t.member.lastName:'Ukendt';
+    const preview=(t.latest.text||'').slice(0,55)+((t.latest.text||'').length>55?'…':'');
+    const taggedId=Number(t.latest.taggedMemberId)||0;
+    let tagChip='';
+    if(taggedId){
+      const inst=members.find(m=>m.id===taggedId);
+      const tn=inst?(inst.firstName+' '+(inst.lastName||'')).trim():'#'+taggedId;
+      tagChip=`<span style="font-size:.6rem;background:#eef2ff;color:#4338ca;border-radius:10px;padding:1px 6px;font-weight:700;margin-left:4px">@${tn}</span>`;
+    }
+    return `<div class="inbox-list-item${t.unread?' unread':''}" onclick="openThread(${t.mid})">
+      <div class="inbox-item-hdr">
+        <span class="inbox-item-name">${name}${t.unread?` <span style="font-size:.65rem;color:#6366f1;font-weight:800">${t.unread} ny</span>`:''}${tagChip}</span>
+        <span class="inbox-item-date">${formatMsgDate(t.latest.date)}</span>
+      </div>
+      <div class="inbox-item-preview">${t.latest.sender==='trainer'?'Du: ':''}${preview}</div>
+    </div>`;
+  }).join('');
+}
+
+let _inboxShowAll=false;
+function formatMsgDate(d){
+  if(!d)return'';
+  const dt=new Date(d);
+  if(isNaN(dt.getTime()))return String(d);
+  const pad=n=>String(n).padStart(2,'0');
+  const dd=pad(dt.getDate()),mm=pad(dt.getMonth()+1),yy=dt.getFullYear();
+  const hasTime=String(d).includes('T');
+  return hasTime?`${dd}/${mm}/${yy} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`:`${dd}/${mm}/${yy}`;
+}
+function _inboxMarkReadJsonp(id,reader){
+  const cb='_imr'+Date.now()+Math.floor(Math.random()*1000);
+  const s=document.createElement('script');
+  let timer;
+  const cleanup=()=>{clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);};
+  window[cb]=function(){cleanup();};
+  timer=setTimeout(cleanup,10000);
+  s.onerror=cleanup;
+  s.src=config.scriptUrl+'?action=markMessageRead&id='+encodeURIComponent(id)+'&reader='+encodeURIComponent(reader)+'&callback='+cb+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function openThread(memberId){
+  _inboxActiveMember=memberId;
+  _inboxShowAll=false;
+  const reader=_myPresenceName||'Træner';
+  messages.forEach(msg=>{
+    if(msg.memberId===memberId&&msg.sender==='student'){
+      msg.read=true;
+      const rb=(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+      if(rb.indexOf(reader)===-1){
+        rb.push(reader);
+        msg.readBy=rb.join(', ');
+        _inboxMarkReadJsonp(msg.id,reader);
+      }
+    }
+  });
+  save();updateNotifBadge();
+  renderThread(memberId);
+}
+function renderThread(memberId){
+  const member=members.find(m=>m.id===memberId);
+  const name=member?member.firstName+' '+member.lastName:'Ukendt';
+  document.getElementById('inboxBackBtn').style.display='';
+  const replyBar=document.getElementById('inboxReplyBar');
+  replyBar.style.display='flex';
+  const allThread=messages.filter(m=>m.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const collapsed=!_inboxShowAll && allThread.length>10;
+  const thread=collapsed?allThread.slice(-10):allThread;
+  const hidden=allThread.length-thread.length;
+  const showBtn=collapsed?`<div style="text-align:center;margin-bottom:.5rem"><button onclick="_inboxShowAll=true;renderThread(${memberId})" style="background:#f1f4f4;color:#1a2e2e;border:1px solid #d5dcdc;border-radius:20px;padding:.35rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">⬆ Vis ${hidden} ældre</button></div>`:'';
+  const collapseBtn=(_inboxShowAll&&allThread.length>10)?`<div style="text-align:center;margin-bottom:.5rem"><button onclick="_inboxShowAll=false;renderThread(${memberId})" style="background:#f1f4f4;color:#1a2e2e;border:1px solid #d5dcdc;border-radius:20px;padding:.35rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">⬇ Skjul ældre</button></div>`:'';
+  const el=document.getElementById('inboxContent');
+  el.innerHTML=`
+    <div style="padding:.65rem 1rem;font-size:.82rem;font-weight:700;color:#1a2e2e;border-bottom:1px solid #f0f4f4;background:#fafbfb;flex-shrink:0">💬 ${name}</div>
+    <div id="threadMsgs" style="flex:1;overflow-y:auto;padding:.75rem 1rem;display:flex;flex-direction:column;gap:.6rem">
+      ${showBtn}${collapseBtn}
+      ${thread.map(msg=>{
+        const taggedId=Number(msg.taggedMemberId)||0;
+        let tagChip='';
+        if(taggedId){
+          const inst=members.find(m=>m.id===taggedId);
+          const tn=inst?(inst.firstName+' '+(inst.lastName||'')).trim():'#'+taggedId;
+          tagChip=`<div style="margin-bottom:2px"><span style="font-size:.65rem;background:#eef2ff;color:#4338ca;border-radius:10px;padding:1px 7px;font-weight:700">@${tn}</span></div>`;
+        }
+        const isOwn=msg.sender==='trainer';
+        const actions=`<div style="display:flex;gap:.4rem;margin-top:.2rem;opacity:.7">
+          ${isOwn?`<button onclick="editTrainerMessage(${Number(msg.id)},${memberId})" title="Rediger" style="background:none;border:none;color:#6b7878;cursor:pointer;font-size:.75rem;padding:2px 4px">✏️</button>`:''}
+          <button onclick="deleteTrainerMessage(${Number(msg.id)},${memberId})" title="Slet" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:.75rem;padding:2px 4px">🗑️</button>
+        </div>`;
+        const readByList=(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+        let readInfo='';
+        if(isOwn&&readByList.length){
+          readInfo=`<div style="font-size:.65rem;color:#9aacac;margin-top:2px">👁️ Læst af ${readByList.join(', ').replace(/</g,'&lt;')}</div>`;
+        }
+        return `<div style="display:flex;flex-direction:column;align-items:${msg.sender==='trainer'?'flex-end':'flex-start'}">
+          ${tagChip}
+          <div class="inbox-msg ${msg.sender}">${msg.text.replace(/</g,'&lt;')}
+            <div class="inbox-msg-meta">${msg.senderName||''} · ${formatMsgDate(msg.date)}</div>
+          </div>
+          ${readInfo}
+          ${actions}
+        </div>`;
+      }).join('')}
+      ${!allThread.length?'<div style="color:#9aacac;text-align:center;font-style:italic;font-size:.82rem;padding:1rem">Ingen beskeder endnu</div>':''}
+    </div>`;
+  setTimeout(()=>{const m=document.getElementById('threadMsgs');if(m)m.scrollTop=m.scrollHeight;},50);
+}
+function editTrainerMessage(id,memberId){
+  const msg=messages.find(m=>Number(m.id)===Number(id));
+  if(!msg)return;
+  const nt=prompt('Rediger besked:',msg.text);
+  if(nt===null)return;
+  const trimmed=nt.trim();
+  if(!trimmed){alert('Beskeden kan ikke være tom.');return;}
+  msg.text=trimmed;
+  save();pushToCloud();
+  renderThread(memberId);
+}
+function deleteTrainerMessage(id,memberId){
+  if(!confirm('Slet denne besked?'))return;
+  const idx=messages.findIndex(m=>Number(m.id)===Number(id));
+  if(idx===-1)return;
+  messages.splice(idx,1);
+  save();pushToCloud();
+  updateNotifBadge();
+  renderThread(memberId);
+}
+
+function sendInboxReply(){
+  if(!_inboxActiveMember)return;
+  const ta=document.getElementById('inboxReplyText');
+  const text=(ta.value||'').trim();
+  if(!text)return;
+  const senderName=_myPresenceName||'Træner';
+  messages.push({id:nextMessageId++,memberId:_inboxActiveMember,date:new Date().toISOString(),sender:'trainer',senderName,text,read:true,readBy:''});
+  ta.value='';
+  save();pushToCloud();
+  openThread(_inboxActiveMember);
 }
 </script>
 </body>
