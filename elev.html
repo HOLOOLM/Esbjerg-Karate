@@ -524,6 +524,20 @@ let _taggedInstructorName = '';
 let _mentionQuery = null; // null = not in mention mode, string = current query
 let _showAllMessages = false;
 
+function _canEditMessage(m){
+  if(!m||!m.date) return false;
+  const t=new Date(m.date).getTime();
+  if(isNaN(t)) return false;
+  return (Date.now()-t) <= 15*60*1000;
+}
+function _canDeleteMessage(m){
+  if(!m||!m.date) return false;
+  const d=new Date(m.date);
+  if(isNaN(d.getTime())) return false;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const msgDay=new Date(d); msgDay.setHours(0,0,0,0);
+  return msgDay.getTime()===today.getTime();
+}
 function formatMsgDate(d){
   if(!d) return '';
   const dt = new Date(d);
@@ -575,10 +589,13 @@ function renderMessages(){
       tagChip = `<span style="font-size:10px;background:#eef2ff;color:#4338ca;border-radius:12px;padding:1px 7px;font-weight:600">@${escapeHtml(tagName)}</span>`;
     }
     const isOwn = m.sender === 'student';
-    const actions = isOwn ? `<div style="display:flex;gap:6px;margin-top:3px;opacity:.7">
-      <button onclick="editStudentMessage(${Number(m.id)})" title="Edit" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button>
-      <button onclick="deleteStudentMessage(${Number(m.id)})" title="Delete" style="background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>
-    </div>` : '';
+    const canEdit = isOwn && _canEditMessage(m);
+    const canDel = isOwn && _canDeleteMessage(m);
+    const actionBtns = [
+      canEdit ? `<button onclick="editStudentMessage(${Number(m.id)})" title="Edit (within 15 min)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button>` : '',
+      canDel ? `<button onclick="deleteStudentMessage(${Number(m.id)})" title="Delete (same day only)" style="background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>` : ''
+    ].filter(Boolean).join('');
+    const actions = actionBtns ? `<div style="display:flex;gap:6px;margin-top:3px;opacity:.7">${actionBtns}</div>` : '';
     const readByList = (m.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
     let readInfo = '';
     if(isOwn && readByList.length){
@@ -616,6 +633,7 @@ async function editStudentMessage(id){
   if(!CURRENT) return;
   const m = (CURRENT.messages||[]).find(x=>Number(x.id)===Number(id));
   if(!m) return;
+  if(!_canEditMessage(m)){ alert('You can only edit a message within 15 minutes of sending it.'); renderMessages(); return; }
   const newText = prompt('Edit message:', m.text);
   if(newText === null) return;
   const trimmed = newText.trim();
@@ -633,6 +651,9 @@ async function editStudentMessage(id){
 
 async function deleteStudentMessage(id){
   if(!CURRENT) return;
+  const m = (CURRENT.messages||[]).find(x=>Number(x.id)===Number(id));
+  if(!m) return;
+  if(!_canDeleteMessage(m)){ alert('You can only delete a message on the same day it was sent.'); renderMessages(); return; }
   if(!confirm('Delete this message?')) return;
   const memberId = (CURRENT.member||{}).id || 0;
   const res = await _studentMsgJsonp('deleteMessage', {id, memberId});
