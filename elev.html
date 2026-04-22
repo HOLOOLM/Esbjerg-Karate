@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="da">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Min udvikling — Esbjerg Shuri-Ryu Karate</title>
+<title>My progress — Esbjerg Shuri-Ryu Karate</title>
 <style>
 :root{
   --xtd:#1a2e2e; --xtm:#4a6060; --xtl:#9aacac; --t2:#4b5563;
@@ -190,29 +190,33 @@ svg.chart{width:100%;height:150px;display:block}
 </style>
 </head>
 <body>
+<!-- ══ SHURI-RYU MÆRKE — base64 indlejret, ingen ekstern fil ══ -->
+<script>const SHURI_BADGE='data:image/jpeg;base64,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';
+try{['loginBadgeImg','topbarBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=SHURI_BADGE;});}catch(e){}
+document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=SHURI_BADGE;});}catch(e){}});</script>
 
 <div id="loginView" class="login">
   <div class="login-card">
     <div class="login-badge">
-      <img src="shuri-ryu.jpg" alt="Esbjerg Shuri-Ryu Karate">
+      <img id="loginBadgeImg" src="" alt="Esbjerg Shuri-Ryu Karate">
       <div class="login-badge-emoji">🥋</div>
     </div>
     <h1>Esbjerg Shuri-Ryu Karate</h1>
-    <p>Log ind med din email for at se dine vurderinger og fremskridt.</p>
+    <p>Log in with your email to see your ratings and progress.</p>
     <div id="loginErr" class="login-err"></div>
-    <input id="emailInput" type="email" placeholder="din@email.dk" autocomplete="email">
-    <button id="loginBtn" onclick="doLogin()">Se min udvikling</button>
-    <div id="loginStatus" class="loading"><span class="spinner"></span>Henter din data…</div>
+    <input id="emailInput" type="email" placeholder="your@email.com" autocomplete="email">
+    <button id="loginBtn" onclick="doLogin()">See my progress</button>
+    <div id="loginStatus" class="loading"><span class="spinner"></span>Loading your data…</div>
   </div>
 </div>
 
 <div id="dashView" class="dash">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px">
-      <img src="shuri-ryu.jpg" alt="Shuri-Ryu" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,.25);flex-shrink:0">
+      <img id="topbarBadgeImg" src="" alt="Shuri-Ryu" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,.25);flex-shrink:0">
       <h2>Esbjerg Shuri-Ryu Karate</h2>
     </div>
-    <button class="logout" onclick="doLogout()">Log ud</button>
+    <button class="logout" onclick="doLogout()">Log out</button>
   </div>
   <div class="wrap">
 
@@ -229,9 +233,9 @@ svg.chart{width:100%;height:150px;display:block}
         </div>
       </div>
       <div class="stats-row">
-        <div class="stat" onclick="openTrainingsModal()"><div id="stTrain" class="stat-num">–</div><div class="stat-lbl">træninger i år</div></div>
-        <div class="stat" onclick="openAllAssessments()"><div id="stVurd" class="stat-num">–</div><div class="stat-lbl">vurderinger</div></div>
-        <div class="stat"><div id="stSnit" class="stat-num">–</div><div class="stat-lbl">seneste snit</div></div>
+        <div class="stat" onclick="openTrainingsModal()"><div id="stTrain" class="stat-num">–</div><div class="stat-lbl">trainings this year</div></div>
+        <div class="stat" onclick="openAllAssessments()"><div id="stVurd" class="stat-num">–</div><div class="stat-lbl">ratings</div></div>
+        <div class="stat"><div id="stSnit" class="stat-num">–</div><div class="stat-lbl">latest average</div></div>
       </div>
     </div>
 
@@ -240,7 +244,7 @@ svg.chart{width:100%;height:150px;display:block}
     <div id="streakBox"></div>
 
     <div class="card">
-      <h3>🏅 Dine badges</h3>
+      <h3>🏅 Your badges</h3>
       <div id="badgesBox" class="badges"></div>
     </div>
 
@@ -249,37 +253,37 @@ svg.chart{width:100%;height:150px;display:block}
     </div>
 
     <div class="card">
-      <h3>📊 Udvikling over tid</h3>
+      <h3>📊 Progress over time</h3>
       <div id="graphBox" class="graph"></div>
     </div>
 
     <div class="card">
-      <h3>📝 Seneste vurderinger</h3>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tryk på en vurdering for at se alle detaljer</div>
+      <h3>📝 Latest ratings</h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tap a rating to see all details</div>
       <ul id="alist" class="alist"></ul>
     </div>
 
     <div class="card">
-      <h3>🎯 Fremgang per skill</h3>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tryk på en skill for at se alle dine vurderinger af den</div>
+      <h3>🎯 Progress per skill</h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tap a skill to see all your ratings of it</div>
       <div id="skills" class="skills"></div>
     </div>
 
     <div class="card" id="notesCard" style="display:none">
-      <h3>💬 Trænernes noter</h3>
+      <h3>💬 Trainers' notes</h3>
       <div id="notesBox"></div>
     </div>
 
     <div class="card">
-      <h3>✉️ Beskeder til trænerne</h3>
+      <h3>✉️ Messages to the trainers</h3>
       <div id="msgThread" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:320px;overflow-y:auto"></div>
       <div id="tagBadge" style="display:none"></div>
       <div style="position:relative">
         <div id="mentionDropdown" class="mention-dd"></div>
         <div id="emojiPanel" style="display:none;position:absolute;bottom:calc(100% + 4px);right:0;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:8px;z-index:200;display:none;flex-wrap:wrap;gap:4px;max-width:280px"></div>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea id="msgInput" rows="2" placeholder="Skriv en besked… brug @ for at tagge en træner" style="flex:1;border:1.5px solid #d5dcdc;border-radius:10px;padding:10px;font-size:14px;resize:none;font-family:inherit;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--xtm)'" onblur="this.style.borderColor='#d5dcdc'" oninput="onMsgInput(event)"></textarea>
-          <button type="button" onclick="toggleEmojiPanel()" title="Indsæt emoji" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:10px;padding:10px 12px;font-size:16px;cursor:pointer;align-self:flex-end">😊</button>
+          <textarea id="msgInput" rows="2" placeholder="Write a message… use @ to tag a trainer" style="flex:1;border:1.5px solid #d5dcdc;border-radius:10px;padding:10px;font-size:14px;resize:none;font-family:inherit;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--xtm)'" onblur="this.style.borderColor='#d5dcdc'" oninput="onMsgInput(event)"></textarea>
+          <button type="button" onclick="toggleEmojiPanel()" title="Insert emoji" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:10px;padding:10px 12px;font-size:16px;cursor:pointer;align-self:flex-end">😊</button>
           <button class="msg-send-btn" id="msgSendBtn" onclick="sendStudentMessage()">Send</button>
         </div>
       </div>
@@ -294,7 +298,7 @@ svg.chart{width:100%;height:150px;display:block}
   <div class="modal">
     <div class="modal-head">
       <div style="flex:1;min-width:0">
-        <div id="modalTitle" class="modal-title">Vurdering</div>
+        <div id="modalTitle" class="modal-title">Rating</div>
         <div id="modalSub" class="modal-sub"></div>
       </div>
       <button class="modal-close" onclick="closeAssessModal()">✕</button>
@@ -308,7 +312,7 @@ svg.chart{width:100%;height:150px;display:block}
   <div class="modal">
     <div class="modal-head">
       <div style="flex:1;min-width:0">
-        <div id="skillTitle" class="modal-title">Skill-historik</div>
+        <div id="skillTitle" class="modal-title">Skill history</div>
         <div id="skillSub" class="modal-sub"></div>
       </div>
       <button class="modal-close" onclick="closeSkillModal()">✕</button>
@@ -322,7 +326,7 @@ svg.chart{width:100%;height:150px;display:block}
   <div class="modal">
     <div class="modal-head">
       <div style="flex:1;min-width:0">
-        <div class="modal-title">🥋 Dine træninger</div>
+        <div class="modal-title">🥋 Your trainings</div>
         <div id="trainSub" class="modal-sub"></div>
       </div>
       <button class="modal-close" onclick="closeTrainingsModal()">✕</button>
@@ -342,26 +346,135 @@ const BC = {
   '1. Kyu (Brunt + 2 Snip)':'#6b3d18','1. Dan (Sort)':'#212121','2. Dan (Sort)':'#161616','3. Dan (Sort)':'#0a0a0a'
 };
 
-// 30 opmuntringssætninger (fra hovedappen)
+// 30 encouragement phrases
 const MOTIVATION = [
-  'Stærk fremgang siden sidst — bliv ved! 💪','Du er på rette vej — rigtig flot klaret!',
-  'Hver træning tæller, og det kan man se! 🥋','Bedre og bedre — det kan vi godt lide at se!',
-  'Du er stærkere end sidst — fortsæt sådan!','Positiv udvikling — super godt arbejde!',
-  'Du vokser med opgaven — det er sejt! 🌟','Fremgang er det bedste tegn — hold fast!',
-  'Du rykker dig — det er alt, der tæller!','Opadgående kurve — det er vejen frem!',
-  'Du sætter barren højere for dig selv — flot!','Stærkt — du overgår dig selv siden sidst!',
-  'Du er på vej mod næste bælte! 🏅','Fremgang taler for sig selv — godt arbejde!',
-  'Keep it up — du er i god udvikling!','Resultat af hårdt arbejde — flot klaret!',
-  'Du er ikke den samme som sidst — godt!','Fremad og opad — det er din retning! ⬆️',
-  'Stærk udvikling siden sidst — bliv ved!','Du leverer — bedre og bedre hver gang!',
-  'Positiv kurve — hold fokus og bliv ved!','Vi kan se fremgangen — godt gået! 🥋',
-  'Flot! Du er på rette spor mod næste bælte.','Du forbedrer dig — det er præcis det, vi vil se!',
-  'Næste bælte kommer tættere og tættere! 🏆','Hård træning betaler sig — det viser tallene!',
-  'Du er i god form — fortsæt den vej!','Stærk præstation — bedre end sidst, igen!',
-  'Du gør det smukt — fortsæt den positive rejse!','Fremgang siden sidst — vi er stolte af dig! ⭐'
+  'Strong progress since last time — keep it up! 💪','You are on the right track — great job!',
+  'Every training counts, and it shows! 🥋','Better and better — we love to see it!',
+  'Stronger than last time — keep going!','Positive development — super good work!',
+  'You grow with the challenge — that is awesome! 🌟','Progress is the best sign — hold on!',
+  'You are moving forward — that is all that counts!','Upward curve — that is the way!',
+  'You raise the bar for yourself — great!','Strong — you outdo yourself since last time!',
+  'You are on your way to the next belt! 🏅','Progress speaks for itself — good work!',
+  'Keep it up — you are developing nicely!','Result of hard work — well done!',
+  'You are not the same as last time — good!','Onwards and upwards — that is your direction! ⬆️',
+  'Strong development since last time — keep it up!','You deliver — better and better every time!',
+  'Positive curve — stay focused and keep it up!','We can see the progress — well done! 🥋',
+  'Great! You are on the right path to the next belt.','You are improving — exactly what we want to see!',
+  'The next belt is getting closer and closer! 🏆','Hard training pays off — the numbers show it!',
+  'You are in good shape — keep going that way!','Strong performance — better than last time, again!',
+  'You are doing beautifully — keep the positive journey going!','Progress since last time — we are proud of you! ⭐'
 ];
 
 let CURRENT = null;
+
+// Belt progression order (low → high)
+const BELT_ORDER = [
+  '10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)',
+  '6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)',
+  '2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)',
+  '1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'
+];
+function nextBelt(current){
+  if(!current) return null;
+  const i = BELT_ORDER.indexOf(current);
+  if(i === -1 || i === BELT_ORDER.length-1) return null;
+  return BELT_ORDER[i+1];
+}
+function nextBeltHasPensum(current){
+  const nb = nextBelt(current);
+  if(!nb || !CURRENT) return false;
+  const p = (CURRENT.pensum||{})[nb] || [];
+  return p.length > 0;
+}
+function openPensumModal(belt, titleEmoji, titleLabel, introText){
+  if(!CURRENT || !belt) return;
+  const skills = (CURRENT.pensum||{})[belt] || [];
+  document.getElementById('modalTitle').textContent = titleEmoji+' '+titleLabel;
+  document.getElementById('modalSub').innerHTML = beltVisual(belt)+' <span>'+escapeHtml(belt)+'</span>';
+  const body = document.getElementById('modalBody');
+  if(!skills.length){
+    body.innerHTML = '<div class="empty">No curriculum data for '+escapeHtml(belt)+' yet.</div>';
+    document.getElementById('assessModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+  // Compute best rating per skill across all assessments
+  const assessments = CURRENT.sortedAssessments || [];
+  const bestBySkill = {};
+  assessments.forEach(a=>{
+    const r = ratingsOf(a);
+    Object.keys(r).forEach(k=>{
+      const v = Number(r[k])||0;
+      if(v>0 && (!bestBySkill[k] || v>bestBySkill[k])) bestBySkill[k] = v;
+    });
+  });
+  const ratedSkills = skills.filter(s=>bestBySkill[s]);
+  const unratedCount = skills.length - ratedSkills.length;
+
+  // Overall best session average across ALL assessments + max single rating ever given
+  let bestSessionAvg = 0, bestSessionDate = '';
+  let maxSingleRating = 0;
+  assessments.forEach(a=>{
+    const r = ratingsOf(a);
+    const vals = Object.values(r).map(Number).filter(v=>v>0);
+    if(!vals.length) return;
+    vals.forEach(v=>{ if(v>maxSingleRating) maxSingleRating = v; });
+    const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
+    if(avg > bestSessionAvg){ bestSessionAvg = avg; bestSessionDate = a.date; }
+  });
+
+  let summary = '';
+  if(bestSessionAvg > 0){
+    const bestRounded = Math.round(bestSessionAvg);
+    const starsVis = '<span style="color:#f59e0b">'+'★'.repeat(bestRounded)+'</span><span style="color:#e5e7eb">'+'★'.repeat(5-bestRounded)+'</span>';
+    summary = '<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 6px rgba(245,158,11,.15)">'+
+      '<div style="font-size:28px;filter:drop-shadow(0 2px 3px rgba(245,158,11,.3))">🏆</div>'+
+      '<div style="flex:1">'+
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#92400e">Best rating so far</div>'+
+        '<div style="font-size:22px;font-weight:800;color:#78350f;margin-top:2px;display:flex;align-items:center;gap:8px">'+bestSessionAvg.toFixed(1).replace('.',',')+'<span style="font-size:13px;letter-spacing:1px">'+starsVis+'</span></div>'+
+        (bestSessionDate?'<div style="font-size:11px;color:#78350f;opacity:.85;margin-top:2px">From session on '+fmtDate(bestSessionDate)+'</div>':'')+
+        '<div style="font-size:11px;color:#78350f;opacity:.8;margin-top:2px">'+ratedSkills.length+' / '+skills.length+' curriculum skills rated'+(unratedCount?' · '+unratedCount+' not rated yet':'')+'</div>'+
+      '</div>'+
+    '</div>';
+  } else {
+    summary = '<div style="background:#f1f4f4;border:1px solid #d5dcdc;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--muted);text-align:center">No ratings yet.</div>';
+  }
+
+  const rows = skills.map(sk=>{
+    const safeSk = String(sk).replace(/'/g,"\\'");
+    const note = getSkillNote(sk);
+    const infoBtn = note ? ' <span style="font-size:.7rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote(\''+safeSk+'\')">ℹ️</span>' : '';
+    const best = bestBySkill[sk] || 0;
+    let right = '';
+    if(best>0){
+      const color = best>=4?'#16a34a':best>=3?'#f59e0b':'#dc2626';
+      right = '<span style="color:#f59e0b;letter-spacing:1px;font-size:14px">'+'★'.repeat(best)+'<span style="color:#e5e7eb">'+'★'.repeat(5-best)+'</span></span>'+
+        '<span style="font-size:11px;font-weight:700;color:'+color+';margin-left:6px">'+best+'/5</span>';
+    } else {
+      right = '<span style="font-size:10px;font-weight:600;background:#f3f4f6;color:#6b7280;border-radius:10px;padding:3px 9px;white-space:nowrap">Not rated yet</span>';
+    }
+    const rowStyle = best>0 ? '' : 'opacity:.75';
+    return '<div class="skill-line clickable" style="'+rowStyle+'" onclick="closeAssessModal();openSkillModal(\''+safeSk+'\')">'+
+      '<div class="n">'+escapeHtml(sk)+infoBtn+'</div>'+
+      '<div style="display:flex;align-items:center;gap:4px;white-space:nowrap">'+right+'</div>'+
+    '</div>';
+  }).join('');
+  body.innerHTML = '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">'+introText+'</div>' + summary + rows;
+  document.getElementById('assessModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function openNextPensumModal(){
+  if(!CURRENT) return;
+  const nb = nextBelt((CURRENT.member||{}).belt);
+  if(!nb) return;
+  openPensumModal(nb, '🎯', 'Next belt curriculum', 'These are the skills required for the next belt. Skills with ℹ️ have additional info — tap to view.');
+}
+function openCurrentPensumModal(){
+  if(!CURRENT) return;
+  const cb = (CURRENT.member||{}).belt;
+  if(!cb) return;
+  openPensumModal(cb, '📘', 'Current belt curriculum', 'These are the skills required for your current belt. Skills with ℹ️ have additional info — tap to view.');
+}
 
 function fetchStudent(email, cb){
   const name = '_gs'+Date.now();
@@ -370,7 +483,7 @@ function fetchStudent(email, cb){
   const cleanup = ()=>{clearTimeout(timer);delete window[name];if(s.parentNode)s.parentNode.removeChild(s);};
   window[name] = function(d){ cleanup(); cb(null, d); };
   timer = setTimeout(()=>{ cleanup(); cb(new Error('Timeout')); }, 15000);
-  s.onerror = ()=>{ cleanup(); cb(new Error('Netværksfejl')); };
+  s.onerror = ()=>{ cleanup(); cb(new Error('Network error')); };
   s.src = SCRIPT_URL + '?action=getStudent&email=' + encodeURIComponent(email) + '&callback=' + name + '&t=' + Date.now();
   document.head.appendChild(s);
 }
@@ -385,13 +498,13 @@ function showErr(msg){
 function doLogin(){
   const input = document.getElementById('emailInput').value.trim().toLowerCase();
   document.getElementById('loginErr').classList.remove('show');
-  if(!input){ showErr('Indtast din email først.'); return; }
+  if(!input){ showErr('Enter your email first.'); return; }
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginStatus').classList.add('show');
   fetchStudent(input, (err, d)=>{
-    if(err){ showErr('Kunne ikke hente data: '+err.message); return; }
+    if(err){ showErr('Could not fetch data: '+err.message); return; }
     if(!d || !d.ok){
-      showErr(d && d.error ? d.error : 'Vi kunne ikke finde en elev med den email.');
+      showErr(d && d.error ? d.error : 'We could not find a student with that email.');
       return;
     }
     try{ sessionStorage.setItem('kk2_student_email', input); }catch(e){}
@@ -437,15 +550,15 @@ function renderMessages(){
   const el = document.getElementById('msgThread');
   if(!el) return;
   if(!allMsgs.length){
-    el.innerHTML = '<div style="color:var(--muted);font-size:13px;font-style:italic;text-align:center;padding:8px 0">Ingen beskeder endnu — send en besked til trænerne herunder.</div>';
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;font-style:italic;text-align:center;padding:8px 0">No messages yet — send a message to the trainers below.</div>';
     return;
   }
   const instructors = CURRENT.instructors || [];
   const collapsed = !_showAllMessages && allMsgs.length > 10;
   const msgs = collapsed ? allMsgs.slice(-10) : allMsgs;
   const hidden = allMsgs.length - msgs.length;
-  const showBtn = collapsed ? `<div style="text-align:center;margin-bottom:8px"><button onclick="_showAllMessages=true;renderMessages()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">⬆ Vis ${hidden} ældre beskeder</button></div>` : '';
-  const collapseBtn = (_showAllMessages && allMsgs.length > 10) ? `<div style="text-align:center;margin-bottom:8px"><button onclick="_showAllMessages=false;renderMessages()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">⬇ Skjul ældre</button></div>` : '';
+  const showBtn = collapsed ? `<div style="text-align:center;margin-bottom:8px"><button onclick="_showAllMessages=true;renderMessages()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">⬆ Show ${hidden} older messages</button></div>` : '';
+  const collapseBtn = (_showAllMessages && allMsgs.length > 10) ? `<div style="text-align:center;margin-bottom:8px"><button onclick="_showAllMessages=false;renderMessages()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">⬇ Hide older</button></div>` : '';
   el.innerHTML = showBtn + collapseBtn + msgs.map(m=>{
     const taggedId = Number(m.taggedMemberId) || 0;
     let tagChip = '';
@@ -456,13 +569,13 @@ function renderMessages(){
     }
     const isOwn = m.sender === 'student';
     const actions = isOwn ? `<div style="display:flex;gap:6px;margin-top:3px;opacity:.7">
-      <button onclick="editStudentMessage(${Number(m.id)})" title="Rediger" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button>
-      <button onclick="deleteStudentMessage(${Number(m.id)})" title="Slet" style="background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>
+      <button onclick="editStudentMessage(${Number(m.id)})" title="Edit" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button>
+      <button onclick="deleteStudentMessage(${Number(m.id)})" title="Delete" style="background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px;padding:2px 4px">🗑️</button>
     </div>` : '';
     const readByList = (m.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
     let readInfo = '';
     if(isOwn && readByList.length){
-      readInfo = `<div style="font-size:10px;color:var(--muted);margin-top:2px">👁️ Læst af ${escapeHtml(readByList.join(', '))}</div>`;
+      readInfo = `<div style="font-size:10px;color:var(--muted);margin-top:2px">👁️ Read by ${escapeHtml(readByList.join(', '))}</div>`;
     }
     return `
     <div style="display:flex;flex-direction:column;align-items:${m.sender==='trainer'?'flex-end':'flex-start'}">
@@ -496,10 +609,10 @@ async function editStudentMessage(id){
   if(!CURRENT) return;
   const m = (CURRENT.messages||[]).find(x=>Number(x.id)===Number(id));
   if(!m) return;
-  const newText = prompt('Rediger besked:', m.text);
+  const newText = prompt('Edit message:', m.text);
   if(newText === null) return;
   const trimmed = newText.trim();
-  if(!trimmed){ alert('Beskeden kan ikke være tom.'); return; }
+  if(!trimmed){ alert('Message cannot be empty.'); return; }
   if(trimmed === m.text) return;
   const memberId = (CURRENT.member||{}).id || 0;
   const res = await _studentMsgJsonp('editMessage', {id, memberId, text: trimmed});
@@ -507,20 +620,20 @@ async function editStudentMessage(id){
     m.text = trimmed;
     renderMessages();
   } else {
-    alert('⚠️ Kunne ikke redigere — prøv igen.');
+    alert('⚠️ Could not edit — try again.');
   }
 }
 
 async function deleteStudentMessage(id){
   if(!CURRENT) return;
-  if(!confirm('Slet denne besked?')) return;
+  if(!confirm('Delete this message?')) return;
   const memberId = (CURRENT.member||{}).id || 0;
   const res = await _studentMsgJsonp('deleteMessage', {id, memberId});
   if(res.ok){
     CURRENT.messages = (CURRENT.messages||[]).filter(x=>Number(x.id)!==Number(id));
     renderMessages();
   } else {
-    alert('⚠️ Kunne ikke slette — prøv igen.');
+    alert('⚠️ Could not delete — try again.');
   }
 }
 
@@ -594,7 +707,7 @@ function selectMention(id, name, atIdx, pos){
   const tb = document.getElementById('tagBadge');
   if(tb){
     tb.style.display = 'block';
-    tb.innerHTML = `<span class="tag-pill">@${escapeHtml(name)}<button onclick="clearTag()" title="Fjern tag">✕</button></span>`;
+    tb.innerHTML = `<span class="tag-pill">@${escapeHtml(name)}<button onclick="clearTag()" title="Remove tag">✕</button></span>`;
   }
 }
 
@@ -639,11 +752,11 @@ function sendStudentMessage(){
   const btn = document.getElementById('msgSendBtn');
   const status = document.getElementById('msgStatus');
   const text = (ta.value||'').trim();
-  if(!text){ status.textContent = 'Skriv en besked først.'; return; }
+  if(!text){ status.textContent = 'Write a message first.'; return; }
   const m = CURRENT.member || {};
-  const senderName = ((m.firstName||'')+' '+(m.lastName||'')).trim() || 'Elev';
+  const senderName = ((m.firstName||'')+' '+(m.lastName||'')).trim() || 'Student';
   btn.disabled = true;
-  status.textContent = 'Sender…';
+  status.textContent = 'Sending…';
   const name = '_gsm'+Date.now();
   const s = document.createElement('script');
   let timer;
@@ -658,15 +771,15 @@ function sendStudentMessage(){
       renderMessages();
       ta.value = '';
       clearTag();
-      status.textContent = '✅ Besked sendt!';
+      status.textContent = '✅ Message sent!';
       setTimeout(()=>{ status.textContent=''; }, 3000);
     } else {
-      status.textContent = '⚠️ Kunne ikke sende — prøv igen.';
+      status.textContent = '⚠️ Could not send — try again.';
     }
     btn.disabled = false;
   };
-  timer = setTimeout(()=>{ cleanup(); status.textContent='⚠️ Timeout — prøv igen.'; btn.disabled=false; }, 10000);
-  s.onerror = ()=>{ cleanup(); status.textContent='⚠️ Netværksfejl.'; btn.disabled=false; };
+  timer = setTimeout(()=>{ cleanup(); status.textContent='⚠️ Timeout — try again.'; btn.disabled=false; }, 10000);
+  s.onerror = ()=>{ cleanup(); status.textContent='⚠️ Network error.'; btn.disabled=false; };
   s.src = SCRIPT_URL+'?action=sendMessage&memberId='+encodeURIComponent(m.id||'')+'&senderName='+encodeURIComponent(senderName)+'&text='+encodeURIComponent(text)+'&taggedMemberId='+encodeURIComponent(taggedId)+'&callback='+name+'&t='+Date.now();
   document.head.appendChild(s);
 }
@@ -688,12 +801,12 @@ function fmtDate(d){
   if(!d) return '—';
   const s = String(d).slice(0,10); const parts = s.split('-');
   if(parts.length!==3) return s;
-  const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
-  return parseInt(parts[2],10)+'. '+months[parseInt(parts[1],10)-1]+' '+parts[0];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[parseInt(parts[1],10)-1]+' '+parseInt(parts[2],10)+', '+parts[0];
 }
 function monthLabel(d){
   const parts = String(d).slice(0,10).split('-');
-  const months = ['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   return months[parseInt(parts[1],10)-1]+' '+parts[0];
 }
 function ratingsOf(a){
@@ -756,13 +869,13 @@ function calcStreak(trainingDates){
 function computeBadges(d, assessments){
   const badges = [];
   const train = (d.trainingDates||[]).length;
-  if(train >= 100) badges.push({cls:'gold', emoji:'🏆', text:'100+ træninger'});
-  else if(train >= 50) badges.push({cls:'silver', emoji:'🥈', text:'50+ træninger'});
-  else if(train >= 25) badges.push({cls:'bronze', emoji:'🥉', text:'25+ træninger'});
-  else if(train >= 10) badges.push({cls:'', emoji:'🎯', text:'10+ træninger'});
+  if(train >= 100) badges.push({cls:'gold', emoji:'🏆', text:'100+ trainings'});
+  else if(train >= 50) badges.push({cls:'silver', emoji:'🥈', text:'50+ trainings'});
+  else if(train >= 25) badges.push({cls:'bronze', emoji:'🥉', text:'25+ trainings'});
+  else if(train >= 10) badges.push({cls:'', emoji:'🎯', text:'10+ trainings'});
 
-  if(assessments.length >= 10) badges.push({cls:'', emoji:'📋', text:'10+ vurderinger'});
-  else if(assessments.length >= 5) badges.push({cls:'', emoji:'📋', text:'5+ vurderinger'});
+  if(assessments.length >= 10) badges.push({cls:'', emoji:'📋', text:'10+ ratings'});
+  else if(assessments.length >= 5) badges.push({cls:'', emoji:'📋', text:'5+ ratings'});
 
   // Improvement streak — hvor mange på stribe vurderinger i træk er blevet bedre?
   let impStreak = 0;
@@ -772,14 +885,14 @@ function computeBadges(d, assessments){
     if(cur!=null && prev!=null && cur > prev) impStreak++;
     else break;
   }
-  if(impStreak >= 3) badges.push({cls:'green', emoji:'📈', text:impStreak+' fremgange i træk'});
+  if(impStreak >= 3) badges.push({cls:'green', emoji:'📈', text:impStreak+' improvements in a row'});
 
   // Alle 5-stjerner på seneste vurdering?
   if(assessments.length){
     const r = ratingsOf(assessments[0]);
     const vals = Object.values(r).map(Number).filter(v=>v>0);
-    if(vals.length>=3 && vals.every(v=>v===5)) badges.push({cls:'gold', emoji:'⭐', text:'Perfekt vurdering'});
-    else if(vals.length>=3 && vals.every(v=>v>=4)) badges.push({cls:'green', emoji:'🌟', text:'Stærk på tværs'});
+    if(vals.length>=3 && vals.every(v=>v===5)) badges.push({cls:'gold', emoji:'⭐', text:'Perfect rating'});
+    else if(vals.length>=3 && vals.every(v=>v>=4)) badges.push({cls:'green', emoji:'🌟', text:'Strong across the board'});
   }
 
   // Pensum-fremgang
@@ -787,8 +900,8 @@ function computeBadges(d, assessments){
   if(pensum.length && assessments.length){
     const latest = ratingsOf(assessments[0]);
     const mastered = pensum.filter(s => Number(latest[s]||0) >= 4).length;
-    if(mastered === pensum.length) badges.push({cls:'gold', emoji:'🎖️', text:'Pensum mestret'});
-    else if(mastered/pensum.length >= 0.75) badges.push({cls:'green', emoji:'📚', text:'75% af pensum'});
+    if(mastered === pensum.length) badges.push({cls:'gold', emoji:'🎖️', text:'Curriculum mastered'});
+    else if(mastered/pensum.length >= 0.75) badges.push({cls:'green', emoji:'📚', text:'75% of curriculum'});
   }
 
   return badges;
@@ -861,8 +974,8 @@ function renderDashboard(d){
   const streakEl = document.getElementById('streakBox');
   if(streak >= 2){
     streakEl.innerHTML = '<div class="streak-box"><div class="streak-flame">🔥</div>'+
-      '<div class="streak-text"><div class="streak-num">'+streak+' ugers streak</div>'+
-      '<div class="streak-sub">Du har trænet '+streak+' uger i træk — imponerende!</div></div></div>';
+      '<div class="streak-text"><div class="streak-num">'+streak+' week streak</div>'+
+      '<div class="streak-sub">You have trained '+streak+' weeks in a row — impressive!</div></div></div>';
   } else streakEl.innerHTML = '';
 
   // Badges
@@ -871,7 +984,7 @@ function renderDashboard(d){
   if(badges.length){
     badgesEl.innerHTML = badges.map(b => '<div class="badge '+b.cls+'">'+b.emoji+' '+escapeHtml(b.text)+'</div>').join('');
   } else {
-    badgesEl.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0">Endnu ingen badges — bliv ved med at træne!</div>';
+    badgesEl.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0">No badges yet — keep training!</div>';
   }
 
   // Pensum-progress
@@ -885,13 +998,21 @@ function renderDashboard(d){
     const pct = Math.round(mastered/total*100);
     const fillCls = pct>=100 ? 'complete' : pct>=60 ? 'nearly' : '';
     pensumCard.innerHTML = '<div class="pensum-card">'+
-      '<div class="pensum-head"><span class="pensum-label">📊 Pensumfremgang · '+escapeHtml(m.belt||'')+'</span>'+
-      '<span class="pensum-count" style="color:'+(mastered===total?'var(--ok)':'var(--xtd)')+'">'+mastered+' / '+total+' på '+threshold+'★+</span></div>'+
+      '<div class="pensum-head"><span class="pensum-label">📊 Curriculum progress · '+escapeHtml(m.belt||'')+'</span>'+
+      '<span class="pensum-count" style="color:'+(mastered===total?'var(--ok)':'var(--xtd)')+'">'+mastered+' / '+total+' at '+threshold+'★+</span></div>'+
       '<div class="pensum-bar"><div class="pensum-fill '+fillCls+'" style="width:'+pct+'%"></div></div>'+
-      (mastered===total?'<div class="pensum-done">✅ Alle pensumkrav opfyldt — klar til oprykning!</div>':'')+
+      (mastered===total?'<div class="pensum-done">✅ All curriculum requirements met — ready for promotion!</div>':'')+
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center">'+
+        '<button onclick="openCurrentPensumModal()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">📘 Current curriculum</button>'+
+        (nextBeltHasPensum(m.belt) ? '<button onclick="openNextPensumModal()" style="background:var(--xtd);color:#fff;border:0;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">🎯 Next belt curriculum</button>' : '')+
+      '</div>'+
       '</div>';
   } else {
-    pensumCard.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:10px">Ingen pensum-data for '+escapeHtml(m.belt||'dit bælte')+' endnu.</div>';
+    pensumCard.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:10px">No curriculum data for '+escapeHtml(m.belt||'your belt')+' yet.</div>'+
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center">'+
+        '<button onclick="openCurrentPensumModal()" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">📘 Current curriculum</button>'+
+        (nextBeltHasPensum(m.belt) ? '<button onclick="openNextPensumModal()" style="background:var(--xtd);color:#fff;border:0;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">🎯 Next belt curriculum</button>' : '')+
+      '</div>';
   }
 
   // Trænernes noter (seneste 5 vurderinger med kommentar)
@@ -923,7 +1044,7 @@ function renderDashboard(d){
   // Assessment list
   const ul = document.getElementById('alist');
   if(!assessments.length){
-    ul.innerHTML = '<li style="cursor:default"><div class="empty" style="padding:6px 0;width:100%">Ingen vurderinger endnu.</div></li>';
+    ul.innerHTML = '<li style="cursor:default"><div class="empty" style="padding:6px 0;width:100%">No ratings yet.</div></li>';
   } else {
     ul.innerHTML = assessments.slice(0,8).map((a,i)=>{
       const avg = avgOf(ratingsOf(a));
@@ -956,7 +1077,7 @@ function renderDashboard(d){
   });
   const skillsEl = document.getElementById('skills');
   if(!skillNames.length){
-    skillsEl.innerHTML = '<div class="empty">Ingen skill-data endnu.</div>';
+    skillsEl.innerHTML = '<div class="empty">No skill data yet.</div>';
   } else {
     skillsEl.innerHTML = skillNames.map(k=>{
       const curr = latestBySkill[k];
@@ -988,7 +1109,7 @@ function renderGraph(assessments){
   const box = document.getElementById('graphBox');
   const last = assessments.slice(0,8).reverse();
   const pts = last.map(a => ({id:a.id, date:a.date, avg:avgOf(ratingsOf(a))})).filter(p=>p.avg!=null);
-  if(pts.length < 2){ box.innerHTML = '<div class="empty">Endnu ikke nok data til graf — kommer efter et par vurderinger.</div>'; return; }
+  if(pts.length < 2){ box.innerHTML = '<div class="empty">Not enough data for a chart yet — available after a few ratings.</div>'; return; }
   const W=300, H=150, PL=28, PR=8, PT=12, PB=22;
   const iW=W-PL-PR, iH=H-PT-PB;
   const minD=new Date(pts[0].date).getTime(), maxD=new Date(pts[pts.length-1].date).getTime();
@@ -1063,7 +1184,7 @@ function showGraphPointPopup(assessmentId, event){
   pop.id = 'graphPointPopup';
   pop.dataset.id = assessmentId;
   pop.style.cssText = 'position:fixed;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:.7rem .9rem;min-width:210px;max-width:280px;z-index:9999;font-size:.82rem';
-  pop.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem"><div><div style="font-weight:700;color:#111">'+fmtDate(a.date)+'</div><div style="font-size:.78rem;color:#6b7280;margin-top:.1rem">👤 Bedømt af: <strong>'+escapeHtml(a.assessorName||'Ikke angivet')+'</strong></div></div><div style="display:flex;align-items:center;gap:.3rem">'+overallArrow+'<div style="font-size:1.1rem;font-weight:800;color:#6366f1">'+avg.toFixed(1).replace('.',',')+'<span style="font-size:.7rem;font-weight:400;color:#9ca3af">/5</span></div></div></div><div style="border-top:1px solid #f3f4f6;padding-top:.4rem">'+(skillsHtml||'<span style="color:#9ca3af;font-style:italic">Ingen ratings</span>')+'</div><button onclick="document.getElementById(\'graphPointPopup\').remove()" style="position:absolute;top:.3rem;right:.5rem;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:.85rem">✕</button>';
+  pop.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem"><div><div style="font-weight:700;color:#111">'+fmtDate(a.date)+'</div><div style="font-size:.78rem;color:#6b7280;margin-top:.1rem">👤 Rated by: <strong>'+escapeHtml(a.assessorName||'Not specified')+'</strong></div></div><div style="display:flex;align-items:center;gap:.3rem">'+overallArrow+'<div style="font-size:1.1rem;font-weight:800;color:#6366f1">'+avg.toFixed(1).replace('.',',')+'<span style="font-size:.7rem;font-weight:400;color:#9ca3af">/5</span></div></div></div><div style="border-top:1px solid #f3f4f6;padding-top:.4rem">'+(skillsHtml||'<span style="color:#9ca3af;font-style:italic">No ratings</span>')+'</div><button onclick="document.getElementById(\'graphPointPopup\').remove()" style="position:absolute;top:.3rem;right:.5rem;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:.85rem">✕</button>';
   document.body.appendChild(pop);
   const rect = pop.getBoundingClientRect();
   let x = event.clientX + 12, y = event.clientY - 20;
@@ -1097,7 +1218,7 @@ function openAssessModal(aid){
     return x.localeCompare(y,'da');
   });
 
-  document.getElementById('modalTitle').textContent = 'Vurdering ' + fmtDate(a.date);
+  document.getElementById('modalTitle').textContent = 'Rating ' + fmtDate(a.date);
   const sub = [];
   if(a.belt){ sub.push(beltVisual(a.belt)+' <span>'+escapeHtml(a.belt)+'</span>'); }
   if(a.assessorName) sub.push('👤 '+escapeHtml(a.assessorName));
@@ -1107,8 +1228,8 @@ function openAssessModal(aid){
   if(avg!=null){
     const mastered = pensumForBelt.filter(s => Number(curr[s]||0)>=4).length;
     header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
-      '<span class="avg-pill">Snit '+avg.toFixed(1).replace('.',',')+' / 5 '+trendMark(avg,prevAvg)+'</span>'+
-      (pensumForBelt.length?'<span style="font-size:12px;color:var(--muted)">Pensum: <strong style="color:var(--xtd)">'+mastered+' / '+pensumForBelt.length+'</strong> på 4★+</span>':'')+
+      '<span class="avg-pill">Average '+avg.toFixed(1).replace('.',',')+' / 5 '+trendMark(avg,prevAvg)+'</span>'+
+      (pensumForBelt.length?'<span style="font-size:12px;color:var(--muted)">Curriculum: <strong style="color:var(--xtd)">'+mastered+' / '+pensumForBelt.length+'</strong> at 4★+</span>':'')+
       '</div>';
   }
 
@@ -1121,7 +1242,7 @@ function openAssessModal(aid){
       if(diff>0) delta = '<span class="delta up">↑ '+'★'.repeat(diff)+'</span>';
       else if(diff<0) delta = '<span class="delta down">↓ '+'★'.repeat(-diff)+'</span>';
     } else if(v>0 && !p){
-      delta = '<span class="delta new">NY</span>';
+      delta = '<span class="delta new">NEW</span>';
     }
     const stars = '★'.repeat(v);
     const safeSk = String(sk).replace(/'/g,"\\'");
@@ -1136,7 +1257,7 @@ function openAssessModal(aid){
 
   const comment = a.comment ? '<div class="comment-box">"'+escapeHtml(a.comment)+'"</div>' : '';
 
-  document.getElementById('modalBody').innerHTML = header + (rows || '<div class="empty">Ingen skills vurderet.</div>') + comment;
+  document.getElementById('modalBody').innerHTML = header + (rows || '<div class="empty">No skills rated.</div>') + comment;
   document.getElementById('assessModal').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -1155,10 +1276,10 @@ function openSkillModal(skill){
   }).slice(0,10);
 
   document.getElementById('skillTitle').textContent = skill;
-  document.getElementById('skillSub').innerHTML = hits.length ? 'Dine '+hits.length+' seneste vurderinger af denne skill' : '';
+  document.getElementById('skillSub').innerHTML = hits.length ? 'Your '+hits.length+' latest ratings of this skill' : '';
 
   if(!hits.length){
-    document.getElementById('skillBody').innerHTML = '<div class="sh-empty">Denne skill er endnu ikke blevet vurderet.</div>';
+    document.getElementById('skillBody').innerHTML = '<div class="sh-empty">This skill has not been rated yet.</div>';
   } else {
     const rows = hits.map((a,i)=>{
       const v = Number(ratingsOf(a)[skill]||0);
@@ -1201,9 +1322,9 @@ function closeSkillModal(){
 function openTrainingsModal(){
   if(!CURRENT) return;
   const trains = CURRENT.trainingDates || [];
-  document.getElementById('trainSub').textContent = trains.length + ' træninger i alt · ' + (CURRENT.trainingsThisYear||0) + ' i år';
+  document.getElementById('trainSub').textContent = trains.length + ' trainings total · ' + (CURRENT.trainingsThisYear||0) + ' this year';
   if(!trains.length){
-    document.getElementById('trainBody').innerHTML = '<div class="sh-empty">Ingen registrerede træninger endnu.</div>';
+    document.getElementById('trainBody').innerHTML = '<div class="sh-empty">No registered trainings yet.</div>';
   } else {
     // Grupper pr. måned
     const byMonth = {};
@@ -1214,7 +1335,11 @@ function openTrainingsModal(){
     });
     const keys = Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
     document.getElementById('trainBody').innerHTML = keys.map(k=>{
-      const items = byMonth[k].map(t => '<div class="train-item"><div class="train-date">'+fmtDate(t.date)+'</div><div class="train-name">'+escapeHtml(t.name||'Træning')+'</div></div>').join('');
+      const items = byMonth[k].map(t => {
+        let nm = t.name || 'Training';
+        if(/^træning$/i.test(nm)) nm = 'Training';
+        return '<div class="train-item"><div class="train-date">'+fmtDate(t.date)+'</div><div class="train-name">'+escapeHtml(nm)+'</div></div>';
+      }).join('');
       return '<div class="train-month">'+monthLabel(k+'-01')+' · '+byMonth[k].length+'</div>'+items;
     }).join('');
   }
