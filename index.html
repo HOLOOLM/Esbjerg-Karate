@@ -10036,6 +10036,47 @@ function exportProgressToPDF(memberId){
   const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#f3f4f6','8. Kyu (2 Snip)':'#f3f4f6','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
   const beltBg=BC[m.belt]||'#f3f4f6';
   const beltFg=(m.belt||'').includes('Dan')?'#fff':'#1a2e2e';
+  // Byg progress-graf data: (date, avg) for alle vurderinger, ældste → nyeste
+  const history = ma.map(a => {
+    const mr = (typeof getMergedRatings==='function') ? getMergedRatings(memberId, a.id) : (a.ratings||{});
+    const v = Object.values(mr||{}).map(x=>(x&&typeof x==='object')?x.val:x).map(Number).filter(n=>n>0);
+    if(!v.length) return null;
+    return { date: a.date, avg: v.reduce((s,n)=>s+n,0)/v.length };
+  }).filter(Boolean).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let chartSvg = '';
+  if(history.length >= 2){
+    const W=760, H=110, P=22;
+    const xs = (i) => P + (W - 2*P) * (i/(history.length-1));
+    const ys = (v) => P + (H - 2*P) * (1 - (v-1)/4); // 1..5 → y
+    const line = history.map((h,i)=>`${i===0?'M':'L'}${xs(i).toFixed(1)},${ys(h.avg).toFixed(1)}`).join(' ');
+    const area = `M${xs(0).toFixed(1)},${(H-P).toFixed(1)} ` + history.map((h,i)=>`L${xs(i).toFixed(1)},${ys(h.avg).toFixed(1)}`).join(' ') + ` L${xs(history.length-1).toFixed(1)},${(H-P).toFixed(1)} Z`;
+    const dots = history.map((h,i)=>`<circle cx="${xs(i).toFixed(1)}" cy="${ys(h.avg).toFixed(1)}" r="3.2" fill="#fcd34d" stroke="#92400e" stroke-width="1.2"/>`).join('');
+    const labels = history.map((h,i)=>{
+      const d=new Date(h.date+'T12:00:00');
+      const s=d.toLocaleDateString('da-DK',{day:'numeric',month:'short'});
+      return `<text x="${xs(i).toFixed(1)}" y="${(H-4).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="#64748b">${s}</text>`;
+    }).join('');
+    const valLabels = history.map((h,i)=>{
+      const t = (h.avg%1===0) ? String(h.avg) : h.avg.toFixed(1).replace('.',',');
+      return `<text x="${xs(i).toFixed(1)}" y="${(ys(h.avg)-7).toFixed(1)}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">${t}</text>`;
+    }).join('');
+    // y-gridlines ved 2, 3, 4, 5
+    const grid = [2,3,4,5].map(v=>{
+      const y=ys(v).toFixed(1);
+      return `<line x1="${P}" y1="${y}" x2="${W-P}" y2="${y}" stroke="#f1f5f9" stroke-width="1"/><text x="${P-4}" y="${(Number(y)+3).toFixed(1)}" text-anchor="end" font-size="8" fill="#94a3b8">${v}</text>`;
+    }).join('');
+    chartSvg = `<div class="chart-card">
+      <div class="chart-title">📈 Gennemsnit pr. vurdering</div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100px;display:block">
+        ${grid}
+        <path d="${area}" fill="rgba(251,191,36,0.18)"/>
+        <path d="${line}" fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}
+        ${valLabels}
+        ${labels}
+      </svg>
+    </div>`;
+  }
   const prevMerged=ma[1]?((typeof getMergedRatings==='function')?getMergedRatings(memberId,ma[1].id):(ma[1].ratings||{})):{};
   const useTwoCols = pensumSkills.length > 10;
   const rowHtml = sk => {
@@ -10099,6 +10140,8 @@ function exportProgressToPDF(memberId){
   .stat{background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 4px;text-align:center}
   .stat-v{font-size:17px;font-weight:800;line-height:1;color:#4338ca}
   .stat-l{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-top:2px}
+  .chart-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:6px 10px 4px;margin-bottom:8px}
+  .chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#475569;margin-bottom:2px}
   .section-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 6px;padding-bottom:4px;border-bottom:2px solid #fcd34d}
   .section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#1e293b}
   .legend{font-size:8.5px;color:#475569;display:inline-flex;gap:8px;align-items:center}
@@ -10146,6 +10189,7 @@ function exportProgressToPDF(memberId){
       <div class="stat"><div class="stat-v" style="color:#16a34a">${pensumSkills.length}</div><div class="stat-l">I pensum</div></div>
     </div>
   </div>
+  ${chartSvg}
   <div class="section-header">
     <span class="section-title">📋 Skill-for-skill</span>
     <span class="legend">
