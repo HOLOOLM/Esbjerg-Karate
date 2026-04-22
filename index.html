@@ -1002,7 +1002,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- HEADER -->
 <header>
   <div class="hbrand">
-    <div class="hlogo" style="background:transparent;border:none;padding:0;overflow:hidden"><img id="headerBadgeImg" src="" alt="Shuri-Ryu" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block"/></div>
+    <div class="hlogo" style="background:transparent;border:none;padding:0;overflow:hidden"><img id="headerBadgeImg" src="" alt="Shuri-Ryu" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block"/><script>try{document.getElementById('headerBadgeImg').src=SHURI_BADGE;}catch(e){}</script></div>
     <div>
       <div class="htitle">Esbjerg Shuri-Ryu Karate</div>
       <div class="hsub">Medlemsstyring &amp; Fremmøde</div>
@@ -1183,8 +1183,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <button id="inboxBackBtn" onclick="showInboxList()" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.2rem .65rem;font-size:.78rem;cursor:pointer">← Alle</button>
   </div>
   <div id="inboxContent" style="flex:1;overflow-y:auto;display:flex;flex-direction:column"></div>
-  <div id="inboxReplyBar" style="display:none;padding:.75rem 1rem;border-top:1px solid #f0f4f4;display:none;gap:.5rem;align-items:flex-end">
+  <div id="inboxReplyBar" style="display:none;padding:.75rem 1rem;border-top:1px solid #f0f4f4;display:none;gap:.5rem;align-items:flex-end;position:relative">
+    <div id="inboxEmojiPanel" style="display:none;position:absolute;bottom:calc(100% + 4px);right:1rem;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:.5rem;z-index:200;flex-wrap:wrap;gap:.25rem;max-width:280px"></div>
     <textarea id="inboxReplyText" rows="2" placeholder="Skriv svar…" style="flex:1;border:1.5px solid #c8dede;border-radius:10px;padding:.55rem .75rem;font-size:.85rem;resize:none;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInboxReply()}"></textarea>
+    <button type="button" onclick="toggleInboxEmojiPanel()" title="Indsæt emoji" style="background:#f1f4f4;color:#1a2e2e;border:1px solid #c8dede;border-radius:10px;padding:.45rem .65rem;font-size:1rem;cursor:pointer">😊</button>
     <button onclick="sendInboxReply()" class="btn bp btn-sm">Send</button>
   </div>
 </div>
@@ -10141,6 +10143,34 @@ function deleteTrainerMessage(id,memberId){
   updateNotifBadge();
   renderThread(memberId);
 }
+
+const INBOX_EMOJI_SET=['😊','😄','😂','😅','😍','🥰','😎','🤔','😢','😭','😡','🥺','🙏','👍','👎','👌','💪','🙌','👏','🎉','🔥','✨','❤️','💙','💚','🥋','🥇','🏆','✅','❌','❓','❗','📝','⭐','🎯','⚡'];
+function toggleInboxEmojiPanel(){
+  const p=document.getElementById('inboxEmojiPanel');
+  if(!p)return;
+  if(p.style.display==='flex'){p.style.display='none';return;}
+  if(!p.dataset.built){
+    p.innerHTML=INBOX_EMOJI_SET.map(e=>`<button type="button" onclick="insertInboxEmoji('${e}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px;border-radius:6px;line-height:1" onmouseover="this.style.background='#f1f4f4'" onmouseout="this.style.background='none'">${e}</button>`).join('');
+    p.dataset.built='1';
+  }
+  p.style.display='flex';
+}
+function insertInboxEmoji(e){
+  const ta=document.getElementById('inboxReplyText');
+  if(!ta)return;
+  const s=ta.selectionStart||0,en=ta.selectionEnd||0;
+  ta.value=ta.value.slice(0,s)+e+ta.value.slice(en);
+  ta.focus();
+  const np=s+e.length;
+  ta.setSelectionRange(np,np);
+}
+document.addEventListener('click',(ev)=>{
+  const p=document.getElementById('inboxEmojiPanel');
+  if(!p||p.style.display!=='flex')return;
+  if(p.contains(ev.target))return;
+  if(ev.target.closest('[onclick*="toggleInboxEmojiPanel"]'))return;
+  p.style.display='none';
+});
 
 function sendInboxReply(){
   if(!_inboxActiveMember)return;
