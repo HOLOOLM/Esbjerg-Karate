@@ -1397,6 +1397,28 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   </div>
 </div>
 
+<div class="mbd" id="gradEmailModal">
+  <div class="modal modal-lg">
+    <div class="m-hero" style="background:linear-gradient(135deg,#4338ca,#6366f1)">
+      <button class="m-hero-close" onclick="closeModal('gradEmailModal')">✕</button>
+      <div class="m-hero-title"><span class="m-hero-icon">✉️</span><span>Send progress-mail</span></div>
+      <div class="m-hero-sub" id="gradEmailSub">—</div>
+    </div>
+    <div style="padding:1rem 1.2rem">
+      <div id="gradEmailPreview" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:.8rem;margin-bottom:.9rem;font-size:.8rem;color:#374151"></div>
+      <label style="display:block;font-size:.72rem;font-weight:700;color:var(--xtm);margin-bottom:.25rem">Emne</label>
+      <input type="text" id="gradEmailSubject" style="width:100%;padding:.55rem .7rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.88rem;margin-bottom:.8rem" placeholder="Emne på mailen">
+      <label style="display:block;font-size:.72rem;font-weight:700;color:var(--xtm);margin-bottom:.25rem">Personlig besked <span style="font-weight:400;color:var(--xtl)">(valgfrit — vises i en fremhævet boks)</span></label>
+      <textarea id="gradEmailMessage" rows="4" style="width:100%;padding:.55rem .7rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.88rem;font-family:inherit;resize:vertical" placeholder="Fx: Flot indsats i går — fortsæt med at øve Heian Shodan hjemme!"></textarea>
+      <div style="margin-top:.6rem;font-size:.72rem;color:var(--xtl)">Mailen indeholder automatisk: profilbillede/initialer, bælte, antal træninger i år, seneste vurdering, kommentar og et link til elev-appen.</div>
+    </div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('gradEmailModal')">Annuller</button>
+      <button class="btn bp" id="gradEmailSendBtn" onclick="sendGradEmail()">✉️ Send</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ PAGE: MEMBERS ══ -->
 <div class="page" id="page-members">
   <div class="sh">
@@ -1657,6 +1679,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
   <!-- Fraværskort: medlemmer ikke set i 30+ dage -->
   <div id="db-absent-card" style="display:none;margin-top:.75rem"></div>
+
+  <!-- Login-statistik (elev-app brug) -->
+  <div id="db-login-card" style="margin-top:.75rem"></div>
 </div>
 
 <!-- ══ PAGE: BESTYRELSE ══ -->
@@ -3879,6 +3904,68 @@ function _promoCommentsHtml(s){
   </div>`;
   return `<div style="display:flex;flex-direction:column;gap:.3rem">${c1?item(c1,s.latestDate,s.assessorName):''}${c2?item(c2,s.prevDate,prevAssessor):''}</div>`;
 }
+let _gradEmailMemberId=null;
+function openGradEmailModal(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m){ showToast('Medlem ikke fundet'); return; }
+  if(!(m.email||'').trim()){ showToast('⚠️ Ingen e-mail registreret for '+m.firstName); return; }
+  _gradEmailMemberId=memberId;
+  document.getElementById('gradEmailSub').textContent=m.firstName+' '+m.lastName+' · '+m.email;
+  const preview=`<div style="display:flex;align-items:center;gap:.6rem">
+    <div class="av ${avClass(m.group)}" style="width:40px;height:40px;font-size:.8rem;flex-shrink:0">${avatarInner(m)}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:.92rem">${m.firstName} ${m.lastName}</div>
+      <div style="font-size:.75rem;color:var(--xtl)">${m.belt||'—'}${m.group?' · '+m.group:''}</div>
+    </div>
+  </div>`;
+  document.getElementById('gradEmailPreview').innerHTML=preview;
+  document.getElementById('gradEmailSubject').value='Din karate-progress — '+m.firstName+' 🥋';
+  document.getElementById('gradEmailMessage').value='';
+  const btn=document.getElementById('gradEmailSendBtn');
+  btn.disabled=false; btn.textContent='✉️ Send';
+  openModal('gradEmailModal');
+}
+function sendGradEmail(){
+  if(!_gradEmailMemberId){ return; }
+  if(!config.scriptUrl){ showToast('Backend ikke konfigureret'); return; }
+  const subject=(document.getElementById('gradEmailSubject').value||'').trim();
+  const message=(document.getElementById('gradEmailMessage').value||'').trim();
+  if(!subject){ showToast('Tilføj et emne'); return; }
+  const btn=document.getElementById('gradEmailSendBtn');
+  btn.disabled=true; btn.textContent='Sender…';
+  const cb='_ge'+Date.now();
+  const s=document.createElement('script');
+  let timer;
+  const appUrl=(config.elevAppUrl||window.location.href.replace(/index\.html.*$/,'')+'elev.html');
+  const cleanup=()=>{clearTimeout(timer);try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);};
+  window[cb]=function(d){
+    cleanup();
+    if(d&&d.ok){
+      showToast('📧 Mail sendt til '+(d.sentTo||''));
+      closeModal('gradEmailModal');
+    } else {
+      btn.disabled=false; btn.textContent='✉️ Send';
+      showToast('❌ '+(d&&d.error?d.error:'Kunne ikke sende mail'));
+    }
+  };
+  s.onerror=()=>{ cleanup(); btn.disabled=false; btn.textContent='✉️ Send'; showToast('❌ Netværksfejl'); };
+  timer=setTimeout(()=>{ cleanup(); btn.disabled=false; btn.textContent='✉️ Send'; showToast('⏱️ Timeout'); },15000);
+  s.src=config.scriptUrl+'?action=sendGraduationEmail&memberId='+encodeURIComponent(_gradEmailMemberId)+'&subject='+encodeURIComponent(subject)+'&message='+encodeURIComponent(message)+'&appUrl='+encodeURIComponent(appUrl)+'&callback='+cb+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function _promoLoginChip(memberId){
+  const info=getMemberLoginInfo(memberId);
+  if(!info||!info.lastIso) return '<span class="pill" style="background:#f3f4f6;color:#9ca3af" title="Har aldrig logget ind på elev-app">📱 Aldrig</span>';
+  const ago=_loginAgoLabel(info.lastIso);
+  const col=info.last7>0?'#16a34a':info.last30>0?'#d97706':'#6b7280';
+  const bg=info.last7>0?'#dcfce7':info.last30>0?'#fef3c7':'#f3f4f6';
+  return `<span class="pill" style="background:${bg};color:${col}" title="Seneste login på elev-app · ${info.total} i alt">📱 ${ago}</span>`;
+}
+function _promoEmailBtn(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m||!(m.email||'').trim()) return '';
+  return `<button onclick="event.stopPropagation();openGradEmailModal(${memberId})" title="Send progress-mail til ${m.firstName}" style="background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .15s" onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">✉️ Send</button>`;
+}
 function _gradWishBanner(m){
   if(!m.ønskerGraduering) return '';
   return `<div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;margin-bottom:.3rem;border-radius:10px;background:linear-gradient(90deg,#ede9fe,#f5f3ff);border:1.5px solid #a78bfa;font-size:.82rem;font-weight:800;color:#5b21b6;letter-spacing:-.01em">🎓 <span>Ønsker op til graduering</span></div>`;
@@ -3909,7 +3996,7 @@ function _promoCardReady(s){
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
-      <span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>
+      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
 }
@@ -3937,7 +4024,7 @@ function _promoCardAlmost(s){
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
-      <span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>
+      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
 }
@@ -3969,7 +4056,7 @@ function _promoCardOverdue(o){
     </div>
     <div class="promo-meta">
       <span>🥋 ${o.never?'Ingen vurderinger':o.info.trainingDaysSince+' træninger siden'}</span>
-      <span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>
+      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
 }
@@ -4183,6 +4270,7 @@ function deleteAssessmentFromDetail(assessmentId,memberId){
   else{closePromoDetail();renderPromotion();}
 }
 function renderPromotion(){
+  fetchLoginStats(false);
   const promoThr=config.promotionScore??4.0;
   const almostThr=config.almostReadyScore??3.0;
   const reminderT=config.assessReminderTrainings??24;
@@ -6293,6 +6381,8 @@ function renderDashboard(){
   renderDashboardBirthdays();
   renderHeatmap();
   renderDayPatternCard();
+  renderLoginStatsCard();
+  fetchLoginStats(false);
 }
 
 function renderDayPatternCard(){
@@ -7102,6 +7192,98 @@ function renderDashboardAbsent(){
   </div>`;
 }
 
+let _loginStatsCache=null;
+let _loginStatsLoading=false;
+let _loginStatsLastFetch=0;
+function fetchLoginStats(force){
+  if(!config.scriptUrl) return;
+  if(_loginStatsLoading) return;
+  const now=Date.now();
+  if(!force && _loginStatsCache && (now-_loginStatsLastFetch<60000)) return;
+  _loginStatsLoading=true;
+  const cb='_lg'+now;
+  const s=document.createElement('script');
+  let timer;
+  const cleanup=()=>{clearTimeout(timer);try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);_loginStatsLoading=false;};
+  window[cb]=function(d){ cleanup(); if(d&&d.ok){ _loginStatsCache=d; _loginStatsLastFetch=Date.now(); renderLoginStatsCard(); if(document.getElementById('page-promotion')?.classList.contains('active')) renderPromotion(); } };
+  s.onerror=()=>{ cleanup(); };
+  timer=setTimeout(()=>{ cleanup(); },8000);
+  s.src=config.scriptUrl+'?action=getLoginStats&callback='+cb+'&t='+now;
+  document.head.appendChild(s);
+}
+function _loginAgoLabel(iso){
+  if(!iso) return 'Aldrig';
+  const ms=Date.now()-new Date(iso).getTime();
+  if(isNaN(ms)) return '—';
+  const mins=Math.floor(ms/60000);
+  if(mins<1) return 'Lige nu';
+  if(mins<60) return mins+' min siden';
+  const hrs=Math.floor(mins/60);
+  if(hrs<24) return hrs+' t siden';
+  const days=Math.floor(hrs/24);
+  if(days<30) return days+' dag'+(days===1?'':'e')+' siden';
+  const mos=Math.floor(days/30);
+  return mos+' mdr siden';
+}
+function getMemberLoginInfo(memberId){
+  if(!_loginStatsCache||!_loginStatsCache.perMember) return null;
+  return _loginStatsCache.perMember.find(x=>String(x.memberId)===String(memberId))||null;
+}
+function renderLoginStatsCard(){
+  const card=document.getElementById('db-login-card');
+  if(!card) return;
+  if(!_loginStatsCache){
+    card.innerHTML=`<div class="tcard" style="padding:1rem 1.2rem;border-left:4px solid #6366f1;background:linear-gradient(135deg,#f5f3ff 0%,#fff 60%)">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4f46e5;margin-bottom:.4rem">📱 Elev-app brug</div>
+      <div style="font-size:.85rem;color:var(--xtm)">Henter statistik…</div>
+    </div>`;
+    return;
+  }
+  const d=_loginStatsCache;
+  const act=actMembers();
+  const actIds=new Set(act.map(m=>m.id));
+  const per=(d.perMember||[]).filter(x=>actIds.has(Number(x.memberId)));
+  const active30=per.filter(x=>x.last30>0).length;
+  const activeTotal=act.length;
+  const neverIds=act.filter(m=>!per.find(x=>Number(x.memberId)===m.id)).map(m=>m.id);
+  const withEmail=act.filter(m=>(m.email||'').trim()).length;
+  const pctActive=withEmail?Math.round(active30/withEmail*100):0;
+  const sorted=[...per].sort((a,b)=>{
+    const la=a.lastIso?new Date(a.lastIso).getTime():0;
+    const lb=b.lastIso?new Date(b.lastIso).getTime():0;
+    return lb-la;
+  });
+  const topRows=sorted.slice(0,8).map(x=>{
+    const m=members.find(mm=>mm.id===Number(x.memberId));
+    if(!m) return '';
+    const ago=_loginAgoLabel(x.lastIso);
+    const chipCol=x.last7>0?'#16a34a':x.last30>0?'#d97706':'#9ca3af';
+    const chipBg=x.last7>0?'#dcfce7':x.last30>0?'#fef3c7':'#f3f4f6';
+    return `<div style="display:flex;align-items:center;gap:.55rem;padding:.4rem 0;border-bottom:1px solid #f5f5f0">
+      <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+        <div style="font-size:.68rem;color:var(--xtl)">${ago} · ${x.total} login${x.total===1?'':'s'} i alt</div>
+      </div>
+      <span style="font-size:.66rem;font-weight:700;background:${chipBg};color:${chipCol};border-radius:7px;padding:2px 7px;white-space:nowrap">${x.last7>0?'🟢 Aktiv':x.last30>0?'🟡 Sjældent':'⚪ Inaktiv'}</span>
+    </div>`;
+  }).join('');
+  const neverHtml=neverIds.length?`<div style="margin-top:.7rem;padding:.5rem .7rem;background:#f9fafb;border-radius:8px;font-size:.75rem;color:#6b7280"><strong>${neverIds.length}</strong> aktive medlemmer har aldrig logget ind på elev-appen</div>`:'';
+  card.innerHTML=`<div class="tcard" style="padding:1.1rem 1.3rem;border-left:4px solid #6366f1;background:linear-gradient(135deg,#f5f3ff 0%,#fff 60%)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4f46e5">📱 Elev-app brug</div>
+      <button onclick="fetchLoginStats(true)" style="font-size:.68rem;font-weight:700;background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:7px;padding:3px 8px;cursor:pointer">↻ Opdatér</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.5rem;margin-bottom:.7rem">
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#4f46e5;line-height:1">${d.totalLogins||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Logins i alt</div></div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#16a34a;line-height:1">${d.unique7||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Aktive (7 dage)</div></div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#d97706;line-height:1">${d.unique30||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Aktive (30 dage)</div></div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#0891b2;line-height:1">${pctActive}%</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Af m. e-mail</div></div>
+    </div>
+    ${topRows?`<div style="font-size:.7rem;font-weight:700;color:var(--xtm);margin-bottom:.2rem">Seneste aktive</div>${topRows}`:'<div style="font-size:.8rem;color:var(--xtl);font-style:italic">Ingen logins registreret endnu</div>'}
+    ${neverHtml}
+  </div>`;
+}
 function _absentLabel(days){
   if(days>=60) return `${Math.floor(days/30)} måned${Math.floor(days/30)===1?'':'er'}`;
   const uger=Math.round(days/7);
