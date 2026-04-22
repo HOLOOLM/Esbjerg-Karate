@@ -208,7 +208,10 @@ svg.chart{width:100%;height:150px;display:block}
 
 <div id="dashView" class="dash">
   <div class="topbar">
-    <h2>Esbjerg Shuri-Ryu Karate</h2>
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="shuri-ryu.jpg" alt="Shuri-Ryu" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,.25);flex-shrink:0">
+      <h2>Esbjerg Shuri-Ryu Karate</h2>
+    </div>
     <button class="logout" onclick="doLogout()">Log ud</button>
   </div>
   <div class="wrap">
@@ -273,8 +276,10 @@ svg.chart{width:100%;height:150px;display:block}
       <div id="tagBadge" style="display:none"></div>
       <div style="position:relative">
         <div id="mentionDropdown" class="mention-dd"></div>
+        <div id="emojiPanel" style="display:none;position:absolute;bottom:calc(100% + 4px);right:0;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:8px;z-index:200;display:none;flex-wrap:wrap;gap:4px;max-width:280px"></div>
         <div style="display:flex;gap:8px;align-items:flex-end">
           <textarea id="msgInput" rows="2" placeholder="Skriv en besked… brug @ for at tagge en træner" style="flex:1;border:1.5px solid #d5dcdc;border-radius:10px;padding:10px;font-size:14px;resize:none;font-family:inherit;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--xtm)'" onblur="this.style.borderColor='#d5dcdc'" oninput="onMsgInput(event)"></textarea>
+          <button type="button" onclick="toggleEmojiPanel()" title="Indsæt emoji" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:10px;padding:10px 12px;font-size:16px;cursor:pointer;align-self:flex-end">😊</button>
           <button class="msg-send-btn" id="msgSendBtn" onclick="sendStudentMessage()">Send</button>
         </div>
       </div>
@@ -592,6 +597,34 @@ function selectMention(id, name, atIdx, pos){
     tb.innerHTML = `<span class="tag-pill">@${escapeHtml(name)}<button onclick="clearTag()" title="Fjern tag">✕</button></span>`;
   }
 }
+
+const EMOJI_SET = ['😊','😄','😂','😅','😍','🥰','😎','🤔','😢','😭','😡','🥺','🙏','👍','👎','👌','💪','🙌','👏','🎉','🔥','✨','❤️','💙','💚','🥋','🥇','🏆','✅','❌','❓','❗','📝','⭐','🎯','⚡'];
+function toggleEmojiPanel(){
+  const p = document.getElementById('emojiPanel');
+  if(!p) return;
+  if(p.style.display === 'flex'){ p.style.display = 'none'; return; }
+  if(!p.dataset.built){
+    p.innerHTML = EMOJI_SET.map(e=>`<button type="button" onclick="insertEmoji('${e}')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;border-radius:6px;line-height:1" onmouseover="this.style.background='#f1f4f4'" onmouseout="this.style.background='none'">${e}</button>`).join('');
+    p.dataset.built = '1';
+  }
+  p.style.display = 'flex';
+}
+function insertEmoji(e){
+  const ta = document.getElementById('msgInput');
+  if(!ta) return;
+  const s = ta.selectionStart||0, en = ta.selectionEnd||0;
+  ta.value = ta.value.slice(0,s) + e + ta.value.slice(en);
+  ta.focus();
+  const np = s + e.length;
+  ta.setSelectionRange(np, np);
+}
+document.addEventListener('click', (ev)=>{
+  const p = document.getElementById('emojiPanel');
+  if(!p || p.style.display !== 'flex') return;
+  if(p.contains(ev.target)) return;
+  if(ev.target.closest('[onclick*="toggleEmojiPanel"]')) return;
+  p.style.display = 'none';
+});
 
 function clearTag(){
   _taggedInstructorId = 0;
