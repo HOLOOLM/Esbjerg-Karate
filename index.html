@@ -1410,11 +1410,16 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <input type="text" id="gradEmailSubject" style="width:100%;padding:.55rem .7rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.88rem;margin-bottom:.8rem" placeholder="Emne på mailen">
       <label style="display:block;font-size:.72rem;font-weight:700;color:var(--xtm);margin-bottom:.25rem">Personlig besked <span style="font-weight:400;color:var(--xtl)">(valgfrit — vises i en fremhævet boks)</span></label>
       <textarea id="gradEmailMessage" rows="4" style="width:100%;padding:.55rem .7rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.88rem;font-family:inherit;resize:vertical" placeholder="Fx: Flot indsats i går — fortsæt med at øve Heian Shodan hjemme!"></textarea>
-      <div style="margin-top:.6rem;font-size:.72rem;color:var(--xtl)">Mailen indeholder automatisk: profilbillede/initialer, bælte, antal træninger i år, seneste vurdering, kommentar og et link til elev-appen.</div>
+      <div style="margin-top:.6rem;padding:.55rem .7rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:.72rem;color:#1e40af;line-height:1.5">
+        <strong>💡 Sådan gør du:</strong><br>
+        1. Klik <strong>📄 Generér PDF</strong> → gem som PDF fra print-dialogen.<br>
+        2. Klik <strong>✉️ Åbn e-mail</strong> → vedhæft den gemte PDF i din mail-klient, og send.
+      </div>
     </div>
     <div class="ma">
       <button class="btn bg" onclick="closeModal('gradEmailModal')">Annuller</button>
-      <button class="btn bp" id="gradEmailSendBtn" onclick="sendGradEmail()">✉️ Send</button>
+      <button class="btn bp" onclick="exportProgressToPDF(_gradEmailMemberId)" style="background:#f59e0b;color:#fff">📄 Generér PDF</button>
+      <button class="btn bp" id="gradEmailSendBtn" onclick="sendGradEmail()">✉️ Åbn e-mail</button>
     </div>
   </div>
 </div>
@@ -3833,6 +3838,11 @@ function getPromoOverdue(memberId){
 function _promoInitials(m){return ((m.firstName||'?')[0]+(m.lastName||'')[0]).toUpperCase()}
 function _promoAvatar(m){
   const bc=BC[m.belt]||'#a5d6a7';
+  if(m && m.photoId){
+    const fullName=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'");
+    const esc=_promoInitials(m).replace(/'/g,"\\'");
+    return `<div class="promo-avatar" style="background:linear-gradient(135deg,${bc},#2c4a4a);overflow:hidden;padding:0"><img src="${photoUrl(m.photoId)}" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer" onclick="event.stopPropagation();openPhotoLightbox('${m.photoId}','${fullName}')" onerror="this.parentElement.innerHTML='${esc}'"/></div>`;
+  }
   return `<div class="promo-avatar" style="background:linear-gradient(135deg,${bc},#2c4a4a)">${_promoInitials(m)}</div>`;
 }
 function _promoBeltPills(currentBelt,nextBelt){
@@ -3927,31 +3937,76 @@ function openGradEmailModal(memberId){
 }
 function sendGradEmail(){
   if(!_gradEmailMemberId){ return; }
-  if(!config.scriptUrl){ showToast('Backend ikke konfigureret'); return; }
+  const m=members.find(x=>x.id===_gradEmailMemberId);
+  if(!m||!(m.email||'').trim()){ showToast('Ingen e-mail'); return; }
   const subject=(document.getElementById('gradEmailSubject').value||'').trim();
   const message=(document.getElementById('gradEmailMessage').value||'').trim();
   if(!subject){ showToast('Tilføj et emne'); return; }
-  const btn=document.getElementById('gradEmailSendBtn');
-  btn.disabled=true; btn.textContent='Sender…';
-  const cb='_ge'+Date.now();
-  const s=document.createElement('script');
-  let timer;
-  const appUrl=(config.elevAppUrl||window.location.href.replace(/index\.html.*$/,'')+'elev.html');
-  const cleanup=()=>{clearTimeout(timer);try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);};
-  window[cb]=function(d){
-    cleanup();
-    if(d&&d.ok){
-      showToast('📧 Mail sendt til '+(d.sentTo||''));
-      closeModal('gradEmailModal');
-    } else {
-      btn.disabled=false; btn.textContent='✉️ Send';
-      showToast('❌ '+(d&&d.error?d.error:'Kunne ikke sende mail'));
+  const appUrl='https://holoolm.github.io/Esbjerg-Karate/elev?email='+encodeURIComponent(m.email);
+  const year=new Date().getFullYear();
+  const trainCount=sessions.filter(s=>s.date&&s.date.startsWith(String(year))&&(s.presentIds||[]).includes(m.id)).length;
+  const ma=assessments.filter(x=>x.memberId===m.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let avgTxt='', dateTxt='', commentLine='', trendLine='', improvedCount=0, declinedCount=0, newCount=0;
+  if(ma.length){
+    const latest=ma[0];
+    const merged=(typeof getMergedRatings==='function')?getMergedRatings(m.id,latest.id):(latest.ratings||{});
+    const vals=Object.values(merged||{}).map(x=>(x&&typeof x==='object')?x.val:x).map(Number).filter(v=>v>0);
+    if(vals.length){
+      const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
+      avgTxt=avg.toFixed(1).replace('.',',');
+      const d=new Date(latest.date+'T12:00:00');
+      dateTxt=d.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
     }
-  };
-  s.onerror=()=>{ cleanup(); btn.disabled=false; btn.textContent='✉️ Send'; showToast('❌ Netværksfejl'); };
-  timer=setTimeout(()=>{ cleanup(); btn.disabled=false; btn.textContent='✉️ Send'; showToast('⏱️ Timeout'); },15000);
-  s.src=config.scriptUrl+'?action=sendGraduationEmail&memberId='+encodeURIComponent(_gradEmailMemberId)+'&subject='+encodeURIComponent(subject)+'&message='+encodeURIComponent(message)+'&appUrl='+encodeURIComponent(appUrl)+'&callback='+cb+'&t='+Date.now();
-  document.head.appendChild(s);
+    if(latest.comment) commentLine='Trænerens kommentar:\n  "'+latest.comment+'"';
+    if(ma[1]){
+      const prevMerged=(typeof getMergedRatings==='function')?getMergedRatings(m.id,ma[1].id):(ma[1].ratings||{});
+      Object.keys(merged||{}).forEach(sk=>{
+        const r=merged[sk]; const v=Number((r&&typeof r==='object')?r.val:r)||0;
+        const pr=prevMerged[sk]; const pv=Number((pr&&typeof pr==='object')?pr.val:pr)||0;
+        if(v>0 && pv>0){
+          if(v-pv>=0.5) improvedCount++;
+          else if(pv-v>=0.5) declinedCount++;
+        } else if(v>0 && pv===0){
+          newCount++;
+        }
+      });
+      if(improvedCount||newCount||declinedCount){
+        const bits=[];
+        if(improvedCount) bits.push(improvedCount+' forbedret');
+        if(newCount) bits.push(newCount+' ny'+(newCount===1?'':'e'));
+        if(declinedCount) bits.push(declinedCount+' tilbage');
+        trendLine='Siden sidste vurdering: '+bits.join(' · ');
+      }
+    }
+  }
+  const parts=[];
+  parts.push('Kære '+m.firstName+',');
+  parts.push('');
+  if(message){ parts.push(message); parts.push(''); }
+  parts.push('Vi har lavet en lille progress-rapport til dig — den er vedhæftet som PDF, så du kan se præcis hvordan det går med hver enkelt skill. 🥋');
+  parts.push('');
+  parts.push('── Kort opsummering ──');
+  parts.push('• Bælte: '+(m.belt||'—'));
+  parts.push('• Træninger i '+year+': '+trainCount);
+  if(avgTxt) parts.push('• Seneste vurdering: '+avgTxt+' / 5 ('+dateTxt+')');
+  if(trendLine) parts.push('• '+trendLine);
+  parts.push('');
+  if(commentLine){ parts.push(commentLine); parts.push(''); }
+  parts.push('I PDF\'en kan du se stjerner for hver enkelt skill og om du er gået frem (★↑), tilbage (★↓) eller er ny (NY) siden sidst.');
+  parts.push('');
+  parts.push('Vil du dykke længere ned i historikken? Log ind på elev-appen her:');
+  parts.push(appUrl);
+  parts.push('');
+  parts.push('Bliv ved med det gode arbejde — vi er stolte af din indsats og glæder os til at se dig til næste træning!');
+  parts.push('');
+  parts.push('Med venlig hilsen,');
+  parts.push('Esbjerg Shuri-Ryu Karate');
+  const body=parts.join('\n');
+  exportProgressToPDF(_gradEmailMemberId);
+  const href='mailto:'+encodeURIComponent(m.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  setTimeout(()=>{ window.location.href=href; }, 500);
+  closeModal('gradEmailModal');
+  showToast('📄 Gem PDF\'en, vedhæft den i mailen og send');
 }
 function _promoLoginChip(memberId){
   const info=getMemberLoginInfo(memberId);
@@ -3963,7 +4018,11 @@ function _promoLoginChip(memberId){
 }
 function _promoEmailBtn(memberId){
   const m=members.find(x=>x.id===memberId);
-  if(!m||!(m.email||'').trim()) return '';
+  if(!m) return '';
+  const hasEmail=!!(m.email||'').trim();
+  if(!hasEmail){
+    return `<button onclick="event.stopPropagation();showToast('⚠️ Ingen e-mail registreret for ${m.firstName} — tilføj den i medlemsprofilen');" title="Ingen e-mail registreret — klik for info" style="background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;opacity:.75">✉️ Ingen mail</button>`;
+  }
   return `<button onclick="event.stopPropagation();openGradEmailModal(${memberId})" title="Send progress-mail til ${m.firstName}" style="background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .15s" onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">✉️ Send</button>`;
 }
 function _gradWishBanner(m){
@@ -9941,6 +10000,190 @@ function exportBoardToPDF(id){
   const w=window.open('','_blank','width=850,height=1100');
   w.document.write(html);
   w.document.close();
+}
+
+function _pdfStars(val, size){
+  const sz = size || 14;
+  const full=Math.round(Number(val)||0);
+  let out='';
+  for(let i=1;i<=5;i++){
+    out += i<=full
+      ? '<span style="color:#f59e0b;font-size:'+sz+'px;margin-right:1px">★</span>'
+      : '<span style="color:#e5e7eb;font-size:'+sz+'px;margin-right:1px">★</span>';
+  }
+  return out;
+}
+function _pdfRatingTxt(v){
+  const n=Number(v)||0;
+  const s=(n%1===0)?String(n):n.toFixed(1).replace('.',',');
+  return s+' / 5';
+}
+function exportProgressToPDF(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m){ showToast('Medlem ikke fundet'); return; }
+  const ma=assessments.filter(x=>x.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!ma.length){ showToast('Ingen vurderinger endnu'); return; }
+  const latest=ma[0];
+  const pensumBelt=(typeof effectivePensumBelt==='function')?effectivePensumBelt(m):(m.belt||'');
+  const merged=(typeof getMergedRatings==='function')?getMergedRatings(memberId,latest.id):(latest.ratings||{});
+  const pensumSkills=(pensum&&pensum[pensumBelt])||Object.keys(merged||{});
+  const vals=Object.values(merged||{}).map(x=>(x&&typeof x==='object')?x.val:x).map(Number).filter(v=>v>0);
+  const avg=vals.length?(vals.reduce((s,v)=>s+v,0)/vals.length):0;
+  const avgTxt=(avg%1===0)?String(avg):avg.toFixed(1).replace('.',',');
+  const year=new Date().getFullYear();
+  const trainCount=sessions.filter(s=>s.date&&s.date.startsWith(String(year))&&(s.presentIds||[]).includes(m.id)).length;
+  const dateStr=new Date(latest.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
+  const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#f3f4f6','8. Kyu (2 Snip)':'#f3f4f6','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+  const beltBg=BC[m.belt]||'#f3f4f6';
+  const beltFg=(m.belt||'').includes('Dan')?'#fff':'#1a2e2e';
+  const prevMerged=ma[1]?((typeof getMergedRatings==='function')?getMergedRatings(memberId,ma[1].id):(ma[1].ratings||{})):{};
+  const useTwoCols = pensumSkills.length > 10;
+  const rowHtml = sk => {
+    const r=merged[sk];
+    const v=r?(typeof r==='object'?r.val:r):0;
+    const rated=Number(v)>0;
+    const pr=prevMerged[sk];
+    const pv=pr?(typeof pr==='object'?pr.val:pr):0;
+    const pRated=Number(pv)>0;
+    let trend='';
+    if(rated && pRated){
+      const diff=Number(v)-Number(pv);
+      if(diff>=0.5) trend='<span style="color:#16a34a;font-size:12px;font-weight:800">↑</span>';
+      else if(diff<=-0.5) trend='<span style="color:#dc2626;font-size:12px;font-weight:800">↓</span>';
+      else trend='<span style="color:#cbd5e1;font-size:11px">=</span>';
+    } else if(rated && !pRated){
+      trend='<span style="color:#4338ca;font-size:9px;font-weight:800;background:#eef2ff;padding:1px 4px;border-radius:4px">NY</span>';
+    }
+    return `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:3px 8px;border-bottom:1px solid #f1f5f9">
+      <span style="font-size:11px;color:#1e293b;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sk}</span>
+      <span style="width:18px;text-align:center">${trend}</span>
+      <span style="white-space:nowrap">${rated?_pdfStars(v,11):'<span style="font-size:9px;color:#9ca3af;font-style:italic">Ikke vurderet</span>'}</span>
+      <span style="font-size:10px;font-weight:700;color:${rated?(v>=4?'#16a34a':v>=3?'#d97706':'#dc2626'):'#9ca3af'};white-space:nowrap;min-width:42px;text-align:right">${rated?_pdfRatingTxt(v):'—'}</span>
+    </div>`;
+  };
+  const skillRowsHtml = pensumSkills.length
+    ? (useTwoCols
+        ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">${pensumSkills.map(rowHtml).join('')}</div>`
+        : `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">${pensumSkills.map(rowHtml).join('')}</div>`)
+    : '<div style="padding:16px;color:#9ca3af;font-style:italic;text-align:center;border:1px dashed #e5e7eb;border-radius:10px">Ingen skills i pensum</div>';
+  const commentBlockNew=latest.comment?`<div class="comment">
+    <div class="comment-lbl">💬 Trænerens kommentar</div>
+    <div class="comment-txt">"${String(latest.comment).replace(/[<>]/g,'')}"</div>
+    ${latest.assessorName?`<div class="comment-author">— ${latest.assessorName}</div>`:''}
+  </div>`:'';
+  const appUrl='https://holoolm.github.io/Esbjerg-Karate/elev?email='+encodeURIComponent(m.email||'');
+  const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"/>
+<title>Progress – ${m.firstName} ${m.lastName}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{size:A4 portrait;margin:8mm}
+  html,body{background:#fff}
+  body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;color:#1a1a2e;margin:0;font-size:12px}
+  .page-root{padding:0;max-width:820px;margin:0 auto}
+  .hero{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;background:linear-gradient(135deg,#1a2e2e,#4a6060);color:#fff;margin-bottom:10px}
+  .hero-l{display:flex;align-items:center;gap:10px}
+  .logo{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.25);flex-shrink:0}
+  .clubname{font-size:16px;font-weight:800;line-height:1.1}
+  .clubsub{font-size:10px;opacity:.85;margin-top:1px;letter-spacing:.02em}
+  .doc-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#1a2e2e;background:#fcd34d;padding:4px 10px;border-radius:14px}
+  .student{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px}
+  .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .s-name{font-size:17px;font-weight:800;color:#0f172a;line-height:1.1}
+  .s-meta{font-size:10px;color:#64748b;margin-top:2px}
+  .belt-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:10px;background:${beltBg};color:${beltFg};margin-top:3px;border:1px solid rgba(0,0,0,.08)}
+  .top-row{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px;align-items:stretch}
+  .avg-card{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fcd34d;border-radius:10px}
+  .avg-big{font-size:32px;font-weight:800;color:#92400e;line-height:1}
+  .avg-lbl{font-size:9px;color:#78350f;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .stat{background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 4px;text-align:center}
+  .stat-v{font-size:17px;font-weight:800;line-height:1;color:#4338ca}
+  .stat-l{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-top:2px}
+  .section-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 6px;padding-bottom:4px;border-bottom:2px solid #fcd34d}
+  .section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#1e293b}
+  .legend{font-size:8.5px;color:#475569;display:inline-flex;gap:8px;align-items:center}
+  .legend b{font-weight:800;margin-right:2px}
+  .comment{margin-top:8px;padding:8px 12px;background:#fef3c7;border-left:3px solid #f59e0b;border-radius:6px}
+  .comment-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#92400e;margin-bottom:2px}
+  .comment-txt{font-size:11px;color:#451a03;font-style:italic;line-height:1.4}
+  .comment-author{font-size:9.5px;color:#92400e;margin-top:3px;text-align:right}
+  .cta{display:block;text-align:center;padding:9px 16px;background:#1a2e2e;color:#fff!important;border-radius:8px;font-weight:700;font-size:11px;text-decoration:none;margin-top:10px}
+  .footer{margin-top:8px;padding-top:6px;border-top:1px solid #e5e7eb;font-size:8.5px;color:#94a3b8;display:flex;justify-content:space-between}
+  @media print{button{display:none} *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style></head><body>
+<div class="page-root">
+  <div class="hero">
+    <div class="hero-l">
+      <img class="logo" src="${(typeof SHURI_BADGE!=='undefined')?SHURI_BADGE:''}" alt=""/>
+      <div><div class="clubname">Esbjerg Shuri-Ryu Karate</div><div class="clubsub">Din karate-udvikling &middot; ${dateStr}</div></div>
+    </div>
+    <div class="doc-type">🥋 Progress-rapport</div>
+  </div>
+  <div class="student">
+    ${m.photoId
+      ? `<div class="avatar" style="padding:0;overflow:hidden;background:#e5e7eb"><img src="${photoUrl(m.photoId,'s200')}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
+      : `<div class="avatar">${(m.firstName||'?')[0]}${(m.lastName||'')[0]||''}</div>`}
+    <div style="flex:1">
+      <div class="s-name">${m.firstName} ${m.lastName}</div>
+      <div class="s-meta">${m.group||''}${latest.assessorName?' · Vurderet af '+latest.assessorName:''}</div>
+      <div class="belt-pill">${m.belt||'—'}</div>
+    </div>
+  </div>
+  <div class="top-row">
+    <div class="avg-card">
+      <div>
+        <div class="avg-lbl">Samlet gennemsnit</div>
+        <div style="margin-top:4px">${_pdfStars(avg,16)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="avg-big">${avgTxt}<span style="font-size:14px;color:#a16207;font-weight:700"> / 5</span></div>
+        <div class="avg-lbl" style="margin-top:1px">Seneste vurd.</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-v">${trainCount}</div><div class="stat-l">Træninger ${year}</div></div>
+      <div class="stat"><div class="stat-v">${vals.length}</div><div class="stat-l">Vurderet</div></div>
+      <div class="stat"><div class="stat-v" style="color:#16a34a">${pensumSkills.length}</div><div class="stat-l">I pensum</div></div>
+    </div>
+  </div>
+  <div class="section-header">
+    <span class="section-title">📋 Skill-for-skill</span>
+    <span class="legend">
+      <span><b style="color:#16a34a">↑</b>Forbedret</span>
+      <span><b style="color:#dc2626">↓</b>Tilbagegang</span>
+      <span><b style="color:#64748b">=</b>Uændret</span>
+      <span><b style="color:#4338ca">NY</b></span>
+    </span>
+  </div>
+  ${skillRowsHtml}
+  ${commentBlockNew}
+  <a class="cta" href="${appUrl}">🔗 Se fuld udvikling i elev-appen</a>
+  <div class="footer">
+    <span>Esbjerg Shuri-Ryu Karate &copy; ${new Date().getFullYear()}</span>
+    <span>Genereret ${new Date().toLocaleDateString('da-DK')}</span>
+  </div>
+</div>
+<script>
+  window.onload=function(){
+    // Auto-fit: shrink slightly if content overflows A4 content-area (~277mm at 96dpi ≈ 1040px minus page margin)
+    try{
+      var root=document.querySelector('.page-root');
+      var maxH=1040;
+      var h=root.scrollHeight;
+      if(h>maxH){
+        var scale=Math.max(0.6, maxH/h);
+        root.style.zoom=scale;
+      }
+    }catch(e){}
+    setTimeout(function(){window.print();},450);
+  };
+<\/script>
+</body></html>`;
+  const w=window.open('','_blank','width=850,height=1100');
+  if(!w){ showToast('⚠️ Popup blokeret — tillad popups for at generere PDF'); return; }
+  w.document.write(html);
+  w.document.close();
+  showToast('📄 Gem som PDF fra print-dialogen, og vedhæft den i mailen');
 }
 
 /* ═══════════════════════════════════════════════════
