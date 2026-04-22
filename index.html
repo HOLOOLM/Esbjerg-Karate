@@ -175,7 +175,7 @@ input:checked+.slider::before{transform:translateX(20px)}
 /* MODAL */
 .mbd{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .mbd.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:1.8rem;width:100%;max-width:520px;box-shadow:var(--shl);animation:slideUp .22s ease;max-height:92vh;overflow-y:auto}
+.modal{background:#fff;border-radius:16px;padding:1.8rem;width:100%;max-width:520px;box-shadow:var(--shl);animation:slideUp .22s ease;max-height:92vh;overflow-y:auto;overscroll-behavior:contain}
 .modal-lg{max-width:720px}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 .mtitle{font-size:1.05rem;font-weight:700;color:var(--td);margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between}
@@ -2205,6 +2205,7 @@ const SEED = [
 ════════════════════════════════════════ */
 let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[];
 let deletedAssessmentIds=new Set();
+let deletedBoardIds=new Set();
 let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
 let nextBoardId=1, editingBoardId=null;
 let editingId=null, nextId=200, nextAssessmentId=1, cloudLoaded=false;
@@ -2443,6 +2444,7 @@ function load(){
     boardMeetings=bv?JSON.parse(bv):[];
     boardMeetings.forEach(b=>{ b.date=normDateStr(b.date); });
     nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
+    try{ deletedBoardIds=new Set(JSON.parse(localStorage.getItem('kk2_deletedBoards')||'[]')); }catch(e){ deletedBoardIds=new Set(); }
     const gpv=localStorage.getItem('kk2_gultPensum');
     gultPensumOverrides=gpv?JSON.parse(gpv):{};
   }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; }
@@ -2820,6 +2822,19 @@ function _startPeriodicSync(){
   },60000);
 }
 
+// Hvis brugeren lukker fanen mens der er ugemte ændringer, send en sendBeacon
+// så ændringerne når cloud inden browseren lukker forbindelsen.
+window.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden' && _hasPending && config.scriptUrl){
+    try{
+      let vault={};
+      try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
+      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],_savedAt:config._savedAt});
+      navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
+    }catch(e){}
+  }
+});
+
 function _doPush(attempt){
   const url=config.scriptUrl;
   if(!url||_isSyncing)return;
@@ -2834,7 +2849,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -2958,6 +2973,10 @@ function loadFromCloud(onDone){
       if(d.skillNotes){ skillNotes=d.skillNotes; localStorage.setItem('kk2_skillNotes',JSON.stringify(skillNotes)); }
       // Bestyrelse: hent fra Sheets KUN hvis svaret eksplicit indeholder boardMeetings
       // (undefined = gammelt apps-script uden boardMeetings support → bevar lokale data)
+      if(Array.isArray(d.deletedBoardIds)&&d.deletedBoardIds.length){
+        d.deletedBoardIds.forEach(id=>deletedBoardIds.add(id));
+        localStorage.setItem('kk2_deletedBoards',JSON.stringify([...deletedBoardIds]));
+      }
       if(Array.isArray(d.boardMeetings)){
         boardMeetings=d.boardMeetings.map(b=>({
           ...b,
@@ -2967,7 +2986,7 @@ function loadFromCloud(onDone){
           attendees:b.attendees?String(b.attendees):'',
           agenda:b.agenda?String(b.agenda):'',
           notes:b.notes?String(b.notes):''
-        }));
+        })).filter(b=>!deletedBoardIds.has(b.id));
         nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
         localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
       }
@@ -3935,15 +3954,13 @@ function _computePromoGroups(){
     return sb.localeCompare(sa);
   };
   active.forEach(m=>{
+    if(!m.ønskerGraduering) return;
     const s=getPromotionStatus(m.id);
     if(s&&s.status==='ready'){
       ready.push(s);
     } else if(s&&s.status==='almost'){
-      // Score bestemmer altid sektionen — badge er kun visuelt
       almost.push(s);
-    } else if(m.ønskerGraduering){
-      // Ønsker graduering men score under tærsklen → Kræver fokus
-      // forceReturn=true sikrer at vi altid får vurderingsdata med, selv under almostThr
+    } else {
       const s2=getPromotionStatus(m.id,true);
       if(s2) focus.push(s2);
       else focus.push({memberId:m.id,never:true,info:{lastDate:null,trainingDaysSince:0}});
@@ -4122,23 +4139,11 @@ function renderPromotion(){
     </div>`:''}
     `;
   // 🎓 Graduering-ønske filter
-  const gradFilter=config.promoGradFilter||null; // null=alle, 'wants'=ønsker, 'nowants'=ønsker ikke
-  const _filterByGrad=arr=>arr.filter(e=>{
-    if(!gradFilter) return true;
-    const m=members.find(x=>x.id===e.memberId);
-    if(!m) return false;
-    return gradFilter==='wants'?!!m.ønskerGraduering:!m.ønskerGraduering;
-  });
-  const gradTotal=members.filter(m=>!m.archived&&m.status!=='passiv'&&m.ønskerGraduering).length;
-  const gradFilterEl=document.getElementById('promoGradFilter');
-  gradFilterEl.innerHTML=gradTotal?`
-    <button onclick="togglePromoGradFilter('wants')" style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid ${gradFilter==='wants'?'#7c3aed':'#ddd6fe'};background:${gradFilter==='wants'?'#f5f3ff':'#fff'};color:${gradFilter==='wants'?'#6d28d9':'#7c3aed'}">🎓 Ønsker graduering <span style="background:#ede9fe;color:#6d28d9;border-radius:10px;padding:0 6px;font-size:.72rem">${gradTotal}</span></button>
-    <button onclick="togglePromoGradFilter('nowants')" style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid ${gradFilter==='nowants'?'#6b7280':'#e5e7eb'};background:${gradFilter==='nowants'?'#f3f4f6':'#fff'};color:${gradFilter==='nowants'?'#374151':'#6b7280'}">Uden ønske</button>
-  `:'';
+  document.getElementById('promoGradFilter').innerHTML='';
 
-  const readyArr=_filterByGrad(_filterByGroup(g.ready,'ready'));
-  const almostArr=_filterByGrad(_filterByGroup(g.almost,'almost'));
-  const overdueArr=_filterByGrad(g.overdue);
+  const readyArr=_filterByGroup(g.ready,'ready');
+  const almostArr=_filterByGroup(g.almost,'almost');
+  const overdueArr=g.overdue;
   let html='';
   if(showReady&&readyArr.length){
     html+=`<div class="promo-section-hdr ready"><h3>🏅 Klar til oprykning</h3><span class="promo-badge">${readyArr.length} medlem${readyArr.length===1?'':'mer'}</span><div class="promo-line"></div></div><div class="promo-grid">${readyArr.map(_promoCardReady).join('')}</div>`;
@@ -4351,7 +4356,11 @@ const _NEXT_BELT_NAME={
   '1. Dan (Sort)':'2. Dan (Sort)','2. Dan (Sort)':'3. Dan (Sort)'
 };
 function getLastAssessmentInfo(memberId){
-  const ma=assessments.filter(a=>a.memberId===memberId&&a.date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const ma=assessments.filter(a=>a.memberId===memberId&&a.date).sort((a,b)=>{
+    const da=String(a.date).slice(0,10), db=String(b.date).slice(0,10);
+    const diff=db.localeCompare(da);
+    return diff || (Number(b.id)||0)-(Number(a.id)||0);
+  });
   if(!ma.length) return {lastDate:null,trainingDaysSince:null};
   const lastDate=String(ma[0].date).slice(0,10);
   const tDays=new Set(config.trainingDays||[2,4]);
@@ -8873,13 +8882,22 @@ function saveAssessment(){
   }
   const comment=document.getElementById('assessComment').value.trim();
   const assessorName=document.getElementById('assessorName').value.trim();
-  if(!assessorName){showToast('⚠️ Vælg en bedømmer før du gemmer');document.getElementById('assessorName').focus();return;}
+  if(!assessorName){
+    const el=document.getElementById('assessorName');
+    el.style.outline='2.5px solid #ef4444';
+    el.style.borderRadius='6px';
+    setTimeout(()=>{el.style.outline='';el.style.borderRadius='';},3000);
+    el.focus();
+    showToast('⚠️ Vælg en bedømmer — vurderingen er IKKE gemt');
+    return;
+  }
   if(existing){
     existing.ratings=JSON.stringify(_assessRatings);
     existing.comment=comment;
     existing.assessorName=assessorName;
     existing.updatedAt=Date.now();
   } else {
+    while(deletedAssessmentIds.has(nextAssessmentId)) nextAssessmentId++;
     assessments.push({
       id:nextAssessmentId++,
       memberId:_assessMemberId,
@@ -9549,6 +9567,7 @@ function saveBoardMeeting(){
     boardMeetings[i]={...boardMeetings[i],...data};
     showToast('✅ Notat opdateret');
   } else {
+    while(deletedBoardIds.has(nextBoardId)) nextBoardId++;
     boardMeetings.push({id:nextBoardId++,...data});
     showToast('✅ Notat oprettet');
   }
@@ -9561,7 +9580,10 @@ function deleteBoardMeeting(id){
   const b=boardMeetings.find(x=>x.id===id);
   if(!confirm(`Slet mødet "${b?b.title:'dette møde'}"? Det kan ikke fortrydes.`)) return;
   boardMeetings=boardMeetings.filter(x=>x.id!==id);
+  deletedBoardIds.add(id);
+  localStorage.setItem('kk2_deletedBoards',JSON.stringify([...deletedBoardIds]));
   save();
+  pushToCloudNow();
   renderBoard();
   showToast('🗑 Møde slettet');
 }
