@@ -508,6 +508,13 @@ function doLogin(){
       return;
     }
     try{ sessionStorage.setItem('kk2_student_email', input); }catch(e){}
+    try {
+      const tlName = '_tl'+Date.now();
+      const tlScript = document.createElement('script');
+      window[tlName] = function(){ try{ delete window[tlName]; }catch(e){} if(tlScript.parentNode) tlScript.parentNode.removeChild(tlScript); };
+      tlScript.src = SCRIPT_URL + '?action=trackLogin&memberId=' + encodeURIComponent((d.member&&d.member.id)||0) + '&email=' + encodeURIComponent(input) + '&ua=' + encodeURIComponent((navigator.userAgent||'').slice(0,200)) + '&callback=' + tlName + '&t=' + Date.now();
+      document.head.appendChild(tlScript);
+    } catch(e){}
     renderDashboard(d);
   });
 }
