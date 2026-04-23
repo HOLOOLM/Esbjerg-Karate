@@ -1199,6 +1199,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <span class="inbox-title">💬 Beskeder</span>
     <button id="inboxBackBtn" onclick="showInboxList()" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.2rem .65rem;font-size:.78rem;cursor:pointer">← Alle</button>
   </div>
+  <div id="inboxToolbar" style="display:none;padding:.5rem .75rem;border-bottom:1px solid #f0f4f4;background:#fafbfb;gap:.4rem;align-items:center;flex-wrap:wrap">
+    <button id="inboxFilterMineBtn" onclick="toggleInboxFilterMine()" style="background:#fff;color:#4338ca;border:1px solid #c7d2fe;border-radius:18px;padding:.3rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:.25rem">@ Kun mine</button>
+    <button onclick="markAllInboxRead()" style="background:#fff;color:#059669;border:1px solid #a7f3d0;border-radius:18px;padding:.3rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-left:auto">✓ Markér alle læst</button>
+  </div>
   <div id="inboxContent" style="flex:1;overflow-y:auto;display:flex;flex-direction:column"></div>
   <div id="inboxReplyBar" style="display:none;padding:.75rem 1rem;border-top:1px solid #f0f4f4;display:none;gap:.5rem;align-items:flex-end;position:relative">
     <div id="inboxEmojiPanel" style="display:none;position:absolute;bottom:calc(100% + 4px);right:1rem;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:.5rem;z-index:200;flex-wrap:wrap;gap:.25rem;max-width:280px"></div>
@@ -2752,6 +2756,8 @@ function setPresenceName(name){
   sessionStorage.setItem('kk2_presence_name',name);
   document.getElementById('presenceModal').style.display='none';
   startPresence();
+  // Per-træner ulæst-badge skal opdateres nu hvor vi ved hvem der er logget ind
+  try{ updateNotifBadge(); }catch(e){}
   // Logins tælles kun fra elev.html — management-appen logger ikke i Logins-arket
 }
 function showPresenceConflict(name){
@@ -10916,24 +10922,72 @@ function closeInbox(){
   document.getElementById('inboxOverlay').style.display='none';
 }
 
+let _inboxFilterMine=false;
+
+function toggleInboxFilterMine(){
+  _inboxFilterMine=!_inboxFilterMine;
+  const btn=document.getElementById('inboxFilterMineBtn');
+  if(btn){
+    if(_inboxFilterMine){
+      btn.style.background='#4338ca';btn.style.color='#fff';btn.style.borderColor='#4338ca';
+    } else {
+      btn.style.background='#fff';btn.style.color='#4338ca';btn.style.borderColor='#c7d2fe';
+    }
+  }
+  showInboxList();
+}
+
+function markAllInboxRead(){
+  const me=(_myPresenceName||'').trim();
+  if(!me){ showToast('Vælg dit navn først'); return; }
+  let n=0;
+  messages.forEach(msg=>{
+    if(msg.sender!=='student') return;
+    const rb=String(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if(rb.indexOf(me)===-1){
+      rb.push(me);
+      msg.readBy=rb.join(', ');
+      msg.read=true;
+      _inboxMarkReadJsonp(msg.id,me);
+      n++;
+    }
+  });
+  if(n){ save(); showToast('✅ '+n+' besked'+(n===1?'':'er')+' markeret læst'); }
+  else { showToast('Ingen ulæste'); }
+  updateNotifBadge();
+  showInboxList();
+}
+
 function showInboxList(){
   _inboxActiveMember=null;
   document.getElementById('inboxBackBtn').style.display='none';
   document.getElementById('inboxReplyBar').style.display='none';
+  const tb=document.getElementById('inboxToolbar'); if(tb) tb.style.display='flex';
+  const meMember=_memberByFullName(_myPresenceName);
+  const myId=meMember?Number(meMember.id):0;
   const threads={};
   messages.forEach(msg=>{
     if(!threads[msg.memberId])threads[msg.memberId]=[];
     threads[msg.memberId].push(msg);
   });
-  const list=Object.entries(threads).map(([mid,msgs])=>{
+  let list=Object.entries(threads).map(([mid,msgs])=>{
     const latest=msgs[msgs.length-1];
     const unread=msgs.filter(_isUnreadForMe).length;
     const member=members.find(m=>m.id===Number(mid));
-    return{mid:Number(mid),latest,unread,member};
+    const taggedMine=myId>0 && msgs.some(x=>Number(x.taggedMemberId)===myId);
+    return{mid:Number(mid),latest,unread,member,taggedMine,msgs};
   }).sort((a,b)=>new Date(b.latest.date)-new Date(a.latest.date));
+  if(_inboxFilterMine){
+    if(!myId){
+      const el=document.getElementById('inboxContent');
+      el.innerHTML='<div style="padding:2.5rem 1rem;text-align:center;color:#9aacac;font-style:italic;font-size:.88rem">Dit navn kunne ikke matches til et medlem.</div>';
+      return;
+    }
+    list=list.filter(t=>t.taggedMine);
+  }
   const el=document.getElementById('inboxContent');
   if(!list.length){
-    el.innerHTML='<div style="padding:2.5rem 1rem;text-align:center;color:#9aacac;font-style:italic;font-size:.88rem">Ingen beskeder endnu.<br><br>Elever kan sende beskeder fra Min Udvikling.</div>';
+    el.innerHTML='<div style="padding:2.5rem 1rem;text-align:center;color:#9aacac;font-style:italic;font-size:.88rem">'+(_inboxFilterMine?'Ingen beskeder tagget til dig.':'Ingen beskeder endnu.<br><br>Elever kan sende beskeder fra Min Udvikling.')+'</div>';
     return;
   }
   el.innerHTML=list.map(t=>{
@@ -10999,6 +11053,7 @@ function renderThread(memberId){
   const member=members.find(m=>m.id===memberId);
   const name=member?member.firstName+' '+member.lastName:'Ukendt';
   document.getElementById('inboxBackBtn').style.display='';
+  const tb=document.getElementById('inboxToolbar'); if(tb) tb.style.display='none';
   const replyBar=document.getElementById('inboxReplyBar');
   replyBar.style.display='flex';
   const allThread=messages.filter(m=>m.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date));
