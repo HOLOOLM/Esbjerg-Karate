@@ -213,11 +213,27 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <div class="login-badge-emoji">🥋</div>
     </div>
     <h1>Esbjerg Shuri-Ryu Karate</h1>
-    <p>Log in with your email to see your ratings and progress.</p>
+    <p>Log in with your email and password to see your ratings and progress.</p>
     <div id="loginErr" class="login-err"></div>
     <input id="emailInput" type="email" placeholder="your@email.com" autocomplete="email">
+    <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password" style="margin-top:10px">
     <button id="loginBtn" onclick="doLogin()">See my progress</button>
     <div id="loginStatus" class="loading"><span class="spinner"></span>Loading your data…</div>
+  </div>
+</div>
+
+<!-- ══ SKIFT ADGANGSKODE (første gang) ══ -->
+<div id="changePwView" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:none;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:36px">🔑</div>
+      <div style="font-weight:800;font-size:18px;color:#1e293b;margin-top:6px">Choose your password</div>
+      <div style="font-size:13px;color:#64748b;margin-top:6px">You're using a temporary password. Please set a personal one to continue.</div>
+    </div>
+    <div id="changePwErr" class="login-err"></div>
+    <input id="newPw1" type="password" placeholder="New password (min. 6 characters)" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid #d5dcdc;border-radius:10px;font-size:15px;box-sizing:border-box;margin-bottom:10px">
+    <input id="newPw2" type="password" placeholder="Repeat new password" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid #d5dcdc;border-radius:10px;font-size:15px;box-sizing:border-box;margin-bottom:14px">
+    <button id="changePwBtn" onclick="submitPasswordChange()" style="width:100%;background:#2d5a4e;color:#fff;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer">Save password</button>
   </div>
 </div>
 
@@ -311,6 +327,18 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
         </div>
       </div>
       <div id="msgStatus" style="font-size:11px;color:var(--muted);margin-top:6px;min-height:14px"></div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">🥋</div>
+      <div style="font-weight:800;font-size:15px;color:var(--xtd);margin-bottom:2px">Esbjerg Shuri-Ryu Karate</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Strandbygade 53, 6700 Esbjerg</div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <a href="tel:25351776" style="display:inline-flex;align-items:center;gap:7px;background:#f1f4f4;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--xtd);text-decoration:none">📞 25 35 17 76</a>
+        <a href="mailto:holmoos@mail.dk" style="display:inline-flex;align-items:center;gap:7px;background:#f1f4f4;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--xtd);text-decoration:none">✉️ holmoos@mail.dk</a>
+        <a href="https://esbjerg-karate.dk/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:#f1f4f4;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--xtd);text-decoration:none">🌐 esbjerg-karate.dk</a>
+        <a href="https://www.facebook.com/groups/esbjergkarate" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:#e7f0ff;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;color:#1877f2;text-decoration:none">📘 Facebook-gruppe</a>
+      </div>
     </div>
 
   </div>
@@ -512,7 +540,12 @@ function openCurrentPensumModal(){
   openPensumModal(cb, '📘', 'Current belt curriculum', 'These are the skills required for your current belt. Skills with ℹ️ have additional info — tap to view.');
 }
 
-function fetchStudent(email, cb){
+async function sha256hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function fetchStudent(email, passwordHash, cb){
   const name = '_gs'+Date.now();
   const s = document.createElement('script');
   let timer;
@@ -520,7 +553,7 @@ function fetchStudent(email, cb){
   window[name] = function(d){ cleanup(); cb(null, d); };
   timer = setTimeout(()=>{ cleanup(); cb(new Error('Timeout')); }, 15000);
   s.onerror = ()=>{ cleanup(); cb(new Error('Network error')); };
-  s.src = SCRIPT_URL + '?action=getStudent&email=' + encodeURIComponent(email) + '&callback=' + name + '&t=' + Date.now();
+  s.src = SCRIPT_URL + '?action=getStudent&email=' + encodeURIComponent(email) + '&passwordHash=' + encodeURIComponent(passwordHash) + '&callback=' + name + '&t=' + Date.now();
   document.head.appendChild(s);
 }
 
@@ -531,13 +564,16 @@ function showErr(msg){
   document.getElementById('loginBtn').disabled = false;
 }
 
-function doLogin(){
+async function doLogin(){
   const input = document.getElementById('emailInput').value.trim().toLowerCase();
+  const pw = document.getElementById('passwordInput').value;
   document.getElementById('loginErr').classList.remove('show');
   if(!input){ showErr('Enter your email first.'); return; }
+  if(!pw){ showErr('Enter your password.'); return; }
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginStatus').classList.add('show');
-  fetchStudent(input, (err, d)=>{
+  const hash = await sha256hex(pw);
+  fetchStudent(input, hash, (err, d)=>{
     if(err){ showErr('Could not fetch data: '+err.message); return; }
     if(!d || !d.ok){
       showErr(d && d.error ? d.error : 'We could not find a student with that email.');
@@ -551,7 +587,57 @@ function doLogin(){
       tlScript.src = SCRIPT_URL + '?action=trackLogin&memberId=' + encodeURIComponent((d.member&&d.member.id)||0) + '&email=' + encodeURIComponent(input) + '&ua=' + encodeURIComponent((navigator.userAgent||'').slice(0,200)) + '&callback=' + tlName + '&t=' + Date.now();
       document.head.appendChild(tlScript);
     } catch(e){}
+    if(d.forcePasswordChange){
+      _changePwEmail = input;
+      _changePwOldHash = hash;
+      showChangePwView();
+      renderDashboard(d);
+      return;
+    }
     renderDashboard(d);
+  });
+}
+
+let _changePwEmail = '', _changePwOldHash = '';
+
+function showChangePwView(){
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('changePwView').style.display = 'flex';
+  document.getElementById('newPw1').value = '';
+  document.getElementById('newPw2').value = '';
+  document.getElementById('changePwErr').classList.remove('show');
+}
+
+function changePasswordApi(email, oldHash, newHash, cb){
+  const name = '_cp'+Date.now();
+  const s = document.createElement('script');
+  let timer;
+  const cleanup = ()=>{ clearTimeout(timer); delete window[name]; if(s.parentNode) s.parentNode.removeChild(s); };
+  window[name] = function(d){ cleanup(); cb(null, d); };
+  timer = setTimeout(()=>{ cleanup(); cb(new Error('Timeout')); }, 15000);
+  s.onerror = ()=>{ cleanup(); cb(new Error('Network error')); };
+  s.src = SCRIPT_URL + '?action=changePassword&email=' + encodeURIComponent(email) + '&oldHash=' + encodeURIComponent(oldHash) + '&newHash=' + encodeURIComponent(newHash) + '&callback=' + name + '&t=' + Date.now();
+  document.head.appendChild(s);
+}
+
+async function submitPasswordChange(){
+  const pw1 = document.getElementById('newPw1').value;
+  const pw2 = document.getElementById('newPw2').value;
+  const errEl = document.getElementById('changePwErr');
+  errEl.classList.remove('show');
+  if(pw1.length < 6){ errEl.textContent = 'Password must be at least 6 characters.'; errEl.classList.add('show'); return; }
+  if(pw1 !== pw2){ errEl.textContent = 'Passwords do not match.'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('changePwBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const newHash = await sha256hex(pw1);
+  changePasswordApi(_changePwEmail, _changePwOldHash, newHash, (err, d)=>{
+    btn.disabled = false; btn.textContent = 'Save password';
+    if(err || !d || !d.ok){
+      errEl.textContent = (d && d.error) || (err && err.message) || 'Something went wrong.';
+      errEl.classList.add('show'); return;
+    }
+    document.getElementById('changePwView').style.display = 'none';
+    document.getElementById('dashView').style.display = '';
   });
 }
 
@@ -1598,6 +1684,9 @@ document.addEventListener('keydown', e=>{
 });
 
 document.getElementById('emailInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('passwordInput').focus();
+});
+document.getElementById('passwordInput').addEventListener('keydown', e=>{
   if(e.key==='Enter') doLogin();
 });
 
