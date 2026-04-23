@@ -619,7 +619,18 @@ function renderMessages(){
     const readByList = (m.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
     let readInfo = '';
     if(isOwn && readByList.length){
-      readInfo = `<div style="font-size:10px;color:var(--muted);margin-top:2px">👁️ Read by ${escapeHtml(readByList.join(', '))}</div>`;
+      const avatarsHtml = readByList.map(nm=>{
+        const n = nm.toLowerCase();
+        const inst = instructors.find(i=>((i.firstName||'')+' '+(i.lastName||'')).trim().toLowerCase()===n);
+        const ini = inst ? (((inst.firstName||'')[0]||'')+((inst.lastName||'')[0]||'')).toUpperCase() : (nm[0]||'?').toUpperCase();
+        const safeName = escapeHtml(nm);
+        const style = 'width:20px;height:20px;border-radius:50%;background:#4a6060;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;overflow:hidden;border:1.5px solid #fff;margin-left:-5px;box-shadow:0 0 0 1px #e2e8f0';
+        if(inst && inst.photoId){
+          return `<span title="${safeName}" style="${style}"><img src="${photoUrl(inst.photoId,80)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${ini.replace(/'/g,"\\'")}'"/></span>`;
+        }
+        return `<span title="${safeName}" style="${style}">${ini}</span>`;
+      }).join('');
+      readInfo = `<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><span style="font-size:10px;color:var(--muted)">👁️</span><span style="display:inline-flex;padding-left:5px">${avatarsHtml}</span></div>`;
     }
     return `
     <div style="display:flex;flex-direction:column;align-items:${m.sender==='trainer'?'flex-end':'flex-start'}">
