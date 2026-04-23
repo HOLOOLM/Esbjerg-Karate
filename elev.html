@@ -43,6 +43,9 @@ body{min-height:100vh}
 .topbar h2{margin:0;font-size:17px;font-weight:600}
 .logout{background:rgba(255,255,255,.15);color:#fff;border:0;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer}
 .logout:hover{background:rgba(255,255,255,.25)}
+.msg-notif-btn{position:relative;background:rgba(255,255,255,.15);color:#fff;border:0;width:36px;height:36px;border-radius:50%;font-size:17px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .15s}
+.msg-notif-btn:hover{background:rgba(255,255,255,.25)}
+.msg-notif-badge{position:absolute;top:-2px;right:-2px;background:#dc2626;color:#fff;border-radius:10px;min-width:18px;height:18px;padding:0 5px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--xtd);line-height:1}
 
 .card{background:var(--card);border-radius:var(--br);box-shadow:var(--sh);padding:18px;margin-bottom:14px}
 .card h3{margin:0 0 12px;font-size:15px;color:var(--xtd);font-weight:600;display:flex;align-items:center;gap:6px}
@@ -216,7 +219,10 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <img id="topbarBadgeImg" src="" alt="Shuri-Ryu" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,.25);flex-shrink:0">
       <h2>Esbjerg Shuri-Ryu Karate</h2>
     </div>
-    <button class="logout" onclick="doLogout()">Log out</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="msg-notif-btn" id="msgNotifBtn" onclick="jumpToMessages()" title="Messages" style="display:none">💬<span id="msgNotifBadge" class="msg-notif-badge" style="display:none">0</span></button>
+      <button class="logout" onclick="doLogout()">Log out</button>
+    </div>
   </div>
   <div class="wrap">
 
@@ -570,24 +576,58 @@ function formatMsgDate(d){
   return hasTime ? `${dd}/${mm}/${yy} ${pad(hh)}:${pad(mi)}` : `${dd}/${mm}/${yy}`;
 }
 
+function _unreadTrainerMsgsForMe(){
+  if(!CURRENT) return [];
+  const m0 = CURRENT.member || {};
+  const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
+  if(!myName) return [];
+  return (CURRENT.messages || []).filter(msg=>{
+    if(msg.sender!=='trainer') return false;
+    const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+    return rb.indexOf(myName)===-1;
+  });
+}
+
+function updateMsgNotifBadge(){
+  const btn = document.getElementById('msgNotifBtn');
+  const badge = document.getElementById('msgNotifBadge');
+  if(!btn || !badge) return;
+  if(!CURRENT){ btn.style.display='none'; return; }
+  btn.style.display='inline-flex';
+  const n = _unreadTrainerMsgsForMe().length;
+  badge.textContent = n>9?'9+':n;
+  badge.style.display = n>0?'flex':'none';
+}
+
+function markMyTrainerMessagesRead(){
+  const m0 = (CURRENT && CURRENT.member) || {};
+  const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
+  if(!myName) return;
+  (CURRENT.messages||[]).forEach(msg=>{
+    if(msg.sender==='trainer'){
+      const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+      if(rb.indexOf(myName)===-1){
+        rb.push(myName);
+        msg.readBy = rb.join(', ');
+        _studentMsgJsonp('markMessageRead', {id: msg.id, reader: myName});
+      }
+    }
+  });
+  updateMsgNotifBadge();
+}
+
+function jumpToMessages(){
+  const el = document.getElementById('msgThread');
+  if(!el) return;
+  const card = el.closest('.card') || el;
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  markMyTrainerMessagesRead();
+  renderMessages();
+}
+
 function renderMessages(){
   if(!CURRENT) return;
   const allMsgs = (CURRENT.messages || []).slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
-  // Mark trainer messages as read by student
-  const m0 = CURRENT.member || {};
-  const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
-  if(myName){
-    allMsgs.forEach(msg=>{
-      if(msg.sender==='trainer'){
-        const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-        if(rb.indexOf(myName)===-1){
-          rb.push(myName);
-          msg.readBy = rb.join(', ');
-          _studentMsgJsonp('markMessageRead', {id: msg.id, reader: myName});
-        }
-      }
-    });
-  }
   const el = document.getElementById('msgThread');
   if(!el) return;
   if(!allMsgs.length){
@@ -1114,6 +1154,7 @@ function renderDashboard(d){
   }
 
   // Beskeder
+  updateMsgNotifBadge();
   renderMessages();
 
   // Focus points — per-slot carry-forward, each slot shows its own date + author
