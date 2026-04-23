@@ -1716,6 +1716,9 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 
 <!-- ══ PAGE: BESTYRELSE ══ -->
 <div class="page" id="page-board">
+  <!-- Aktiv besked til forældre -->
+  <div id="annCard" style="margin-bottom:1.2rem"></div>
+
   <div class="board-hero">
     <h2>Esbjerg Shuri-Ryu Karate — Interne notater</h2>
     <p>Bestyrelsesmøder, ekstra træninger, aktiviteter og referater</p>
@@ -1777,9 +1780,36 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="fgrp"><label>Deltagere</label><input type="text" id="bmAttendees" placeholder="f.eks. Jonas Holm, Lars Hansen, Marie Nielsen"/></div>
     <div class="fgrp"><label>Dagsorden</label><textarea id="bmAgenda" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="1. Godkendelse af referat&#10;2. Økonomi&#10;3. Kommende stævner&#10;4. Eventuelt"></textarea></div>
     <div class="fgrp"><label>Referat / noter</label><textarea id="bmNotes" rows="6" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv referat og beslutninger her…"></textarea></div>
+    <div class="fgrp" style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:.75rem 1rem">
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-weight:700;color:#795548">
+        <input type="checkbox" id="bmPushToStudents" onchange="togglePushAnnouncement()" style="width:18px;height:18px;accent-color:#f59e0b;cursor:pointer">
+        📢 Vis som banner i elev-appen
+      </label>
+      <div style="font-size:.76rem;color:#92400e;margin-top:.3rem">Forældre og elever vil se dette som et banner øverst i appen</div>
+      <div id="bmAnnouncementWrap" style="display:none;margin-top:.65rem">
+        <textarea id="bmAnnouncement" rows="2" style="width:100%;border:1.5px solid #fcd34d;border-radius:8px;padding:.6rem .75rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box;background:#fffde7" placeholder="Skriv besked til forældre/elever (valgfrit — titlen bruges ellers)…"></textarea>
+        <div style="font-size:.73rem;color:#b45309;margin-top:.25rem">⚠️ Banneret er aktivt til du slår det fra igen</div>
+      </div>
+    </div>
     <div class="mf">
       <button class="btn bg" onclick="safeCloseModal('boardModal')">Annuller</button>
       <button class="btn bp" onclick="saveBoardMeeting()">💾 Gem møde</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: BESKED TIL FORÆLDRE ══ -->
+<div class="mbd" id="annModal">
+  <div class="modal" style="max-width:480px">
+    <div class="mh">
+      <div class="mtitle-left"><span>📢</span><span>Besked til forældre</span></div>
+      <button class="mclose" onclick="closeModal('annModal')">✕</button>
+    </div>
+    <div style="font-size:.83rem;color:var(--xtl);margin-bottom:.75rem">Skriv en kort besked — den vises som et banner øverst i elev-appen indtil du fjerner den igen.</div>
+    <textarea id="annText" rows="5" style="width:100%;border:1.5px solid #fcd34d;border-radius:10px;padding:.8rem;font-size:.9rem;resize:vertical;font-family:inherit;box-sizing:border-box;background:#fffde7" placeholder="Fx: Husk afslutningsfest fredag d. 30. maj kl. 18:00 — alle er velkomne!"></textarea>
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('annModal')">Annuller</button>
+      <button class="btn bp" onclick="saveAnnouncement()">📢 Publicér</button>
     </div>
   </div>
 </div>
@@ -7431,9 +7461,13 @@ function renderLoginBanner(){
   // Beregn deduped tællere: hvis samme person er i begge lister, tælles de kun som instruktør
   const insRaw=(d.todayInstructorEmails||[]).map(s=>String(s||'').toLowerCase());
   const insMatched=insRaw.map(v=>members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)))).filter(Boolean);
-  const insIds=new Set(insMatched.map(m=>m.id));
-  const insEmailSet=new Set(insMatched.map(m=>(m.email||'').toLowerCase()).filter(Boolean));
+  const insMatchedIdSet=new Set(insMatched.map(m=>m.id));
   const stuIdsRaw=(d.todayStudentIds||[]).map(Number);
+  stuIdsRaw.map(id=>members.find(m=>m.id===id)).filter(Boolean).forEach(function(m){
+    if((m.role||'Medlem')!=='Medlem'&&!insMatchedIdSet.has(m.id)){ insMatched.push(m); insMatchedIdSet.add(m.id); }
+  });
+  const insIds=insMatchedIdSet;
+  const insEmailSet=new Set(insMatched.map(m=>(m.email||'').toLowerCase()).filter(Boolean));
   const stuDeduped=stuIdsRaw.map(id=>members.find(m=>m.id===id)).filter(Boolean).filter(m=>!insIds.has(m.id)&&!insEmailSet.has((m.email||'').toLowerCase()));
   const stu=stuDeduped.length;
   const ins=insMatched.length;
@@ -7473,8 +7507,12 @@ function showTodayLoginDetail(){
   const insMembers=insEmailsRaw.map(v=>{
     return members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)));
   }).filter(Boolean);
-  // Client-side dedup: if same person logged in as instruktør i dag, fjern dem fra elev-listen
-  const insIds=new Set(insMembers.map(m=>m.id));
+  // Elever der loggede ind via elev-appen men har instruktør-rolle → flyt til instruktør-listen
+  const insMemberIdSet=new Set(insMembers.map(m=>m.id));
+  stuIds.map(id=>members.find(m=>m.id===id)).filter(Boolean).forEach(function(m){
+    if((m.role||'Medlem')!=='Medlem'&&!insMemberIdSet.has(m.id)){ insMembers.push(m); insMemberIdSet.add(m.id); }
+  });
+  const insIds=insMemberIdSet;
   const insEmailSet=new Set(insMembers.map(m=>(m.email||'').toLowerCase()).filter(Boolean));
   const stuMembers=stuIds.map(id=>members.find(m=>m.id===id)).filter(Boolean)
     .filter(m=>!insIds.has(m.id)&&!insEmailSet.has((m.email||'').toLowerCase()))
@@ -9093,7 +9131,7 @@ let _boardModalOriginal = '';
 const _MODAL_DIRTY_CHECKS = {
   notesModal:      () => (document.getElementById('notesInput')?.value||'') !== _notesModalOriginal,
   boardModal:      () => {
-    const cur = ['bmTitle','bmAttendees','bmAgenda','bmNotes'].map(id=>(document.getElementById(id)?.value||'')).join('|');
+    const cur = ['bmTitle','bmAttendees','bmAgenda','bmNotes','bmAnnouncement'].map(id=>(document.getElementById(id)?.value||'')).join('|')+(document.getElementById('bmPushToStudents')?.checked?'1':'0');
     return cur !== _boardModalOriginal;
   },
   assessmentModal: () => (document.getElementById('assessComment')?.value||'').trim().length > 0 || Object.keys(_assessRatings||{}).length > 0,
@@ -10066,6 +10104,7 @@ function setBoardFilter(val){
 }
 
 function renderBoard(){
+  renderAnnCard();
   const today=localDate();
   const thisYear=today.slice(0,4);
   // Kun bestyrelsesmøder tæller i stats og "dage siden"-banner
@@ -10251,9 +10290,61 @@ function boardCard(b,today){
         ${typeBadge}
         ${b.notes?`<span style="font-size:.68rem;background:#f0fdf4;color:#16a34a;border-radius:10px;padding:.15rem .55rem;font-weight:600">✅ Referat</span>`:`<span style="font-size:.68rem;background:#fff7ed;color:#c2410c;border-radius:10px;padding:.15rem .55rem;font-weight:600">⏳ Mangler referat</span>`}
         ${b.agenda?`<span style="font-size:.68rem;background:#ede9fe;color:#6d28d9;border-radius:10px;padding:.15rem .55rem;font-weight:600">📋 Dagsorden</span>`:''}
+        ${b.pushToStudents?`<span style="font-size:.68rem;background:#fff8e1;color:#b45309;border-radius:10px;padding:.15rem .55rem;font-weight:700;border:1px solid #fcd34d">📢 Sendt til forældre</span>`:''}
       </div>
     </div>
   </div>`;
+}
+
+// ── Standalone besked til forældre ──
+function renderAnnCard(){
+  const card=document.getElementById('annCard');
+  if(!card) return;
+  const ann=config.activeAnnouncement;
+  if(ann&&ann.text){
+    const d=ann.publishedAt?new Date(ann.publishedAt).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    card.innerHTML=`<div style="background:linear-gradient(135deg,#fff8e1,#fffde7);border:2px solid #fcd34d;border-radius:14px;padding:1rem 1.2rem;display:flex;gap:1rem;align-items:flex-start">
+      <span style="font-size:1.8rem;flex-shrink:0;line-height:1">📢</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#b45309;margin-bottom:.3rem">Aktiv besked til forældre</div>
+        <div style="font-size:.92rem;font-weight:600;color:#78350f;white-space:pre-wrap">${escHtml(ann.text)}</div>
+        ${d?`<div style="font-size:.7rem;color:#92400e;opacity:.7;margin-top:.4rem">Publiceret ${d}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+        <button class="btn bs btn-sm" onclick="openAnnModal()">✏️ Rediger</button>
+        <button class="btn bg btn-sm" onclick="removeAnnouncement()">✕ Fjern</button>
+      </div>
+    </div>`;
+  } else {
+    card.innerHTML=`<button onclick="openAnnModal()" style="width:100%;background:linear-gradient(135deg,#fffde7,#fef9c3);border:2px dashed #fcd34d;border-radius:14px;padding:.9rem 1.2rem;font-size:.88rem;font-weight:700;color:#b45309;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:background .15s" onmouseover="this.style.background='linear-gradient(135deg,#fff8e1,#fef3c7)'" onmouseout="this.style.background='linear-gradient(135deg,#fffde7,#fef9c3)'">
+      <span style="font-size:1.2rem">📢</span> Send besked til forældre
+    </button>`;
+  }
+}
+function openAnnModal(){
+  document.getElementById('annText').value=(config.activeAnnouncement&&config.activeAnnouncement.text)||'';
+  openModal('annModal');
+}
+function saveAnnouncement(){
+  const text=document.getElementById('annText').value.trim();
+  if(!text){alert('Skriv en besked først.');return;}
+  config.activeAnnouncement={text,publishedAt:Date.now()};
+  save();pushToCloud();
+  closeModal('annModal');
+  renderAnnCard();
+  showToast('📢 Besked publiceret til forældre');
+}
+function removeAnnouncement(){
+  if(!confirm('Fjern banneret fra elev-appen?')) return;
+  config.activeAnnouncement=null;
+  save();pushToCloud();
+  renderAnnCard();
+  showToast('✅ Banner fjernet');
+}
+
+function togglePushAnnouncement(){
+  const checked=document.getElementById('bmPushToStudents').checked;
+  document.getElementById('bmAnnouncementWrap').style.display=checked?'block':'none';
 }
 
 let _boardType='Bestyrelsesmøde';
@@ -10275,8 +10366,13 @@ function openBoardModal(id=null){
   document.getElementById('bmAttendees').value=b?b.attendees:'';
   document.getElementById('bmAgenda').value=b?b.agenda:'';
   document.getElementById('bmNotes').value=b?b.notes:'';
+  const pushEl=document.getElementById('bmPushToStudents');
+  const annEl=document.getElementById('bmAnnouncement');
+  pushEl.checked=b?!!b.pushToStudents:false;
+  annEl.value=b?(b.announcement||''):'';
+  document.getElementById('bmAnnouncementWrap').style.display=(b&&b.pushToStudents)?'block':'none';
   setBoardType(b?b.type||'Bestyrelsesmøde':'Bestyrelsesmøde');
-  _boardModalOriginal=[b?.title||'',b?.attendees||'',b?.agenda||'',b?.notes||''].join('|');
+  _boardModalOriginal=[b?.title||'',b?.attendees||'',b?.agenda||'',b?.notes||'',b?.announcement||''].join('|')+(b?.pushToStudents?'1':'0');
   openModal('boardModal');
 }
 
@@ -10291,7 +10387,9 @@ function saveBoardMeeting(){
     title,
     attendees:document.getElementById('bmAttendees').value.trim(),
     agenda:document.getElementById('bmAgenda').value.trim(),
-    notes:document.getElementById('bmNotes').value.trim()
+    notes:document.getElementById('bmNotes').value.trim(),
+    pushToStudents:document.getElementById('bmPushToStudents').checked,
+    announcement:document.getElementById('bmAnnouncement').value.trim()
   };
   if(editingBoardId){
     const i=boardMeetings.findIndex(x=>x.id===editingBoardId);
