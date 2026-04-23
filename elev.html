@@ -257,6 +257,12 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <div id="graphBox" class="graph"></div>
     </div>
 
+    <div class="card" id="focusCard" style="display:none;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd">
+      <h3 style="color:#0369a1">🎯 Your focus points</h3>
+      <div id="focusSub" style="font-size:11px;color:#0284c7;margin-bottom:10px;font-weight:600"></div>
+      <ol id="focusList" style="margin:0;padding-left:22px;color:#0c4a6e;font-size:14px;line-height:1.5"></ol>
+    </div>
+
     <div class="card">
       <h3>📝 Latest ratings</h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tap a rating to see all details</div>
@@ -278,12 +284,13 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <h3>✉️ Messages to the trainers</h3>
       <div id="msgThread" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:320px;overflow-y:auto"></div>
       <div id="tagBadge" style="display:none"></div>
-      <div style="position:relative">
+      <div style="position:relative;background:linear-gradient(180deg,#1f2d2d 0%,#17201f 100%);border:1px solid #2a3a39;border-radius:12px;padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 2px 8px rgba(0,0,0,.08)">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#cfe3d9;margin-bottom:8px;display:flex;align-items:center;gap:6px">✍️ <span>Write a new message</span></div>
         <div id="mentionDropdown" class="mention-dd"></div>
         <div id="emojiPanel" style="display:none;position:absolute;bottom:calc(100% + 4px);right:0;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:8px;z-index:200;display:none;flex-wrap:wrap;gap:4px;max-width:280px"></div>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea id="msgInput" rows="2" placeholder="Write a message… use @ to tag a trainer" style="flex:1;border:1.5px solid #d5dcdc;border-radius:10px;padding:10px;font-size:14px;resize:none;font-family:inherit;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--xtm)'" onblur="this.style.borderColor='#d5dcdc'" oninput="onMsgInput(event)"></textarea>
-          <button type="button" onclick="toggleEmojiPanel()" title="Insert emoji" style="background:#f1f4f4;color:var(--xtd);border:1px solid #d5dcdc;border-radius:10px;padding:10px 12px;font-size:16px;cursor:pointer;align-self:flex-end">😊</button>
+          <textarea id="msgInput" rows="2" placeholder="Write a message… use @ to tag a trainer" style="flex:1;background:#fff;border:1.5px solid #3a4c4b;border-radius:10px;padding:10px;font-size:14px;resize:none;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;box-shadow:0 1px 2px rgba(0,0,0,.15)" onfocus="this.style.borderColor='var(--xtm)';this.style.boxShadow='0 0 0 3px rgba(255,255,255,.08)'" onblur="this.style.borderColor='#3a4c4b';this.style.boxShadow='0 1px 2px rgba(0,0,0,.15)'" oninput="onMsgInput(event)"></textarea>
+          <button type="button" onclick="toggleEmojiPanel()" title="Insert emoji" style="background:#2a3a39;color:#fff;border:1px solid #3a4c4b;border-radius:10px;padding:10px 12px;font-size:16px;cursor:pointer;align-self:flex-end">😊</button>
           <button class="msg-send-btn" id="msgSendBtn" onclick="sendStudentMessage()">Send</button>
         </div>
       </div>
@@ -411,12 +418,25 @@ function openPensumModal(belt, titleEmoji, titleLabel, introText){
   const ratedSkills = skills.filter(s=>bestBySkill[s]);
   const unratedCount = skills.length - ratedSkills.length;
 
-  // Overall best session average across ALL assessments + max single rating ever given
+  // Overall best session average — use merged carry-forward (restricted to current pensum) so quick ratings are comparable
   let bestSessionAvg = 0, bestSessionDate = '';
   let maxSingleRating = 0;
-  assessments.forEach(a=>{
+  assessments.forEach((a,i)=>{
     const r = ratingsOf(a);
-    const vals = Object.values(r).map(Number).filter(v=>v>0);
+    const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
+    const pensumSet = new Set(pensumForBelt);
+    const priorSnap = {};
+    for(let j=i+1;j<assessments.length;j++){
+      const pr = ratingsOf(assessments[j]);
+      Object.entries(pr).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
+    }
+    const merged = {};
+    new Set([...pensumForBelt, ...Object.keys(r)]).forEach(sk=>{
+      const v = Number(r[sk]||0);
+      if(v>0) merged[sk]=v;
+      else if(pensumSet.has(sk) && priorSnap[sk]>0) merged[sk]=priorSnap[sk];
+    });
+    const vals = Object.values(merged).filter(v=>v>0);
     if(!vals.length) return;
     vals.forEach(v=>{ if(v>maxSingleRating) maxSingleRating = v; });
     const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
@@ -982,9 +1002,28 @@ function renderDashboard(d){
     photoEl.textContent = initials(m.firstName,m.lastName) || '?';
   }
 
-  // Stats
-  const lastAvg = assessments.length ? avgOf(ratingsOf(assessments[0])) : null;
-  const prevAvg = assessments.length>1 ? avgOf(ratingsOf(assessments[1])) : null;
+  // Stats — use merged carry-forward avg (restricted to current pensum) so quick ratings stay comparable
+  const mergedAvgFor = (idx)=>{
+    const a = assessments[idx]; if(!a) return null;
+    const r = ratingsOf(a);
+    const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
+    const pensumSet = new Set(pensumForBelt);
+    const priorSnap = {};
+    for(let j=idx+1;j<assessments.length;j++){
+      const pr = ratingsOf(assessments[j]);
+      Object.entries(pr).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
+    }
+    const merged = {};
+    new Set([...pensumForBelt, ...Object.keys(r)]).forEach(sk=>{
+      const v = Number(r[sk]||0);
+      if(v>0) merged[sk]=v;
+      else if(pensumSet.has(sk) && priorSnap[sk]>0) merged[sk]=priorSnap[sk];
+    });
+    const vals = Object.values(merged).filter(v=>v>0);
+    return vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+  };
+  const lastAvg = assessments.length ? mergedAvgFor(0) : null;
+  const prevAvg = assessments.length>1 ? mergedAvgFor(1) : null;
   document.getElementById('stTrain').textContent = d.trainingsThisYear || 0;
   document.getElementById('stVurd').textContent = assessments.length;
   const snitEl = document.getElementById('stSnit');
@@ -1066,6 +1105,25 @@ function renderDashboard(d){
   // Beskeder
   renderMessages();
 
+  // Focus points — per-slot carry-forward, each slot shows its own date + author
+  const focusCard = document.getElementById('focusCard');
+  const focusItems = [1,2,3].map(n=>{
+    const src = assessments.find(a => String(a['focus'+n]||'').trim());
+    if(!src) return '';
+    const val = String(src['focus'+n]||'').trim();
+    const d = String(src['focus'+n+'Date']||src.date||'').slice(0,10);
+    const by = String(src['focus'+n+'By']||src.assessorName||'');
+    const meta = [d?fmtDate(d):'', by?'by '+by:''].filter(Boolean).join(' · ');
+    return '<li style="margin-bottom:6px"><span>'+escapeHtml(val)+'</span>'+(meta?'<div style="font-size:10px;color:#64748b;font-weight:500;margin-top:2px">'+escapeHtml(meta)+'</div>':'')+'</li>';
+  }).filter(Boolean);
+  if(focusItems.length){
+    document.getElementById('focusList').innerHTML = focusItems.join('');
+    document.getElementById('focusSub').textContent = 'Your current focus points';
+    focusCard.style.display = '';
+  } else {
+    focusCard.style.display = 'none';
+  }
+
   // Graph
   renderGraph(assessments);
 
@@ -1074,12 +1132,38 @@ function renderDashboard(d){
   if(!assessments.length){
     ul.innerHTML = '<li style="cursor:default"><div class="empty" style="padding:6px 0;width:100%">No ratings yet.</div></li>';
   } else {
-    ul.innerHTML = assessments.slice(0,8).map((a,i)=>{
-      const avg = avgOf(ratingsOf(a));
-      const prev = assessments[i+1] ? avgOf(ratingsOf(assessments[i+1])) : null;
+    const shown = assessments.slice(0,8);
+    // Compute merged avg (carry-forward) per shown row + find the best
+    const rowAvgs = shown.map((a,i)=>{
+      const curr = ratingsOf(a);
+      const fullIdx = assessments.indexOf(a);
+      const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
+      const pensumSet = new Set(pensumForBelt);
+      const priorSnap = {};
+      for(let j=fullIdx+1;j<assessments.length;j++){
+        const r = ratingsOf(assessments[j]);
+        Object.entries(r).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
+      }
+      const merged = {};
+      new Set([...pensumForBelt, ...Object.keys(curr)]).forEach(sk=>{
+        const v = Number(curr[sk]||0);
+        if(v>0) merged[sk]=v;
+        else if(pensumSet.has(sk) && priorSnap[sk]>0) merged[sk]=priorSnap[sk];
+      });
+      const vals = Object.values(merged).filter(v=>v>0);
+      return vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+    });
+    const bestAvg = Math.max.apply(null, rowAvgs.filter(v=>v!=null).concat([-1]));
+    const bestIdx = bestAvg>0 ? rowAvgs.indexOf(bestAvg) : -1;
+    ul.innerHTML = shown.map((a,i)=>{
+      const avg = rowAvgs[i];
+      const prev = rowAvgs[i+1] != null ? rowAvgs[i+1] : null;
       const by = a.assessorName || '—';
+      const bestBadge = (i===bestIdx && avg!=null)
+        ? ' <span title="Best rating" style="display:inline-flex;align-items:center;gap:2px;font-size:.7rem;font-weight:800;color:#d97706;background:#fef3c7;border:1px solid #fcd34d;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle">⭐ Best</span>'
+        : '';
       return '<li onclick="openAssessModal('+a.id+')"><div><div class="a-date">'+fmtDate(a.date)+'</div><div class="a-by">'+escapeHtml(by)+'</div></div>'+
-        '<div class="a-right"><div style="text-align:right"><div class="a-avg">'+(avg!=null?avg.toFixed(1).replace('.',','):'–')+' '+trendMark(avg,prev)+
+        '<div class="a-right"><div style="text-align:right"><div class="a-avg">'+(avg!=null?avg.toFixed(1).replace('.',','):'–')+' '+trendMark(avg,prev)+bestBadge+
         '</div><div class="stars">'+starStr(avg)+'</div></div><span class="chev">›</span></div></li>';
     }).join('');
   }
@@ -1119,10 +1203,11 @@ function renderDashboard(d){
       const safeK = String(k).replace(/'/g,"\\'");
       const note = getSkillNote(k);
       const infoBtn = note ? ' <span style="font-size:.65rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote(\''+safeK+'\')">ℹ️</span>' : '';
+      const chevColor = improved ? '#16a34a' : declined ? '#dc2626' : 'var(--muted)';
       return '<div class="skill-row" onclick="openSkillModal(\''+safeK+'\')">'+
         '<div class="dot '+cls+'"></div>'+
         '<div class="skill-name" style="'+nameStyle+'">'+escapeHtml(k)+infoBtn+'</div>'+
-        '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+'<span style="color:'+starColor+'"> ★</span> '+trendMark(curr,prev)+'<span class="chev" style="font-size:14px">›</span></div></div>';
+        '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+'<span style="color:'+starColor+'"> ★</span> '+trendMark(curr,prev)+'<span class="chev" style="font-size:14px;color:'+chevColor+'">›</span></div></div>';
     }).join('');
   }
 
@@ -1232,13 +1317,26 @@ function openAssessModal(aid){
   const prevA = assessments[idx+1] || null;
   const curr = ratingsOf(a);
   const prev = prevA ? ratingsOf(prevA) : {};
-  // Vis ratings i denne vurdering (ikke pensum for et andet bælte)
-  const avg = avgOf(curr);
-  const prevAvg = prevA ? avgOf(prev) : null;
-
   const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
   const pensumSet = new Set(pensumForBelt);
-  const skillKeys = Object.keys(curr).sort((x,y)=>{
+  // Walk back through ALL older assessments to build a full carry-forward snapshot (sortedAssessments is DESC)
+  const priorSnap = {};
+  for(let i=idx+1;i<assessments.length;i++){
+    const r = ratingsOf(assessments[i]);
+    Object.entries(r).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
+  }
+  // Only carry-forward skills that are still in current pensum — removed/renamed skills should not propagate
+  const merged = {};
+  const skillsUnion = new Set([...pensumForBelt, ...Object.keys(curr)]);
+  skillsUnion.forEach(sk=>{
+    const v = Number(curr[sk]||0);
+    if(v>0) merged[sk] = {val:v, carried:false};
+    else if(pensumSet.has(sk) && priorSnap[sk]>0) merged[sk] = {val:priorSnap[sk], carried:true};
+  });
+  const mergedVals = Object.values(merged).map(x=>x.val).filter(v=>v>0);
+  const avg = mergedVals.length ? mergedVals.reduce((s,v)=>s+v,0)/mergedVals.length : null;
+  const prevAvg = prevA ? avgOf(prev) : null;
+  const skillKeys = Object.keys(merged).sort((x,y)=>{
     const xi = pensumForBelt.indexOf(x), yi = pensumForBelt.indexOf(y);
     if(xi!==-1 && yi!==-1) return xi-yi;
     if(xi!==-1) return -1;
@@ -1254,7 +1352,7 @@ function openAssessModal(aid){
 
   let header = '';
   if(avg!=null){
-    const mastered = pensumForBelt.filter(s => Number(curr[s]||0)>=4).length;
+    const mastered = pensumForBelt.filter(s => Number((merged[s]||{}).val||0)>=4).length;
     header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
       '<span class="avg-pill">Average '+avg.toFixed(1).replace('.',',')+' / 5 '+trendMark(avg,prevAvg)+'</span>'+
       (pensumForBelt.length?'<span style="font-size:12px;color:var(--muted)">Curriculum: <strong style="color:var(--xtd)">'+mastered+' / '+pensumForBelt.length+'</strong> at 4★+</span>':'')+
@@ -1262,14 +1360,19 @@ function openAssessModal(aid){
   }
 
   const rows = skillKeys.map(sk=>{
-    const v = Number(curr[sk]||0);
+    const mv = merged[sk] || {val:0, carried:false};
+    const v = Number(mv.val||0);
+    const isCarried = mv.carried;
+    const ownV = Number(curr[sk]||0);
     const p = Number(prev[sk]||0);
     let delta = '';
-    if(v>0 && p>0){
-      const diff = v-p;
+    if(isCarried){
+      delta = '<span class="delta" style="color:#6a7b7b;font-size:.72rem;font-weight:700">↪ from last time</span>';
+    } else if(ownV>0 && p>0){
+      const diff = ownV-p;
       if(diff>0) delta = '<span class="delta up">↑ '+'★'.repeat(diff)+'</span>';
       else if(diff<0) delta = '<span class="delta down">↓ '+'★'.repeat(-diff)+'</span>';
-    } else if(v>0 && !p){
+    } else if(ownV>0 && !p){
       delta = '<span class="delta new">NEW</span>';
     }
     const stars = '★'.repeat(v);
@@ -1284,8 +1387,27 @@ function openAssessModal(aid){
   }).join('');
 
   const comment = a.comment ? '<div class="comment-box">"'+escapeHtml(a.comment)+'"</div>' : '';
+  // Per-slot focus display: each slot independently finds nearest source with that slot filled
+  const _slotSrc = (n)=>{
+    if(String(a['focus'+n]||'').trim()) return {src:a, inherited:false};
+    const prior = assessments.slice(idx+1).find(x => String(x['focus'+n]||'').trim());
+    return prior ? {src:prior, inherited:true} : null;
+  };
+  const focusItems2 = [1,2,3].map(n=>{
+    const s = _slotSrc(n);
+    if(!s) return '';
+    const val = String(s.src['focus'+n]||'').trim();
+    const d = String(s.src['focus'+n+'Date']||s.src.focusDate||s.src.date||'').slice(0,10);
+    const by = String(s.src['focus'+n+'By']||s.src.assessorName||'');
+    const meta = [d?fmtDate(d):'', by?'by '+by:'', s.inherited?'from earlier':''].filter(Boolean).join(' · ');
+    return '<li style="margin-bottom:4px"><span>'+escapeHtml(val)+'</span>'+(meta?'<div style="font-size:10px;color:#64748b;font-weight:500;margin-top:2px">'+escapeHtml(meta)+'</div>':'')+'</li>';
+  }).filter(Boolean);
+  const focusBlock = focusItems2.length ? '<div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0284c7;border-radius:8px">'+
+    '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#0369a1;margin-bottom:6px">🎯 Focus points</div>'+
+    '<ol style="margin:0;padding-left:20px;color:#0c4a6e;font-size:13px;line-height:1.5">'+focusItems2.join('')+'</ol>'+
+    '</div>' : '';
 
-  document.getElementById('modalBody').innerHTML = header + (rows || '<div class="empty">No skills rated.</div>') + comment;
+  document.getElementById('modalBody').innerHTML = header + (rows || '<div class="empty">No skills rated.</div>') + comment + focusBlock;
   document.getElementById('assessModal').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -1315,8 +1437,8 @@ function openSkillModal(skill){
       let delta = '';
       if(v>0 && prev>0){
         const d = v-prev;
-        if(d>0) delta = '<span class="delta up">↑ '+'★'.repeat(d)+'</span>';
-        else if(d<0) delta = '<span class="delta down">↓ '+'★'.repeat(-d)+'</span>';
+        if(d>0){ delta = '<span class="delta up" style="color:#16a34a;font-size:.78rem;font-weight:800;white-space:nowrap">↑ '+'★'.repeat(d)+'</span>'; }
+        else if(d<0){ delta = '<span class="delta down" style="color:#dc2626;font-size:.78rem;font-weight:800;white-space:nowrap">↓ '+'★'.repeat(-d)+'</span>'; }
       }
       return '<div class="sh-item"><div class="sh-left">'+
         '<div class="sh-date">'+fmtDate(a.date)+'</div>'+
