@@ -637,6 +637,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 .att-st-ok{background:#dcfce7;color:#166534}
 .att-st-cancel{background:#fef3c7;color:#92400e}
 .att-st-ongoing{background:#e0e7ff;color:#3730a3}
+@media (max-width:640px){
+  .att-week-row{display:grid;grid-template-columns:1fr auto;gap:.25rem .5rem;padding:.6rem .75rem;align-items:start}
+  .att-week-label{min-width:0;font-size:.82rem;line-height:1.25;grid-column:1;grid-row:1}
+  .att-week-status{grid-column:2;grid-row:1;align-self:start}
+  .att-week-dates{grid-column:1 / -1;grid-row:2;font-size:.75rem;color:var(--xtl);line-height:1.3}
+}
 .att-month-group{margin-bottom:1rem}
 .att-month-title{font-weight:700;color:var(--td);font-size:.9rem;margin-bottom:.4rem;padding-bottom:.3rem;border-bottom:2px solid #dde8e8}
 .att-date-chip{display:inline-block;padding:.3rem .65rem;margin:.15rem;background:#ecfdf5;color:#065f46;border-radius:8px;font-size:.8rem;font-weight:600;border:1px solid #a7f3d0}
@@ -905,7 +911,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 /* ── Inbox / Beskeder ── */
 .inbox-panel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:9500;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
 .inbox-panel.open{transform:translateX(0)}
-.inbox-topbar{background:var(--xtd);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:.7rem;flex-shrink:0}
+.inbox-topbar{background:var(--xtd);color:#fff;padding:.8rem 1rem;padding-top:max(.8rem,env(safe-area-inset-top,.8rem));display:flex;align-items:center;gap:.7rem;flex-shrink:0}
 .inbox-topbar .inbox-title{flex:1;font-weight:700;font-size:.95rem}
 .inbox-list-item{padding:.85rem 1rem;border-bottom:1px solid #f0f4f4;cursor:pointer;transition:background .15s}
 .inbox-list-item:hover{background:#f8fafa}
@@ -970,10 +976,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         </div>
       </div>
     </div>
-    <select id="presenceNameInput"
-      style="width:100%;box-sizing:border-box;padding:.65rem .85rem;border:1.5px solid #d0e4e4;border-radius:10px;font-size:.95rem;outline:none;margin-bottom:1rem;color:#1a3a3a;background:#fff;appearance:auto">
-      <option value="">— Vælg dit navn —</option>
-    </select>
+    <div id="presenceNameGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.55rem;margin-bottom:1rem;max-height:52vh;overflow-y:auto;padding:2px"></div>
+    <select id="presenceNameInput" style="display:none"><option value="">— Vælg dit navn —</option></select>
     <datalist id="presenceNameList"></datalist>
     <button onclick="confirmPresenceName()" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer">✓ Fortsæt</button>
   </div>
@@ -1087,6 +1091,19 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   <!-- Fødselsdag-banner -->
   <div id="birthdayBanner" style="display:none;background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:1px solid #ffcc80;border-radius:10px;padding:.65rem 1rem;margin-bottom:.8rem;font-size:.82rem;color:#5d4037">🎂 <span id="birthdayList"></span></div>
 
+  <!-- Login-banner (i dag) -->
+  <div id="loginBanner" style="display:none;margin-bottom:.8rem"></div>
+  <!-- Login-dag-detail popup -->
+  <div id="loginDayPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:1rem" onclick="if(event.target===this)document.getElementById('loginDayPopup').style.display='none'">
+    <div style="background:#fff;border-radius:16px;padding:1.4rem 1.5rem;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18);max-height:80vh;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div style="font-weight:800;font-size:1rem;color:#155e75">📱 Logins i dag</div>
+        <button onclick="document.getElementById('loginDayPopup').style.display='none'" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#888;padding:.2rem .4rem">✕</button>
+      </div>
+      <div id="loginDayPopupBody"></div>
+    </div>
+  </div>
+
   <div class="stats-grid" id="statsGrid">
     <div class="stat-card"><div class="si si-a">👥</div><div><div class="sv" id="s1">–</div><div class="sl">Aktive medlemmer</div></div></div>
     <div class="stat-card" onclick="showPresentModal()" style="cursor:pointer" title="Klik for at se hvem der er til stede"><div class="si si-b">🙋</div><div><div class="sv" id="s2">–</div><div class="sl">Til stede i dag</div></div></div>
@@ -1178,7 +1195,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 <!-- ══ INBOX PANEL ══ -->
 <div id="inboxPanel" class="inbox-panel">
   <div class="inbox-topbar">
-    <button onclick="closeInbox()" style="background:none;border:none;color:rgba(255,255,255,.8);font-size:1.2rem;cursor:pointer;padding:0;line-height:1">←</button>
+    <button onclick="closeInbox()" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1rem;cursor:pointer;padding:.45rem .6rem;line-height:1;border-radius:8px;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center">✕</button>
     <span class="inbox-title">💬 Beskeder</span>
     <button id="inboxBackBtn" onclick="showInboxList()" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.2rem .65rem;font-size:.78rem;cursor:pointer">← Alle</button>
   </div>
@@ -1460,7 +1477,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <option value="name-desc">Sorter: Navn Z–A</option>
         <option value="start-desc">Sorter: Nyeste medlem</option>
         <option value="start-asc">Sorter: Ældste medlem</option>
+        <option value="login-recent">Sorter: Senest aktiv</option>
+        <option value="login-7d">Sorter: Flest logins 7 dage</option>
+        <option value="login-30d">Sorter: Flest logins 30 dage</option>
       </select>
+      <button id="mfGradBtn" class="btn btn-sm" onclick="toggleGradFilter()" title="Vis kun elever der ønsker graduering" style="border:1.5px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;font-size:.8rem">🎓</button>
       <button class="btn bp btn-sm" onclick="openAddModal()">➕ Nyt medlem</button>
       <button class="btn bb btn-sm em-icon-btn" onclick="openEmailModal()" title="Send e-mail til medlemmer">✉️</button>
       <button class="btn bs btn-sm" onclick="exportToExcel()">📊 Excel</button>
@@ -2022,6 +2043,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div id="assessGradToggle"></div>
     </div>
     <div id="assessSkillList"></div>
+    <div id="assessLiveAvg" style="margin-top:.7rem;padding:.6rem .8rem;border-radius:10px;background:linear-gradient(135deg,#eef5f5,#f8fbfb);border:1px solid #d5e3e3;display:flex;align-items:center;justify-content:space-between;gap:.6rem;font-size:.85rem;font-weight:700;color:#1a2e2e"></div>
     <div style="margin-top:.8rem">
       <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Bedømt af <span style="color:#dc2626">*</span></label>
       <select id="assessorName" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem;background:#fff"><option value="">— Vælg bedømmer —</option></select>
@@ -2029,6 +2051,17 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div style="margin-top:.6rem">
       <label style="font-size:.82rem;font-weight:600;color:var(--t2);display:block;margin-bottom:.3rem">Kommentar (valgfri)</label>
       <textarea id="assessComment" placeholder="Skriv en kommentar..." rows="3" style="width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:8px;padding:.5rem .7rem;font-size:.85rem;resize:vertical"></textarea>
+    </div>
+    <div id="assessFocusBlock" style="margin-top:.7rem;padding:.75rem .85rem;border-radius:10px;background:#f0f9ff;border:1px solid #bae6fd">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.45rem">
+        <label style="font-size:.82rem;font-weight:700;color:#0369a1;display:flex;align-items:center;gap:.35rem">🎯 <span>3 fokuspunkter til eleven</span> <span style="font-weight:500;color:#64748b;font-size:.72rem">(valgfri — kun udfyldte vises)</span></label>
+        <span id="assessFocusDateLbl" style="font-size:.7rem;color:#64748b;font-weight:600"></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.55rem">
+        <div><input id="assessFocus1" type="text" maxlength="140" placeholder="Fokuspunkt 1 — fx 'Arbejd med timing i Ippon 1-5'" style="width:100%;box-sizing:border-box;border:1px solid #bae6fd;border-radius:8px;padding:.45rem .6rem;font-size:.82rem;background:#fff;outline:none"><div id="assessFocus1Meta" style="font-size:.66rem;color:#64748b;margin-top:.12rem;padding-left:.15rem"></div></div>
+        <div><input id="assessFocus2" type="text" maxlength="140" placeholder="Fokuspunkt 2" style="width:100%;box-sizing:border-box;border:1px solid #bae6fd;border-radius:8px;padding:.45rem .6rem;font-size:.82rem;background:#fff;outline:none"><div id="assessFocus2Meta" style="font-size:.66rem;color:#64748b;margin-top:.12rem;padding-left:.15rem"></div></div>
+        <div><input id="assessFocus3" type="text" maxlength="140" placeholder="Fokuspunkt 3" style="width:100%;box-sizing:border-box;border:1px solid #bae6fd;border-radius:8px;padding:.45rem .6rem;font-size:.82rem;background:#fff;outline:none"><div id="assessFocus3Meta" style="font-size:.66rem;color:#64748b;margin-top:.12rem;padding-left:.15rem"></div></div>
+      </div>
     </div>
     <div class="ma" style="margin-top:1rem">
       <button class="btn bg" onclick="closeModal('assessmentModal')">Luk</button>
@@ -2648,7 +2681,8 @@ function showPresenceModal(){
 }
 function refreshPresenceDatalist(){
   const sel=document.getElementById('presenceNameInput');
-  if(!sel||sel.tagName!=='SELECT')return;
+  const grid=document.getElementById('presenceNameGrid');
+  if(!sel)return;
   const cur=sel.value;
   sel.innerHTML='<option value="">— Vælg dit navn —</option>';
   const eligible=(members||[]).filter(m=>!m.archived&&(m.role==='Instruktør'||m.role==='Hjælpetræner'||m.role==='Kasserer')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da'));
@@ -2659,8 +2693,37 @@ function refreshPresenceDatalist(){
     sel.appendChild(o);
   });
   if(cur)sel.value=cur;
+  if(grid){
+    grid.innerHTML=eligible.map(m=>{
+      const full=(m.firstName||'')+' '+(m.lastName||'');
+      const fullJs=escJs(full.trim());
+      const sel=cur===full.trim();
+      const img=m.photoId
+        ? `<img src="${photoUrl(m.photoId)}" loading="lazy" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;margin:0 auto"/>`
+        : `<div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2d8080,#1a5c5c);color:#fff;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin:0 auto">${escHtml(((m.firstName||'?')[0]||'')+((m.lastName||'')[0]||''))}</div>`;
+      return `<button type="button" data-full="${escHtml(full.trim())}" onclick="pickPresenceName('${fullJs}')" style="border:2px solid ${sel?'#1a5c5c':'#e5e7eb'};background:${sel?'#ecfeff':'#fff'};border-radius:12px;padding:.55rem .3rem;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:.35rem" onmouseover="this.style.borderColor='#1a5c5c'" onmouseout="this.style.borderColor='${sel?'#1a5c5c':'#e5e7eb'}'">
+        ${img}
+        <div style="font-size:.72rem;font-weight:700;color:#1a3a3a;line-height:1.15;word-break:break-word">${escHtml(m.firstName||'')}</div>
+        <div style="font-size:.6rem;color:#64748b;line-height:1">${escHtml(m.role||'')}</div>
+      </button>`;
+    }).join('');
+  }
   const notice=document.getElementById('presenceSyncNotice');
   if(notice) notice.style.display=(eligible.length===0&&config.scriptUrl)?'block':'none';
+}
+function pickPresenceName(name){
+  const sel=document.getElementById('presenceNameInput');
+  if(sel) sel.value=name;
+  const grid=document.getElementById('presenceNameGrid');
+  if(grid){
+    grid.querySelectorAll('button[data-full]').forEach(btn=>{
+      const isSel=btn.getAttribute('data-full')===name;
+      btn.style.borderColor=isSel?'#1a5c5c':'#e5e7eb';
+      btn.style.background=isSel?'#ecfeff':'#fff';
+      btn.style.boxShadow=isSel?'0 0 0 3px rgba(26,92,92,.15)':'';
+    });
+  }
+  // Fortsæt IKKE automatisk — brugeren skal trykke på Fortsæt-knappen selv
 }
 function confirmPresenceName(){
   const name=(document.getElementById('presenceNameInput').value||'').trim();
@@ -2689,6 +2752,7 @@ function setPresenceName(name){
   sessionStorage.setItem('kk2_presence_name',name);
   document.getElementById('presenceModal').style.display='none';
   startPresence();
+  // Logins tælles kun fra elev.html — management-appen logger ikke i Logins-arket
 }
 function showPresenceConflict(name){
   const n=name.replace(/'/g,'\\\'');
@@ -2761,11 +2825,21 @@ function updatePresenceBar(users){
   bar.style.alignItems='center';
   bar.style.gap='.2rem';
   const narrow=window.innerWidth<=480;
-  function _presenceDot(u){
+  function _presenceStatusColor(u){
     const la=(typeof u==='object'&&u.lastActivity)?u.lastActivity:null;
     const diffMin=la?Math.floor((new Date()-new Date(la))/60000):0;
-    const color=(!la||diffMin<=10)?'#4ade80':'#facc15';
-    return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></span>`;
+    return (!la||diffMin<=10)?'#4ade80':'#facc15';
+  }
+  function _presenceDot(u){
+    return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${_presenceStatusColor(u)};flex-shrink:0"></span>`;
+  }
+  function _presenceAvatar(u){
+    const n=typeof u==='string'?u:u.name;
+    const nLow=(n||'').trim().toLowerCase();
+    const m=members.find(mm=>((mm.firstName||'')+' '+(mm.lastName||'')).trim().toLowerCase()===nLow);
+    if(!m||!m.photoId) return _presenceDot(u);
+    const dot=`<span style="position:absolute;bottom:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:${_presenceStatusColor(u)};border:1.5px solid var(--td);box-sizing:content-box"></span>`;
+    return `<span style="position:relative;display:inline-block;width:18px;height:18px;flex-shrink:0;line-height:0"><img src="${photoUrl(m.photoId)}" loading="lazy" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;display:block"/>${dot}</span>`;
   }
   // Mobil med 3+ brugere: vis tæller med klikbar popup
   if(narrow && users.length>2){
@@ -2778,7 +2852,11 @@ function updatePresenceBar(users){
       const pg=(typeof u==='object'&&u.page)?u.page:'';
       const pageInfo=PAGE_LABELS[pg]||null;
       const pageIcon=pageInfo?` <span style="font-size:.7rem;opacity:.8">${pageInfo.icon}</span>`:'';
-      return `<span data-presence-name="${n}" style="display:inline-flex;align-items:center;gap:.25rem;margin-right:.25rem;cursor:pointer" onclick="event.stopPropagation();showPresenceTimestamp(this)">${_presenceDot(u)}${firstName}${pageIcon}</span>`;
+      const nLow=(n||'').trim().toLowerCase();
+      const mm=members.find(x=>((x.firstName||'')+' '+(x.lastName||'')).trim().toLowerCase()===nLow);
+      const hasPhoto=!!(mm&&mm.photoId);
+      const nameLabel=hasPhoto?'':escHtml(firstName);
+      return `<span data-presence-name="${escHtml(n)}" title="${escHtml(n)}" style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.25rem;cursor:pointer" onclick="event.stopPropagation();showPresenceTimestamp(this)">${_presenceAvatar(u)}${nameLabel}${pageIcon}</span>`;
     }).join('');
   }
   bar.title='Online: '+users.map(u=>typeof u==='string'?u:u.name).join(', ');
@@ -3678,6 +3756,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 function initApp(){
   startInactivityTracking();
+  setTimeout(()=>{ fetchLoginStats(true); }, 2500);
   const now=new Date();
   document.getElementById('headerDate').textContent=
     now.toLocaleDateString('da-DK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -3790,6 +3869,7 @@ function switchTab(tab){
   if(tab==='dashboard') renderDashboard();
   if(tab==='board') renderBoard();
   if(tab==='promotion') renderPromotion();
+  if(tab==='training'){ fetchLoginStats(false); renderLoginBanner(); }
 }
 
 /* ════════════════════════════════════════
@@ -3898,6 +3978,24 @@ function _promoMotivationBanner(s){
   if(!s.prevAvg||s.latestAvg<s.prevAvg) return '';
   const msg=_PROMO_MOTIVATION[Math.floor(Math.random()*_PROMO_MOTIVATION.length)];
   return `<div style="font-size:.72rem;font-weight:600;color:#15803d;background:linear-gradient(90deg,#dcfce7,#f0fdf4);border-radius:8px;padding:.35rem .65rem;margin-bottom:-.1rem;border:1px solid #bbf7d0">${msg}</div>`;
+}
+function _promoFocusHtml(memberId){
+  const ms=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const items=[1,2,3].map(n=>{
+    const src=ms.find(a=>String(a['focus'+n]||'').trim());
+    if(!src) return '';
+    const val=String(src['focus'+n]||'').trim();
+    const d=String(src['focus'+n+'Date']||src.focusDate||src.date||'').slice(0,10);
+    const by=String(src['focus'+n+'By']||src.assessorName||'');
+    const meta=[d,by?'af '+by:''].filter(Boolean).join(' · ');
+    return `<li><span>${esc(val)}</span>${meta?`<div style="font-size:.6rem;color:#64748b;font-weight:500">${esc(meta)}</div>`:''}</li>`;
+  }).filter(Boolean);
+  if(!items.length) return '';
+  return `<div style="margin-top:.35rem;padding:.4rem .55rem;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0284c7;border-radius:7px">
+    <div style="font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#0369a1;margin-bottom:.2rem">🎯 Fokuspunkter</div>
+    <ol style="margin:0;padding-left:1.1rem;color:#0c4a6e;font-size:.72rem;line-height:1.4">${items.join('')}</ol>
+  </div>`;
 }
 function _promoCommentsHtml(s){
   const c1=s.comment;
@@ -4021,9 +4119,9 @@ function _promoEmailBtn(memberId){
   if(!m) return '';
   const hasEmail=!!(m.email||'').trim();
   if(!hasEmail){
-    return `<button onclick="event.stopPropagation();showToast('⚠️ Ingen e-mail registreret for ${m.firstName} — tilføj den i medlemsprofilen');" title="Ingen e-mail registreret — klik for info" style="background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;opacity:.75">✉️ Ingen mail</button>`;
+    return `<button onclick="event.stopPropagation();showToast('⚠️ Ingen e-mail registreret for ${escJs(m.firstName)} — tilføj den i medlemsprofilen');" title="Ingen e-mail registreret — klik for info" style="background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;opacity:.75">✉️ Ingen mail</button>`;
   }
-  return `<button onclick="event.stopPropagation();openGradEmailModal(${memberId})" title="Send progress-mail til ${m.firstName}" style="background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .15s" onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">✉️ Send</button>`;
+  return `<button onclick="event.stopPropagation();openGradEmailModal(${memberId})" title="Send progress-mail til ${escHtml(m.firstName)}" style="background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:8px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .15s" onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">✉️ Send</button>`;
 }
 function _gradWishBanner(m){
   if(!m.ønskerGraduering) return '';
@@ -4052,6 +4150,7 @@ function _promoCardReady(s){
     </div>
     ${_promoDualScoreRow(s)}
     ${(()=>{const low=s.weak.filter(w=>w.val<=3&&w.val>0);return low.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${low.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${_promoStarsHtml(w.val)}</span></div>`).join('')}</div>`:'';})()}
+    ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
@@ -4080,6 +4179,7 @@ function _promoCardAlmost(s){
     </div>
     ${_promoDualScoreRow(s)}
     ${weakHtml}
+    ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
@@ -4519,7 +4619,7 @@ function renderT(){
     } else if(m.startDate){
       daysSince=Math.round((todayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);
     }
-    const absWarning=daysSince!==null&&daysSince>=30?`<span title="Ikke set i ${daysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
+    const absWarning=daysSince!==null&&daysSince>=30?`<span title="Ikke set i ${daysSince} dage" onclick="event.stopPropagation();showToast('⚠️ Ikke set til træning i ${daysSince} dage')" style="cursor:pointer;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const _aInfo=getLastAssessmentInfo(m.id);
     const _aThreshold=24;
     let assessClockBadge='';
@@ -4564,7 +4664,22 @@ function renderT(){
 ════════════════════════════════════════ */
 const _BELT_SORT={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
 const _GRP_ORDER={'Børnehold':0,'Basis-hold':1,'Avanceret':2};
+// Escape-helpers (bruges i innerHTML og inline onclick for at håndtere fx O'Brien, <tag>, " i navne)
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function escJs(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');}
 let _mSort={col:'group',dir:'asc'};
+let _mFilterGrad=false;
+function toggleGradFilter(){
+  _mFilterGrad=!_mFilterGrad;
+  const btn=document.getElementById('mfGradBtn');
+  if(btn){
+    btn.style.background=_mFilterGrad?'#5b21b6':'#f5f3ff';
+    btn.style.color=_mFilterGrad?'#fff':'#6d28d9';
+    btn.style.borderColor=_mFilterGrad?'#7c3aed':'#ddd6fe';
+    btn.title=_mFilterGrad?'Viser kun elever der ønsker graduering — klik for at nulstille':'Vis kun elever der ønsker graduering';
+  }
+  renderM();
+}
 function setMSort(col){
   if(_mSort.col===col) _mSort.dir=_mSort.dir==='asc'?'desc':'asc';
   else _mSort={col,dir:'asc'};
@@ -4652,7 +4767,7 @@ function promotionBadge(memberId){
   const dark=['#212121','#161616','#0a0a0a','#8d5524','#7a4820','#6b3d18','#2980b9','#27ae60','#8e44ad'];
   const tc=dark.includes(nextColor)?'#fff':'#333';
   const name=_pm.firstName||'';
-  return ` <span onclick="event.stopPropagation();showToast('🏅 ${name} er klar til ${nextLabel} — gns. score ${avg.toFixed(1)} ★')" title="${name} er klar til ${nextLabel}" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;padding:2px 5px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;white-space:nowrap;vertical-align:middle">🏅 ${_miniBelt(currentBelt)}<span style="font-size:.65rem;color:#6b7280">→</span>${_miniBelt(nextBelt)}</span>`;
+  return ` <span onclick="event.stopPropagation();showToast('🏅 ${escJs(name)} er klar til ${escJs(nextLabel)} — gns. score ${avg.toFixed(1)} ★')" title="${escHtml(name)} er klar til ${escHtml(nextLabel)}" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;padding:2px 5px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;white-space:nowrap;vertical-align:middle">🏅 ${_miniBelt(currentBelt)}<span style="font-size:.65rem;color:#6b7280">→</span>${_miniBelt(nextBelt)}</span>`;
 }
 // Næste-bælte farve (subtil gradient) når klar til oprykning
 const _NEXT_BELT_COLOR={
@@ -4719,6 +4834,7 @@ function renderM(){
     if(fp!=='all'&&effectivePaymentStatus(m)!==fp)return false;
     if(fr!=='all'&&(m.role||'Medlem')!==fr)return false;
     if(fst==='passiv')return false;
+    if(_mFilterGrad&&!m.ønskerGraduering)return false;
     return true;
   });
   activeList.sort((a,b)=>{
@@ -4735,11 +4851,28 @@ function renderM(){
       const oa=_scoreVal(a.id), ob=_scoreVal(b.id);
       return oa!==ob?(oa-ob)*d:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
     }
-    // Dropdown-sortering (navn / anciennitet)
+    // Dropdown-sortering (navn / anciennitet / logins)
     switch(sortMode){
       case 'name-desc': return (b.firstName+' '+b.lastName).localeCompare(a.firstName+' '+a.lastName,'da');
       case 'start-desc':return (b.startDate||'').localeCompare(a.startDate||'');
       case 'start-asc': return (a.startDate||'').localeCompare(b.startDate||'');
+      case 'login-recent':{
+        const pa=_loginStatsCache?.perMember?.find(x=>Number(x.memberId)===a.id);
+        const pb=_loginStatsCache?.perMember?.find(x=>Number(x.memberId)===b.id);
+        const ta=pa?.lastIso?new Date(pa.lastIso).getTime():0;
+        const tb=pb?.lastIso?new Date(pb.lastIso).getTime():0;
+        return tb!==ta?tb-ta:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+      }
+      case 'login-7d':{
+        const pa=_loginStatsCache?.perMember?.find(x=>Number(x.memberId)===a.id);
+        const pb=_loginStatsCache?.perMember?.find(x=>Number(x.memberId)===b.id);
+        return (pb?.last7||0)-(pa?.last7||0)||(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+      }
+      case 'login-30d':{
+        const pa=_loginStatsCache?.perMember?.find(x=>Number(x.memberId)===a.id);
+        const pb=_loginStatsCache?.perMember?.find(x=>Number(x.memberId)===b.id);
+        return (pb?.last30||0)-(pa?.last30||0)||(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
+      }
       default:          return (a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
     }
   });
@@ -4770,7 +4903,7 @@ function renderM(){
         daysSinceLastAttendance=Math.round((todayMs-startMs)/86400000);
       }
       if(daysSinceLastAttendance!==null&&daysSinceLastAttendance>=30){
-        absWarning=`<span title="Ikke set i ${daysSinceLastAttendance} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`;
+        absWarning=`<span title="Ikke set i ${daysSinceLastAttendance} dage" onclick="event.stopPropagation();showToast('⚠️ Ikke set til træning i ${daysSinceLastAttendance} dage')" style="cursor:pointer;margin-left:4px;font-size:.85rem">⚠️</span>`;
       }
     }
     const tr=document.createElement('tr');
@@ -6411,7 +6544,7 @@ function renderDashboard(){
     let _dbDaysSince=null;
     if(_dbAtt.length>0){const lat=_dbAtt.map(s=>s.date).sort().pop();_dbDaysSince=Math.round((_dbTodayMs-new Date(lat+'T12:00:00').setHours(0,0,0,0))/86400000);}
     else if(m.startDate){_dbDaysSince=Math.round((_dbTodayMs-new Date(m.startDate+'T12:00:00').setHours(0,0,0,0))/86400000);}
-    const absW=_dbDaysSince!==null&&_dbDaysSince>=30?`<span title="Ikke set i ${_dbDaysSince} dage" style="cursor:help;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
+    const absW=_dbDaysSince!==null&&_dbDaysSince>=30?`<span title="Ikke set i ${_dbDaysSince} dage" onclick="event.stopPropagation();showToast('⚠️ Ikke set til træning i ${_dbDaysSince} dage')" style="cursor:pointer;margin-left:4px;font-size:.85rem">⚠️</span>`:'';
     const tr=document.createElement('tr');
     const _dbPromo=promotionRowStyle(m.id);if(_dbPromo)tr.style.cssText=_dbPromo;
     tr.innerHTML=`
@@ -7219,7 +7352,7 @@ function renderDashboardAbsent(){
     const hasEmail=!!(m.email||'').trim();
     const r1date=m.rem1?new Date(m.rem1+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short'}):'';
     const r2date=m.rem2?new Date(m.rem2+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short'}):'';
-    const noEmailBtn=`<button onclick="showToast('⚠️ Ingen e-mail registreret for ${m.firstName} — tilføj den under medlemsprofilen')" title="Ingen e-mail registreret — klik for info" style="font-size:.72rem;font-weight:700;background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;opacity:.7">✉️ Send R1</button>`;
+    const noEmailBtn=`<button onclick="showToast('⚠️ Ingen e-mail registreret for ${escJs(m.firstName)} — tilføj den under medlemsprofilen')" title="Ingen e-mail registreret — klik for info" style="font-size:.72rem;font-weight:700;background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;opacity:.7">✉️ Send R1</button>`;
     const r1btn=!hasEmail?noEmailBtn
       :m.rem1
         ?`<span style="font-size:.7rem;font-weight:700;background:#dcfce7;color:#15803d;border-radius:7px;padding:3px 7px;white-space:nowrap;cursor:default" title="Påmind. 1 sendt ${r1date}">✓ R1 · ${r1date}</span>`
@@ -7264,7 +7397,7 @@ function fetchLoginStats(force){
   const s=document.createElement('script');
   let timer;
   const cleanup=()=>{clearTimeout(timer);try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);_loginStatsLoading=false;};
-  window[cb]=function(d){ cleanup(); if(d&&d.ok){ _loginStatsCache=d; _loginStatsLastFetch=Date.now(); renderLoginStatsCard(); if(document.getElementById('page-promotion')?.classList.contains('active')) renderPromotion(); } };
+  window[cb]=function(d){ cleanup(); if(d&&d.ok){ _loginStatsCache=d; _loginStatsLastFetch=Date.now(); renderLoginStatsCard(); renderLoginBanner(); if(document.getElementById('page-promotion')?.classList.contains('active')) renderPromotion(); } };
   s.onerror=()=>{ cleanup(); };
   timer=setTimeout(()=>{ cleanup(); },8000);
   s.src=config.scriptUrl+'?action=getLoginStats&callback='+cb+'&t='+now;
@@ -7283,6 +7416,132 @@ function _loginAgoLabel(iso){
   if(days<30) return days+' dag'+(days===1?'':'e')+' siden';
   const mos=Math.floor(days/30);
   return mos+' mdr siden';
+}
+function renderLoginBanner(){
+  const b=document.getElementById('loginBanner');
+  if(!b) return;
+  const d=_loginStatsCache;
+  if(!d){ b.style.display='none'; return; }
+  // Beregn deduped tællere: hvis samme person er i begge lister, tælles de kun som instruktør
+  const insRaw=(d.todayInstructorEmails||[]).map(s=>String(s||'').toLowerCase());
+  const insMatched=insRaw.map(v=>members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)))).filter(Boolean);
+  const insIds=new Set(insMatched.map(m=>m.id));
+  const insEmailSet=new Set(insMatched.map(m=>(m.email||'').toLowerCase()).filter(Boolean));
+  const stuIdsRaw=(d.todayStudentIds||[]).map(Number);
+  const stuDeduped=stuIdsRaw.map(id=>members.find(m=>m.id===id)).filter(Boolean).filter(m=>!insIds.has(m.id)&&!insEmailSet.has((m.email||'').toLowerCase()));
+  const stu=stuDeduped.length;
+  const ins=insMatched.length;
+  const total=stu+ins;
+  if(total<=0){
+    b.innerHTML=`<div style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #cbd5e1;border-radius:10px;padding:.6rem 1rem;font-size:.82rem;color:#64748b;display:flex;align-items:center;gap:.5rem">
+      <span style="font-size:1rem">📱</span>
+      <span>Ingen har åbnet elev-appen endnu i dag</span>
+      <button onclick="fetchLoginStats(true)" title="Opdater" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:#94a3b8;margin-left:auto">🔄</button>
+    </div>`;
+    b.style.display='block';
+    return;
+  }
+  const parts=[];
+  if(stu>0) parts.push(`<b>${stu}</b> ${stu===1?'elev':'elever'}`);
+  if(ins>0) parts.push(`<b>${ins}</b> ${ins===1?'instruktør':'instruktører'}`);
+  const txt=parts.join(' og ');
+  b.innerHTML=`<div onclick="showTodayLoginDetail()" style="background:linear-gradient(135deg,#ecfeff,#cffafe);border:1px solid #67e8f9;border-radius:10px;padding:.65rem 1rem;font-size:.82rem;color:#155e75;display:flex;align-items:center;gap:.5rem;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 2px 10px rgba(8,145,178,.18)'" onmouseout="this.style.boxShadow=''">
+    <span style="font-size:1rem">📱</span>
+    <span>I dag har ${txt} åbnet appen</span>
+    <span style="margin-left:auto;font-size:.75rem;opacity:.7">Vis liste →</span>
+    <button onclick="event.stopPropagation();fetchLoginStats(true)" title="Opdater" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:#0891b2;padding:0">🔄</button>
+  </div>`;
+  b.style.display='block';
+}
+function fetchLoginBanner(force){ fetchLoginStats(!!force); }
+function showTodayLoginDetail(){
+  const d=_loginStatsCache;
+  const popup=document.getElementById('loginDayPopup');
+  const body=document.getElementById('loginDayPopupBody');
+  if(!popup||!body) return;
+  const header=popup.querySelector('div[style*="font-weight:800"]');
+  if(header) header.textContent='📱 Logins i dag';
+  const stuIds=(d?.todayStudentIds||[]).map(Number);
+  const insEmailsRaw=(d?.todayInstructorEmails||[]).map(s=>String(s||'').toLowerCase());
+  // Match instructor login values by email OR by full name (legacy rows store name i stedet for email)
+  const insMembers=insEmailsRaw.map(v=>{
+    return members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)));
+  }).filter(Boolean);
+  // Client-side dedup: if same person logged in as instruktør i dag, fjern dem fra elev-listen
+  const insIds=new Set(insMembers.map(m=>m.id));
+  const insEmailSet=new Set(insMembers.map(m=>(m.email||'').toLowerCase()).filter(Boolean));
+  const stuMembers=stuIds.map(id=>members.find(m=>m.id===id)).filter(Boolean)
+    .filter(m=>!insIds.has(m.id)&&!insEmailSet.has((m.email||'').toLowerCase()))
+    .sort((a,b)=>(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da'));
+  insMembers.sort((a,b)=>(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da'));
+  let html='';
+  if(stuMembers.length>0){
+    html+=`<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0e7490;margin-bottom:.4rem">Elever (${stuMembers.length})</div>`;
+    html+=stuMembers.map(m=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #f0f9ff">
+      <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
+      <div style="font-size:.85rem;font-weight:600">${escHtml(m.firstName)} ${escHtml(m.lastName)}</div>
+    </div>`).join('');
+  }
+  if(insMembers.length>0){
+    html+=`<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0e7490;margin:${stuMembers.length?'.8rem':0} 0 .4rem">Instruktører (${insMembers.length})</div>`;
+    html+=insMembers.map(m=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #f0f9ff">
+      <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
+      <div style="font-size:.85rem;font-weight:600">${escHtml(m.firstName)} ${escHtml(m.lastName)}</div>
+    </div>`).join('');
+  }
+  if(!html) html='<div style="color:var(--xtl);font-size:.85rem;text-align:center;padding:1rem">Ingen logins fundet</div>';
+  body.innerHTML=html;
+  popup.style.display='flex';
+}
+function showLoginPeriodDetail(days){
+  const d=_loginStatsCache;
+  const popup=document.getElementById('loginDayPopup');
+  const body=document.getElementById('loginDayPopupBody');
+  if(!popup||!body||!d||!d.perMember) return;
+  const key=days===7?'last7':'last30';
+  const rows=d.perMember.filter(x=>(x[key]||0)>0)
+    .map(x=>({x,m:members.find(mm=>mm.id===Number(x.memberId))}))
+    .filter(r=>r.m&&!r.m.archived)
+    .sort((a,b)=>(b.x[key]||0)-(a.x[key]||0));
+  const header=popup.querySelector('div[style*="font-weight:800"]');
+  if(header) header.textContent='📱 Logins seneste '+days+' dage';
+  let html='';
+  if(rows.length){
+    html=rows.map(({x,m})=>`<div style="display:flex;align-items:center;gap:.55rem;padding:.4rem 0;border-bottom:1px solid #f0f9ff">
+      <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.85rem">${escHtml(m.firstName)} ${escHtml(m.lastName)}</div>
+        <div style="font-size:.7rem;color:var(--xtl)">${_loginAgoLabel(x.lastIso)}</div>
+      </div>
+      <span style="font-size:.72rem;font-weight:700;background:${days===7?'#dcfce7':'#fef3c7'};color:${days===7?'#16a34a':'#d97706'};border-radius:8px;padding:3px 8px;white-space:nowrap">${x[key]||0} login${(x[key]||0)===1?'':'s'}</span>
+    </div>`).join('');
+  } else {
+    html=`<div style="color:var(--xtl);font-size:.85rem;text-align:center;padding:1rem">Ingen medlemmer har logget ind de seneste ${days} dage</div>`;
+  }
+  body.innerHTML=html;
+  popup.style.display='flex';
+}
+let _instructorLoginFired=false;
+function fireInstructorLogin(){
+  if(_instructorLoginFired) return;
+  if(!config.scriptUrl) return;
+  const nm=(_myPresenceName||sessionStorage.getItem('kk2_presence_name')||'').toString().trim().slice(0,80);
+  if(!nm) return; // Log kun når brugeren faktisk har valgt navn — undgå bogus "instructor"-rækker
+  _instructorLoginFired=true;
+  // Find matching instructor member so we can log their actual email (for dedup vs student logins + popup avatar lookup)
+  let instrEmail=nm, instrMid=0;
+  try{
+    const nlow=nm.toLowerCase();
+    const match=(members||[]).find(x=>!x.archived&&(x.role==='Instruktør'||x.role==='Hjælpetræner')&&((x.firstName+' '+x.lastName).trim().toLowerCase()===nlow));
+    if(match){ if(match.email) instrEmail=match.email; instrMid=match.id||0; }
+  }catch(e){}
+  try{
+    const cb='_tli'+Date.now();
+    const sc=document.createElement('script');
+    window[cb]=function(){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); };
+    sc.src=config.scriptUrl+'?action=trackLogin&role=instructor&memberId='+encodeURIComponent(instrMid)+'&email='+encodeURIComponent(instrEmail)+'&ua='+encodeURIComponent((navigator.userAgent||'').slice(0,200))+'&callback='+cb+'&t='+Date.now();
+    document.head.appendChild(sc);
+  }catch(e){}
 }
 function getMemberLoginInfo(memberId){
   if(!_loginStatsCache||!_loginStatsCache.perMember) return null;
@@ -7312,7 +7571,7 @@ function renderLoginStatsCard(){
     const lb=b.lastIso?new Date(b.lastIso).getTime():0;
     return lb-la;
   });
-  const topRows=sorted.slice(0,8).map(x=>{
+  const topRows=sorted.slice(0,15).map(x=>{
     const m=members.find(mm=>mm.id===Number(x.memberId));
     if(!m) return '';
     const ago=_loginAgoLabel(x.lastIso);
@@ -7322,9 +7581,12 @@ function renderLoginStatsCard(){
       <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
-        <div style="font-size:.68rem;color:var(--xtl)">${ago} · ${x.total} login${x.total===1?'':'s'} i alt</div>
+        <div style="font-size:.68rem;color:var(--xtl)">${ago} · i alt: ${x.total}</div>
       </div>
-      <span style="font-size:.66rem;font-weight:700;background:${chipBg};color:${chipCol};border-radius:7px;padding:2px 7px;white-space:nowrap">${x.last7>0?'🟢 Aktiv':x.last30>0?'🟡 Sjældent':'⚪ Inaktiv'}</span>
+      <div style="display:flex;gap:.3rem;align-items:center;flex-shrink:0">
+        <span title="Logins seneste 7 dage" style="font-size:.65rem;font-weight:700;background:${x.last7>0?'#dcfce7':'#f3f4f6'};color:${x.last7>0?'#16a34a':'#9ca3af'};border-radius:6px;padding:2px 6px;white-space:nowrap">7d: ${x.last7}</span>
+        <span title="Logins seneste 30 dage" style="font-size:.65rem;font-weight:700;background:${x.last30>0?'#fef3c7':'#f3f4f6'};color:${x.last30>0?'#d97706':'#9ca3af'};border-radius:6px;padding:2px 6px;white-space:nowrap">30d: ${x.last30}</span>
+      </div>
     </div>`;
   }).join('');
   const neverHtml=neverIds.length?`<div style="margin-top:.7rem;padding:.5rem .7rem;background:#f9fafb;border-radius:8px;font-size:.75rem;color:#6b7280"><strong>${neverIds.length}</strong> aktive medlemmer har aldrig logget ind på elev-appen</div>`:'';
@@ -7335,8 +7597,8 @@ function renderLoginStatsCard(){
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.5rem;margin-bottom:.7rem">
       <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#4f46e5;line-height:1">${d.totalLogins||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Logins i alt</div></div>
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#16a34a;line-height:1">${d.unique7||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Aktive (7 dage)</div></div>
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#d97706;line-height:1">${d.unique30||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Aktive (30 dage)</div></div>
+      <div onclick="showLoginPeriodDetail(7)" title="Klik for at se hvem" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 2px 10px rgba(22,163,74,.15)';this.style.borderColor='#16a34a'" onmouseout="this.style.boxShadow='';this.style.borderColor='#e5e7eb'"><div style="font-size:1.25rem;font-weight:800;color:#16a34a;line-height:1">${d.unique7||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Aktive (7 dage) →</div></div>
+      <div onclick="showLoginPeriodDetail(30)" title="Klik for at se hvem" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 2px 10px rgba(217,119,6,.15)';this.style.borderColor='#d97706'" onmouseout="this.style.boxShadow='';this.style.borderColor='#e5e7eb'"><div style="font-size:1.25rem;font-weight:800;color:#d97706;line-height:1">${d.unique30||0}</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Aktive (30 dage) →</div></div>
       <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem"><div style="font-size:1.25rem;font-weight:800;color:#0891b2;line-height:1">${pctActive}%</div><div style="font-size:.66rem;color:var(--xtl);font-weight:600">Af m. e-mail</div></div>
     </div>
     ${topRows?`<div style="font-size:.7rem;font-weight:700;color:var(--xtm);margin-bottom:.2rem">Seneste aktive</div>${topRows}`:'<div style="font-size:.8rem;color:var(--xtl);font-style:italic">Ingen logins registreret endnu</div>'}
@@ -8909,16 +9171,22 @@ function getMergedRatings(memberId, assessmentId){
   if(idx<0)return {};
   const a=sorted[idx];
   let own={};try{own=JSON.parse(a.ratings||'{}');}catch(e){}
-  let prev={};
-  if(idx>0){try{prev=JSON.parse(sorted[idx-1].ratings||'{}');}catch(e){}}
+  // Walk back through ALL prior assessments to build a full carry-forward snapshot
+  const priorSnapshot={};
+  for(let i=idx-1;i>=0;i--){
+    let r={};try{r=JSON.parse(sorted[i].ratings||'{}');}catch(e){}
+    Object.entries(r).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnapshot[sk]>0)) priorSnapshot[sk]=Number(v); });
+  }
   const _pm=members.find(x=>x.id===memberId);
   const effectiveBelt=_pm?effectivePensumBelt(_pm):a.belt;
   const hasPensum=!!pensum[a.belt]||!!pensum[effectiveBelt];
-  const beltSkills=pensum[a.belt]||pensum[effectiveBelt]||Object.keys(own);
+  const pensumSkills=pensum[a.belt]||pensum[effectiveBelt]||[];
+  // Carry-forward only applies to skills still in current pensum (skills removed/renamed should not propagate)
+  const iterSet=new Set([...pensumSkills,...Object.keys(own)]);
   const merged={};
-  beltSkills.forEach(sk=>{
+  iterSet.forEach(sk=>{
     if(own[sk]&&own[sk]>0) merged[sk]={val:own[sk],carried:false,orphaned:false};
-    else if(prev[sk]&&prev[sk]>0) merged[sk]={val:prev[sk],carried:true,orphaned:false};
+    else if(pensumSkills.includes(sk) && priorSnapshot[sk]>0) merged[sk]={val:priorSnapshot[sk],carried:true,orphaned:false};
   });
   const allValidSkills=new Set([...(pensum[a.belt]||[]),...(pensum[effectiveBelt]||[])]);
   Object.entries(own).forEach(([sk,v])=>{ if(v>0&&!merged[sk]) merged[sk]={val:v,carried:false,orphaned:hasPensum&&!allValidSkills.has(sk)}; });
@@ -9082,6 +9350,38 @@ function openAssessmentModal(memberId, editAssessmentId){
   }
 
   document.getElementById('assessComment').value=existing?existing.comment||'':'';
+  // Per-slot focus pre-fill + inherited tracking (each slot independently)
+  const _slotDate=(a,n)=>String(a['focus'+n+'Date']||a.focusDate||'').slice(0,10);
+  const _slotBy=(a,n)=>String(a['focus'+n+'By']||a.assessorName||'');
+  const _slotVal=(a,n)=>String(a['focus'+n]||'').trim();
+  const _priorList=assessments.filter(a=>a.memberId===_assessMemberId && (!existing||a.id!==existing.id)).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  window._assessFocusInheritedSlots = {};
+  [1,2,3].forEach(n=>{
+    const ownVal = existing ? _slotVal(existing,n) : '';
+    const inp=document.getElementById('assessFocus'+n);
+    const meta=document.getElementById('assessFocus'+n+'Meta');
+    if(ownVal){
+      inp.value=ownVal;
+      const d=existing._migrated?_slotDate(existing,n):_slotDate(existing,n);
+      const by=_slotBy(existing,n);
+      meta.textContent = (d?('Opdateret '+d):'') + (by?(d?' · ':'')+'af '+by:'');
+    } else {
+      const src=_priorList.find(a=>_slotVal(a,n));
+      if(src){
+        const val=_slotVal(src,n);
+        inp.value=val;
+        const d=_slotDate(src,n);
+        const by=_slotBy(src,n);
+        meta.textContent='Fra tidligere'+(d?' · '+d:'')+(by?' · af '+by:'');
+        window._assessFocusInheritedSlots[n]={val,date:d,by};
+      } else {
+        inp.value='';
+        meta.textContent='';
+      }
+    }
+  });
+  const fdLbl=document.getElementById('assessFocusDateLbl');
+  if(fdLbl) fdLbl.textContent='';
 
   // Lås vurdering hvis den tilhører en anden bedømmer
   const saveBtn=document.querySelector('#assessmentModal .btn.bp');
@@ -9106,6 +9406,7 @@ function openAssessmentModal(memberId, editAssessmentId){
   }
 
   renderAssessmentHistory(memberId);
+  updateAssessLiveAvg();
   openModal('assessmentModal');
   // Scroll til toppen af modal (vigtigt ved redigering)
   setTimeout(()=>{const inner=document.querySelector('#assessmentModal .modal');if(inner)inner.scrollTop=0;},50);
@@ -9130,7 +9431,7 @@ function toggleØnskerGraduering(memberId){
 function graduationWishBadge(memberId){
   const m=members.find(x=>x.id===memberId);
   if(!m||!m.ønskerGraduering) return '';
-  return ` <span title="${m.firstName} ønsker at gå op til graduering" onclick="event.stopPropagation();showToast('🎓 ${m.firstName} ønsker at gå op til graduering')" style="display:inline-flex;align-items:center;cursor:pointer;padding:1px 5px;border-radius:8px;background:#f5f3ff;border:1px solid #ddd6fe;white-space:nowrap;vertical-align:middle;font-size:.72rem;font-weight:700;color:#6d28d9">🎓</span>`;
+  return ` <span title="${escHtml(m.firstName)} ønsker at gå op til graduering" onclick="event.stopPropagation();showToast('🎓 ${escJs(m.firstName)} ønsker at gå op til graduering')" style="display:inline-flex;align-items:center;cursor:pointer;padding:1px 5px;border-radius:8px;background:#f5f3ff;border:1px solid #ddd6fe;white-space:nowrap;vertical-align:middle;font-size:.72rem;font-weight:700;color:#6d28d9">🎓</span>`;
 }
 
 function toggleGultPensum(memberId){
@@ -9166,6 +9467,7 @@ function toggleGultPensum(memberId){
       return `<div class="assess-skill-row">${nameHtml}<div class="assess-stars" id="stars-${CSS.escape(skill)}">${[1,2,3,4,5].map(i=>`<span data-skill="${skill.replace(/"/g,'&quot;')}" data-val="${i}" onclick="setStarRating(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div></div>`;
     }).join('');
   }
+  updateAssessLiveAvg();
 }
 
 function getSkillNote(skill){
@@ -9204,6 +9506,44 @@ function setStarRating(el){
     s.textContent=Number(s.dataset.val)<=val?'★':'☆';
     s.classList.toggle('on',Number(s.dataset.val)<=val);
   });
+  updateAssessLiveAvg();
+}
+
+function updateAssessLiveAvg(){
+  const box=document.getElementById('assessLiveAvg');
+  if(!box||_assessMemberId==null) return;
+  const m=members.find(x=>x.id===_assessMemberId);
+  if(!m){box.innerHTML='';return;}
+  const beltKey=effectivePensumBelt(m);
+  const skills=pensum[beltKey]||[];
+  // Previous assessment (ikke dem vi redigerer på selv samme dag)
+  const today=new Date().toISOString().slice(0,10);
+  const prevSorted=assessments.filter(a=>a.memberId===_assessMemberId&&(_editingAssessmentId==null?a.date!==today:Number(a.id)!==Number(_editingAssessmentId))).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  let prevR={};
+  if(prevSorted.length){try{prevR=JSON.parse(prevSorted[0].ratings||'{}');}catch(e){}}
+  let own=0,carried=0,missing=0,sum=0,n=0;
+  (skills.length?skills:Object.keys(_assessRatings)).forEach(sk=>{
+    const v=Number(_assessRatings[sk]||0);
+    const pv=Number(prevR[sk]||0);
+    if(v>0){sum+=v;n++;own++;}
+    else if(pv>0){sum+=pv;n++;carried++;}
+    else missing++;
+  });
+  if(!n){
+    box.innerHTML='<span style="color:#6a7b7b;font-weight:600">💡 Giv stjerner for at se gennemsnit</span>';
+    return;
+  }
+  const avg=sum/n;
+  const col=avg>=4?'#16a34a':avg>=2?'#d97706':'#dc2626';
+  const bits=[];
+  if(own) bits.push(own+' vurderet nu');
+  if(carried) bits.push(carried+' båret over fra sidste gang');
+  if(missing) bits.push(missing+' mangler');
+  box.innerHTML=`<span>📊 Løbende gennemsnit</span>
+    <span style="display:inline-flex;align-items:center;gap:.6rem">
+      <span style="font-size:.72rem;font-weight:600;color:#6a7b7b">${bits.join(' · ')}</span>
+      <span style="font-size:1.05rem;font-weight:800;color:${col};background:#fff;padding:.2rem .55rem;border-radius:10px;border:1px solid ${col}33">${avg.toFixed(2).replace('.',',')} / 5</span>
+    </span>`;
 }
 
 function saveAssessment(){
@@ -9218,6 +9558,10 @@ function saveAssessment(){
   }
   const comment=document.getElementById('assessComment').value.trim();
   const assessorName=document.getElementById('assessorName').value.trim();
+  const focus1=(document.getElementById('assessFocus1').value||'').trim().slice(0,140);
+  const focus2=(document.getElementById('assessFocus2').value||'').trim().slice(0,140);
+  const focus3=(document.getElementById('assessFocus3').value||'').trim().slice(0,140);
+  const todayIso=localDate();
   if(!assessorName){
     const el=document.getElementById('assessorName');
     el.style.outline='2.5px solid #ef4444';
@@ -9227,23 +9571,43 @@ function saveAssessment(){
     showToast('⚠️ Vælg en bedømmer — vurderingen er IKKE gemt');
     return;
   }
+  // Per-slot save: compare each input to inherited value. If unchanged inherited → leave empty on this assessment (display will carry-forward). If edited or newly typed → save as own with today's date + current assessor.
+  const _inhSlots=window._assessFocusInheritedSlots||{};
+  const inputs=[focus1,focus2,focus3];
+  const saveFocus=[1,2,3].map((n,i)=>{
+    const val=inputs[i];
+    if(_inhSlots[n] && _inhSlots[n].val===val) return {val:'',date:'',by:''};
+    if(!val) return {val:'',date:'',by:''};
+    return {val, date:todayIso, by:assessorName};
+  });
   if(existing){
     existing.ratings=JSON.stringify(_assessRatings);
     existing.comment=comment;
     existing.assessorName=assessorName;
     existing.updatedAt=Date.now();
+    [1,2,3].forEach((n,i)=>{
+      existing['focus'+n]=saveFocus[i].val;
+      existing['focus'+n+'Date']=saveFocus[i].date;
+      existing['focus'+n+'By']=saveFocus[i].by;
+    });
   } else {
     while(deletedAssessmentIds.has(nextAssessmentId)) nextAssessmentId++;
-    assessments.push({
+    const rec={
       id:nextAssessmentId++,
       memberId:_assessMemberId,
-      date:new Date().toISOString().slice(0,10),
+      date:todayIso,
       belt:effectivePensumBelt(m),
       ratings:JSON.stringify(_assessRatings),
       comment,
       assessorName,
       updatedAt:Date.now()
+    };
+    [1,2,3].forEach((n,i)=>{
+      rec['focus'+n]=saveFocus[i].val;
+      rec['focus'+n+'Date']=saveFocus[i].date;
+      rec['focus'+n+'By']=saveFocus[i].by;
     });
+    assessments.push(rec);
   }
   save();
   pushToCloudNow();
@@ -9254,6 +9618,10 @@ function saveAssessment(){
   _assessRatings={};
   document.getElementById('assessComment').value='';
   document.getElementById('assessorName').value='';
+  ['assessFocus1','assessFocus2','assessFocus3'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['assessFocus1Meta','assessFocus2Meta','assessFocus3Meta'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+  const _fdLbl=document.getElementById('assessFocusDateLbl');if(_fdLbl)_fdLbl.textContent='';
+  window._assessFocusInheritedSlots=null;
   document.querySelectorAll('.assess-stars span').forEach(s=>{s.textContent='☆';s.classList.remove('on');});
   document.querySelector('#assessmentModal .btn.bp').textContent='💾 Gem vurdering';
   renderAssessmentHistory(memberId);
@@ -9481,6 +9849,26 @@ function renderAssessmentHistory(memberId,targetId='assessHistory',fromDetail=fa
       }).join('');
       const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
       const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${a.assessorName}</strong></div>`:'';
+      // Per-slot focus display with carry-forward: each slot independently finds its source
+      const _esc=(s)=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const _slotSrc=(n)=>{
+        if(String(a['focus'+n]||'').trim()) return {a, inherited:false};
+        const src=histDesc.slice(i+1).find(x=>String(x['focus'+n]||'').trim());
+        return src?{a:src, inherited:true}:null;
+      };
+      const focusItems=[1,2,3].map(n=>{
+        const s=_slotSrc(n);
+        if(!s) return '';
+        const val=String(s.a['focus'+n]||'').trim();
+        const d=String(s.a['focus'+n+'Date']||s.a.focusDate||s.a.date||'').slice(0,10);
+        const by=String(s.a['focus'+n+'By']||s.a.assessorName||'');
+        const meta=[d,by?'af '+by:'',s.inherited?'fra tidligere':''].filter(Boolean).join(' · ');
+        return `<li style="margin-bottom:4px"><span>${_esc(val)}</span>${meta?`<div style="font-size:10px;color:#64748b;font-weight:500;margin-top:1px">${_esc(meta)}</div>`:''}</li>`;
+      }).filter(Boolean);
+      const focusHtml=focusItems.length?`<div style="margin-top:8px;padding:8px 10px;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0284c7;border-radius:6px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#0369a1;margin-bottom:4px">🎯 Fokuspunkter</div>
+        <ol style="margin:0;padding-left:18px;color:#0c4a6e;font-size:12px;line-height:1.45">${focusItems.join('')}</ol>
+      </div>`:'';
       const beltLabel=a.belt?`<span style="font-size:.72rem;font-weight:600;opacity:.7;margin-left:.5rem">${a.belt}</span>`:'';
       const bestTag=isBest&&histDesc.length>=2?`<span style="font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;background:#dcfce7;color:#16a34a;margin-left:.3rem">⭐ Bedste</span>`:'';
       // Find forrige vurdering (ældre) — histDesc er nyeste øverst, så næste i desc = forrige i tid
@@ -9506,6 +9894,7 @@ function renderAssessmentHistory(memberId,targetId='assessHistory',fromDetail=fa
         ${starsHtml||'<div style="font-size:.8rem;color:var(--t2);font-style:italic">Ingen ratings</div>'}
         ${assessorHtml}
         ${commentHtml}
+        ${focusHtml}
       </div>`;
     }).join('');
 }
@@ -10112,6 +10501,30 @@ function exportProgressToPDF(memberId){
     <div class="comment-txt">"${String(latest.comment).replace(/[<>]/g,'')}"</div>
     ${latest.assessorName?`<div class="comment-author">— ${latest.assessorName}</div>`:''}
   </div>`:'';
+  // Fokuspunkter — per-slot carry-forward: hver slot finder selv sin seneste kilde
+  const _slotSrcPdf=(n)=>{
+    if(String(latest['focus'+n]||'').trim()) return {src:latest, inherited:false};
+    const prior=ma.slice(1).find(x=>String(x['focus'+n]||'').trim());
+    return prior ? {src:prior, inherited:true} : null;
+  };
+  const _fmtDateShort=(ymd)=>{
+    if(!ymd) return '';
+    const d=new Date(String(ymd).slice(0,10)+'T12:00:00');
+    return isNaN(d)?String(ymd).slice(0,10):d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
+  };
+  const focusItems=[1,2,3].map(n=>{
+    const s=_slotSrcPdf(n);
+    if(!s) return null;
+    const txt=String(s.src['focus'+n]||'').trim();
+    const dt=s.src['focus'+n+'Date']||s.src.date||'';
+    const by=s.src['focus'+n+'By']||s.src.assessorName||'';
+    const meta=[_fmtDateShort(dt), by?('af '+by):''].filter(Boolean).join(' · ');
+    return {txt, meta, inherited:s.inherited};
+  }).filter(Boolean);
+  const focusBlockPdf=focusItems.length?`<div style="margin-top:8px;padding:9px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0284c7;border-radius:6px">
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#0369a1;margin-bottom:4px">🎯 Fokuspunkter</div>
+    <ol style="margin:0;padding-left:18px;font-size:11px;color:#0c4a6e;line-height:1.45">${focusItems.map(it=>`<li style="margin-bottom:3px">${String(it.txt).replace(/[<>]/g,'')}${it.meta?`<div style="font-size:9px;font-weight:600;color:#64748b;margin-top:1px">${it.inherited?'Fra tidligere · ':''}${it.meta}</div>`:''}</li>`).join('')}</ol>
+  </div>`:'';
   const appUrl='https://holoolm.github.io/Esbjerg-Karate/elev?email='+encodeURIComponent(m.email||'');
   const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"/>
 <title>Progress – ${m.firstName} ${m.lastName}</title>
@@ -10201,6 +10614,7 @@ function exportProgressToPDF(memberId){
   </div>
   ${skillRowsHtml}
   ${commentBlockNew}
+  ${focusBlockPdf}
   <a class="cta" href="${appUrl}">🔗 Se fuld udvikling i elev-appen</a>
   <div class="footer">
     <span>Esbjerg Shuri-Ryu Karate &copy; ${new Date().getFullYear()}</span>
@@ -10421,16 +10835,25 @@ function saveHv(){
     const m=members.find(x=>x.id===mid);
     if(!m)return;
     const note=_hvNotes[mid]||'';
+    // Merge forward: fill in unrated skills from the most recent previous assessment so the saved record is complete
+    const prevSorted=assessments.filter(a=>a.memberId===mid&&a.date!==today).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+    let prevRatings={};
+    if(prevSorted.length){try{prevRatings=JSON.parse(prevSorted[0].ratings||'{}');}catch(e){}}
     const existing=assessments.find(a=>a.memberId===mid&&a.date===today);
     if(existing){
       const er=JSON.parse(existing.ratings||'{}');
+      // First carry forward from previous (only where today has no value), then overlay new ratings
+      Object.entries(prevRatings).forEach(([sk,v])=>{ if(v>0&&!(er[sk]>0)) er[sk]=v; });
       Object.assign(er,skillRatings);
       existing.ratings=JSON.stringify(er);
       existing.assessorName=_hvAssessor;
       existing.updatedAt=Date.now();
       if(note) existing.comment=existing.comment?existing.comment+'\n'+note:note;
     }else{
-      assessments.push({id:nextAssessmentId++,memberId:mid,date:today,belt:m.belt||'',ratings:JSON.stringify(skillRatings),comment:note,assessorName:_hvAssessor,updatedAt:Date.now()});
+      const merged={};
+      Object.entries(prevRatings).forEach(([sk,v])=>{ if(v>0) merged[sk]=v; });
+      Object.assign(merged,skillRatings);
+      assessments.push({id:nextAssessmentId++,memberId:mid,date:today,belt:m.belt||'',ratings:JSON.stringify(merged),comment:note,assessorName:_hvAssessor,updatedAt:Date.now()});
     }
     saved++;
   });
