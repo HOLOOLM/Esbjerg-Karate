@@ -10869,8 +10869,36 @@ function saveHv(){
 ═══════════════════════════════════════════════════ */
 let _inboxActiveMember=null;
 
+// Per-reader ulæst-tjek: en besked er "ulæst" for den nuværende træner hvis deres navn ikke står i readBy.
+function _isUnreadForMe(msg){
+  if(msg.sender!=='student') return false;
+  const me=(_myPresenceName||'').trim();
+  if(!me) return !msg.read;
+  const rb=String(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
+  return rb.indexOf(me)===-1;
+}
+
+// Find medlem via fulde navn (bruges til at slå foto op fra readBy-navnestreng)
+function _memberByFullName(fullName){
+  const n=String(fullName||'').trim().toLowerCase();
+  if(!n) return null;
+  return members.find(m=>((m.firstName||'')+' '+(m.lastName||'')).trim().toLowerCase()===n)||null;
+}
+
+// Lille avatar-cirkel til readBy-visning
+function _readerAvatarHtml(name){
+  const m=_memberByFullName(name);
+  const safeName=String(name||'').replace(/"/g,'&quot;');
+  const style='width:20px;height:20px;border-radius:50%;background:var(--td);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;overflow:hidden;border:1.5px solid #fff;margin-left:-5px;box-shadow:0 0 0 1px #e2e8f0';
+  if(m&&m.photoId){
+    return `<span title="${safeName}" style="${style}"><img src="${photoUrl(m.photoId)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${(inits(m)||'?').replace(/'/g,"\\'")}'"/></span>`;
+  }
+  const ini=m?inits(m):(String(name||'').trim()[0]||'?').toUpperCase();
+  return `<span title="${safeName}" style="${style}">${ini}</span>`;
+}
+
 function updateNotifBadge(){
-  const n=messages.filter(m=>m.sender==='student'&&!m.read).length;
+  const n=messages.filter(_isUnreadForMe).length;
   const badge=document.getElementById('notifBadge');
   if(!badge)return;
   badge.textContent=n>9?'9+':n;
@@ -10899,7 +10927,7 @@ function showInboxList(){
   });
   const list=Object.entries(threads).map(([mid,msgs])=>{
     const latest=msgs[msgs.length-1];
-    const unread=msgs.filter(m=>m.sender==='student'&&!m.read).length;
+    const unread=msgs.filter(_isUnreadForMe).length;
     const member=members.find(m=>m.id===Number(mid));
     return{mid:Number(mid),latest,unread,member};
   }).sort((a,b)=>new Date(b.latest.date)-new Date(a.latest.date));
@@ -11000,7 +11028,7 @@ function renderThread(memberId){
         const readByList=(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
         let readInfo='';
         if(isOwn&&readByList.length){
-          readInfo=`<div style="font-size:.65rem;color:#9aacac;margin-top:2px">👁️ Læst af ${readByList.join(', ').replace(/</g,'&lt;')}</div>`;
+          readInfo=`<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><span style="font-size:.65rem;color:#9aacac">👁️</span><span style="display:inline-flex;padding-left:5px">${readByList.map(_readerAvatarHtml).join('')}</span></div>`;
         }
         return `<div style="display:flex;flex-direction:column;align-items:${msg.sender==='trainer'?'flex-end':'flex-start'}">
           ${tagChip}
