@@ -407,9 +407,9 @@ OneSignalDeferred.push(async function(OneSignal) {
   try {
     await OneSignal.init({
       appId: ONESIGNAL_APP_ID,
-      // Kræver at OneSignalSDKWorker.js ligger i roden af dit website
-      // Se trin 3 i opsætningsvejledningen nedenfor
-      serviceWorkerPath: 'OneSignalSDKWorker.js',
+      // GitHub Pages projekt-site: SW skal scope'es til /Esbjerg-Karate/
+      serviceWorkerPath: '/Esbjerg-Karate/OneSignalSDKWorker.js',
+      serviceWorkerParam: { scope: '/Esbjerg-Karate/' },
       notifyButton: { enable: false }, // vi spørger selv på det rigtige tidspunkt
     });
   } catch(e) { console.warn('OneSignal init fejl:', e); }
@@ -629,7 +629,7 @@ async function doLogin(){
       showErr(d && d.error ? d.error : 'We could not find a student with that email.');
       return;
     }
-    try{ sessionStorage.setItem('kk2_student_email', input); }catch(e){}
+    try{ sessionStorage.setItem('kk2_student_email', input); sessionStorage.setItem('kk2_student_hash', hash); }catch(e){}
     try {
       const tlName = '_tl'+Date.now();
       const tlScript = document.createElement('script');
@@ -645,8 +645,50 @@ async function doLogin(){
       return;
     }
     renderDashboard(d);
+    _startBgRefresh(); // start baggrundsopdatering
     // Registrer eleven i OneSignal med hendes/hans member ID
     if (d.member && d.member.id) _oneSignalLogin(d.member.id);
+  });
+}
+
+// ── Baggrundsopdatering (hvert 3. minut) ───────────────
+// Opdaterer stille og roligt: banner, besked-badge og nye trænerbeskeder
+// uden at forstyrre hvad brugeren er i gang med.
+let _bgRefreshTimer = null;
+function _startBgRefresh() {
+  if (_bgRefreshTimer) clearInterval(_bgRefreshTimer);
+  _bgRefreshTimer = setInterval(_bgRefresh, 3 * 60 * 1000); // hvert 3. min
+}
+function _bgRefresh() {
+  if (!CURRENT) return; // ikke logget ind
+  const email = sessionStorage.getItem('kk2_student_email');
+  const hash  = sessionStorage.getItem('kk2_student_hash');
+  if (!email || !hash) return;
+  fetchStudent(email, hash, (err, d) => {
+    if (err || !d || !d.ok) return; // ignorer fejl i baggrunden
+    // Opdater data stille
+    CURRENT.messages = d.messages || CURRENT.messages;
+    // Opdater announcement banner
+    const annBanner = document.getElementById('announcementBanner');
+    if (annBanner) {
+      const ann = d.announcement;
+      if (ann && ann.text) {
+        const dateStr = ann.date ? new Date(ann.date).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}) : '';
+        annBanner.style.display = '';
+        annBanner.innerHTML = `<div class="ann-banner">
+          <div class="ann-banner-icon">📢</div>
+          <div class="ann-banner-body">
+            <div class="ann-banner-title">Besked fra trænerne</div>
+            <div class="ann-banner-text">${escapeHtml(ann.text)}</div>
+            ${dateStr?`<div class="ann-banner-date">${dateStr}</div>`:''}
+          </div>
+        </div>`;
+      } else {
+        annBanner.style.display = 'none';
+      }
+    }
+    // Opdater besked-notifikations-badge
+    updateMsgNotifBadge();
   });
 }
 
@@ -1041,7 +1083,8 @@ function sendStudentMessage(){
 
 function doLogout(){
   _oneSignalLogout(); // Afkobl member ID fra denne enhed
-  try{ sessionStorage.removeItem('kk2_student_email'); }catch(e){}
+  if (_bgRefreshTimer) { clearInterval(_bgRefreshTimer); _bgRefreshTimer = null; }
+  try{ sessionStorage.removeItem('kk2_student_email'); sessionStorage.removeItem('kk2_student_hash'); }catch(e){}
   document.getElementById('dashView').classList.remove('show');
   document.getElementById('loginView').style.display = 'flex';
   document.getElementById('emailInput').value = '';
