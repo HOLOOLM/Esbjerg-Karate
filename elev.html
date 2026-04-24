@@ -691,6 +691,13 @@ function _bgRefresh() {
   });
 }
 
+// Når eleven skifter tilbage til fanen, markér trænerbeskeder som læst
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && CURRENT) {
+    markMyTrainerMessagesRead();
+  }
+});
+
 let _changePwEmail = '', _changePwOldHash = '';
 
 function showChangePwView(){
@@ -1418,6 +1425,8 @@ function renderDashboard(d){
   // Beskeder
   updateMsgNotifBadge();
   renderMessages();
+  // Markér trænerbeskeder som læste når eleven åbner appen — gør læse-receipts synlige for træneren
+  markMyTrainerMessagesRead();
 
   // Focus points — per-slot carry-forward, each slot shows its own date + author
   const focusCard = document.getElementById('focusCard');
