@@ -199,6 +199,8 @@ svg.chart{width:100%;height:150px;display:block}
 .sh-stars{color:var(--warn);font-size:13px;letter-spacing:1px;white-space:nowrap}
 .sh-empty{text-align:center;color:var(--muted);padding:18px;font-size:13px}
 </style>
+<!-- OneSignal Web Push SDK — se https://documentation.onesignal.com/docs/web-push-quickstart -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
 <!-- ══ SHURI-RYU MÆRKE — base64 indlejret, ingen ekstern fil ══ -->
@@ -312,6 +314,12 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <div id="notesBox"></div>
     </div>
 
+    <div class="card" id="beltHistoryCard" style="display:none">
+      <h3>🏅 Belt journey</h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Your progression through the belts</div>
+      <div id="beltHistoryBox"></div>
+    </div>
+
     <div class="card">
       <h3>✉️ Messages to the trainers</h3>
       <div id="msgThread" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:320px;overflow-y:auto"></div>
@@ -389,6 +397,51 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
 
+// ── OneSignal Web Push ───────────────────────────────────
+// ← Indsæt dit App ID fra OneSignal → Settings → Keys & IDs
+const ONESIGNAL_APP_ID = '5e258e3b-3707-446b-9368-d67dbe42df11';
+
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(async function(OneSignal) {
+  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
+  try {
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      // Kræver at OneSignalSDKWorker.js ligger i roden af dit website
+      // Se trin 3 i opsætningsvejledningen nedenfor
+      serviceWorkerPath: 'OneSignalSDKWorker.js',
+      notifyButton: { enable: false }, // vi spørger selv på det rigtige tidspunkt
+    });
+  } catch(e) { console.warn('OneSignal init fejl:', e); }
+});
+
+// Kald denne efter login for at knytte eleven til sin member ID
+function _oneSignalLogin(memberId) {
+  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
+  OneSignalDeferred.push(async function(OneSignal) {
+    try {
+      // Knyt ekstern ID (member ID) til denne browser/enhed
+      await OneSignal.login(String(memberId));
+      // Bed om tilladelse hvis ikke allerede givet
+      const granted = OneSignal.Notifications.permission;
+      if (!granted) {
+        // Vent kort — brugeren er lige logget ind, giv siden tid til at rendere
+        setTimeout(async () => {
+          try { await OneSignal.Notifications.requestPermission(); } catch(e) {}
+        }, 2500);
+      }
+    } catch(e) { console.warn('OneSignal login fejl:', e); }
+  });
+}
+
+// Kald denne ved logout
+function _oneSignalLogout() {
+  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
+  OneSignalDeferred.push(async function(OneSignal) {
+    try { await OneSignal.logout(); } catch(e) {}
+  });
+}
+
 // Belt colors — matcher hovedappen
 const BC = {
   '10. Kyu (Hvidt)':'#e8e8e8','9. Kyu (1 Snip)':'#e0e0e0','8. Kyu (2 Snip)':'#d0d0d0',
@@ -462,18 +515,15 @@ function openPensumModal(belt, titleEmoji, titleLabel, introText){
   const ratedSkills = skills.filter(s=>bestBySkill[s]);
   const unratedCount = skills.length - ratedSkills.length;
 
-  // Overall best session average — use merged carry-forward (restricted to current pensum) so quick ratings are comparable
+  // Overall best session average — brug pre-beregnede snapshots (O(1) per vurdering)
+  const _psnaps = CURRENT.priorSnapshots || [];
   let bestSessionAvg = 0, bestSessionDate = '';
   let maxSingleRating = 0;
   assessments.forEach((a,i)=>{
     const r = ratingsOf(a);
     const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
     const pensumSet = new Set(pensumForBelt);
-    const priorSnap = {};
-    for(let j=i+1;j<assessments.length;j++){
-      const pr = ratingsOf(assessments[j]);
-      Object.entries(pr).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
-    }
+    const priorSnap = _psnaps[i] || {};
     const merged = {};
     new Set([...pensumForBelt, ...Object.keys(r)]).forEach(sk=>{
       const v = Number(r[sk]||0);
@@ -595,6 +645,8 @@ async function doLogin(){
       return;
     }
     renderDashboard(d);
+    // Registrer eleven i OneSignal med hendes/hans member ID
+    if (d.member && d.member.id) _oneSignalLogin(d.member.id);
   });
 }
 
@@ -675,12 +727,15 @@ function formatMsgDate(d){
 function _unreadTrainerMsgsForMe(){
   if(!CURRENT) return [];
   const m0 = CURRENT.member || {};
+  const myId = m0.id;
   const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
-  if(!myName) return [];
+  if(!myId && !myName) return [];
   return (CURRENT.messages || []).filter(msg=>{
     if(msg.sender!=='trainer') return false;
     const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-    return rb.indexOf(myName)===-1;
+    const readById = myId && rb.indexOf(String(myId)) !== -1;
+    const readByName = myName && rb.indexOf(myName) !== -1; // legacy-kompatibilitet
+    return !readById && !readByName;
   });
 }
 
@@ -697,15 +752,18 @@ function updateMsgNotifBadge(){
 
 function markMyTrainerMessagesRead(){
   const m0 = (CURRENT && CURRENT.member) || {};
+  const myId = m0.id;
   const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
-  if(!myName) return;
+  if(!myId) return;
+  const readerToken = String(myId); // gem altid som ID fremover
   (CURRENT.messages||[]).forEach(msg=>{
     if(msg.sender==='trainer'){
       const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-      if(rb.indexOf(myName)===-1){
-        rb.push(myName);
+      const alreadyRead = rb.indexOf(readerToken)!==-1 || (myName&&rb.indexOf(myName)!==-1);
+      if(!alreadyRead){
+        rb.push(readerToken);
         msg.readBy = rb.join(', ');
-        _studentMsgJsonp('markMessageRead', {id: msg.id, reader: myName});
+        _studentMsgJsonp('markMessageRead', {id: msg.id, reader: readerToken});
       }
     }
   });
@@ -755,11 +813,13 @@ function renderMessages(){
     const readByList = (m.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
     let readInfo = '';
     if(isOwn && readByList.length){
-      const avatarsHtml = readByList.map(nm=>{
-        const n = nm.toLowerCase();
-        const inst = instructors.find(i=>((i.firstName||'')+' '+(i.lastName||'')).trim().toLowerCase()===n);
-        const ini = inst ? (((inst.firstName||'')[0]||'')+((inst.lastName||'')[0]||'')).toUpperCase() : (nm[0]||'?').toUpperCase();
-        const safeName = escapeHtml(nm);
+      const avatarsHtml = readByList.map(idOrName=>{
+        let inst = null;
+        if(/^\d+$/.test(String(idOrName))){ inst = instructors.find(i=>Number(i.id)===Number(idOrName)); }
+        else { const n=idOrName.toLowerCase(); inst=instructors.find(i=>((i.firstName||'')+' '+(i.lastName||'')).trim().toLowerCase()===n); }
+        const displayName = inst ? ((inst.firstName||'')+' '+(inst.lastName||'')).trim() : String(idOrName);
+        const ini = inst ? (((inst.firstName||'')[0]||'')+((inst.lastName||'')[0]||'')).toUpperCase() : (displayName[0]||'?').toUpperCase();
+        const safeName = escapeHtml(displayName);
         const style = 'width:20px;height:20px;border-radius:50%;background:#4a6060;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;overflow:hidden;border:1.5px solid #fff;margin-left:-5px;box-shadow:0 0 0 1px #e2e8f0';
         if(inst && inst.photoId){
           return `<span title="${safeName}" style="${style}"><img src="${photoUrl(inst.photoId,80)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${ini.replace(/'/g,"\\'")}'"/></span>`;
@@ -980,6 +1040,7 @@ function sendStudentMessage(){
 }
 
 function doLogout(){
+  _oneSignalLogout(); // Afkobl member ID fra denne enhed
   try{ sessionStorage.removeItem('kk2_student_email'); }catch(e){}
   document.getElementById('dashView').classList.remove('show');
   document.getElementById('loginView').style.display = 'flex';
@@ -1055,7 +1116,7 @@ function calcStreak(trainingDates){
   while(weeks.has(y+'-'+w)){
     streak++;
     w--;
-    if(w<1){ y--; w=52; }
+    if(w<1){ y--; const dec31=new Date(y,11,31),jan1y=new Date(y,0,1); w=Math.ceil((((dec31-jan1y)/86400000)+jan1y.getDay()+1)/7); }
     if(streak>99) break;
   }
   return streak;
@@ -1133,6 +1194,10 @@ function renderDashboard(d){
     .filter(a => a.date)
     .sort((a,b)=> b.date.localeCompare(a.date) || (Number(b.id)||0)-(Number(a.id)||0));
   CURRENT.sortedAssessments = assessments;
+  // Gem priorSnapshots på CURRENT så modaler kan genbruge dem uden at genberegne
+  const _ps = new Array(assessments.length);
+  { const _c = {}; for(let _i=assessments.length-1;_i>=0;_i--){ _ps[_i]={..._c}; Object.entries(ratingsOf(assessments[_i])).forEach(([sk,v])=>{if(Number(v)>0&&!(_c[sk]>0))_c[sk]=Number(v);}); } }
+  CURRENT.priorSnapshots = _ps;
   const trainingDates = d.trainingDates || [];
 
   // Hero
@@ -1149,17 +1214,24 @@ function renderDashboard(d){
     photoEl.textContent = initials(m.firstName,m.lastName) || '?';
   }
 
+  // Pre-beregn carry-forward snapshots i ét O(n) gennemløb (assessments er newest-first)
+  // priorSnapshots[i] = alle kendte ratings fra vurderinger ÆLDRE end index i
+  const priorSnapshots = new Array(assessments.length);
+  {
+    const _cum = {};
+    for(let _i = assessments.length - 1; _i >= 0; _i--){
+      priorSnapshots[_i] = {..._cum};
+      Object.entries(ratingsOf(assessments[_i])).forEach(([sk,v])=>{ if(Number(v)>0 && !(_cum[sk]>0)) _cum[sk]=Number(v); });
+    }
+  }
+
   // Stats — use merged carry-forward avg (restricted to current pensum) so quick ratings stay comparable
   const mergedAvgFor = (idx)=>{
     const a = assessments[idx]; if(!a) return null;
     const r = ratingsOf(a);
     const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
     const pensumSet = new Set(pensumForBelt);
-    const priorSnap = {};
-    for(let j=idx+1;j<assessments.length;j++){
-      const pr = ratingsOf(assessments[j]);
-      Object.entries(pr).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
-    }
+    const priorSnap = priorSnapshots[idx]; // O(1) i stedet for O(n) løkke
     const merged = {};
     new Set([...pensumForBelt, ...Object.keys(r)]).forEach(sk=>{
       const v = Number(r[sk]||0);
@@ -1269,6 +1341,38 @@ function renderDashboard(d){
     notesCard.style.display = 'none';
   }
 
+  // Belt journey
+  const beltHistCard = document.getElementById('beltHistoryCard');
+  const beltHistBox  = document.getElementById('beltHistoryBox');
+  if(beltHistCard && beltHistBox){
+    const ascending = [...assessments].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    const bHist = []; const bSeen = new Set();
+    ascending.forEach(a=>{ if(a.belt&&!bSeen.has(a.belt)){ bSeen.add(a.belt); bHist.push({belt:a.belt,date:a.date}); }});
+    if(bHist.length){
+      beltHistCard.style.display = '';
+      const BC2={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#fef9c3','8. Kyu (2 Snip)':'#fef9c3','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+      const currentBelt = m.belt;
+      let bhtml = '';
+      bHist.forEach((h,i)=>{
+        const bg = BC2[h.belt]||'#f3f4f6';
+        const isDan = (h.belt||'').includes('Dan');
+        const isCurrent = h.belt === currentBelt;
+        const dateFmt = h.date ? new Date(h.date).toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}) : '';
+        if(i>0) bhtml += `<div style="width:2px;height:6px;background:#d1d5db;margin:.1rem 0 .1rem 9px"></div>`;
+        bhtml += `<div style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;background:${isCurrent?bg:'transparent'};border:${isCurrent?'1.5px solid rgba(0,0,0,.12)':'1px solid transparent'};margin:0 -8px">
+          <div style="width:22px;height:13px;border-radius:3px;background:${bg};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0"></div>
+          <div style="flex:1;font-size:13px;color:${isDan?'#f9fafb':'var(--ink)'}${isCurrent?';font-weight:700':''}">
+            ${escapeHtml(h.belt)}${isCurrent?` <span style="font-size:10px;background:var(--xtd);color:#fff;border-radius:10px;padding:1px 7px;margin-left:2px;font-weight:600">Current</span>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--muted)">${dateFmt}</div>
+        </div>`;
+      });
+      beltHistBox.innerHTML = bhtml;
+    } else {
+      beltHistCard.style.display = 'none';
+    }
+  }
+
   // Beskeder
   updateMsgNotifBadge();
   renderMessages();
@@ -1303,15 +1407,11 @@ function renderDashboard(d){
     const shown = assessments.slice(0,8);
     // Compute merged avg (carry-forward) per shown row + find the best
     const rowAvgs = shown.map((a,i)=>{
+      // i === index i assessments[] da shown = assessments.slice(0,8)
       const curr = ratingsOf(a);
-      const fullIdx = assessments.indexOf(a);
       const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
       const pensumSet = new Set(pensumForBelt);
-      const priorSnap = {};
-      for(let j=fullIdx+1;j<assessments.length;j++){
-        const r = ratingsOf(assessments[j]);
-        Object.entries(r).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
-      }
+      const priorSnap = priorSnapshots[i]; // O(1) opslag
       const merged = {};
       new Set([...pensumForBelt, ...Object.keys(curr)]).forEach(sk=>{
         const v = Number(curr[sk]||0);
@@ -1487,12 +1587,10 @@ function openAssessModal(aid){
   const prev = prevA ? ratingsOf(prevA) : {};
   const pensumForBelt = (CURRENT.pensum||{})[a.belt] || [];
   const pensumSet = new Set(pensumForBelt);
-  // Walk back through ALL older assessments to build a full carry-forward snapshot (sortedAssessments is DESC)
-  const priorSnap = {};
-  for(let i=idx+1;i<assessments.length;i++){
-    const r = ratingsOf(assessments[i]);
-    Object.entries(r).forEach(([sk,v])=>{ if(Number(v)>0 && !(priorSnap[sk]>0)) priorSnap[sk]=Number(v); });
-  }
+  // Brug pre-beregnede snapshots fra renderDashboard (O(1)) — fallback til O(n) loop hvis ikke klar
+  const priorSnap = (CURRENT.priorSnapshots && CURRENT.priorSnapshots[idx]) || (()=>{
+    const s={}; for(let i=idx+1;i<assessments.length;i++){ Object.entries(ratingsOf(assessments[i])).forEach(([sk,v])=>{if(Number(v)>0&&!(s[sk]>0))s[sk]=Number(v);}); } return s;
+  })();
   // Only carry-forward skills that are still in current pensum — removed/renamed skills should not propagate
   const merged = {};
   const skillsUnion = new Set([...pensumForBelt, ...Object.keys(curr)]);

@@ -1947,6 +1947,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </div>
     </div>
     <div id="memberAttendanceSection" style="display:none;margin-top:1rem;padding:.85rem 1rem;background:#f0faf5;border-radius:10px;border:1px solid #bbf7d0"></div>
+    <div id="beltHistorySection" style="display:none;margin-top:.75rem;padding:.75rem 1rem;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0"></div>
     <div class="fgrp full" style="background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;padding:.75rem 1rem;margin-top:.5rem">
       <label style="font-weight:700">🔑 Adgangskode til elev-appen</label>
       <div id="pwStatusLine" style="font-size:.76rem;margin:.3rem 0 .5rem;color:#64748b"></div>
@@ -2390,6 +2391,7 @@ const SEED = [
    STATE
 ════════════════════════════════════════ */
 let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[], messages=[];
+let activeAnnouncement=null;
 let nextMessageId=1;
 let deletedAssessmentIds=new Set();
 let deletedBoardIds=new Set();
@@ -2638,18 +2640,25 @@ function load(){
     const msgv=localStorage.getItem('kk2_messages');
     messages=msgv?JSON.parse(msgv):[];
     nextMessageId=messages.reduce((x,m)=>Math.max(x,(m.id||0)+1),1);
+    const annv=localStorage.getItem('kk2_announcement');
+    if(annv) try{ activeAnnouncement=JSON.parse(annv); }catch(e){}
   }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; messages=[]; }
+}
+function safeSet(key,value){
+  try{ localStorage.setItem(key,value); }
+  catch(e){ if(e&&(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED')) showToast('⚠️ Lokalt lager næsten fuldt — cloud-synk bevarer alle data'); }
 }
 function save(){
   config._savedAt=Date.now();
-  localStorage.setItem('kk2_members',JSON.stringify(members));
-  localStorage.setItem('kk2_sessions',JSON.stringify(sessions));
-  localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
-  localStorage.setItem('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
-  localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
-  localStorage.setItem('kk2_board',JSON.stringify(boardMeetings));
-  localStorage.setItem('kk2_messages',JSON.stringify(messages));
-  localStorage.setItem('kk2_config',JSON.stringify(config));
+  safeSet('kk2_members',JSON.stringify(members));
+  safeSet('kk2_sessions',JSON.stringify(sessions));
+  safeSet('kk2_cancelled',JSON.stringify(cancelledDates));
+  safeSet('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
+  safeSet('kk2_assessments',JSON.stringify(assessments));
+  safeSet('kk2_board',JSON.stringify(boardMeetings));
+  safeSet('kk2_messages',JSON.stringify(messages));
+  safeSet('kk2_config',JSON.stringify(config));
+  safeSet('kk2_announcement',JSON.stringify(activeAnnouncement));
   if(cloudLoaded) pushToCloud();
 }
 let _syncErrCount=0;
@@ -2692,6 +2701,8 @@ function hideSyncErrBanner(reload){
 
 /* ── PRESENCE ─────────────────────────────────────────── */
 let _myPresenceName=sessionStorage.getItem('kk2_presence_name')||'';
+let _myPresenceMemberId=Number(sessionStorage.getItem('kk2_presence_id'))||0;
+let _presencePickedId=0;
 let _presenceShown=false;
 let _presenceInterval=null;
 let _presenceUsers=[]; // [{name, loginTime, page}]
@@ -2745,7 +2756,7 @@ function refreshPresenceDatalist(){
       const img=m.photoId
         ? `<img src="${photoUrl(m.photoId)}" loading="lazy" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;margin:0 auto"/>`
         : `<div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2d8080,#1a5c5c);color:#fff;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin:0 auto">${escHtml(((m.firstName||'?')[0]||'')+((m.lastName||'')[0]||''))}</div>`;
-      return `<button type="button" data-full="${escHtml(full.trim())}" onclick="pickPresenceName('${fullJs}')" style="border:2px solid ${sel?'#1a5c5c':'#e5e7eb'};background:${sel?'#ecfeff':'#fff'};border-radius:12px;padding:.55rem .3rem;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:.35rem" onmouseover="this.style.borderColor='#1a5c5c'" onmouseout="this.style.borderColor='${sel?'#1a5c5c':'#e5e7eb'}'">
+      return `<button type="button" data-full="${escHtml(full.trim())}" data-id="${m.id}" onclick="pickPresenceName('${fullJs}',${m.id})" style="border:2px solid ${sel?'#1a5c5c':'#e5e7eb'};background:${sel?'#ecfeff':'#fff'};border-radius:12px;padding:.55rem .3rem;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:.35rem" onmouseover="this.style.borderColor='#1a5c5c'" onmouseout="this.style.borderColor='${sel?'#1a5c5c':'#e5e7eb'}'">
         ${img}
         <div style="font-size:.72rem;font-weight:700;color:#1a3a3a;line-height:1.15;word-break:break-word">${escHtml(m.firstName||'')}</div>
         <div style="font-size:.6rem;color:#64748b;line-height:1">${escHtml(m.role||'')}</div>
@@ -2755,9 +2766,10 @@ function refreshPresenceDatalist(){
   const notice=document.getElementById('presenceSyncNotice');
   if(notice) notice.style.display=(eligible.length===0&&config.scriptUrl)?'block':'none';
 }
-function pickPresenceName(name){
+function pickPresenceName(name,memberId){
   const sel=document.getElementById('presenceNameInput');
   if(sel) sel.value=name;
+  _presencePickedId=Number(memberId)||0;
   const grid=document.getElementById('presenceNameGrid');
   if(grid){
     grid.querySelectorAll('button[data-full]').forEach(btn=>{
@@ -2793,7 +2805,10 @@ function confirmPresenceName(){
 }
 function setPresenceName(name){
   _myPresenceName=name;
+  _myPresenceMemberId=_presencePickedId||0;
+  if(!_myPresenceMemberId){ const mb=members.find(m=>((m.firstName||'')+' '+(m.lastName||'')).trim()===name); _myPresenceMemberId=mb?mb.id:0; }
   sessionStorage.setItem('kk2_presence_name',name);
+  sessionStorage.setItem('kk2_presence_id',String(_myPresenceMemberId));
   document.getElementById('presenceModal').style.display='none';
   startPresence();
   // Per-træner ulæst-badge skal opdateres nu hvor vi ved hvem der er logget ind
@@ -3068,7 +3083,7 @@ window.addEventListener('visibilitychange',()=>{
     try{
       let vault={};
       try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
-      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt});
+      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt});
       navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
     }catch(e){}
   }
@@ -3088,7 +3103,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -3246,6 +3261,16 @@ function loadFromCloud(onDone){
           config=Object.assign(config,d.config);
           config.scriptUrl=scriptUrl; // aldrig overskriv scriptUrl
           localStorage.setItem('kk2_config',JSON.stringify(config));
+        }
+      }
+      // Aktiv besked til forældre — separat fra config (aldrig overskrevet af config-sync)
+      // Brug timestamp til at afgøre hvad der er nyest: cloud vinder kun hvis dens ts er >= lokal
+      if(d.activeAnnouncement !== undefined){
+        const cloudTs=d.activeAnnouncement?(d.activeAnnouncement.publishedAt||d.activeAnnouncement.removedAt||0):0;
+        const localTs=activeAnnouncement?(activeAnnouncement.publishedAt||activeAnnouncement.removedAt||0):0;
+        if(cloudTs>=localTs){
+          activeAnnouncement=d.activeAnnouncement;
+          localStorage.setItem('kk2_announcement',JSON.stringify(activeAnnouncement));
         }
       }
       cloudLoaded=true;
@@ -7978,6 +8003,8 @@ function openAddModal(){
   document.getElementById('ageCalc').style.display='none';
   const _attSec=document.getElementById('memberAttendanceSection');
   if(_attSec) _attSec.style.display='none';
+  const _bhs=document.getElementById('beltHistorySection');
+  if(_bhs) _bhs.style.display='none';
   resetPhotoModalState();
   renderPhotoPreview();
   _memberModalDirty = false;
@@ -8015,6 +8042,7 @@ function openEditModal(id){
   document.getElementById('pwResetBtn').style.display=m.passwordHash?'inline-flex':'none';
   updateAgePreview();
   renderMemberAttendanceSection(id);
+  renderBeltHistory(id);
   resetPhotoModalState();
   renderPhotoPreview();
   _memberModalDirty = false;
@@ -8033,6 +8061,29 @@ function updateAgePreview(){
 async function sha256hex(str){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function renderBeltHistory(memberId){
+  const sec=document.getElementById('beltHistorySection');
+  if(!sec) return;
+  const ma=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  const history=[]; const seen=new Set();
+  ma.forEach(a=>{ if(a.belt&&!seen.has(a.belt)){ seen.add(a.belt); history.push({belt:a.belt,date:a.date}); }});
+  if(!history.length){ sec.style.display='none'; return; }
+  sec.style.display='';
+  const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#fef9c3','8. Kyu (2 Snip)':'#fef9c3','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+  let html=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--xtl);margin-bottom:.4rem">🏅 Bæltevej · ${history.length} bælte${history.length!==1?'r':''}</div>`;
+  history.forEach((h,i)=>{
+    const bg=BC[h.belt]||'#f3f4f6'; const isDan=h.belt.includes('Dan');
+    const d=h.date?new Date(h.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'—';
+    const isLast=i===history.length-1;
+    if(i>0) html+=`<div style="width:2px;height:5px;background:#d1d5db;margin:.05rem 0 .05rem 8px"></div>`;
+    html+=`<div style="display:flex;align-items:center;gap:.5rem">
+      <div style="width:20px;height:12px;border-radius:3px;background:${bg};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0${isLast?';outline:2px solid var(--td);outline-offset:1px':''}"></div>
+      <span style="flex:1;font-size:.8rem;${isLast?'font-weight:700;color:var(--td)':'color:var(--xtm)'}">${escHtml(h.belt)}</span>
+      <span style="font-size:.7rem;color:var(--xtl);white-space:nowrap">${d}</span>
+    </div>`;
+  });
+  sec.innerHTML=html;
 }
 function resetMemberPassword(){
   if(!editingId) return;
@@ -10333,7 +10384,7 @@ function boardCard(b,today){
 function renderAnnCard(){
   const card=document.getElementById('annCard');
   if(!card) return;
-  const ann=config.activeAnnouncement;
+  const ann=activeAnnouncement&&!activeAnnouncement.removed?activeAnnouncement:null;
   if(ann&&ann.text){
     const d=ann.publishedAt?new Date(ann.publishedAt).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     card.innerHTML=`<div style="background:linear-gradient(135deg,#fff8e1,#fffde7);border:2px solid #fcd34d;border-radius:14px;padding:1rem 1.2rem;display:flex;gap:1rem;align-items:flex-start">
@@ -10355,21 +10406,24 @@ function renderAnnCard(){
   }
 }
 function openAnnModal(){
-  document.getElementById('annText').value=(config.activeAnnouncement&&config.activeAnnouncement.text)||'';
+  document.getElementById('annText').value=(activeAnnouncement&&!activeAnnouncement.removed&&activeAnnouncement.text)||'';
   openModal('annModal');
 }
 function saveAnnouncement(){
   const text=document.getElementById('annText').value.trim();
   if(!text){alert('Skriv en besked først.');return;}
-  config.activeAnnouncement={text,publishedAt:Date.now()};
+  activeAnnouncement={text,publishedAt:Date.now()};
   save();pushToCloud();
   closeModal('annModal');
   renderAnnCard();
   showToast('📢 Besked publiceret til forældre');
+  // Push til alle elever
+  const shortAnn=(text.length>120?text.slice(0,119)+'…':text);
+  _triggerPush('notifyAll',{title:'📢 Besked fra Esbjerg Shuri-Ryu Karate',body:shortAnn});
 }
 function removeAnnouncement(){
   if(!confirm('Fjern banneret fra elev-appen?')) return;
-  config.activeAnnouncement=null;
+  activeAnnouncement={removed:true,removedAt:Date.now()};
   save();pushToCloud();
   renderAnnCard();
   showToast('✅ Banner fjernet');
@@ -11009,10 +11063,13 @@ let _inboxActiveMember=null;
 // Per-reader ulæst-tjek: en besked er "ulæst" for den nuværende træner hvis deres navn ikke står i readBy.
 function _isUnreadForMe(msg){
   if(msg.sender!=='student') return false;
+  const myId=_myPresenceMemberId;
   const me=(_myPresenceName||'').trim();
-  if(!me) return !msg.read;
+  if(!myId&&!me) return !msg.read;
   const rb=String(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-  return rb.indexOf(me)===-1;
+  if(myId&&rb.indexOf(String(myId))!==-1) return false; // ny: ID-match
+  if(me&&rb.indexOf(me)!==-1) return false;              // legacy: navn-match
+  return true;
 }
 
 // Find medlem via fulde navn (bruges til at slå foto op fra readBy-navnestreng)
@@ -11022,15 +11079,18 @@ function _memberByFullName(fullName){
   return members.find(m=>((m.firstName||'')+' '+(m.lastName||'')).trim().toLowerCase()===n)||null;
 }
 
-// Lille avatar-cirkel til readBy-visning
-function _readerAvatarHtml(name){
-  const m=_memberByFullName(name);
-  const safeName=String(name||'').replace(/"/g,'&quot;');
+// Lille avatar-cirkel til readBy-visning — håndterer både ID (ny) og navn (legacy)
+function _readerAvatarHtml(idOrName){
+  let m=null;
+  if(/^\d+$/.test(String(idOrName))){ m=members.find(mb=>mb.id===Number(idOrName)); }
+  else { m=_memberByFullName(idOrName); }
+  const displayName=m?((m.firstName||'')+' '+(m.lastName||'')).trim():String(idOrName||'');
+  const safeName=escHtml(displayName);
   const style='width:20px;height:20px;border-radius:50%;background:var(--td);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;overflow:hidden;border:1.5px solid #fff;margin-left:-5px;box-shadow:0 0 0 1px #e2e8f0';
   if(m&&m.photoId){
     return `<span title="${safeName}" style="${style}"><img src="${photoUrl(m.photoId)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${(inits(m)||'?').replace(/'/g,"\\'")}'"/></span>`;
   }
-  const ini=m?inits(m):(String(name||'').trim()[0]||'?').toUpperCase();
+  const ini=m?inits(m):(displayName.trim()[0]||'?').toUpperCase();
   return `<span title="${safeName}" style="${style}">${ini}</span>`;
 }
 
@@ -11069,17 +11129,20 @@ function toggleInboxFilterMine(){
 }
 
 function markAllInboxRead(){
+  const myId=_myPresenceMemberId;
   const me=(_myPresenceName||'').trim();
   if(!me){ showToast('Vælg dit navn først'); return; }
+  const readerToken=myId?String(myId):me;
   let n=0;
   messages.forEach(msg=>{
     if(msg.sender!=='student') return;
     const rb=String(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-    if(rb.indexOf(me)===-1){
-      rb.push(me);
+    const alreadyRead=(myId&&rb.indexOf(String(myId))!==-1)||(me&&rb.indexOf(me)!==-1);
+    if(!alreadyRead){
+      rb.push(readerToken);
       msg.readBy=rb.join(', ');
       msg.read=true;
-      _inboxMarkReadJsonp(msg.id,me);
+      _inboxMarkReadJsonp(msg.id,readerToken);
       n++;
     }
   });
@@ -11165,15 +11228,18 @@ function _inboxMarkReadJsonp(id,reader){
 function openThread(memberId){
   _inboxActiveMember=memberId;
   _inboxShowAll=false;
-  const reader=_myPresenceName||'Træner';
+  const myId=_myPresenceMemberId;
+  const myName=_myPresenceName||'Træner';
+  const readerToken=myId?String(myId):myName; // foretrækker ID, falder tilbage til navn
   messages.forEach(msg=>{
     if(msg.memberId===memberId&&msg.sender==='student'){
       msg.read=true;
       const rb=(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-      if(rb.indexOf(reader)===-1){
-        rb.push(reader);
+      const alreadyRead=(myId&&rb.indexOf(String(myId))!==-1)||(rb.indexOf(myName)!==-1);
+      if(!alreadyRead){
+        rb.push(readerToken);
         msg.readBy=rb.join(', ');
-        _inboxMarkReadJsonp(msg.id,reader);
+        _inboxMarkReadJsonp(msg.id,readerToken);
       }
     }
   });
@@ -11278,6 +11344,20 @@ document.addEventListener('click',(ev)=>{
   p.style.display='none';
 });
 
+// ── OneSignal push-trigger (fire-and-forget JSONP) ──────
+function _triggerPush(action, params){
+  if(!config.scriptUrl) return;
+  try{
+    const name='_push'+Date.now();
+    const s=document.createElement('script');
+    window[name]=function(){ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+    s.onerror=()=>{ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+    let qs=Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    s.src=config.scriptUrl+'?action='+action+'&'+qs+'&callback='+name+'&t='+Date.now();
+    document.head.appendChild(s);
+  }catch(e){}
+}
+
 function sendInboxReply(){
   if(!_inboxActiveMember)return;
   const ta=document.getElementById('inboxReplyText');
@@ -11288,6 +11368,9 @@ function sendInboxReply(){
   ta.value='';
   save();pushToCloud();
   openThread(_inboxActiveMember);
+  // Notificér eleven om ny besked
+  const shortText=(text.length>80?text.slice(0,79)+'…':text);
+  _triggerPush('notifyMember',{memberId:_inboxActiveMember,title:'Ny besked fra din træner 🥋',body:shortText});
 }
 </script>
 </body>
