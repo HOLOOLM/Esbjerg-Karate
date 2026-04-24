@@ -407,9 +407,8 @@ OneSignalDeferred.push(async function(OneSignal) {
   try {
     await OneSignal.init({
       appId: ONESIGNAL_APP_ID,
-      // GitHub Pages projekt-site: SW skal scope'es til /Esbjerg-Karate/
-      serviceWorkerPath: '/Esbjerg-Karate/OneSignalSDKWorker.js',
-      serviceWorkerParam: { scope: '/Esbjerg-Karate/' },
+      // SW ligger i holoolm.github.io-repo (rod-domænet) — krævet af OneSignal
+      serviceWorkerPath: '/OneSignalSDKWorker.js',
       notifyButton: { enable: false }, // vi spørger selv på det rigtige tidspunkt
     });
   } catch(e) { console.warn('OneSignal init fejl:', e); }
