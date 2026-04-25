@@ -1204,11 +1204,17 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <button onclick="markAllInboxRead()" style="background:#fff;color:#059669;border:1px solid #a7f3d0;border-radius:18px;padding:.3rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer;margin-left:auto">✓ Markér alle læst</button>
   </div>
   <div id="inboxContent" style="flex:1;overflow-y:auto;display:flex;flex-direction:column"></div>
-  <div id="inboxReplyBar" style="display:none;padding:.75rem 1rem;border-top:1px solid #f0f4f4;display:none;gap:.5rem;align-items:flex-end;position:relative">
+  <div id="inboxReplyBar" style="display:none;padding:.6rem 1rem .75rem;border-top:1px solid #f0f4f4;flex-direction:column;gap:.4rem;position:relative">
     <div id="inboxEmojiPanel" style="display:none;position:absolute;bottom:calc(100% + 4px);right:1rem;background:#fff;border:1px solid #d5dcdc;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:.5rem;z-index:200;flex-wrap:wrap;gap:.25rem;max-width:280px"></div>
-    <textarea id="inboxReplyText" rows="2" placeholder="Skriv svar…" style="flex:1;border:1.5px solid #c8dede;border-radius:10px;padding:.55rem .75rem;font-size:.85rem;resize:none;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInboxReply()}"></textarea>
-    <button type="button" onclick="toggleInboxEmojiPanel()" title="Indsæt emoji" style="background:#f1f4f4;color:#1a2e2e;border:1px solid #c8dede;border-radius:10px;padding:.45rem .65rem;font-size:1rem;cursor:pointer">😊</button>
-    <button onclick="sendInboxReply()" class="btn bp btn-sm">Send</button>
+    <div style="display:flex;gap:.5rem;align-items:flex-end">
+      <textarea id="inboxReplyText" rows="2" placeholder="Skriv svar…" style="flex:1;border:1.5px solid #c8dede;border-radius:10px;padding:.55rem .75rem;font-size:.85rem;resize:none;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInboxReply()}"></textarea>
+      <button type="button" onclick="toggleInboxEmojiPanel()" title="Indsæt emoji" style="background:#f1f4f4;color:#1a2e2e;border:1px solid #c8dede;border-radius:10px;padding:.45rem .65rem;font-size:1rem;cursor:pointer">😊</button>
+      <button onclick="sendInboxReply()" class="btn bp btn-sm">Send</button>
+    </div>
+    <label style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:#64748b;cursor:pointer;user-select:none;padding-left:.15rem">
+      <input type="checkbox" id="inboxSendEmail" checked style="width:14px;height:14px;cursor:pointer"/>
+      <span>📧 Inkludér i forælderens daglige email-opsummering</span>
+    </label>
   </div>
 </div>
 <div id="inboxOverlay" onclick="closeInbox()" style="display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.3)"></div>
@@ -1807,9 +1813,14 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     </div>
     <div style="font-size:.83rem;color:var(--xtl);margin-bottom:.75rem">Skriv en kort besked — den vises som et banner øverst i elev-appen indtil du fjerner den igen.</div>
     <textarea id="annText" rows="5" style="width:100%;border:1.5px solid #fcd34d;border-radius:10px;padding:.8rem;font-size:.9rem;resize:vertical;font-family:inherit;box-sizing:border-box;background:#fffde7" placeholder="Fx: Husk afslutningsfest fredag d. 30. maj kl. 18:00 — alle er velkomne!"></textarea>
-    <div class="mf">
+    <label style="display:flex;align-items:center;gap:.5rem;margin-top:.7rem;font-size:.82rem;color:#475569;cursor:pointer;user-select:none">
+      <input type="checkbox" id="annSendEmail" checked style="width:16px;height:16px;cursor:pointer"/>
+      <span>📧 Inkludér i forældrenes daglige email-opsummering</span>
+    </label>
+    <div class="mf" style="flex-wrap:wrap;gap:.4rem">
       <button class="btn bg" onclick="closeModal('annModal')">Annuller</button>
       <button class="btn bp" onclick="saveAnnouncement()">📢 Publicér</button>
+      <button class="btn" style="background:#dc2626;color:#fff;border:none" onclick="saveAnnouncementAndSendNow()" title="Publicér + send email til alle forældre med det samme (i stedet for at vente til kl. 7)">📤 Publicér + send email NU</button>
     </div>
   </div>
 </div>
@@ -2264,6 +2275,30 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <div style="font-size:.82rem;font-weight:600;color:#e65100;margin-bottom:.4rem">🔄 Nyt halvår</div>
       <div style="font-size:.78rem;color:#bf360c;margin-bottom:.6rem">Nulstiller <strong>betalt beløb</strong> og <strong>betalingsstatus</strong> for alle medlemmer inkl. arkiverede. Kan ikke fortrydes.</div>
       <button class="btn btn-sm" style="background:#e65100;color:#fff;border:none" onclick="resetHalvaar()">🔄 Start nyt halvår</button>
+    </div>
+
+    <!-- Email-opsummering -->
+    <div style="margin-top:1rem;padding:.9rem 1rem;background:#eef2ff;border-radius:8px;border:1px solid #c7d2fe">
+      <div style="font-size:.85rem;font-weight:700;color:#3730a3;margin-bottom:.4rem">📧 Daglig email-opsummering til forældre</div>
+      <div style="font-size:.76rem;color:#4338ca;line-height:1.45;margin-bottom:.7rem">Vælg hvilke typer beskeder der må inkluderes i opsummeringen. Samles og sendes som én daglig email til hver forælder.</div>
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;user-select:none;margin-bottom:.4rem;padding-left:.2rem">
+        <input type="checkbox" id="setEmailDigestAnnouncement" style="width:18px;height:18px;cursor:pointer" onchange="toggleEmailDigestUi()"/>
+        <span style="font-size:.83rem;color:#1e3a8a">📢 Banner / besked til forældre (annonceringer)</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;user-select:none;margin-bottom:.5rem;padding-left:.2rem">
+        <input type="checkbox" id="setEmailDigestMessage" style="width:18px;height:18px;cursor:pointer" onchange="toggleEmailDigestUi()"/>
+        <span style="font-size:.83rem;color:#1e3a8a">💬 Personlig besked til elev (i indbakken)</span>
+      </label>
+      <div id="emailDigestControls" style="display:none;padding-left:.4rem;border-top:1px solid #c7d2fe;padding-top:.6rem;margin-top:.3rem">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem">
+          <span style="font-size:.78rem;color:#3730a3">Sendes hver dag kl.</span>
+          <input type="number" id="setEmailDigestHour" min="0" max="23" step="1" style="width:60px;padding:.28rem .45rem;border:1px solid #c7d2fe;border-radius:6px;font-size:.83rem;text-align:right" placeholder="7"/>
+          <span style="font-size:.78rem;color:#3730a3">:00</span>
+          <button class="btn btn-sm" style="background:#4338ca;color:#fff;border:none;margin-left:auto" onclick="saveDigestHour()">💾 Gem tidspunkt</button>
+        </div>
+        <button class="btn btn-sm" style="background:#fff;color:#3730a3;border:1px solid #c7d2fe" onclick="sendDigestNow()">📤 Send opsummering NU</button>
+        <div id="digestStatus" style="font-size:.74rem;color:#4338ca;margin-top:.5rem;font-style:italic"></div>
+      </div>
     </div>
 
     <!-- Backup & Gendannelse -->
@@ -3866,6 +3901,12 @@ function initApp(){
   document.getElementById('setReminderTrainings').value=config.assessReminderTrainings??24;
   document.getElementById('setShowReady').checked=config.showReady!==false;
   document.getElementById('setShowAlmost').checked=config.showAlmost!==false;
+  document.getElementById('setEmailDigestHour').value=config.emailDigestHour??7;
+  // Bagudkompatibilitet: gammel emailDigestEnabled flag aktiverer begge nye
+  const _legacyOn=!!config.emailDigestEnabled;
+  document.getElementById('setEmailDigestAnnouncement').checked=(typeof config.emailDigestAnnouncement==='boolean')?config.emailDigestAnnouncement:_legacyOn;
+  document.getElementById('setEmailDigestMessage').checked=(typeof config.emailDigestMessage==='boolean')?config.emailDigestMessage:_legacyOn;
+  toggleEmailDigestUi();
 
   document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)safeCloseModal(b.id)}));
   // Ét delegeret lytter på member-modal — sætter dirty-flag ved ændringer (ingen akkumulering ved genåbning)
@@ -8960,6 +9001,12 @@ function saveSettings(){
   config.assessReminderTrainings=Math.max(1,Number(document.getElementById('setReminderTrainings').value)||24);
   config.showReady=document.getElementById('setShowReady').checked;
   config.showAlmost=document.getElementById('setShowAlmost').checked;
+  const _hDg=parseInt(document.getElementById('setEmailDigestHour').value,10);
+  if(!isNaN(_hDg)&&_hDg>=0&&_hDg<=23) config.emailDigestHour=_hDg;
+  config.emailDigestAnnouncement=document.getElementById('setEmailDigestAnnouncement').checked;
+  config.emailDigestMessage=document.getElementById('setEmailDigestMessage').checked;
+  // Behold legacy-flag synkroniseret med samlet status
+  config.emailDigestEnabled=config.emailDigestAnnouncement||config.emailDigestMessage;
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
   renderM(); renderHistory(); updatePromotionTabVisibility();
   if(config.scriptUrl) loadFromCloud();
@@ -10408,18 +10455,48 @@ function renderAnnCard(){
 function openAnnModal(){
   document.getElementById('annText').value=(activeAnnouncement&&!activeAnnouncement.removed&&activeAnnouncement.text)||'';
   openModal('annModal');
+  applyEmailDigestVisibility();
 }
 function saveAnnouncement(){
   const text=document.getElementById('annText').value.trim();
   if(!text){alert('Skriv en besked først.');return;}
+  const sendEmail=!!config.emailDigestAnnouncement && !!(document.getElementById('annSendEmail')||{}).checked;
   activeAnnouncement={text,publishedAt:Date.now()};
   save();pushToCloud();
   closeModal('annModal');
   renderAnnCard();
-  showToast('📢 Besked publiceret til forældre');
-  // Push til alle elever
+  showToast(sendEmail?'📢 Publiceret + lagt i forældrenes email-opsummering':'📢 Besked publiceret til forældre');
+  // Push til alle elever (+ kø email hvis valgt)
   const shortAnn=(text.length>120?text.slice(0,119)+'…':text);
-  _triggerPush('notifyAll',{title:'📢 Besked fra Esbjerg Shuri-Ryu Karate',body:shortAnn});
+  _triggerPush('notifyAll',{title:'📢 Besked fra Esbjerg Shuri-Ryu Karate',body:shortAnn,email:sendEmail?1:0});
+}
+
+function saveAnnouncementAndSendNow(){
+  if(!config.emailDigestAnnouncement){ alert('Email-opsummering for annonceringer er ikke aktiveret. Slå feature til under Indstillinger ⚙️ først.'); return; }
+  const text=document.getElementById('annText').value.trim();
+  if(!text){alert('Skriv en besked først.');return;}
+  if(!confirm('Send email til ALLE forældre med email — med det samme?\n\n(Beskeden publiceres også som banner)')) return;
+  activeAnnouncement={text,publishedAt:Date.now()};
+  save();pushToCloud();
+  closeModal('annModal');
+  renderAnnCard();
+  showToast('📢 Publiceret — sender email til forældre…');
+  const shortAnn=(text.length>120?text.slice(0,119)+'…':text);
+  // Step 1: kø email + push for alle (email=1 uanset checkbox)
+  _callAction('notifyAll',{title:'📢 Besked fra Esbjerg Shuri-Ryu Karate',body:shortAnn,email:1},function(qRes){
+    if(!qRes||!qRes.ok){
+      showToast('⚠️ Kunne ikke køe email: '+(qRes&&qRes.error||'ukendt'));
+      return;
+    }
+    // Step 2: tøm køen straks (= send mails ud nu)
+    _callAction('sendEmailDigestNow',{},function(sRes){
+      if(sRes&&sRes.ok){
+        showToast('📤 Email sendt til '+(sRes.sent||0)+' '+(sRes.sent===1?'forælder':'forældre'));
+      } else {
+        showToast('⚠️ Send-fejl: '+(sRes&&sRes.error||'ukendt'));
+      }
+    });
+  });
 }
 function removeAnnouncement(){
   if(!confirm('Fjern banneret fra elev-appen?')) return;
@@ -11253,6 +11330,7 @@ function renderThread(memberId){
   const tb=document.getElementById('inboxToolbar'); if(tb) tb.style.display='none';
   const replyBar=document.getElementById('inboxReplyBar');
   replyBar.style.display='flex';
+  applyEmailDigestVisibility();
   const allThread=messages.filter(m=>m.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date));
   const collapsed=!_inboxShowAll && allThread.length>10;
   const thread=collapsed?allThread.slice(-10):allThread;
@@ -11358,19 +11436,109 @@ function _triggerPush(action, params){
   }catch(e){}
 }
 
+// ── Email-digest: kald action med callback (vi læser svaret) ──
+function _callAction(action, params, cb){
+  if(!config.scriptUrl){ cb&&cb({ok:false,error:'Ingen Script URL'}); return; }
+  try{
+    const name='_act'+Date.now()+Math.floor(Math.random()*1000);
+    const s=document.createElement('script');
+    window[name]=function(res){
+      try{delete window[name];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s);
+      cb&&cb(res||{ok:false,error:'Tom svar'});
+    };
+    s.onerror=()=>{ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); cb&&cb({ok:false,error:'Netværksfejl'}); };
+    let qs=Object.entries(params||{}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    s.src=config.scriptUrl+'?action='+action+(qs?'&'+qs:'')+'&callback='+name+'&t='+Date.now();
+    document.head.appendChild(s);
+  }catch(e){ cb&&cb({ok:false,error:String(e.message||e)}); }
+}
+
+function toggleEmailDigestUi(){
+  const annOn=document.getElementById('setEmailDigestAnnouncement').checked;
+  const msgOn=document.getElementById('setEmailDigestMessage').checked;
+  const anyOn=annOn||msgOn;
+  const ctrls=document.getElementById('emailDigestControls');
+  if(ctrls) ctrls.style.display=anyOn?'block':'none';
+  // Annonce-modal: kun synlig hvis annoncerings-flag er på
+  const annChk=document.getElementById('annSendEmail');
+  if(annChk){
+    const annLbl=annChk.closest('label');
+    if(annLbl) annLbl.style.display=annOn?'flex':'none';
+  }
+  const annBtns=document.querySelectorAll('button[onclick="saveAnnouncementAndSendNow()"]');
+  annBtns.forEach(b=>b.style.display=annOn?'':'none');
+  // Indbakke: kun synlig hvis besked-flag er på
+  const inboxChk=document.getElementById('inboxSendEmail');
+  if(inboxChk){
+    const inboxLbl=inboxChk.closest('label');
+    if(inboxLbl) inboxLbl.style.display=msgOn?'flex':'none';
+  }
+}
+
+// Køres ved load + når annonce-modal/indbakke åbnes for at synke UI med config
+function applyEmailDigestVisibility(){
+  const annOn=!!config.emailDigestAnnouncement;
+  const msgOn=!!config.emailDigestMessage;
+  const annChk=document.getElementById('annSendEmail');
+  if(annChk){
+    const annLbl=annChk.closest('label');
+    if(annLbl) annLbl.style.display=annOn?'flex':'none';
+  }
+  const annBtns=document.querySelectorAll('button[onclick="saveAnnouncementAndSendNow()"]');
+  annBtns.forEach(b=>b.style.display=annOn?'':'none');
+  const inboxChk=document.getElementById('inboxSendEmail');
+  if(inboxChk){
+    const inboxLbl=inboxChk.closest('label');
+    if(inboxLbl) inboxLbl.style.display=msgOn?'flex':'none';
+  }
+}
+
+function saveDigestHour(){
+  const h=parseInt(document.getElementById('setEmailDigestHour').value,10);
+  if(isNaN(h)||h<0||h>23){ alert('Vælg et tidspunkt mellem 0 og 23.'); return; }
+  config.emailDigestHour=h;
+  save();pushToCloud();
+  const st=document.getElementById('digestStatus');
+  if(st){ st.textContent='Gemmer tidspunkt…'; st.style.color='#4338ca'; }
+  _callAction('setEmailDigestHour',{hour:h},function(res){
+    if(!st) return;
+    if(res&&res.ok){ st.textContent='✅ Daglig email-opsummering sendes nu kl. '+h+':00'; st.style.color='#059669'; }
+    else { st.textContent='⚠️ Kunne ikke opdatere trigger: '+(res&&res.error||'ukendt fejl'); st.style.color='#dc2626'; }
+  });
+}
+
+function sendDigestNow(){
+  if(!confirm('Send email-opsummering NU til alle forældre med ventende beskeder?')) return;
+  const st=document.getElementById('digestStatus');
+  if(st){ st.textContent='Sender…'; st.style.color='#4338ca'; }
+  _callAction('sendEmailDigestNow',{},function(res){
+    if(!st) return;
+    if(res&&res.ok){
+      st.textContent='✅ Sendt: '+(res.sent||0)+'  ·  Sprunget: '+(res.skipped||0)+'  ·  Fejl: '+(res.failed||0);
+      st.style.color='#059669';
+      showToast('📤 Email-opsummering sendt ('+(res.sent||0)+' modtagere)');
+    } else {
+      st.textContent='⚠️ Fejl: '+(res&&res.error||'ukendt');
+      st.style.color='#dc2626';
+    }
+  });
+}
+
 function sendInboxReply(){
   if(!_inboxActiveMember)return;
   const ta=document.getElementById('inboxReplyText');
   const text=(ta.value||'').trim();
   if(!text)return;
+  const sendEmail=!!config.emailDigestMessage && !!(document.getElementById('inboxSendEmail')||{}).checked;
   const senderName=_myPresenceName||'Træner';
   messages.push({id:nextMessageId++,memberId:_inboxActiveMember,date:new Date().toISOString(),sender:'trainer',senderName,text,read:true,readBy:''});
   ta.value='';
   save();pushToCloud();
   openThread(_inboxActiveMember);
-  // Notificér eleven om ny besked
+  // Notificér eleven om ny besked (+ email-opsummering hvis valgt)
   const shortText=(text.length>80?text.slice(0,79)+'…':text);
-  _triggerPush('notifyMember',{memberId:_inboxActiveMember,title:'Ny besked fra din træner 🥋',body:shortText});
+  _triggerPush('notifyMember',{memberId:_inboxActiveMember,title:'Ny besked fra din træner 🥋',body:shortText,email:sendEmail?1:0});
 }
 </script>
 </body>
