@@ -472,6 +472,11 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
 @media(max-width:480px){
   /* Top3 + anciennitet: stак på mobil */
   #page-dashboard > div:has(#db-top3-card){grid-template-columns:1fr!important}
+  /* Top3: stack 3 kolonner vertikalt på mobil */
+  .top3-cols{grid-template-columns:1fr!important;gap:.6rem!important}
+  /* Top3 header: kontrolrække stacker */
+  .top3-hdr{flex-direction:column;align-items:flex-start!important;gap:.4rem!important}
+  .top3-hdr .top3-ctrls{width:100%;justify-content:space-between}
 
   /* Forhindre horisontal overflow — kun html, ikke body (body-scroll skal fungere i iOS) */
   html{overflow-x:hidden}
@@ -7303,11 +7308,6 @@ function renderDashboardTop3(){
     const rows=top3.length?top3.map((m,i)=>{
       const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0, total=reg+ex;
       const wM=winsBadges.month[m.id]||0, wH=winsBadges.halvaar[m.id]||0, wY=winsBadges.year[m.id]||0;
-      const badgeBits=[];
-      if(wM>0) badgeBits.push(`<span title="${wM}× månedsvinder" style="font-size:.62rem;margin-right:3px">📅${wM}</span>`);
-      if(wH>0) badgeBits.push(`<span title="${wH}× halvårsvinder" style="font-size:.62rem;margin-right:3px">🏅${wH}</span>`);
-      if(wY>0) badgeBits.push(`<span title="${wY}× årsvinder" style="font-size:.62rem;margin-right:3px">🏆${wY}</span>`);
-      const badgeLine=badgeBits.join('');
       const breakdown=ex>0?`${total} træninger (${reg} ${reg===1?'fast':'faste'} + ${ex} ekstra)`:`${total} ${total===1?'fast træning':'faste træninger'}`;
       const winsTxt=[wM&&`${wM} mdr`,wH&&`${wH} halvår`,wY&&`${wY} år`].filter(Boolean).join(' · ');
       const toastMsg=`${m.firstName} ${m.lastName}: ${breakdown}${winsTxt?' · vundet '+winsTxt:''}`;
@@ -7317,7 +7317,6 @@ function renderDashboardTop3(){
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${avatarInner(m)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
-          ${badgeLine?`<div style="margin-top:1px;line-height:1">${badgeLine}</div>`:''}
         </div>
         <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap;text-align:right">${total}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${breakdownInline}</div>
       </div>`;}).join('')
@@ -7326,14 +7325,14 @@ function renderDashboardTop3(){
   }).join('');
 
   card.innerHTML=`<div class="tcard" style="padding:.9rem 1.1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;gap:.5rem;flex-wrap:wrap">
+    <div class="top3-hdr" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;gap:.4rem;flex-wrap:wrap">
       <div style="font-weight:700;font-size:1rem;color:var(--t1)">🏆 ${titleLabel} – Top 3</div>
-      <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+      <div class="top3-ctrls" style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
         <div style="display:flex;gap:2px;background:var(--bg2);border-radius:8px;padding:2px">${typeTabs}</div>
         <select class="fs" style="font-size:.75rem;padding:.2rem .5rem" onchange="document.getElementById('db-top3-card')._selPeriod=this.value;renderDashboardTop3()">${periodOpts}</select>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">${cols}</div>
+    <div class="top3-cols" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">${cols}</div>
   </div>`;
 }
 
