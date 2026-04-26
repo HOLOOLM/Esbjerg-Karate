@@ -2727,6 +2727,7 @@ function safeSet(key,value){
   catch(e){ if(e&&(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED')) showToast('⚠️ Lokalt lager næsten fuldt — cloud-synk bevarer alle data'); }
 }
 function save(){
+  _invalidateMemberWinsCache();
   config._savedAt=Date.now();
   safeSet('kk2_members',JSON.stringify(members));
   safeSet('kk2_sessions',JSON.stringify(sessions));
@@ -3205,6 +3206,7 @@ function _doPush(attempt){
   });
 }
 function loadFromCloud(onDone){
+  _invalidateMemberWinsCache();
   const url=config.scriptUrl;
   if(!url){if(onDone)onDone(false);return;}
   setSyncStatus('loading');
@@ -5552,7 +5554,7 @@ function _memberRowHtml(m,extraRight,extraBelow){
         <span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);display:inline-block;width:14px;height:8px;border-radius:2px"></span>
         <span>${m.belt||'—'}</span>
         ${age!==null?`<span>· ${age} år</span>`:''}
-        ${archivedBadge}${passiveBadge}${boardBadge}
+        ${archivedBadge}${passiveBadge}${boardBadge}${_winBadgeHtml(m.id)}
       </div>
       ${extraBelow||''}
     </div>
@@ -6714,7 +6716,7 @@ function renderDashboard(){
       <td style="text-align:center"><div class="db-rank ${rankCls}">${i+1}</div></td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
-        <div><div class="mn" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}</div></div>
+        <div><div class="mn" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}${_winBadgeHtml(m.id)}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${beltHtml(m.belt,bc)}</td>
@@ -7128,10 +7130,77 @@ function renderHeatmap(){
     </table>`;
 }
 
+let _memberWinsCache=null;
+function _invalidateMemberWinsCache(){_memberWinsCache=null;}
+function _getMemberWins(memberId){
+  if(!_memberWinsCache) _memberWinsCache=_top3ComputePeriodWinners();
+  return {
+    month:_memberWinsCache.month[memberId]||0,
+    halvaar:_memberWinsCache.halvaar[memberId]||0,
+    year:_memberWinsCache.year[memberId]||0
+  };
+}
+function _winBadgeHtml(memberId){
+  const w=_getMemberWins(memberId);
+  if(!w.month&&!w.halvaar&&!w.year) return '';
+  const parts=[];
+  if(w.month>0) parts.push(`<span style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px" title="${w.month}× månedsvinder">📅 ${w.month}</span>`);
+  if(w.halvaar>0) parts.push(`<span style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px" title="${w.halvaar}× halvårsvinder">🏅 ${w.halvaar}</span>`);
+  if(w.year>0) parts.push(`<span style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px" title="${w.year}× årsvinder">🏆 ${w.year}</span>`);
+  return parts.join('');
+}
+
+function _top3ComputePeriodWinners(){
+  const allSess=sessions.filter(s=>s.date&&!cancelledDates.includes(s.date));
+  const td=config.trainingDays||[2,4];
+  const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const groups=['Børnehold','Basis-hold','Avanceret'];
+  const wins={month:{},halvaar:{},year:{}};
+  act.forEach(m=>{wins.month[m.id]=0;wins.halvaar[m.id]=0;wins.year[m.id]=0;});
+  const evalPeriod=(periodSess,bucket)=>{
+    const c={},r={};
+    act.forEach(m=>{c[m.id]=0;r[m.id]=0;});
+    periodSess.forEach(s=>{
+      const isReg=td.includes(new Date(s.date+'T12:00:00').getDay());
+      (s.presentIds||[]).forEach(id=>{ if(c[id]!==undefined){c[id]++; if(isReg)r[id]++;} });
+    });
+    groups.forEach(g=>{
+      const grp=act.filter(m=>m.group===g&&c[m.id]>0).sort((a,b)=>{
+        if(c[b.id]!==c[a.id]) return c[b.id]-c[a.id];
+        if(r[b.id]!==r[a.id]) return r[b.id]-r[a.id];
+        const da=a.startDate?new Date(a.startDate+'T12:00:00'):today;
+        const db=b.startDate?new Date(b.startDate+'T12:00:00'):today;
+        return da-db;
+      });
+      if(grp.length) wins[bucket][grp[0].id]++;
+    });
+  };
+  // Kun afsluttede perioder tæller (igangværende periode kan stadig ændre sig)
+  const now=new Date();
+  const curY=now.getFullYear();
+  const curM=now.getMonth()+1;
+  const curH=curM<=6?1:2;
+  const months=[...new Set(allSess.map(s=>s.date.slice(0,7)))]
+    .filter(p=>{const [y,mo]=p.split('-').map(Number); return y<curY||(y===curY&&mo<curM);});
+  months.forEach(p=>evalPeriod(allSess.filter(s=>s.date.startsWith(p)),'month'));
+  const halvaars=[...new Set(allSess.map(s=>{const [y,mo]=s.date.split('-');return `${y}-H${Number(mo)<=6?1:2}`;}))]
+    .filter(p=>{const [y,h]=p.split('-H').map(Number); return y<curY||(y===curY&&h<curH);});
+  halvaars.forEach(p=>{
+    const [py,ph]=p.split('-H');
+    const hMonths=Number(ph)===1?[1,2,3,4,5,6]:[7,8,9,10,11,12];
+    const ps=allSess.filter(s=>{const [sy,sm]=s.date.split('-');return sy===py&&hMonths.includes(Number(sm));});
+    evalPeriod(ps,'halvaar');
+  });
+  const years=[...new Set(allSess.map(s=>s.date.slice(0,4)))]
+    .filter(p=>Number(p)<curY);
+  years.forEach(p=>evalPeriod(allSess.filter(s=>s.date.startsWith(p)),'year'));
+  return wins;
+}
+
 function renderDashboardTop3(){
   const card=document.getElementById('db-top3-card');
   if(!card)return;
-  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   const GROUPS=[{key:'Børnehold',label:'👦 Børnehold'},{key:'Basis-hold',label:'🟡 Basis-hold'},{key:'Avanceret',label:'⚫ Avanceret'}];
 
   const allSess=sessions.filter(s=>s.date&&!cancelledDates.includes(s.date));
@@ -7215,18 +7284,16 @@ function renderDashboardTop3(){
     return `<option value="${p}"${p===selPeriod?' selected':''}>${lbl}</option>`;
   }).join('');
 
-  // Sortering: total → fast → ekstra → bæltegrad → anciennitet
+  // Sortering: total → faste → anciennitet
   const today=new Date(); today.setHours(0,0,0,0);
   const sortTop=(list)=>list.sort((a,b)=>{
     if(counts[b.id]!==counts[a.id]) return counts[b.id]-counts[a.id];
     if(regCounts[b.id]!==regCounts[a.id]) return regCounts[b.id]-regCounts[a.id];
-    if(extraCounts[b.id]!==extraCounts[a.id]) return extraCounts[b.id]-extraCounts[a.id];
-    const ba=BELT_ORDER.indexOf(a.belt), bb=BELT_ORDER.indexOf(b.belt);
-    if(bb!==ba) return bb-ba;
     const da=a.startDate?new Date(a.startDate+'T12:00:00'):today;
     const db2=b.startDate?new Date(b.startDate+'T12:00:00'):today;
     return da-db2;
   });
+  const winsBadges=_top3ComputePeriodWinners();
   const medals=['🥇','🥈','🥉'];
   const medalBg=['#fef9c3','#f1f5f9','#fdf4ec'];
   const medalBorder=['#fbbf24','#94a3b8','#f97316'];
@@ -7234,15 +7301,25 @@ function renderDashboardTop3(){
     const grpMembers=act.filter(m=>m.group===key);
     const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
     const rows=top3.length?top3.map((m,i)=>{
-      const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0;
-      const breakdown=ex>0?`${reg} ${reg===1?'fast':'faste'} + ${ex} ekstra`:`${reg} ${reg===1?'fast':'faste'}`;
-      const toastMsg=`${m.firstName} ${m.lastName}: ${breakdown}`;
-      const extraBadge=ex>0?`<span style="font-size:.6rem;font-weight:700;color:#7c3aed;margin-left:2px">+${ex}</span>`:'';
+      const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0, total=reg+ex;
+      const wM=winsBadges.month[m.id]||0, wH=winsBadges.halvaar[m.id]||0, wY=winsBadges.year[m.id]||0;
+      const badgeBits=[];
+      if(wM>0) badgeBits.push(`<span title="${wM}× månedsvinder" style="font-size:.62rem;margin-right:3px">📅${wM}</span>`);
+      if(wH>0) badgeBits.push(`<span title="${wH}× halvårsvinder" style="font-size:.62rem;margin-right:3px">🏅${wH}</span>`);
+      if(wY>0) badgeBits.push(`<span title="${wY}× årsvinder" style="font-size:.62rem;margin-right:3px">🏆${wY}</span>`);
+      const badgeLine=badgeBits.join('');
+      const breakdown=ex>0?`${total} træninger (${reg} ${reg===1?'fast':'faste'} + ${ex} ekstra)`:`${total} ${total===1?'fast træning':'faste træninger'}`;
+      const winsTxt=[wM&&`${wM} mdr`,wH&&`${wH} halvår`,wY&&`${wY} år`].filter(Boolean).join(' · ');
+      const toastMsg=`${m.firstName} ${m.lastName}: ${breakdown}${winsTxt?' · vundet '+winsTxt:''}`;
+      const breakdownInline=ex>0?`<span style="font-size:.55rem;font-weight:600;color:#7c3aed;display:block;margin-top:1px">${reg}+${ex}</span>`:'';
       return `<div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" title="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${avatarInner(m)}</div>
-        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div></div>
-        <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap">${reg}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${extraBadge}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+          ${badgeLine?`<div style="margin-top:1px;line-height:1">${badgeLine}</div>`:''}
+        </div>
+        <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap;text-align:right">${total}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${breakdownInline}</div>
       </div>`;}).join('')
       :`<div style="color:var(--xtl);font-size:.78rem;padding:.3rem 0">Ingen data</div>`;
     return `<div style="flex:1;min-width:0"><div style="font-size:.75rem;font-weight:700;color:var(--xtm);margin-bottom:.5rem">${label}</div>${rows}</div>`;
@@ -7587,7 +7664,15 @@ function renderLoginBanner(){
   if(!d){ b.style.display='none'; return; }
   // Beregn deduped tællere: hvis samme person er i begge lister, tælles de kun som instruktør
   const insRaw=(d.todayInstructorEmails||[]).map(s=>String(s||'').toLowerCase());
-  const insMatched=insRaw.map(v=>members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)))).filter(Boolean);
+  const insMatched=insRaw.map(v=>{
+    // Server returnerer enten numerisk memberId eller email — prøv begge
+    const asId=Number(v);
+    if(!isNaN(asId)&&String(asId)===v&&asId>0){
+      const m=members.find(mm=>mm.id===asId);
+      if(m) return m;
+    }
+    return members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)));
+  }).filter(Boolean);
   const insMatchedIdSet=new Set(insMatched.map(m=>m.id));
   const stuIdsRaw=(d.todayStudentIds||[]).map(Number);
   stuIdsRaw.map(id=>members.find(m=>m.id===id)).filter(Boolean).forEach(function(m){
@@ -7625,8 +7710,13 @@ function showTodayLoginDetail(){
   if(header) header.textContent='📱 Logins i dag';
   const stuIds=(d?.todayStudentIds||[]).map(Number);
   const insEmailsRaw=(d?.todayInstructorEmails||[]).map(s=>String(s||'').toLowerCase());
-  // Match instructor login values by email OR by full name (legacy rows store name i stedet for email)
+  // Match instructor login values by memberId, email, eller fulde navn
   const insMembers=insEmailsRaw.map(v=>{
+    const asId=Number(v);
+    if(!isNaN(asId)&&String(asId)===v&&asId>0){
+      const m=members.find(mm=>mm.id===asId);
+      if(m) return m;
+    }
     return members.find(m=>(m.role||'Medlem')!=='Medlem'&&(((m.email||'').toLowerCase()===v)||((m.firstName+' '+m.lastName).trim().toLowerCase()===v)));
   }).filter(Boolean);
   // Elever der loggede ind via elev-appen men har instruktør-rolle → flyt til instruktør-listen
@@ -7640,21 +7730,38 @@ function showTodayLoginDetail(){
     .filter(m=>!insIds.has(m.id)&&!insEmailSet.has((m.email||'').toLowerCase()))
     .sort((a,b)=>(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da'));
   insMembers.sort((a,b)=>(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da'));
+  // Hjælpefunktion: hent seneste login-tidspunkt fra perMember
+  const _lastTs=(mid)=>{
+    const e=(d?.perMember||[]).find(x=>Number(x.memberId)===Number(mid));
+    return e&&e.lastIso?e.lastIso:null;
+  };
+  const _timeBadge=(iso)=>{
+    if(!iso) return '';
+    const dt=new Date(iso);
+    const hhmm=dt.toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'});
+    const ago=_loginAgoLabel(iso);
+    return `<span style="font-size:.68rem;color:var(--xtm);font-weight:600;white-space:nowrap">kl. ${hhmm}<span style="opacity:.65;font-weight:400"> · ${ago}</span></span>`;
+  };
+  // Opdel insMembers efter rolle
+  const _byRole=(role)=>insMembers.filter(m=>(m.role||'')===role);
+  const instr=_byRole('Instruktør');
+  const helper=_byRole('Hjælpetræner');
+  const kass=_byRole('Kasserer');
+  const otherIns=insMembers.filter(m=>{const r=m.role||'';return r&&r!=='Medlem'&&r!=='Instruktør'&&r!=='Hjælpetræner'&&r!=='Kasserer';});
+  const _renderRow=(m)=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px solid #f0f9ff">
+    <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:.85rem;font-weight:600">${escHtml(m.firstName)} ${escHtml(m.lastName)}</div>
+      ${_timeBadge(_lastTs(m.id))}
+    </div>
+  </div>`;
+  const _section=(label,arr,color,first)=>arr.length?`<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${color};margin:${first?0:'.8rem'} 0 .4rem">${label} (${arr.length})</div>${arr.map(_renderRow).join('')}`:'';
   let html='';
-  if(stuMembers.length>0){
-    html+=`<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0e7490;margin-bottom:.4rem">Elever (${stuMembers.length})</div>`;
-    html+=stuMembers.map(m=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #f0f9ff">
-      <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
-      <div style="font-size:.85rem;font-weight:600">${escHtml(m.firstName)} ${escHtml(m.lastName)}</div>
-    </div>`).join('');
-  }
-  if(insMembers.length>0){
-    html+=`<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0e7490;margin:${stuMembers.length?'.8rem':0} 0 .4rem">Instruktører (${insMembers.length})</div>`;
-    html+=insMembers.map(m=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #f0f9ff">
-      <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
-      <div style="font-size:.85rem;font-weight:600">${escHtml(m.firstName)} ${escHtml(m.lastName)}</div>
-    </div>`).join('');
-  }
+  html+=_section('Elever',stuMembers,'#0e7490',true);
+  html+=_section('Instruktører',instr,'#6d28d9',!html);
+  html+=_section('Hjælpetrænere',helper,'#1e40af',!html);
+  html+=_section('Kasserer',kass,'#92400e',!html);
+  html+=_section('Øvrige',otherIns,'#6b7280',!html);
   if(!html) html='<div style="color:var(--xtl);font-size:.85rem;text-align:center;padding:1rem">Ingen logins fundet</div>';
   body.innerHTML=html;
   popup.style.display='flex';
