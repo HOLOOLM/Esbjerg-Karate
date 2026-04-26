@@ -1120,11 +1120,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     </div>
     <div class="date-btns" style="margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn bg btn-sm" onclick="refreshFromCloud()">🔃 Opdater</button>
-      <button class="btn bg btn-sm" onclick="resetAllCheckIns()">🔄 Nulstil</button>
-      <button class="btn bs btn-sm" onclick="markAllPresent()">☑️ Marker alle</button>
       <button class="btn bg btn-sm" onclick="openNotesModal()">📝 Note</button>
       <button class="btn bp btn-sm" onclick="openHv()">⚡ Quick rating</button>
-      <button class="btn bp btn-sm" onclick="saveSession()">💾 Gem session</button>
     </div>
   </div>
   <div id="trainingNoteDisplay" style="display:none;background:#fffde7;border:1px solid #ffe082;border-radius:8px;padding:.5rem .9rem;margin-top:.4rem;font-size:.82rem;color:#795548">
@@ -1782,20 +1779,17 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </div>
     </div>
     <div class="fgrp"><label>Dato</label><input type="date" id="bmDate"/></div>
+    <div class="fgrp" id="bmTimeRow"><label>Klokkeslæt</label><input type="time" id="bmTime"/></div>
     <div class="fgrp"><label>Titel</label><input type="text" id="bmTitle" placeholder="f.eks. Bestyrelsesmøde marts 2026"/></div>
     <div class="fgrp"><label>Deltagere</label><input type="text" id="bmAttendees" placeholder="f.eks. Jonas Holm, Lars Hansen, Marie Nielsen"/></div>
     <div class="fgrp"><label>Dagsorden</label><textarea id="bmAgenda" rows="5" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="1. Godkendelse af referat&#10;2. Økonomi&#10;3. Kommende stævner&#10;4. Eventuelt"></textarea></div>
     <div class="fgrp"><label>Referat / noter</label><textarea id="bmNotes" rows="6" style="width:100%;border:1.5px solid #c8dede;border-radius:8px;padding:.7rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Skriv referat og beslutninger her…"></textarea></div>
-    <div class="fgrp" style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:.75rem 1rem">
-      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-weight:700;color:#795548">
-        <input type="checkbox" id="bmPushToStudents" onchange="togglePushAnnouncement()" style="width:18px;height:18px;accent-color:#f59e0b;cursor:pointer">
-        📢 Vis som banner i elev-appen
+    <div class="fgrp" id="bmReminderSection" style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:.75rem 1rem">
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-weight:700;color:#14532d">
+        <input type="checkbox" id="bmSendReminder" style="width:18px;height:18px;accent-color:#16a34a;cursor:pointer">
+        🔔 Send email-påmindelse
       </label>
-      <div style="font-size:.76rem;color:#92400e;margin-top:.3rem">Forældre og elever vil se dette som et banner øverst i appen</div>
-      <div id="bmAnnouncementWrap" style="display:none;margin-top:.65rem">
-        <textarea id="bmAnnouncement" rows="2" style="width:100%;border:1.5px solid #fcd34d;border-radius:8px;padding:.6rem .75rem;font-size:.86rem;resize:vertical;font-family:inherit;box-sizing:border-box;background:#fffde7" placeholder="Skriv besked til forældre/elever (valgfrit — titlen bruges ellers)…"></textarea>
-        <div style="font-size:.73rem;color:#b45309;margin-top:.25rem">⚠️ Banneret er aktivt til du slår det fra igen</div>
-      </div>
+      <div style="font-size:.76rem;color:#166534;margin-top:.3rem" id="bmReminderHint">Sender påmindelse til alle aktive medlemmer</div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="safeCloseModal('boardModal')">Annuller</button>
@@ -1904,6 +1898,12 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       </div>
       <div class="fgrp"><label>Kontaktnavn</label><input type="text" id="fCN" placeholder="f.eks. Lars Hansen"/></div>
       <div class="fgrp"><label>Kontakttelefon</label><input type="tel" id="fCP" placeholder="f.eks. 22334455"/></div>
+      <div class="fgrp full">
+        <label style="display:flex;align-items:center;gap:.55rem;cursor:pointer;font-weight:400">
+          <input type="checkbox" id="fBoardMember" style="width:16px;height:16px;accent-color:#6d28d9;cursor:pointer"/>
+          <span>🏛️ Bestyrelsesmedlem <span style="font-size:.76rem;color:var(--xtl);font-weight:400">(modtager bestyrelsesmøde-påmindelser)</span></span>
+        </label>
+      </div>
       <div class="fgrp">
         <label>Alder</label>
         <input type="number" id="fAGE" placeholder="f.eks. 12" min="0" max="120"/>
@@ -2296,8 +2296,34 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
           <span style="font-size:.78rem;color:#3730a3">:00</span>
           <button class="btn btn-sm" style="background:#4338ca;color:#fff;border:none;margin-left:auto" onclick="saveDigestHour()">💾 Gem tidspunkt</button>
         </div>
-        <button class="btn btn-sm" style="background:#fff;color:#3730a3;border:1px solid #c7d2fe" onclick="sendDigestNow()">📤 Send opsummering NU</button>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:#fff;color:#3730a3;border:1px solid #c7d2fe" onclick="sendDigestNow()">📤 Send opsummering NU</button>
+          <button class="btn btn-sm" style="background:#fff;color:#3730a3;border:1px solid #c7d2fe" onclick="openDigestReport()">📊 Sidste send-rapport</button>
+        </div>
         <div id="digestStatus" style="font-size:.74rem;color:#4338ca;margin-top:.5rem;font-style:italic"></div>
+      </div>
+    </div>
+
+    <!-- Arrangement-påmindelser -->
+    <div style="margin-top:1rem;padding:.9rem 1rem;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0">
+      <div style="font-size:.85rem;font-weight:700;color:#14532d;margin-bottom:.4rem">🗓️ Arrangement-påmindelser</div>
+      <div style="font-size:.76rem;color:#166534;line-height:1.45;margin-bottom:.7rem">Send automatisk en påmindelses-email til alle aktive medlemmer et antal dage inden et arrangement.</div>
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;user-select:none;margin-bottom:.5rem;padding-left:.2rem">
+        <input type="checkbox" id="setEventReminderEnabled" style="width:18px;height:18px;cursor:pointer" onchange="toggleEventReminderUi()"/>
+        <span style="font-size:.83rem;color:#14532d">Send email-påmindelser for arrangementer</span>
+      </label>
+      <div id="eventReminderControls" style="display:none;padding-left:.4rem;border-top:1px solid #bbf7d0;padding-top:.6rem;margin-top:.3rem">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
+          <span style="font-size:.78rem;color:#14532d">Send påmindelse</span>
+          <input type="number" id="setEventReminderDays" min="1" max="90" step="1" style="width:55px;padding:.28rem .45rem;border:1px solid #bbf7d0;border-radius:6px;font-size:.83rem;text-align:right"/>
+          <span style="font-size:.78rem;color:#14532d">dage inden arrangementet</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+          <div style="font-size:.78rem;font-weight:600;color:#14532d">Aktive påmindelser (fra Interne notater):</div>
+          <button class="btn btn-sm" style="background:#fff;color:#14532d;border:1px solid #bbf7d0;font-size:.72rem" onclick="closeModal('settingsModal');switchTab('board')">📒 Gå til notater →</button>
+        </div>
+        <div id="arrangementList" style="margin-bottom:.4rem"></div>
+        <div style="font-size:.72rem;color:#6b7280;font-style:italic">Slå påmindelser til/fra på en notat under 🔔 Email-påmindelse. Bestyrelsesmøder sendes kun til medlemmer markeret som 🏛️ Bestyrelsesmedlem.</div>
       </div>
     </div>
 
@@ -2321,6 +2347,22 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="ma">
       <button class="btn bg" onclick="closeModal('settingsModal')">Luk</button>
       <button class="btn bp" onclick="saveSettings()">💾 Gem</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EMAIL DIGEST RAPPORT ══ -->
+<div class="mbd" id="digestReportModal">
+  <div class="modal" style="max-width:620px">
+    <div class="mh">
+      <div class="mtitle-left"><span>📊</span><span>Sidste email-rapport</span></div>
+      <button class="mclose" onclick="closeModal('digestReportModal')">✕</button>
+    </div>
+    <div id="digestReportBody" style="padding:.5rem 0">
+      <div style="text-align:center;color:var(--xtl);padding:2rem">Henter rapport…</div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('digestReportModal')">Luk</button>
     </div>
   </div>
 </div>
@@ -2427,6 +2469,7 @@ const SEED = [
 ════════════════════════════════════════ */
 let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[], messages=[];
 let activeAnnouncement=null;
+let studentActiveToday=false;
 let nextMessageId=1;
 let deletedAssessmentIds=new Set();
 let deletedBoardIds=new Set();
@@ -3308,6 +3351,7 @@ function loadFromCloud(onDone){
           localStorage.setItem('kk2_announcement',JSON.stringify(activeAnnouncement));
         }
       }
+      if(d.studentActiveToday!==undefined){ studentActiveToday=!!d.studentActiveToday; renderAnnCard(); }
       cloudLoaded=true;
       setSyncStatus('ok');
       migratePaymentToAuto();
@@ -3907,6 +3951,10 @@ function initApp(){
   document.getElementById('setEmailDigestAnnouncement').checked=(typeof config.emailDigestAnnouncement==='boolean')?config.emailDigestAnnouncement:_legacyOn;
   document.getElementById('setEmailDigestMessage').checked=(typeof config.emailDigestMessage==='boolean')?config.emailDigestMessage:_legacyOn;
   toggleEmailDigestUi();
+  document.getElementById('setEventReminderEnabled').checked=!!config.emailDigestEventReminder;
+  document.getElementById('setEventReminderDays').value=config.eventReminderDays??7;
+  toggleEventReminderUi();
+  renderArrangementList();
 
   document.querySelectorAll('.mbd').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)safeCloseModal(b.id)}));
   // Ét delegeret lytter på member-modal — sætter dirty-flag ved ændringer (ingen akkumulering ved genåbning)
@@ -3923,7 +3971,7 @@ function initApp(){
   }
 }
 
-function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); updatePromotionTabVisibility(); if(document.getElementById('presenceModal').style.display==='flex') refreshPresenceDatalist(); if(!_presenceShown&&sessionStorage.getItem('kk2_unlocked')==='1'){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); } }
+function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); updatePromotionTabVisibility(); const _pm=document.getElementById('presenceModal'); if(_pm&&_pm.style.display==='flex') refreshPresenceDatalist(); if(!_presenceShown&&sessionStorage.getItem('kk2_unlocked')==='1'){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); } }
 
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
@@ -4695,6 +4743,7 @@ function loadCheckInsForDate(date){
 ════════════════════════════════════════ */
 function renderT(){
   const body=document.getElementById('tbody-t');
+  if(!body) return;
   const q=document.getElementById('tsearch').value.toLowerCase();
   const fc=document.getElementById('tfc').value;
   const fp=document.getElementById('tfp').value;
@@ -4925,6 +4974,7 @@ function beltHtml(belt,bc){
 }
 function renderM(){
   const body=document.getElementById('tbody-m');
+  if(!body) return;
   const q=document.getElementById('msearch').value.toLowerCase();
   const fg=document.getElementById('mfg').value;
   const fp=document.getElementById('mfp').value;
@@ -5491,6 +5541,7 @@ function _memberRowHtml(m,extraRight,extraBelow){
   const grpBg={'Børnehold':'#eff6ff','Basis-hold':'#ecfdf5','Avanceret':'#f5f3ff'}[grp]||'#f3f4f6';
   const archivedBadge=m.archived?`<span style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem" title="Medlemmet er arkiveret">📦 Arkiveret</span>`:'';
   const passiveBadge=!m.archived&&m.status==='passiv'?`<span style="background:#f3f4f6;color:#6b7280;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem" title="Passivt medlem">😴 Passiv</span>`:'';
+  const boardBadge=m.boardMember?`<span style="background:#ede9fe;color:#6d28d9;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem" title="Bestyrelsesmedlem">🏛️ Bestyrelse</span>`:'';
   const dimmed=m.archived?'opacity:.72;':'';
   return `<div class="m-person" style="cursor:pointer;align-items:stretch;${dimmed}" onclick="closeAllTileModals();openMemberStatsModal(${m.id})" title="Klik for detaljer">
     <div class="m-avatar av ${typeof avClass==='function'?avClass(grp):''}" style="width:38px;height:38px;font-size:.82rem;align-self:center">${avatarInner(m)}</div>
@@ -5501,7 +5552,7 @@ function _memberRowHtml(m,extraRight,extraBelow){
         <span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);display:inline-block;width:14px;height:8px;border-radius:2px"></span>
         <span>${m.belt||'—'}</span>
         ${age!==null?`<span>· ${age} år</span>`:''}
-        ${archivedBadge}${passiveBadge}
+        ${archivedBadge}${passiveBadge}${boardBadge}
       </div>
       ${extraBelow||''}
     </div>
@@ -7549,12 +7600,7 @@ function renderLoginBanner(){
   const ins=insMatched.length;
   const total=stu+ins;
   if(total<=0){
-    b.innerHTML=`<div style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #cbd5e1;border-radius:10px;padding:.6rem 1rem;font-size:.82rem;color:#64748b;display:flex;align-items:center;gap:.5rem">
-      <span style="font-size:1rem">📱</span>
-      <span>Ingen har åbnet elev-appen endnu i dag</span>
-      <button onclick="fetchLoginStats(true)" title="Opdater" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:#94a3b8;margin-left:auto">🔄</button>
-    </div>`;
-    b.style.display='block';
+    b.style.display='none';
     return;
   }
   const parts=[];
@@ -8078,6 +8124,7 @@ function openEditModal(id){
   document.getElementById('fED').value=m.endDate||'';
   document.getElementById('fCN').value=m.contactName||'';
   document.getElementById('fCP').value=m.contactPhone||'';
+  document.getElementById('fBoardMember').checked=!!m.boardMember;
   document.getElementById('fPW').value='';
   document.getElementById('pwStatusLine').textContent=m.passwordHash?'🔒 Eleven har sat sin egen adgangskode':'🔓 Bruger standard-adgangskode (fornavn)';
   document.getElementById('pwResetBtn').style.display=m.passwordHash?'inline-flex':'none';
@@ -8161,6 +8208,7 @@ async function saveMember(){
     endDate:document.getElementById('fED').value||null,
     contactName:document.getElementById('fCN').value.trim()||null,
     contactPhone:document.getElementById('fCP').value.trim()||null,
+    boardMember:document.getElementById('fBoardMember').checked||false,
   };
   const pwInput=document.getElementById('fPW').value;
   if(pwInput) data.passwordHash=await sha256hex(pwInput);
@@ -9007,6 +9055,9 @@ function saveSettings(){
   config.emailDigestMessage=document.getElementById('setEmailDigestMessage').checked;
   // Behold legacy-flag synkroniseret med samlet status
   config.emailDigestEnabled=config.emailDigestAnnouncement||config.emailDigestMessage;
+  config.emailDigestEventReminder=document.getElementById('setEventReminderEnabled').checked;
+  config.eventReminderDays=Math.max(1,Math.min(90,Number(document.getElementById('setEventReminderDays').value)||7));
+  if(!config.arrangements) config.arrangements=[];
   save();closeModal('settingsModal');showToast('⚙️ Indstillinger gemt');
   renderM(); renderHistory(); updatePromotionTabVisibility();
   if(config.scriptUrl) loadFromCloud();
@@ -9262,7 +9313,7 @@ let _boardModalOriginal = '';
 const _MODAL_DIRTY_CHECKS = {
   notesModal:      () => (document.getElementById('notesInput')?.value||'') !== _notesModalOriginal,
   boardModal:      () => {
-    const cur = ['bmTitle','bmAttendees','bmAgenda','bmNotes','bmAnnouncement'].map(id=>(document.getElementById(id)?.value||'')).join('|')+(document.getElementById('bmPushToStudents')?.checked?'1':'0');
+    const cur = ['bmTitle','bmAttendees','bmAgenda','bmNotes','bmTime'].map(id=>(document.getElementById(id)?.value||'')).join('|');
     return cur !== _boardModalOriginal;
   },
   assessmentModal: () => (document.getElementById('assessComment')?.value||'').trim().length > 0 || Object.keys(_assessRatings||{}).length > 0,
@@ -10396,7 +10447,8 @@ function boardCard(b,today){
   const cls=isToday?'today':isFut?'upcoming':'past';
   const accentCls=ti.accentBase||(isFut||isToday?'upcoming':'past');
   const dateStr=safeDate?formatDateDK(safeDate):'Ukendt dato';
-  const badgeLabel=isToday?'📅 I dag':isFut?'🔜 '+dateStr:'📁 '+dateStr;
+  const timeStr=b.time?` kl. ${b.time}`:'';
+  const badgeLabel=isToday?`📅 I dag${timeStr}`:isFut?`🔜 ${dateStr}${timeStr}`:`📁 ${dateStr}${timeStr}`;
   const rawPreview=b.agenda||(b.notes||'');
   const previewHtml=rawPreview?formatBoardPreview(rawPreview):'';
   const attendeeHtml=b.attendees?`<div class="meeting-attendees">👥 ${b.attendees}</div>`:'';
@@ -10421,7 +10473,7 @@ function boardCard(b,today){
         ${typeBadge}
         ${b.notes?`<span style="font-size:.68rem;background:#f0fdf4;color:#16a34a;border-radius:10px;padding:.15rem .55rem;font-weight:600">✅ Referat</span>`:`<span style="font-size:.68rem;background:#fff7ed;color:#c2410c;border-radius:10px;padding:.15rem .55rem;font-weight:600">⏳ Mangler referat</span>`}
         ${b.agenda?`<span style="font-size:.68rem;background:#ede9fe;color:#6d28d9;border-radius:10px;padding:.15rem .55rem;font-weight:600">📋 Dagsorden</span>`:''}
-        ${b.pushToStudents?`<span style="font-size:.68rem;background:#fff8e1;color:#b45309;border-radius:10px;padding:.15rem .55rem;font-weight:700;border:1px solid #fcd34d">📢 Sendt til forældre</span>`:''}
+
       </div>
     </div>
   </div>`;
@@ -10431,7 +10483,7 @@ function boardCard(b,today){
 function renderAnnCard(){
   const card=document.getElementById('annCard');
   if(!card) return;
-  const ann=activeAnnouncement&&!activeAnnouncement.removed?activeAnnouncement:null;
+  const ann=activeAnnouncement&&!activeAnnouncement.removed&&studentActiveToday?activeAnnouncement:null;
   if(ann&&ann.text){
     const d=ann.publishedAt?new Date(ann.publishedAt).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     card.innerHTML=`<div style="background:linear-gradient(135deg,#fff8e1,#fffde7);border:2px solid #fcd34d;border-radius:14px;padding:1rem 1.2rem;display:flex;gap:1rem;align-items:flex-start">
@@ -10443,6 +10495,7 @@ function renderAnnCard(){
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
         <button class="btn bs btn-sm" onclick="openAnnModal()">✏️ Rediger</button>
+        <button class="btn bg btn-sm" onclick="openDigestReport()" title="Se hvem der har modtaget email">📊 Email-rapport</button>
         <button class="btn bg btn-sm" onclick="removeAnnouncement()">✕ Fjern</button>
       </div>
     </div>`;
@@ -10506,10 +10559,6 @@ function removeAnnouncement(){
   showToast('✅ Banner fjernet');
 }
 
-function togglePushAnnouncement(){
-  const checked=document.getElementById('bmPushToStudents').checked;
-  document.getElementById('bmAnnouncementWrap').style.display=checked?'block':'none';
-}
 
 let _boardType='Bestyrelsesmøde';
 function setBoardType(type){
@@ -10520,23 +10569,28 @@ function setBoardType(type){
   if(btn) btn.classList.add('active');
   const icons={'Bestyrelsesmøde':'🏛️','Ekstra træning':'🥋','Aktivitet':'🎯','Notat':'📝'};
   document.getElementById('boardModalIcon').textContent=icons[type]||'📋';
+  const rs=document.getElementById('bmReminderSection');
+  if(rs) rs.style.display=type==='Notat'?'none':'';
+  const hint=document.getElementById('bmReminderHint');
+  if(hint) hint.textContent=type==='Bestyrelsesmøde'?'Sender påmindelse til trænere og bestyrelse':'Sender påmindelse til alle aktive medlemmer';
+  const tr=document.getElementById('bmTimeRow');
+  if(tr) tr.style.display=type==='Notat'?'none':'';
 }
 function openBoardModal(id=null){
   editingBoardId=id;
   const b=id?boardMeetings.find(x=>x.id===id):null;
   document.getElementById('boardModalTitle').textContent=b?'Rediger notat':'Ny notat';
   document.getElementById('bmDate').value=b?b.date:localDate();
+  document.getElementById('bmTime').value=b?(b.time||''):'';
   document.getElementById('bmTitle').value=b?b.title:'';
   document.getElementById('bmAttendees').value=b?b.attendees:'';
   document.getElementById('bmAgenda').value=b?b.agenda:'';
   document.getElementById('bmNotes').value=b?b.notes:'';
-  const pushEl=document.getElementById('bmPushToStudents');
-  const annEl=document.getElementById('bmAnnouncement');
-  pushEl.checked=b?!!b.pushToStudents:false;
-  annEl.value=b?(b.announcement||''):'';
-  document.getElementById('bmAnnouncementWrap').style.display=(b&&b.pushToStudents)?'block':'none';
+  const rids=config.boardReminderIds||[];
+  const remEl=document.getElementById('bmSendReminder');
+  if(remEl) remEl.checked=b?rids.includes(b.id):false;
   setBoardType(b?b.type||'Bestyrelsesmøde':'Bestyrelsesmøde');
-  _boardModalOriginal=[b?.title||'',b?.attendees||'',b?.agenda||'',b?.notes||'',b?.announcement||''].join('|')+(b?.pushToStudents?'1':'0');
+  _boardModalOriginal=[b?.title||'',b?.attendees||'',b?.agenda||'',b?.notes||'',b?.time||''].join('|');
   openModal('boardModal');
 }
 
@@ -10547,21 +10601,26 @@ function saveBoardMeeting(){
   if(!date||!title){alert('Dato og titel er påkrævet.');return;}
   const data={
     date,
+    time:_boardType==='Notat'?'':(document.getElementById('bmTime').value||''),
     type:_boardType,
     title,
     attendees:document.getElementById('bmAttendees').value.trim(),
     agenda:document.getElementById('bmAgenda').value.trim(),
-    notes:document.getElementById('bmNotes').value.trim(),
-    pushToStudents:document.getElementById('bmPushToStudents').checked,
-    announcement:document.getElementById('bmAnnouncement').value.trim()
+    notes:document.getElementById('bmNotes').value.trim()
   };
+  const sendReminder=document.getElementById('bmSendReminder')?.checked&&_boardType!=='Notat';
+  if(!config.boardReminderIds) config.boardReminderIds=[];
   if(editingBoardId){
     const i=boardMeetings.findIndex(x=>x.id===editingBoardId);
     boardMeetings[i]={...boardMeetings[i],...data};
+    config.boardReminderIds=config.boardReminderIds.filter(id=>id!==editingBoardId);
+    if(sendReminder) config.boardReminderIds.push(editingBoardId);
     showToast('✅ Notat opdateret');
   } else {
     while(deletedBoardIds.has(nextBoardId)) nextBoardId++;
-    boardMeetings.push({id:nextBoardId++,...data});
+    const newId=nextBoardId++;
+    boardMeetings.push({id:newId,...data});
+    if(sendReminder) config.boardReminderIds.push(newId);
     showToast('✅ Notat oprettet');
   }
   save();
@@ -10573,6 +10632,7 @@ function deleteBoardMeeting(id){
   const b=boardMeetings.find(x=>x.id===id);
   if(!confirm(`Slet mødet "${b?b.title:'dette møde'}"? Det kan ikke fortrydes.`)) return;
   boardMeetings=boardMeetings.filter(x=>x.id!==id);
+  if(config.boardReminderIds) config.boardReminderIds=config.boardReminderIds.filter(x=>x!==id);
   deletedBoardIds.add(id);
   localStorage.setItem('kk2_deletedBoards',JSON.stringify([...deletedBoardIds]));
   save();
@@ -10595,7 +10655,7 @@ function openBoardDetail(id){
     </div>
     <div class="bm-section">
       <div class="bm-section-label">📅 Dato</div>
-      <div class="bm-section-body">${dateStr}</div>
+      <div class="bm-section-body">${dateStr}${b.time?` kl. ${b.time}`:''}</div>
     </div>
     ${b.attendees?`<div class="bm-section">
       <div class="bm-section-label">👥 Deltagere</div>
@@ -11142,6 +11202,7 @@ function _isUnreadForMe(msg){
   if(msg.sender!=='student') return false;
   const myId=_myPresenceMemberId;
   const me=(_myPresenceName||'').trim();
+  if(myId>0&&msg.memberId===myId) return false; // egne elev-beskeder tæller ikke
   if(!myId&&!me) return !msg.read;
   const rb=String(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
   if(myId&&rb.indexOf(String(myId))!==-1) return false; // ny: ID-match
@@ -11247,7 +11308,8 @@ function showInboxList(){
     const member=members.find(m=>m.id===Number(mid));
     const taggedMine=myId>0 && msgs.some(x=>Number(x.taggedMemberId)===myId);
     return{mid:Number(mid),latest,unread,member,taggedMine,msgs};
-  }).sort((a,b)=>new Date(b.latest.date)-new Date(a.latest.date));
+  }).filter(t=>!(_myPresenceMemberId>0&&t.mid===_myPresenceMemberId))
+    .sort((a,b)=>new Date(b.latest.date)-new Date(a.latest.date));
   if(_inboxFilterMine){
     if(!myId){
       const el=document.getElementById('inboxContent');
@@ -11422,7 +11484,7 @@ document.addEventListener('click',(ev)=>{
   p.style.display='none';
 });
 
-// ── OneSignal push-trigger (fire-and-forget JSONP) ──────
+// ── JSONP trigger (fire-and-forget) ─────────────────────
 function _triggerPush(action, params){
   if(!config.scriptUrl) return;
   try{
@@ -11431,24 +11493,48 @@ function _triggerPush(action, params){
     window[name]=function(){ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
     s.onerror=()=>{ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
     let qs=Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    // Tilføj trainer-auth (bug #6)
+    const trainerNmTP=_myPresenceName||sessionStorage.getItem('kk2_presence_name')||'';
+    if(trainerNmTP) qs+='&trainer='+encodeURIComponent(trainerNmTP);
     s.src=config.scriptUrl+'?action='+action+'&'+qs+'&callback='+name+'&t='+Date.now();
     document.head.appendChild(s);
   }catch(e){}
 }
 
-// ── Email-digest: kald action med callback (vi læser svaret) ──
+// ── Email-digest: kald action med callback (vi læser svaret) — med 30s timeout ──
 function _callAction(action, params, cb){
   if(!config.scriptUrl){ cb&&cb({ok:false,error:'Ingen Script URL'}); return; }
   try{
     const name='_act'+Date.now()+Math.floor(Math.random()*1000);
     const s=document.createElement('script');
+    let done=false;
+    const cleanup=()=>{ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+    const timer=setTimeout(()=>{
+      if(done) return;
+      done=true;
+      cleanup();
+      cb&&cb({ok:false,error:'Timeout efter 30s — ingen svar fra server'});
+    },30000);
     window[name]=function(res){
-      try{delete window[name];}catch(e){}
-      if(s.parentNode)s.parentNode.removeChild(s);
+      if(done) return;
+      done=true;
+      clearTimeout(timer);
+      cleanup();
       cb&&cb(res||{ok:false,error:'Tom svar'});
     };
-    s.onerror=()=>{ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); cb&&cb({ok:false,error:'Netværksfejl'}); };
+    s.onerror=()=>{
+      if(done) return;
+      done=true;
+      clearTimeout(timer);
+      cleanup();
+      cb&&cb({ok:false,error:'Netværksfejl'});
+    };
     let qs=Object.entries(params||{}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    // Tilføj trainer-auth automatisk (bug #6) hvis ikke allerede sat
+    if(!params||!params.trainer){
+      const trainerNm=_myPresenceName||sessionStorage.getItem('kk2_presence_name')||'';
+      if(trainerNm) qs+=(qs?'&':'')+'trainer='+encodeURIComponent(trainerNm);
+    }
     s.src=config.scriptUrl+'?action='+action+(qs?'&'+qs:'')+'&callback='+name+'&t='+Date.now();
     document.head.appendChild(s);
   }catch(e){ cb&&cb({ok:false,error:String(e.message||e)}); }
@@ -11474,6 +11560,54 @@ function toggleEmailDigestUi(){
     const inboxLbl=inboxChk.closest('label');
     if(inboxLbl) inboxLbl.style.display=msgOn?'flex':'none';
   }
+}
+
+function toggleEventReminderUi(){
+  const on=document.getElementById('setEventReminderEnabled').checked;
+  const ctrls=document.getElementById('eventReminderControls');
+  if(ctrls) ctrls.style.display=on?'':'none';
+}
+
+function renderArrangementList(){
+  const list=document.getElementById('arrangementList');
+  if(!list) return;
+  const ids=new Set((config.boardReminderIds||[]).map(Number));
+  const upcoming=(boardMeetings||[])
+    .filter(b=>ids.has(b.id)&&b.type!=='Notat'&&b.date)
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(!upcoming.length){
+    list.innerHTML='<div style="font-size:.76rem;color:#6b7280;font-style:italic;padding:.3rem 0">Ingen aktive påmindelser endnu.</div>';
+    return;
+  }
+  const targetLabel=t=>t==='Bestyrelsesmøde'?'Trænere & bestyrelse':'Alle aktive';
+  list.innerHTML=upcoming.map(b=>{
+    const ti=boardTypeInfo(b.type||'');
+    const ds=b.date?new Date(b.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'—';
+    return `<div style="display:flex;align-items:center;gap:.45rem;padding:.3rem 0;border-bottom:1px solid #d1fae5;font-size:.78rem">
+      <span>${ti.icon}</span>
+      <span style="font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(b.title)}</span>
+      <span style="color:#6b7280;white-space:nowrap">${ds}</span>
+      <span style="font-size:.7rem;background:#dcfce7;color:#15803d;border-radius:8px;padding:1px 6px;white-space:nowrap">${targetLabel(b.type)}</span>
+    </div>`;
+  }).join('');
+}
+
+function addArrangement(){
+  if(!config.arrangements) config.arrangements=[];
+  config.arrangements.push({id:Date.now(),date:'',time:'',title:'',note:''});
+  renderArrangementList();
+}
+
+function updateArrangement(id,field,val){
+  if(!config.arrangements) return;
+  const a=config.arrangements.find(x=>x.id===id);
+  if(a) a[field]=val;
+}
+
+function deleteArrangement(id){
+  if(!config.arrangements) return;
+  config.arrangements=config.arrangements.filter(x=>x.id!==id);
+  renderArrangementList();
 }
 
 // Køres ved load + når annonce-modal/indbakke åbnes for at synke UI med config
@@ -11506,6 +11640,90 @@ function saveDigestHour(){
     if(res&&res.ok){ st.textContent='✅ Daglig email-opsummering sendes nu kl. '+h+':00'; st.style.color='#059669'; }
     else { st.textContent='⚠️ Kunne ikke opdatere trigger: '+(res&&res.error||'ukendt fejl'); st.style.color='#dc2626'; }
   });
+}
+
+function openDigestReport(){
+  openModal('digestReportModal');
+  const body=document.getElementById('digestReportBody');
+  body.innerHTML='<div style="text-align:center;color:var(--xtl);padding:2rem">Henter rapport…</div>';
+  _callAction('getDigestReport',{},function(res){
+    if(!res||!res.ok){
+      body.innerHTML='<div style="padding:1rem;background:#fee2e2;border-radius:8px;color:#991b1b;text-align:center">⚠️ Kunne ikke hente rapport: '+(res&&res.error||'ukendt fejl')+'</div>';
+      return;
+    }
+    body.innerHTML=renderDigestReport(res);
+  });
+}
+
+function renderDigestReport(res){
+  const escHtml=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtTs=iso=>{ try{ const d=new Date(iso); return d.toLocaleString('da-DK',{dateStyle:'medium',timeStyle:'short'}); }catch(e){ return iso||''; } };
+  const pendingTxt=res.pendingCount>0
+    ? `<div style="margin-top:.4rem;font-size:.78rem;color:#1e3a8a;background:#dbeafe;border-radius:8px;padding:.5rem .75rem">📥 <strong>${res.pendingCount}</strong> beskeder venter på næste send (${res.pendingMembers} ${res.pendingMembers===1?'forælder':'forældre'})</div>`
+    : '';
+  if(res.empty || !res.report){
+    return `<div style="padding:1.2rem;background:#f8fafc;border-radius:8px;color:#475569;text-align:center">Ingen email-opsummeringer er sendt endnu.</div>${pendingTxt}`;
+  }
+  const r=res.report, t=r.totals||{};
+  const sentList=r.sent||[], failedList=r.failed||[], skippedList=r.skipped||[];
+
+  let html=`<div style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border:1px solid #c7d2fe;border-radius:10px;padding:.85rem 1rem;margin-bottom:.8rem">
+    <div style="font-size:.75rem;color:#3730a3;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Seneste send</div>
+    <div style="font-size:.95rem;color:#1e1b4b;font-weight:600;margin-top:.2rem">${escHtml(fmtTs(r.ranAt))}</div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">
+      <div style="background:#fff;border-radius:8px;padding:.4rem .7rem;font-size:.78rem"><strong style="color:#059669">${t.sent||0}</strong> sendt</div>
+      ${(t.failed||0)>0?`<div style="background:#fff;border-radius:8px;padding:.4rem .7rem;font-size:.78rem"><strong style="color:#dc2626">${t.failed}</strong> fejlet</div>`:''}
+      ${(t.skipped||0)>0?`<div style="background:#fff;border-radius:8px;padding:.4rem .7rem;font-size:.78rem"><strong style="color:#a16207">${t.skipped}</strong> sprunget</div>`:''}
+      ${(t.retryQueued||0)>0?`<div style="background:#fff;border-radius:8px;padding:.4rem .7rem;font-size:.78rem">🔄 <strong>${t.retryQueued}</strong> venter på retry</div>`:''}
+    </div>
+  </div>`;
+  html+=pendingTxt;
+
+  if(sentList.length){
+    html+=`<div style="margin-top:.8rem"><div style="font-size:.78rem;font-weight:700;color:#059669;margin-bottom:.4rem">✅ Sendt (${sentList.length})</div>`;
+    sentList.forEach(s=>{
+      const tags=[];
+      if(s.messages>0) tags.push(`💬 ${s.messages}`);
+      if(s.announcements>0) tags.push(`📢 ${s.announcements}`);
+      html+=`<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem .65rem;border-bottom:1px solid #f1f5f9">
+        <span style="background:#d1fae5;color:#065f46;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0">✓</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem;color:#1a2e2e;font-weight:600">${escHtml(s.name||'(uden navn)')}</div>
+          <div style="font-size:.74rem;color:#64748b;word-break:break-all">${escHtml(s.email)}</div>
+        </div>
+        <span style="font-size:.7rem;color:#64748b;white-space:nowrap">${tags.join(' · ')}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if(failedList.length){
+    html+=`<div style="margin-top:.8rem"><div style="font-size:.78rem;font-weight:700;color:#dc2626;margin-bottom:.4rem">❌ Fejlet (${failedList.length}) — bliver forsøgt igen næste dag</div>`;
+    failedList.forEach(f=>{
+      html+=`<div style="display:flex;align-items:flex-start;gap:.6rem;padding:.45rem .65rem;background:#fef2f2;border-radius:6px;margin-bottom:.3rem">
+        <span style="background:#fee2e2;color:#991b1b;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0">✕</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem;color:#1a2e2e;font-weight:600">${escHtml(f.name||'(uden navn)')}</div>
+          <div style="font-size:.74rem;color:#64748b;word-break:break-all">${escHtml(f.email)}</div>
+          <div style="font-size:.72rem;color:#991b1b;margin-top:.2rem;font-style:italic">${escHtml(f.error||'ukendt fejl')}</div>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if(skippedList.length){
+    html+=`<div style="margin-top:.8rem"><div style="font-size:.78rem;font-weight:700;color:#a16207;margin-bottom:.4rem">⏭️ Sprunget over (${skippedList.length})</div>`;
+    skippedList.forEach(s=>{
+      html+=`<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem .65rem;border-bottom:1px solid #fef3c7;font-size:.78rem">
+        <span style="color:#a16207">⏭</span>
+        <div style="flex:1"><span style="font-weight:600;color:#1a2e2e">${escHtml(s.name||'(uden navn)')}</span> — <span style="color:#64748b">${escHtml(s.reason||'')}</span></div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  return html;
 }
 
 function sendDigestNow(){

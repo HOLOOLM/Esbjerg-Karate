@@ -199,8 +199,6 @@ svg.chart{width:100%;height:150px;display:block}
 .sh-stars{color:var(--warn);font-size:13px;letter-spacing:1px;white-space:nowrap}
 .sh-empty{text-align:center;color:var(--muted);padding:18px;font-size:13px}
 </style>
-<!-- OneSignal Web Push SDK — se https://documentation.onesignal.com/docs/web-push-quickstart -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
 <!-- ══ SHURI-RYU MÆRKE — base64 indlejret, ingen ekstern fil ══ -->
@@ -396,50 +394,6 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
-
-// ── OneSignal Web Push ───────────────────────────────────
-// ← Indsæt dit App ID fra OneSignal → Settings → Keys & IDs
-const ONESIGNAL_APP_ID = '5e258e3b-3707-446b-9368-d67dbe42df11';
-
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-OneSignalDeferred.push(async function(OneSignal) {
-  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
-  try {
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      // SW ligger i holoolm.github.io-repo (rod-domænet) — krævet af OneSignal
-      serviceWorkerPath: '/OneSignalSDKWorker.js',
-      notifyButton: { enable: false }, // vi spørger selv på det rigtige tidspunkt
-    });
-  } catch(e) { console.warn('OneSignal init fejl:', e); }
-});
-
-// Kald denne efter login for at knytte eleven til sin member ID
-function _oneSignalLogin(memberId) {
-  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
-  OneSignalDeferred.push(async function(OneSignal) {
-    try {
-      // Knyt ekstern ID (member ID) til denne browser/enhed
-      await OneSignal.login(String(memberId));
-      // Bed om tilladelse hvis ikke allerede givet
-      const granted = OneSignal.Notifications.permission;
-      if (!granted) {
-        // Vent kort — brugeren er lige logget ind, giv siden tid til at rendere
-        setTimeout(async () => {
-          try { await OneSignal.Notifications.requestPermission(); } catch(e) {}
-        }, 2500);
-      }
-    } catch(e) { console.warn('OneSignal login fejl:', e); }
-  });
-}
-
-// Kald denne ved logout
-function _oneSignalLogout() {
-  if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
-  OneSignalDeferred.push(async function(OneSignal) {
-    try { await OneSignal.logout(); } catch(e) {}
-  });
-}
 
 // Belt colors — matcher hovedappen
 const BC = {
@@ -645,8 +599,6 @@ async function doLogin(){
     }
     renderDashboard(d);
     _startBgRefresh(); // start baggrundsopdatering
-    // Registrer eleven i OneSignal med hendes/hans member ID
-    if (d.member && d.member.id) _oneSignalLogin(d.member.id);
   });
 }
 
@@ -1088,7 +1040,6 @@ function sendStudentMessage(){
 }
 
 function doLogout(){
-  _oneSignalLogout(); // Afkobl member ID fra denne enhed
   if (_bgRefreshTimer) { clearInterval(_bgRefreshTimer); _bgRefreshTimer = null; }
   try{ sessionStorage.removeItem('kk2_student_email'); sessionStorage.removeItem('kk2_student_hash'); }catch(e){}
   document.getElementById('dashView').classList.remove('show');
