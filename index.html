@@ -7166,10 +7166,11 @@ function _getMemberWins(memberId){
 function _winBadgeHtml(memberId){
   const w=_getMemberWins(memberId);
   if(!w.month&&!w.halvaar&&!w.year) return '';
+  const esc=s=>s.replace(/"/g,'&quot;');
   const parts=[];
-  if(w.month>0) parts.push(`<span style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px" title="${w.month}× månedsvinder">📅 ${w.month}</span>`);
-  if(w.halvaar>0) parts.push(`<span style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px" title="${w.halvaar}× halvårsvinder">🏅 ${w.halvaar}</span>`);
-  if(w.year>0) parts.push(`<span style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px" title="${w.year}× årsvinder">🏆 ${w.year}</span>`);
+  if(w.month>0){const msg=esc(`📅 ${w.month>1?w.month+'× ':''}månedsvinder: ${w.monthLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">📅 ${w.month}</span>`);}
+  if(w.halvaar>0){const msg=esc(`🏅 ${w.halvaar>1?w.halvaar+'× ':''}halvårsvinder: ${w.halvaarLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">🏅 ${w.halvaar}</span>`);}
+  if(w.year>0){const msg=esc(`🏆 ${w.year>1?w.year+'× ':''}årsvinder: ${w.yearLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">🏆 ${w.year}</span>`);}
   return parts.join('');
 }
 
@@ -7343,9 +7344,10 @@ function renderDashboardTop3(){
       const wM=w.month, wH=w.halvaar, wY=w.year;
       const breakdownInline=ex>0?`<span style="font-size:.55rem;font-weight:600;color:#7c3aed;display:block;margin-top:1px">${reg}+${ex}</span>`:'';
       const badgeBits=[];
-      if(wM>0){const lbl=w.monthLabels.join(', ');badgeBits.push(`<span onclick="event.stopPropagation();showToast('📅 ${m.firstName}: ${wM}× månedsvinder — '+${JSON.stringify(lbl)})" style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer" title="Klik for detaljer">📅 ${wM}</span>`);}
-      if(wH>0){const lbl=w.halvaarLabels.join(', ');badgeBits.push(`<span onclick="event.stopPropagation();showToast('🏅 ${m.firstName}: ${wH}× halvårsvinder — '+${JSON.stringify(lbl)})" style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer" title="Klik for detaljer">🏅 ${wH}</span>`);}
-      if(wY>0){const lbl=w.yearLabels.join(', ');badgeBits.push(`<span onclick="event.stopPropagation();showToast('🏆 ${m.firstName}: ${wY}× årsvinder — '+${JSON.stringify(lbl)})" style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer" title="Klik for detaljer">🏆 ${wY}</span>`);}
+      const _esc=s=>s.replace(/"/g,'&quot;');
+      if(wM>0&&periodType!=='måned'){const msg=_esc(`📅 ${m.firstName}: ${wM}× månedsvinder — ${w.monthLabels.join(', ')}`);badgeBits.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer">📅 ${wM}</span>`);}
+      if(wH>0&&periodType!=='halvår'){const msg=_esc(`🏅 ${m.firstName}: ${wH}× halvårsvinder — ${w.halvaarLabels.join(', ')}`);badgeBits.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer">🏅 ${wH}</span>`);}
+      if(wY>0&&periodType!=='år'){const msg=_esc(`🏆 ${m.firstName}: ${wY}×årsvinder — ${w.yearLabels.join(', ')}`);badgeBits.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer">🏆 ${wY}</span>`);}
       const badgeLine=badgeBits.join(' ');
       return `<div onclick="openMemberStatsModal(${m.id})" title="Åbn profil" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
