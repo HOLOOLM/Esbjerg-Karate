@@ -1635,6 +1635,10 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
         <button id="dbToggleTotal" class="db-stbtn" onclick="setDbSessionFilter('total')">📊 Total</button>
       </div>
       <input class="sbx" type="text" id="db-search" placeholder="🔍 Søg navn…" oninput="renderDashboard()"/>
+      <select class="fs" id="dbBadgeScope" onchange="setWinBadgeScope(this.value)">
+        <option value="halvår">🏅 Dette halvår</option>
+        <option value="alle">🏅 Alle badges</option>
+      </select>
       <select class="fs" id="dbMGroup" onchange="renderDashboard()">
         <option value="all">Alle grupper</option>
         <option value="Børnehold">Børnehold</option>
@@ -7136,13 +7140,27 @@ function renderHeatmap(){
 }
 
 let _memberWinsCache=null;
+let _winBadgeScope='halvår';
 function _invalidateMemberWinsCache(){_memberWinsCache=null;}
+function setWinBadgeScope(v){_winBadgeScope=v;_invalidateMemberWinsCache();renderDashboard();}
 function _getMemberWins(memberId){
   if(!_memberWinsCache) _memberWinsCache=_top3ComputePeriodWinners();
+  const {wins,winLabels,winKeys}=_memberWinsCache;
+  if(_winBadgeScope==='alle'){
+    return {
+      month:wins.month[memberId]||0, halvaar:wins.halvaar[memberId]||0, year:wins.year[memberId]||0,
+      monthLabels:winLabels.month[memberId]||[], halvaarLabels:winLabels.halvaar[memberId]||[], yearLabels:winLabels.year[memberId]||[]
+    };
+  }
+  // 'halvår': kun månedsvindinger inden for det aktuelle halvår
+  const now=new Date(), curY=now.getFullYear(), isH1=now.getMonth()+1<=6;
+  const hSlots=isH1?['01','02','03','04','05','06']:['07','08','09','10','11','12'];
+  const pfx=String(curY)+'-';
+  const mKeys=winKeys.month[memberId]||[], mLbls=winLabels.month[memberId]||[];
+  const filteredIdx=mKeys.reduce((acc,k,i)=>{if(k.startsWith(pfx)&&hSlots.includes(k.slice(5,7)))acc.push(i);return acc;},[]);
   return {
-    month:_memberWinsCache.month[memberId]||0,
-    halvaar:_memberWinsCache.halvaar[memberId]||0,
-    year:_memberWinsCache.year[memberId]||0
+    month:filteredIdx.length, halvaar:0, year:0,
+    monthLabels:filteredIdx.map(i=>mLbls[i]), halvaarLabels:[], yearLabels:[]
   };
 }
 function _winBadgeHtml(memberId){
@@ -7162,8 +7180,14 @@ function _top3ComputePeriodWinners(){
   const today=new Date(); today.setHours(0,0,0,0);
   const groups=['Børnehold','Basis-hold','Avanceret'];
   const wins={month:{},halvaar:{},year:{}};
-  act.forEach(m=>{wins.month[m.id]=0;wins.halvaar[m.id]=0;wins.year[m.id]=0;});
-  const evalPeriod=(periodSess,bucket)=>{
+  const winLabels={month:{},halvaar:{},year:{}};
+  const winKeys={month:{},halvaar:{},year:{}};
+  act.forEach(m=>{
+    wins.month[m.id]=0; wins.halvaar[m.id]=0; wins.year[m.id]=0;
+    winLabels.month[m.id]=[]; winLabels.halvaar[m.id]=[]; winLabels.year[m.id]=[];
+    winKeys.month[m.id]=[]; winKeys.halvaar[m.id]=[]; winKeys.year[m.id]=[];
+  });
+  const evalPeriod=(periodSess,bucket,label,key)=>{
     const c={},r={};
     act.forEach(m=>{c[m.id]=0;r[m.id]=0;});
     periodSess.forEach(s=>{
@@ -7178,7 +7202,10 @@ function _top3ComputePeriodWinners(){
         const db=b.startDate?new Date(b.startDate+'T12:00:00'):today;
         return da-db;
       });
-      if(grp.length) wins[bucket][grp[0].id]++;
+      if(grp.length){
+        const id=grp[0].id;
+        wins[bucket][id]++; winLabels[bucket][id].push(label); winKeys[bucket][id].push(key);
+      }
     });
   };
   // Kun afsluttede perioder tæller (igangværende periode kan stadig ændre sig)
@@ -7187,20 +7214,26 @@ function _top3ComputePeriodWinners(){
   const curM=now.getMonth()+1;
   const curH=curM<=6?1:2;
   const months=[...new Set(allSess.map(s=>s.date.slice(0,7)))]
-    .filter(p=>{const [y,mo]=p.split('-').map(Number); return y<curY||(y===curY&&mo<curM);});
-  months.forEach(p=>evalPeriod(allSess.filter(s=>s.date.startsWith(p)),'month'));
+    .filter(p=>{const [y,mo]=p.split('-').map(Number); return y<curY||(y===curY&&mo<curM);})
+    .sort();
+  months.forEach(p=>{
+    const [y,mo]=p.split('-').map(Number);
+    const lbl=new Date(y,mo-1,1).toLocaleDateString('da-DK',{month:'long',year:'numeric'});
+    evalPeriod(allSess.filter(s=>s.date.startsWith(p)),'month',lbl,p);
+  });
   const halvaars=[...new Set(allSess.map(s=>{const [y,mo]=s.date.split('-');return `${y}-H${Number(mo)<=6?1:2}`;}))]
-    .filter(p=>{const [y,h]=p.split('-H').map(Number); return y<curY||(y===curY&&h<curH);});
+    .filter(p=>{const [y,h]=p.split('-H').map(Number); return y<curY||(y===curY&&h<curH);})
+    .sort();
   halvaars.forEach(p=>{
     const [py,ph]=p.split('-H');
     const hMonths=Number(ph)===1?[1,2,3,4,5,6]:[7,8,9,10,11,12];
     const ps=allSess.filter(s=>{const [sy,sm]=s.date.split('-');return sy===py&&hMonths.includes(Number(sm));});
-    evalPeriod(ps,'halvaar');
+    evalPeriod(ps,'halvaar',`H${ph} ${py}`,p);
   });
   const years=[...new Set(allSess.map(s=>s.date.slice(0,4)))]
-    .filter(p=>Number(p)<curY);
-  years.forEach(p=>evalPeriod(allSess.filter(s=>s.date.startsWith(p)),'year'));
-  return wins;
+    .filter(p=>Number(p)<curY).sort();
+  years.forEach(p=>evalPeriod(allSess.filter(s=>s.date.startsWith(p)),'year',p,p));
+  return {wins,winLabels,winKeys};
 }
 
 function renderDashboardTop3(){
@@ -7298,7 +7331,6 @@ function renderDashboardTop3(){
     const db2=b.startDate?new Date(b.startDate+'T12:00:00'):today;
     return da-db2;
   });
-  const winsBadges=_top3ComputePeriodWinners();
   const medals=['🥇','🥈','🥉'];
   const medalBg=['#fef9c3','#f1f5f9','#fdf4ec'];
   const medalBorder=['#fbbf24','#94a3b8','#f97316'];
@@ -7307,16 +7339,20 @@ function renderDashboardTop3(){
     const top3=sortTop(grpMembers.filter(m=>counts[m.id]>0)).slice(0,3);
     const rows=top3.length?top3.map((m,i)=>{
       const reg=regCounts[m.id]||0, ex=extraCounts[m.id]||0, total=reg+ex;
-      const wM=winsBadges.month[m.id]||0, wH=winsBadges.halvaar[m.id]||0, wY=winsBadges.year[m.id]||0;
-      const breakdown=ex>0?`${total} træninger (${reg} ${reg===1?'fast':'faste'} + ${ex} ekstra)`:`${total} ${total===1?'fast træning':'faste træninger'}`;
-      const winsTxt=[wM&&`${wM} mdr`,wH&&`${wH} halvår`,wY&&`${wY} år`].filter(Boolean).join(' · ');
-      const toastMsg=`${m.firstName} ${m.lastName}: ${breakdown}${winsTxt?' · vundet '+winsTxt:''}`;
+      const w=_getMemberWins(m.id);
+      const wM=w.month, wH=w.halvaar, wY=w.year;
       const breakdownInline=ex>0?`<span style="font-size:.55rem;font-weight:600;color:#7c3aed;display:block;margin-top:1px">${reg}+${ex}</span>`:'';
-      return `<div onclick="showToast(this.dataset.msg)" data-msg="${toastMsg}" title="${toastMsg}" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
+      const badgeBits=[];
+      if(wM>0){const lbl=w.monthLabels.join(', ');badgeBits.push(`<span onclick="event.stopPropagation();showToast('📅 ${m.firstName}: ${wM}× månedsvinder — '+${JSON.stringify(lbl)})" style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer" title="Klik for detaljer">📅 ${wM}</span>`);}
+      if(wH>0){const lbl=w.halvaarLabels.join(', ');badgeBits.push(`<span onclick="event.stopPropagation();showToast('🏅 ${m.firstName}: ${wH}× halvårsvinder — '+${JSON.stringify(lbl)})" style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer" title="Klik for detaljer">🏅 ${wH}</span>`);}
+      if(wY>0){const lbl=w.yearLabels.join(', ');badgeBits.push(`<span onclick="event.stopPropagation();showToast('🏆 ${m.firstName}: ${wY}× årsvinder — '+${JSON.stringify(lbl)})" style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 5px;font-weight:700;font-size:.6rem;cursor:pointer" title="Klik for detaljer">🏆 ${wY}</span>`);}
+      const badgeLine=badgeBits.join(' ');
+      return `<div onclick="openMemberStatsModal(${m.id})" title="Åbn profil" style="display:flex;align-items:center;gap:.55rem;padding:.4rem .5rem;border-radius:9px;background:${medalBg[i]};border:1.5px solid ${medalBorder[i]};margin-bottom:.35rem;cursor:pointer;overflow:hidden">
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${avatarInner(m)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+          ${badgeLine?`<div style="margin-top:2px;display:flex;gap:3px;flex-wrap:wrap">${badgeLine}</div>`:''}
         </div>
         <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap;text-align:right">${total}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${breakdownInline}</div>
       </div>`;}).join('')

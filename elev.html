@@ -276,7 +276,13 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
     <div id="streakBox"></div>
 
     <div class="card">
-      <h3>🏅 Your badges</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <h3 style="margin:0">🏅 Your badges</h3>
+        <select id="badgeScopeSelect" style="font-size:.72rem;padding:.15rem .45rem;border-radius:7px;border:1px solid #d1d5db;background:#f9fafb;color:#374151;cursor:pointer" onchange="renderBadges()">
+          <option value="halvår">Dette halvår</option>
+          <option value="alle">Alle</option>
+        </select>
+      </div>
       <div id="badgesBox" class="badges"></div>
     </div>
 
@@ -1220,10 +1226,22 @@ function computeBadges(d, assessments, streak){
   else if(train >= 10) badges.push({cls:'', emoji:'🎯', text:'10+ trainings'});
 
   // Periode-vindinger (kun afsluttede perioder)
+  const scope = (document.getElementById('badgeScopeSelect')||{}).value || 'halvår';
   const pw = d.periodWins || {};
-  if(pw.month > 0)   badges.push({cls:'gold', emoji:'📅', text:pw.month + (pw.month===1?'x month winner':'x month wins')});
-  if(pw.halvaar > 0) badges.push({cls:'gold', emoji:'🏅', text:pw.halvaar + (pw.halvaar===1?'x half-year winner':'x half-year wins')});
-  if(pw.year > 0)    badges.push({cls:'gold', emoji:'🏆', text:pw.year + (pw.year===1?'x year winner':'x year wins')});
+  const pwk = d.periodWinKeys || {};
+  let wMonth, wHalvaar, wYear;
+  if(scope === 'alle'){
+    wMonth = pw.month||0; wHalvaar = pw.halvaar||0; wYear = pw.year||0;
+  } else {
+    const _n=new Date(), _cy=_n.getFullYear(), _isH1=_n.getMonth()+1<=6;
+    const _slots=_isH1?['01','02','03','04','05','06']:['07','08','09','10','11','12'];
+    const _pfx=String(_cy)+'-';
+    wMonth=(pwk.month||[]).filter(k=>k.startsWith(_pfx)&&_slots.includes(k.slice(5,7))).length;
+    wHalvaar=0; wYear=0;
+  }
+  if(wMonth > 0)   badges.push({cls:'gold', emoji:'📅', text:wMonth + (wMonth===1?'× month winner':'× month wins')});
+  if(wHalvaar > 0) badges.push({cls:'gold', emoji:'🏅', text:wHalvaar + (wHalvaar===1?'× half-year winner':'× half-year wins')});
+  if(wYear > 0)    badges.push({cls:'gold', emoji:'🏆', text:wYear + (wYear===1?'× year winner':'× year wins')});
 
   if(assessments.length >= 10) badges.push({cls:'', emoji:'📋', text:'10+ ratings'});
   else if(assessments.length >= 5) badges.push({cls:'', emoji:'📋', text:'5+ ratings'});
@@ -1256,6 +1274,19 @@ function computeBadges(d, assessments, streak){
   }
 
   return badges;
+}
+
+function renderBadges(){
+  if(!CURRENT) return;
+  const d = CURRENT;
+  const assessments = d.assessments || [];
+  const streak = calcStreak(d.trainingDates||[]);
+  const badges = computeBadges(d, assessments, streak);
+  const el = document.getElementById('badgesBox');
+  if(!el) return;
+  el.innerHTML = badges.length
+    ? badges.map(b => '<div class="badge '+b.cls+'">'+b.emoji+' '+escapeHtml(b.text)+'</div>').join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:6px 0">No badges yet — keep training!</div>';
 }
 
 function getSkillNote(skill){
@@ -1380,13 +1411,7 @@ function renderDashboard(d){
   } else streakEl.innerHTML = '';
 
   // Badges
-  const badges = computeBadges(d, assessments, streak);
-  const badgesEl = document.getElementById('badgesBox');
-  if(badges.length){
-    badgesEl.innerHTML = badges.map(b => '<div class="badge '+b.cls+'">'+b.emoji+' '+escapeHtml(b.text)+'</div>').join('');
-  } else {
-    badgesEl.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0">No badges yet — keep training!</div>';
-  }
+  renderBadges();
 
   // Pensum-progress
   const pensumCard = document.getElementById('pensumCard');
