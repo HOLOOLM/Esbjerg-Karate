@@ -493,8 +493,8 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
   #trainingDatePicker{width:148px!important;max-width:148px!important;min-width:0!important;flex:none!important}
 
   /* Tabs: sticky + scrollbar-fri horisontal scroll */
-  .nav-tabs-wrap{position:sticky;top:0;z-index:90}
-  .nav-tabs{padding:0 .4rem;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-tabs-wrap{position:sticky;top:0;z-index:90;touch-action:pan-x;overflow:hidden}
+  .nav-tabs{padding:0 .4rem;gap:2px;overflow-x:scroll;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}
   .nav-tabs::-webkit-scrollbar{display:none}
   .nav-tab{padding:.48rem .65rem;font-size:.7rem;white-space:nowrap;flex-shrink:0}
 
@@ -7166,11 +7166,11 @@ function _getMemberWins(memberId){
 function _winBadgeHtml(memberId){
   const w=_getMemberWins(memberId);
   if(!w.month&&!w.halvaar&&!w.year) return '';
-  const esc=s=>s.replace(/"/g,'&quot;');
+  const sq=s=>s.replace(/'/g,'’'); // apostrof-safe single-quote encoding
   const parts=[];
-  if(w.month>0){const msg=esc(`📅 ${w.month>1?w.month+'× ':''}månedsvinder: ${w.monthLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">📅 ${w.month}</span>`);}
-  if(w.halvaar>0){const msg=esc(`🏅 ${w.halvaar>1?w.halvaar+'× ':''}halvårsvinder: ${w.halvaarLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">🏅 ${w.halvaar}</span>`);}
-  if(w.year>0){const msg=esc(`🏆 ${w.year>1?w.year+'× ':''}årsvinder: ${w.yearLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast(this.dataset.m)" data-m="${msg}" style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">🏆 ${w.year}</span>`);}
+  if(w.month>0){const m=sq(`📅 ${w.month>1?w.month+'× ':''}månedsvinder: ${w.monthLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast('${m}')" style="background:#dbeafe;color:#1e40af;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">📅 ${w.month}</span>`);}
+  if(w.halvaar>0){const m=sq(`🏅 ${w.halvaar>1?w.halvaar+'× ':''}halvårsvinder: ${w.halvaarLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast('${m}')" style="background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">🏅 ${w.halvaar}</span>`);}
+  if(w.year>0){const m=sq(`🏆 ${w.year>1?w.year+'× ':''}årsvinder: ${w.yearLabels.join(', ')}`);parts.push(`<span onclick="event.stopPropagation();showToast('${m}')" style="background:#fde68a;color:#78350f;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.62rem;margin-right:3px;cursor:pointer">🏆 ${w.year}</span>`);}
   return parts.join('');
 }
 
