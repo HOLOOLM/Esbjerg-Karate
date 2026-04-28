@@ -3214,7 +3214,7 @@ function _doPush(attempt){
     }
   });
 }
-function loadFromCloud(onDone){
+function loadFromCloud(onDone,_attempt){
   _invalidateMemberWinsCache();
   const url=config.scriptUrl;
   if(!url){if(onDone)onDone(false);return;}
@@ -3373,8 +3373,16 @@ function loadFromCloud(onDone){
     }else{setSyncStatus('error');}
     if(onDone)onDone(true);
   };
-  s.onerror=()=>{cleanup();setSyncStatus('error');if(onDone)onDone(false);};
-  timer=setTimeout(()=>{cleanup();setSyncStatus('error');showToast('⚠️ Google svarede ikke — prøv igen om et øjeblik');if(onDone)onDone(false);},10000);
+  s.onerror=()=>{
+    cleanup();
+    if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
+    else{setSyncStatus('error');if(onDone)onDone(false);}
+  };
+  timer=setTimeout(()=>{
+    cleanup();
+    if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
+    else{setSyncStatus('error');showToast('⚠️ Google svarede ikke — prøv igen om et øjeblik');if(onDone)onDone(false);}
+  },10000);
   s.src=url+'?callback='+cb+'&t='+Date.now();
   document.body.appendChild(s);
 }

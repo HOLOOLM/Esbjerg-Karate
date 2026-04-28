@@ -566,6 +566,17 @@ function fetchStudent(email, passwordHash, cb){
   document.head.appendChild(s);
 }
 
+function fetchStudentWithRetry(email, hash, cb, attempt){
+  if(attempt === undefined) attempt = 0;
+  fetchStudent(email, hash, function(err, d){
+    if(err && attempt < 2){
+      setTimeout(function(){ fetchStudentWithRetry(email, hash, cb, attempt + 1); }, 3000);
+    } else {
+      cb(err, d);
+    }
+  });
+}
+
 function showErr(msg){
   const err = document.getElementById('loginErr');
   err.textContent = msg; err.classList.add('show');
@@ -582,7 +593,7 @@ async function doLogin(){
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginStatus').classList.add('show');
   const hash = await sha256hex(pw);
-  fetchStudent(input, hash, (err, d)=>{
+  fetchStudentWithRetry(input, hash, (err, d)=>{
     if(err){ showErr('Could not fetch data: '+err.message); return; }
     if(!d || !d.ok){
       showErr(d && d.error ? d.error : 'We could not find a student with that email.');
@@ -614,7 +625,7 @@ async function doLogin(){
 let _bgRefreshTimer = null;
 function _startBgRefresh() {
   if (_bgRefreshTimer) clearInterval(_bgRefreshTimer);
-  _bgRefreshTimer = setInterval(_bgRefresh, 3 * 60 * 1000); // hvert 3. min
+  _bgRefreshTimer = setInterval(_bgRefresh, 5 * 60 * 1000); // hvert 5. min
 }
 function _bgRefresh() {
   if (!CURRENT) return; // ikke logget ind
