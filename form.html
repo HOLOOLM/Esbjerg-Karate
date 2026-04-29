@@ -639,7 +639,8 @@ async function submitForm() {
   btn.disabled = true;
   document.getElementById('submitTxt').innerHTML = '<span class="spinner"></span> ' + T.submitting[_lang];
 
-  const docData = buildDocumentCanvas();
+  let docData = '';
+  try { docData = buildDocumentCanvas(); } catch(canvasErr) { /* best-effort — fortsæt uden dokument */ }
   const bd  = new Date(document.getElementById('birthdate').value);
   const age = (today - bd) / (365.25 * 24 * 3600 * 1000);
 

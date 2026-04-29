@@ -1135,13 +1135,22 @@ function renderVideoSection(m) {
       const d = new Date(vm.uploadedAt); d.setDate(d.getDate()+30);
       return d.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
     })() : '';
+    const ageMin = vm.uploadedAt ? (Date.now() - new Date(vm.uploadedAt).getTime()) / 60000 : 999;
+    const processingNotice = ageMin < 10
+      ? `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px">
+           <span style="font-size:16px">⏳</span>
+           <div style="flex:1">Google Drive is still processing your video — usually takes 1–3 minutes.<br><span style="font-size:11px;opacity:.8">If it says "still processing", tap the button below to reload the player.</span></div>
+           <button onclick="reloadVideoPlayer('${escapeHtml(vm.videoId)}')" style="background:#f59e0b;color:#fff;border:0;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">↻ Reload</button>
+         </div>`
+      : '';
     box.innerHTML =
       `<div class="video-meta-row">
         ${vm.title ? `<span class="video-title-badge">🥋 ${escapeHtml(vm.title)}</span>` : ''}
         <span class="video-date-txt">Uploaded ${escapeHtml(uploadedDate)}</span>
       </div>
+      ${processingNotice}
       <div class="video-player-wrap">
-        <iframe src="https://drive.google.com/file/d/${escapeHtml(vm.videoId)}/preview" allow="autoplay" allowfullscreen></iframe>
+        <iframe id="videoPlayerIframe" src="https://drive.google.com/file/d/${escapeHtml(vm.videoId)}/preview" allow="autoplay" allowfullscreen></iframe>
       </div>
       <button class="video-delete-btn" onclick="deleteMyVideo()">🗑 Delete video</button>
       <div class="video-gdpr-note">🔒 Your trainers can view this video. It will be automatically deleted on ${escapeHtml(expiresDate)}.</div>`;
@@ -1157,7 +1166,8 @@ function renderVideoSection(m) {
         <div class="video-progress-bar"><div class="video-progress-fill" id="videoProgressFill" style="width:0%"></div></div>
         <div class="video-progress-txt" id="videoProgressTxt">Preparing…</div>
       </div>
-      <div class="video-gdpr-note" style="margin-top:10px">🔒 Only your trainers can view this video. It is automatically deleted after 30 days and you can delete it yourself at any time.</div>`;
+      <div class="video-gdpr-note" style="margin-top:10px">🔒 Only your trainers can view this video. It is automatically deleted after 30 days and you can delete it yourself at any time.</div>
+      <div class="video-gdpr-note" style="margin-top:6px">⏳ After uploading, it may take 1–5 minutes before your trainer can watch the video — longer videos may take a bit more time.</div>`;
   }
 }
 
@@ -1202,41 +1212,106 @@ function uploadVideo(file, title) {
 
   const reader = new FileReader();
   reader.onprogress = ev => {
-    if (ev.lengthComputable && fill) fill.style.width = Math.round(ev.loaded/ev.total*40) + '%';
+    if (!ev.lengthComputable) return;
+    const pct = Math.round(ev.loaded / ev.total * 35);
+    if (fill) fill.style.width = pct + '%';
+    if (txt)  txt.textContent = pct + '% — Reading video…';
   };
-  reader.onload = async () => {
-    if (fill) fill.style.width = '45%';
-    if (txt)  txt.textContent = 'Uploading to server…';
-    try {
-      const resp = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'text/plain'},
-        body: JSON.stringify({
-          action: 'uploadVideo',
-          memberId: memberId,
-          passwordHash: hash,
-          videoData: reader.result,
-          mimeType: file.type || 'video/mp4',
-          title: title
-        })
-      });
-      if (fill) fill.style.width = '95%';
-      const data = await resp.json();
-      if (data.ok && data.videoMeta) {
-        if (fill) fill.style.width = '100%';
-        if (txt)  txt.textContent = 'Upload complete ✓';
-        try { const vm = JSON.parse(data.videoMeta); if (CURRENT && CURRENT.member) CURRENT.member.videoMeta = data.videoMeta; } catch(e2) {}
-        setTimeout(() => renderVideoSection(CURRENT.member), 800);
-      } else {
-        throw new Error(data.error || 'Server error');
+  reader.onload = () => {
+    if (fill) fill.style.width = '38%';
+    if (txt)  txt.textContent = '38% — Preparing upload…';
+
+    const body = JSON.stringify({
+      action: 'uploadVideo',
+      memberId: memberId,
+      passwordHash: hash,
+      videoData: reader.result,
+      mimeType: file.type || 'video/mp4',
+      title: title
+    });
+
+    const xhr = new XMLHttpRequest();
+    let uploadStart = null;
+
+    xhr.upload.onprogress = ev => {
+      if (!ev.lengthComputable) return;
+      const pct = Math.round(38 + (ev.loaded / ev.total) * 55);
+      if (fill) fill.style.width = pct + '%';
+
+      if (!uploadStart) uploadStart = Date.now();
+      const elapsed = (Date.now() - uploadStart) / 1000;
+      const speed   = elapsed > 0.5 ? ev.loaded / elapsed : 0;
+      const remaining = speed > 0 ? (ev.total - ev.loaded) / speed : 0;
+      const speedTxt = speed > 0
+        ? (speed > 1048576 ? (speed/1048576).toFixed(1)+' MB/s' : Math.round(speed/1024)+' KB/s')
+        : '';
+      const remTxt = remaining > 1
+        ? (remaining > 60 ? Math.round(remaining/60)+'m left' : Math.round(remaining)+'s left')
+        : '';
+      if (txt) txt.textContent = pct + '%' + (speedTxt ? ' — ' + speedTxt : '') + (remTxt ? ' · ' + remTxt : '');
+    };
+
+    xhr.upload.onloadend = () => {
+      if (fill) fill.style.width = '94%';
+      if (txt)  txt.textContent = '94% — Saving to server…';
+    };
+
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (data.ok && data.videoMeta) {
+          if (fill) fill.style.width = '100%';
+          if (txt)  txt.textContent = '100% — Upload complete ✓';
+          try { if (CURRENT && CURRENT.member) CURRENT.member.videoMeta = data.videoMeta; } catch(e2) {}
+          sendVideoNotification(memberId, title);
+          setTimeout(() => renderVideoSection(CURRENT.member), 900);
+        } else {
+          if (prog) prog.style.display = 'none';
+          alert('Upload failed: ' + (data.error || 'Server error') + '. Please try again.');
+        }
+      } catch(e) {
+        if (prog) prog.style.display = 'none';
+        alert('Upload failed: unexpected server response. Please try again.');
       }
-    } catch(err) {
-      if (prog) prog.style.display = 'none';
-      alert('Upload failed: ' + err.message + '. Please try again.');
-    }
+    };
+
+    xhr.onerror = () => { if (prog) prog.style.display = 'none'; alert('Upload failed: network error. Please try again.'); };
+    xhr.ontimeout = () => { if (prog) prog.style.display = 'none'; alert('Timeout — please try again.'); };
+    xhr.timeout = 120000;
+
+    xhr.open('POST', SCRIPT_URL);
+    xhr.setRequestHeader('Content-Type', 'text/plain');
+    xhr.send(body);
   };
   reader.onerror = () => { if (prog) prog.style.display = 'none'; alert('Could not read the video file.'); };
   reader.readAsDataURL(file);
+}
+
+function sendVideoNotification(memberId, title) {
+  if (!CURRENT || !CURRENT.member) return;
+  const name = CURRENT.member.firstName + ' ' + CURRENT.member.lastName;
+  const text = '🎥 ' + name + ' has uploaded a new video' + (title ? ': "' + title + '"' : '') + ' — open their profile to watch it and give feedback.';
+  const cbName = '_vn' + Date.now();
+  const s = document.createElement('script');
+  const cleanup = () => { delete window[cbName]; if (s.parentNode) s.parentNode.removeChild(s); };
+  const notifTimer = setTimeout(() => cleanup(), 12000);
+  window[cbName] = () => { clearTimeout(notifTimer); cleanup(); };
+  s.onerror = () => { clearTimeout(notifTimer); cleanup(); };
+  s.src = SCRIPT_URL
+    + '?action=sendMessage'
+    + '&memberId=' + encodeURIComponent(memberId)
+    + '&senderName=' + encodeURIComponent(name)
+    + '&text=' + encodeURIComponent(text)
+    + '&callback=' + cbName
+    + '&t=' + Date.now();
+  document.head.appendChild(s);
+}
+
+function reloadVideoPlayer(videoId) {
+  const iframe = document.getElementById('videoPlayerIframe');
+  if (!iframe) return;
+  iframe.src = '';
+  setTimeout(() => { iframe.src = 'https://drive.google.com/file/d/' + videoId + '/preview'; }, 300);
 }
 
 function deleteMyVideo() {

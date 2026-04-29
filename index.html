@@ -1884,6 +1884,7 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
       <input type="file" id="photoFileInput" accept="image/*" capture="user" style="display:none" onchange="onPhotoFileSelected(event)"/>
     </div>
     <div id="blanketModalSection" style="display:none;margin:.75rem 0 0;padding:.75rem 1rem;background:#f0fdf4;border-radius:10px;border:1px solid #86efac"></div>
+    <div id="videoModalSection" style="display:none;margin:.5rem 0 0;padding:.75rem 1rem;background:#f0f4ff;border-radius:10px;border:1px solid #c7d2fe"></div>
     <div class="fg">
       <div class="fgrp"><label>Fornavn *</label><input type="text" id="fFN" placeholder="Lars" oninput="renderPhotoPreview()"/></div>
       <div class="fgrp"><label>Efternavn *</label><input type="text" id="fLN" placeholder="Jensen" oninput="renderPhotoPreview()"/></div>
@@ -1969,7 +1970,6 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     </div>
     <div id="memberAttendanceSection" style="display:none;margin-top:1rem;padding:.85rem 1rem;background:#f0faf5;border-radius:10px;border:1px solid #bbf7d0"></div>
     <div id="beltHistorySection" style="display:none;margin-top:.75rem;padding:.75rem 1rem;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0"></div>
-    <div id="videoModalSection" style="display:none;margin-top:.75rem;padding:.75rem 1rem;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0"></div>
     <div class="fgrp full" style="background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;padding:.75rem 1rem;margin-top:.5rem">
       <label style="font-weight:700">🔑 Adgangskode til elev-appen</label>
       <div id="pwStatusLine" style="font-size:.76rem;margin:.3rem 0 .5rem;color:#64748b"></div>
@@ -2368,6 +2368,29 @@ footer{text-align:center;padding:1.3rem;font-size:.74rem;color:var(--xtl);border
     <div class="ma">
       <button class="btn bg" onclick="closeModal('settingsModal')">Luk</button>
       <button class="btn bp" onclick="saveSettings()">💾 Gem</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: VIDEO VISNING ══ -->
+<div class="mbd" id="videoViewModal">
+  <div class="modal" style="max-width:580px">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>🎥</span><span id="videoViewTitle">Video</span></div>
+      <button class="mclose" onclick="closeModal('videoViewModal')">✕</button>
+    </div>
+    <div id="videoViewMeta" style="font-size:.78rem;color:var(--xtl);margin-bottom:.6rem"></div>
+    <div style="border-radius:10px;overflow:hidden;background:#000;margin-bottom:.8rem">
+      <iframe id="videoViewIframe" src="" style="display:block;width:100%;height:300px;border:0" allow="autoplay" allowfullscreen></iframe>
+    </div>
+    <div id="videoViewProcessing" style="display:none;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;margin-bottom:.8rem;font-size:13px;color:#92400e">
+      ⏳ Google Drive behandler stadig videoen — prøv at genindlæse afspilleren om 1–2 minutter.
+      <button onclick="reloadVideoViewIframe()" style="margin-left:8px;background:#f59e0b;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer">↻ Genindlæs</button>
+    </div>
+    <div class="mf" style="flex-wrap:wrap;gap:.5rem">
+      <button class="btn bg" onclick="closeModal('videoViewModal')">Luk</button>
+      <button class="btn bp" id="videoViewAssessBtn">📋 Opret vurdering</button>
+      <button class="btn bg" id="videoViewDeleteBtn" style="color:#dc2626;border-color:#fca5a5;margin-left:auto">🗑 Slet video</button>
     </div>
   </div>
 </div>
@@ -3671,6 +3694,17 @@ function birthdayBadge(m){
   if(bestDiff>0) return ` <span title="Fødselsdag om ${bestDiff} dag${bestDiff===1?'':'e'}" style="font-size:.78rem;color:#d97706">🎂${bestDiff}d</span>`;
   return ` <span title="Havde fødselsdag for ${Math.abs(bestDiff)} dage siden" style="font-size:.78rem;color:#94a3b8">🎂-${Math.abs(bestDiff)}d</span>`;
 }
+function videoBadge(m){
+  if(!m||!m.videoMeta) return '';
+  try{
+    const vm=JSON.parse(m.videoMeta);
+    if(!vm||!vm.videoId) return '';
+    const title=vm.title?` · ${vm.title}`:'';
+    const ageMin=vm.uploadedAt?(Date.now()-new Date(vm.uploadedAt).getTime())/60000:999;
+    const isNew=ageMin<1440;
+    return ` <span onclick="event.stopPropagation();openVideoModal(${m.id})" title="Video uploadet af eleven${title}" style="cursor:pointer;font-size:.78rem;background:${isNew?'#fef3c7':'#e8f0f0'};color:${isNew?'#92400e':'var(--xtm)'};border-radius:20px;padding:1px 7px;font-weight:600;vertical-align:middle">🎥${isNew?' Ny':''}${title}</span>`;
+  }catch(e){return '';}
+}
 function updateBirthdayBanner(){
   const bds=getBirthdays(6,6);
   const el=document.getElementById('birthdayBanner');
@@ -4346,7 +4380,7 @@ function _promoCardReady(s){
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
-      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>${_promoEmailBtn(m.id)}</span>
+      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
 }
@@ -4375,7 +4409,7 @@ function _promoCardAlmost(s){
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
-      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>${_promoEmailBtn(m.id)}</span>
+      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
 }
@@ -4407,9 +4441,17 @@ function _promoCardOverdue(o){
     </div>
     <div class="promo-meta">
       <span>🥋 ${o.never?'Ingen vurderinger':o.info.trainingDaysSince+' træninger siden'}</span>
-      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>${_promoEmailBtn(m.id)}</span>
+      <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
+}
+function _videoChip(m){
+  try{
+    const vm=m&&m.videoMeta?JSON.parse(m.videoMeta):null;
+    if(!vm||!vm.videoId) return '';
+    const t=vm.title?` · ${vm.title}`:'';
+    return `<span onclick="event.stopPropagation();openVideoModal(${m.id})" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:#e0e7ff;color:#4338ca;border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:700">🎥 Video${t}</span>`;
+  }catch(e){return '';}
 }
 function _promoFormatDate(ymd){
   if(!ymd) return '—';
@@ -4593,7 +4635,10 @@ function openPromoDetail(memberId){
       </div>`;
     }
   }
-  topHtml+=`<div style="display:flex;justify-content:flex-end;margin-bottom:.75rem">
+  let videoBtn='';
+  try{ const vm2=m.videoMeta?JSON.parse(m.videoMeta):null; if(vm2&&vm2.videoId) videoBtn=`<button class="btn bg btn-sm" style="font-size:.8rem" onclick="closePromoDetail();setTimeout(()=>openVideoModal(${memberId}),150)">🎥 Se video</button>`; }catch(e){}
+  topHtml+=`<div style="display:flex;justify-content:flex-end;gap:.5rem;margin-bottom:.75rem">
+    ${videoBtn}
     <button class="btn bp btn-sm" style="font-size:.8rem" onclick="closePromoDetail();openAssessmentModal(${memberId})">📋 Ny vurdering</button>
   </div>`;
   document.getElementById('promoDetailTop').innerHTML=topHtml;
@@ -4839,7 +4884,7 @@ function renderT(){
       </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td>${grpChip(m.group)}</td>
@@ -5107,7 +5152,7 @@ function renderM(){
     tr.innerHTML=`
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
+        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
@@ -8358,43 +8403,47 @@ function renderBlanketModalSection(m){
   </div>`;
 }
 
-let _videoModalMemberId = null;
-
 function renderVideoModalSection(m){
   const sec=document.getElementById('videoModalSection');
   if(!sec) return;
-  _videoModalMemberId = m ? m.id : null;
   let vm=null;
   try{ if(m && m.videoMeta) vm=JSON.parse(m.videoMeta); }catch(e){}
   if(!vm || !vm.videoId){ sec.style.display='none'; return; }
   sec.style.display='';
   const uploadedDate=vm.uploadedAt ? new Date(vm.uploadedAt).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}) : '';
-  const driveUrl='https://drive.google.com/file/d/'+encodeURIComponent(vm.videoId)+'/preview';
-  sec.innerHTML=`<div style="font-size:.78rem;font-weight:700;color:var(--td);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem">
-    🎥 Video fra eleven
-    ${vm.title?`<span style="background:#e8f0f0;border-radius:20px;padding:2px 10px;font-size:.72rem;color:var(--xtm)">${escHtml(vm.title)}</span>`:''}
-    <span style="font-size:.7rem;font-weight:400;color:var(--xtl);margin-left:auto">${escHtml(uploadedDate)}</span>
-  </div>
-  <div style="border-radius:8px;overflow:hidden;background:#000;margin-bottom:.6rem">
-    <iframe src="${escHtml(driveUrl)}" style="display:block;width:100%;height:200px;border:0" allow="autoplay" allowfullscreen></iframe>
-  </div>
-  <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-    <button class="btn bp btn-sm" onclick="openAssessmentModalFromVideo(${m.id},${JSON.stringify(vm.title||'').replace(/</g,'&lt;')})">⭐ Opret vurdering fra video</button>
-    <button class="btn bg btn-sm" style="color:#dc2626;border-color:#fca5a5" onclick="trainerDeleteVideo(${m.id})">🗑 Slet video</button>
+  sec.innerHTML=`<div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+    <span style="font-size:1.1rem">🎥</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:.78rem;font-weight:700;color:var(--td)">Video uploadet af eleven</div>
+      <div style="font-size:.72rem;color:var(--xtm)">${vm.title?escHtml(vm.title)+' · ':''}${escHtml(uploadedDate)}</div>
+    </div>
+    <button class="btn bp btn-sm" onclick="safeCloseModal('memberModal');setTimeout(()=>openVideoModal(${m.id}),200)">▶ Se video</button>
   </div>`;
 }
 
-function openAssessmentModalFromVideo(memberId, videoTitle){
-  closeModal('memberModal');
-  setTimeout(()=>{
-    openAssessmentModal(memberId);
-    if(videoTitle){
-      setTimeout(()=>{
-        const commentEl=document.getElementById('assessComment');
-        if(commentEl && !commentEl.value) commentEl.value='Video: '+videoTitle;
-      }, 300);
-    }
-  }, 150);
+function openVideoModal(memberId){
+  const m=members.find(x=>x.id===memberId);
+  if(!m) return;
+  let vm=null;
+  try{ if(m.videoMeta) vm=JSON.parse(m.videoMeta); }catch(e){}
+  if(!vm||!vm.videoId) return;
+  const name=m.firstName+' '+m.lastName;
+  const title=vm.title||'';
+  const uploadedDate=vm.uploadedAt ? new Date(vm.uploadedAt).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const ageMin=vm.uploadedAt?(Date.now()-new Date(vm.uploadedAt).getTime())/60000:999;
+  document.getElementById('videoViewTitle').textContent=name+(title?' — '+title:'');
+  document.getElementById('videoViewMeta').textContent=uploadedDate?'Uploadet '+uploadedDate:'';
+  document.getElementById('videoViewIframe').src='https://drive.google.com/file/d/'+encodeURIComponent(vm.videoId)+'/preview';
+  document.getElementById('videoViewProcessing').style.display=ageMin<10?'':'none';
+  document.getElementById('videoViewAssessBtn').onclick=()=>{ closeModal('videoViewModal'); setTimeout(()=>openAssessmentModal(memberId),150); };
+  document.getElementById('videoViewDeleteBtn').onclick=()=>trainerDeleteVideo(memberId);
+  openModal('videoViewModal');
+}
+
+function reloadVideoViewIframe(){
+  const iframe=document.getElementById('videoViewIframe');
+  if(!iframe) return;
+  const src=iframe.src; iframe.src=''; setTimeout(()=>{ iframe.src=src; },300);
 }
 
 function trainerDeleteVideo(memberId){
@@ -8412,7 +8461,9 @@ function trainerDeleteVideo(memberId){
   }
   m.videoMeta='';
   save(); pushToCloudNow();
+  closeModal('videoViewModal');
   renderVideoModalSection(m);
+  renderT(); renderM();
 }
 
 function resetMemberPassword(){
