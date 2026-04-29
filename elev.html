@@ -96,6 +96,33 @@ body{min-height:100vh}
 
 .streak-box{background:linear-gradient(90deg,#fff7ed,#fef3c7);border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
 
+/* Video-sektion */
+.video-upload-area{border:2px dashed #c8d4d4;border-radius:10px;padding:20px;text-align:center;background:#fafcfc;cursor:pointer;transition:border-color .15s,background .15s}
+.video-upload-area:hover{border-color:var(--xtm);background:#f0f5f5}
+.video-upload-icon{font-size:32px;margin-bottom:8px}
+.video-upload-txt{font-size:14px;font-weight:600;color:var(--xtd);margin-bottom:4px}
+.video-upload-sub{font-size:12px;color:var(--muted)}
+.video-progress{margin-top:12px;display:none}
+.video-progress-bar{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin-bottom:6px}
+.video-progress-fill{height:100%;background:var(--xtd);border-radius:3px;transition:width .3s}
+.video-progress-txt{font-size:12px;color:var(--muted);text-align:center}
+.video-player-wrap{border-radius:10px;overflow:hidden;background:#000;margin-bottom:10px}
+.video-player-wrap iframe{display:block;width:100%;height:220px;border:0}
+.video-meta-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.video-title-badge{background:#f0f5f5;border:1px solid #d5dcdc;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--xtd)}
+.video-date-txt{font-size:12px;color:var(--muted)}
+.video-delete-btn{background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.video-delete-btn:hover{background:#fecaca}
+.video-gdpr-note{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 12px;font-size:12px;color:#15803d;margin-top:10px}
+
+/* Indmeldelsesblanket */
+.blanket-ok{background:linear-gradient(90deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.blanket-ok-icon{font-size:22px;flex-shrink:0}
+.blanket-ok-txt{flex:1;min-width:0}
+.blanket-ok-title{font-size:13px;font-weight:700;color:#15803d;margin-bottom:2px}
+.blanket-ok-sub{font-size:12px;color:#166534}
+.blanket-ok-link{font-size:12px;font-weight:600;color:#15803d;text-decoration:underline;cursor:pointer}
+
 /* Beskeder */
 .msg-bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.45;max-width:88%;word-break:break-word}
 .msg-bubble.trainer{background:var(--xtd);color:#fff;border-radius:12px 12px 4px 12px;align-self:flex-end}
@@ -322,6 +349,16 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <h3>🏅 Belt journey</h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Your progression through the belts</div>
       <div id="beltHistoryBox"></div>
+    </div>
+
+    <div class="card" id="videoCard">
+      <h3>🎥 Get Trainer Feedback</h3>
+      <div id="videoContent"></div>
+    </div>
+
+    <div class="card" id="blanketCard" style="display:none">
+      <h3>📄 Indmeldelsesblanket</h3>
+      <div id="blanketContent"></div>
     </div>
 
     <div class="card">
@@ -657,6 +694,15 @@ function _bgRefresh() {
     }
     // Opdater besked-notifikations-badge
     updateMsgNotifBadge();
+    // Opdater videoMeta (auto-sletning kan have ryddet den på serveren)
+    if (CURRENT.member && d.member) {
+      const oldMeta = CURRENT.member.videoMeta || '';
+      const newMeta = d.member.videoMeta || '';
+      if (oldMeta !== newMeta) {
+        CURRENT.member.videoMeta = newMeta;
+        renderVideoSection(CURRENT.member);
+      }
+    }
   });
 }
 
@@ -1069,6 +1115,164 @@ function doLogout(){
 function initials(f,l){ return ((f||'')[0]||'') + ((l||'')[0]||''); }
 function photoUrl(id, sz){ return 'https://lh3.googleusercontent.com/d/'+id+'=s'+(sz||160); }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── Video-sektion ─────────────────────────────────────────
+function renderVideoSection(m) {
+  const card = document.getElementById('videoCard');
+  const box = document.getElementById('videoContent');
+  if (!box) return;
+  if (CURRENT && CURRENT.videoEnabled === false) {
+    if (card) card.style.display = 'none';
+    return;
+  }
+  if (card) card.style.display = '';
+  let vm = null;
+  try { if (m.videoMeta) vm = JSON.parse(m.videoMeta); } catch(e) {}
+
+  if (vm && vm.videoId) {
+    const uploadedDate = vm.uploadedAt ? new Date(vm.uploadedAt).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}) : '';
+    const expiresDate = vm.uploadedAt ? (() => {
+      const d = new Date(vm.uploadedAt); d.setDate(d.getDate()+30);
+      return d.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
+    })() : '';
+    box.innerHTML =
+      `<div class="video-meta-row">
+        ${vm.title ? `<span class="video-title-badge">🥋 ${escapeHtml(vm.title)}</span>` : ''}
+        <span class="video-date-txt">Uploaded ${escapeHtml(uploadedDate)}</span>
+      </div>
+      <div class="video-player-wrap">
+        <iframe src="https://drive.google.com/file/d/${escapeHtml(vm.videoId)}/preview" allow="autoplay" allowfullscreen></iframe>
+      </div>
+      <button class="video-delete-btn" onclick="deleteMyVideo()">🗑 Delete video</button>
+      <div class="video-gdpr-note">🔒 Your trainers can view this video. It will be automatically deleted on ${escapeHtml(expiresDate)}.</div>`;
+  } else {
+    box.innerHTML =
+      `<div class="video-upload-area" onclick="document.getElementById('videoFileInput').click()">
+        <div class="video-upload-icon">🎥</div>
+        <div class="video-upload-txt">Upload a video for trainer feedback</div>
+        <div class="video-upload-sub">Record a technique from your pensum — max 90 sec · Max 50 MB · MP4 or MOV</div>
+      </div>
+      <input type="file" id="videoFileInput" accept="video/*" style="display:none" onchange="onVideoSelected(event)">
+      <div class="video-progress" id="videoProgress">
+        <div class="video-progress-bar"><div class="video-progress-fill" id="videoProgressFill" style="width:0%"></div></div>
+        <div class="video-progress-txt" id="videoProgressTxt">Preparing…</div>
+      </div>
+      <div class="video-gdpr-note" style="margin-top:10px">🔒 Only your trainers can view this video. It is automatically deleted after 30 days and you can delete it yourself at any time.</div>`;
+  }
+}
+
+function onVideoSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (file.size > 50 * 1024 * 1024) {
+    alert('The video is too large (max 50 MB). Try compressing it or recording a shorter clip.');
+    e.target.value = '';
+    return;
+  }
+  const tmpUrl = URL.createObjectURL(file);
+  const vid = document.createElement('video');
+  vid.src = tmpUrl;
+  vid.preload = 'metadata';
+  vid.onloadedmetadata = () => {
+    URL.revokeObjectURL(tmpUrl);
+    if (vid.duration > 95) {
+      alert('The video is too long (' + Math.round(vid.duration) + ' sec). Maximum is 90 seconds.');
+      e.target.value = '';
+      return;
+    }
+    const title = prompt('What does the video show? (e.g. "Taezu 1-2")', '') || '';
+    uploadVideo(file, title);
+  };
+  vid.onerror = () => { URL.revokeObjectURL(tmpUrl); uploadVideo(file, ''); };
+}
+
+function uploadVideo(file, title) {
+  const email = sessionStorage.getItem('kk2_student_email');
+  const hash  = sessionStorage.getItem('kk2_student_hash');
+  if (!email || !hash || !CURRENT) return;
+  const memberId = CURRENT.member && CURRENT.member.id;
+  if (!memberId) return;
+
+  const prog = document.getElementById('videoProgress');
+  const fill = document.getElementById('videoProgressFill');
+  const txt  = document.getElementById('videoProgressTxt');
+  if (prog) prog.style.display = '';
+  if (fill) fill.style.width = '5%';
+  if (txt)  txt.textContent = 'Reading video…';
+
+  const reader = new FileReader();
+  reader.onprogress = ev => {
+    if (ev.lengthComputable && fill) fill.style.width = Math.round(ev.loaded/ev.total*40) + '%';
+  };
+  reader.onload = async () => {
+    if (fill) fill.style.width = '45%';
+    if (txt)  txt.textContent = 'Uploading to server…';
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'text/plain'},
+        body: JSON.stringify({
+          action: 'uploadVideo',
+          memberId: memberId,
+          passwordHash: hash,
+          videoData: reader.result,
+          mimeType: file.type || 'video/mp4',
+          title: title
+        })
+      });
+      if (fill) fill.style.width = '95%';
+      const data = await resp.json();
+      if (data.ok && data.videoMeta) {
+        if (fill) fill.style.width = '100%';
+        if (txt)  txt.textContent = 'Upload complete ✓';
+        try { const vm = JSON.parse(data.videoMeta); if (CURRENT && CURRENT.member) CURRENT.member.videoMeta = data.videoMeta; } catch(e2) {}
+        setTimeout(() => renderVideoSection(CURRENT.member), 800);
+      } else {
+        throw new Error(data.error || 'Server error');
+      }
+    } catch(err) {
+      if (prog) prog.style.display = 'none';
+      alert('Upload failed: ' + err.message + '. Please try again.');
+    }
+  };
+  reader.onerror = () => { if (prog) prog.style.display = 'none'; alert('Could not read the video file.'); };
+  reader.readAsDataURL(file);
+}
+
+function deleteMyVideo() {
+  if (!confirm('Are you sure you want to delete your video?')) return;
+  const hash = sessionStorage.getItem('kk2_student_hash');
+  if (!CURRENT || !CURRENT.member) return;
+  const memberId = CURRENT.member.id;
+  const name = '_dv' + Date.now();
+  const s = document.createElement('script');
+  let timer;
+  const cleanup = () => { clearTimeout(timer); delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); };
+  window[name] = d => { cleanup(); if (d && d.ok) { CURRENT.member.videoMeta = ''; renderVideoSection(CURRENT.member); } else { alert('Could not delete video. Please try again.'); } };
+  timer = setTimeout(() => { cleanup(); alert('Timeout — please try again.'); }, 12000);
+  s.src = SCRIPT_URL + '?action=deleteVideo&memberId=' + encodeURIComponent(memberId) + '&passwordHash=' + encodeURIComponent(hash) + '&callback=' + name + '&t=' + Date.now();
+  document.head.appendChild(s);
+}
+
+// ── Indmeldelsesblanket-sektion ───────────────────────────
+function renderBlanketSection(m) {
+  const card = document.getElementById('blanketCard');
+  const box  = document.getElementById('blanketContent');
+  if (!card || !box) return;
+  if (!m.registrationDocId) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  const dateStr = m.registrationDate ? new Date(m.registrationDate).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const driveUrl = 'https://drive.google.com/file/d/' + encodeURIComponent(m.registrationDocId) + '/view';
+  box.innerHTML =
+    `<div class="blanket-ok">
+      <div class="blanket-ok-icon">✅</div>
+      <div class="blanket-ok-txt">
+        <div class="blanket-ok-title">Blanket underskrevet</div>
+        <div class="blanket-ok-sub">${dateStr ? 'Dato: ' + escapeHtml(dateStr) : 'Dato ukendt'}</div>
+      </div>
+      <a class="blanket-ok-link" href="${escapeHtml(driveUrl)}" target="_blank" rel="noopener">Se blanket ↗</a>
+    </div>`;
+}
 
 function fmtDate(d){
   if(!d) return '—';
@@ -1611,6 +1815,10 @@ function renderDashboard(d){
         '<div class="skill-avg">'+curr.toFixed(1).replace('.',',')+'<span style="color:'+starColor+'"> ★</span> '+trendMark(curr,prev)+'<span class="chev" style="font-size:14px;color:'+chevColor+'">›</span></div></div>';
     }).join('');
   }
+
+  // Video & blanket
+  renderVideoSection(m);
+  renderBlanketSection(m);
 
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('dashView').classList.add('show');
