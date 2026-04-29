@@ -11716,9 +11716,14 @@ function renderThread(memberId){
         if(isOwn&&readByList.length){
           readInfo=`<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><span style="font-size:.65rem;color:#9aacac">👁️</span><span style="display:inline-flex;padding-left:5px">${readByList.map(_readerAvatarHtml).join('')}</span></div>`;
         }
+        const isVideoNotif = msg.sender==='student' && msg.text.startsWith('🎥');
+        const videoBtn = isVideoNotif
+          ? `<div style="margin-top:.5rem"><button onclick="closeInbox();setTimeout(()=>openVideoModal(${memberId}),200)" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:.3rem .75rem;font-size:.78rem;font-weight:700;cursor:pointer">▶ Se video</button></div>`
+          : '';
         return `<div style="display:flex;flex-direction:column;align-items:${msg.sender==='trainer'?'flex-end':'flex-start'}">
           ${tagChip}
           <div class="inbox-msg ${msg.sender}">${msg.text.replace(/</g,'&lt;')}
+            ${videoBtn}
             <div class="inbox-msg-meta">${msg.senderName||''} · ${formatMsgDate(msg.date)}</div>
           </div>
           ${readInfo}
