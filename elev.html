@@ -1275,9 +1275,9 @@ function uploadVideo(file, title) {
       }
     };
 
-    xhr.onerror = () => { if (prog) prog.style.display = 'none'; alert('Upload failed: network error. Please try again.'); };
-    xhr.ontimeout = () => { if (prog) prog.style.display = 'none'; alert('Timeout — please try again.'); };
-    xhr.timeout = 120000;
+    xhr.onerror = () => { if (prog) prog.style.display = 'none'; alert('Upload failed: network error. Please try again.\n\nTip: Check your internet connection and make sure the file is under 50 MB.'); };
+    xhr.ontimeout = () => { if (prog) prog.style.display = 'none'; alert('Upload timed out — the video may be too large or your connection too slow. Please try a shorter/smaller video.'); };
+    xhr.timeout = 360000;
 
     xhr.open('POST', SCRIPT_URL);
     xhr.setRequestHeader('Content-Type', 'text/plain');
