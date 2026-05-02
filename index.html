@@ -998,7 +998,7 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 #page-promotion{max-width:1420px!important}#page-promotion h1,#page-promotion .st,#page-promotion .promo-name{font-family:Georgia,'Times New Roman',serif!important;font-weight:500!important;color:var(--dojo-ink)!important;letter-spacing:-.035em}#page-promotion .promo-controls,#page-promotion .promo-card,#page-promotion .promo-stat{background:linear-gradient(135deg,var(--dojo-card),var(--dojo-soft2))!important;border:1px solid var(--dojo-line)!important;border-radius:18px!important;box-shadow:var(--dojo-shadow)!important}#page-promotion .promo-card{padding:18px!important}#page-promotion .promo-stat{padding:18px!important}#page-promotion .promo-score,#page-promotion .promo-badge{font-family:Georgia,'Times New Roman',serif!important}#page-promotion .promo-controls input,#page-promotion .promo-controls select{background:#fffefa!important;border:1px solid var(--dojo-line2)!important;border-radius:10px!important}
 @media(max-width:980px){#page-dashboard .dash-pro-row{grid-template-columns:1fr!important}#db-groups-box{grid-template-columns:1fr 1fr!important}#page-dashboard > #dashboardStats{grid-template-columns:1fr 1fr!important}#presenceNameGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:760px){header{min-height:58px!important;padding:8px 12px!important}.hsub,.hdate{display:none!important}.nav-tabs-wrap{top:58px!important;overflow-x:auto!important}.nav-tabs{display:flex!important;min-width:max-content!important}.nav-tab{font-size:12px!important;padding:10px 12px!important;white-space:nowrap!important}.page{padding:14px 12px 86px!important}.dashboard-editorial-hero,.members-editorial-hero{padding:20px!important;border-radius:18px!important}.dashboard-editorial-hero h1,.members-editorial-hero h1,.training-editorial-head h1{font-size:38px!important}.dashboard-corner-badge,.members-corner-badge{display:none!important}.training-program-card{padding:20px 18px 76px 18px!important;min-height:auto!important}.training-corner-badge{width:62px!important;height:62px!important;right:12px!important;bottom:10px!important;opacity:.23!important}.training-date-row,.training-action-row,.members-action-row{display:grid!important;grid-template-columns:1fr 1fr!important}.training-date-row label{grid-column:1/-1;height:auto!important;font-size:10px!important}.tile-action-btn,.training-date-row .btn,.training-date-row #trainingDatePicker{width:100%!important;height:42px!important}.training-filter-row,.members-filter-row{display:grid!important;grid-template-columns:1fr!important}.training-filter-row select.fs,.members-filter-row select.fs{width:100%!important}#page-training > #statsGrid,#page-dashboard > #dashboardStats{grid-template-columns:1fr!important;gap:10px!important}#page-training > #statsGrid .stat-card:nth-child(2),#page-training > #statsGrid .stat-card:nth-child(n+4),#page-dashboard > #dashboardStats .stat-card{min-height:88px!important;padding:16px!important}.tcard{overflow-x:auto!important}.tcard table{min-width:760px!important}#page-dashboard .dash-pro-row{grid-template-columns:1fr!important}.top3-hdr{justify-content:flex-start!important}.top3-hdr .top3-ctrls{width:100%!important;overflow-x:auto!important}.top3-cols{grid-template-columns:1fr!important;padding:14px!important}.top3-cols>*:nth-child(1){transform:none!important}#db-groups-box{grid-template-columns:1fr!important}#page-dashboard .chart-area{height:210px!important;margin-left:30px!important;overflow-x:auto!important}.modal{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important}#presenceModal>div{width:min(390px,calc(100vw - 20px))!important}#presenceNameGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:0 12px 10px!important}#presenceNameGrid>*{min-height:82px!important}#presenceNameGrid img{width:42px!important;height:42px!important}#presenceModal h3{font-size:25px!important}#presenceModal button[onclick="confirmPresenceName()"]{height:42px!important;margin-bottom:12px!important}}
-@media(max-width:420px){.hdr-actions{display:none!important}.dashboard-editorial-hero h1,.members-editorial-hero h1,.training-editorial-head h1{font-size:34px!important}#presenceModal{padding:8px!important}#presenceModal>div{width:calc(100vw - 16px)!important;border-radius:22px!important}#presenceNameGrid>*{min-height:78px!important}#presenceNameGrid img{width:38px!important;height:38px!important}}
+@media(max-width:420px){.hdr-actions{display:flex!important}.dashboard-editorial-hero h1,.members-editorial-hero h1,.training-editorial-head h1{font-size:34px!important}#presenceModal{padding:8px!important}#presenceModal>div{width:calc(100vw - 16px)!important;border-radius:22px!important}#presenceNameGrid>*{min-height:78px!important}#presenceNameGrid img{width:38px!important;height:38px!important}}
 
 /* COPILOT FINAL POLISH: LOGIN ANIMATION, PRESENCE COPY, MEMBERS ICON, EDIT MODAL */
 /* shared card styling from selected version */
@@ -1222,16 +1222,19 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 
 
 /* ═════════════════════════════════════════════════════════════
-   COPILOT MOBILE HEADER ACTIONS RESTORE v1
-   Restores mobile header actions that were hidden at <=420px:
-   sync status, logged-in/presence bar, inbox, archive, search, settings.
-   Scope: mobile header only. No JS/functions changed.
+   COPILOT MOBILE HEADER ACTIONS RESTORE v2
+   Stronger fix: header action row is always visible on mobile.
+   Shows sync, current logged-in instructor, inbox, archive, search and settings.
+   Scope: mobile header only. Desktop unchanged.
 ═════════════════════════════════════════════════════════════ */
-@media(max-width:480px){
+@media(max-width:640px){
   header{
-    min-height:auto!important;
     height:auto!important;
+    min-height:auto!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
     align-items:center!important;
+    justify-content:flex-start!important;
     gap:6px!important;
     padding:8px 10px 9px!important;
   }
@@ -1239,36 +1242,44 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
     flex:0 0 100%!important;
     width:100%!important;
     min-width:0!important;
+    display:flex!important;
   }
   header .hdr-actions{
     display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
     flex:0 0 100%!important;
     width:100%!important;
-    margin-left:0!important;
-    justify-content:flex-start!important;
-    align-items:center!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:2px 0 0!important;
     gap:6px!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
     flex-wrap:nowrap!important;
     overflow-x:auto!important;
     overflow-y:hidden!important;
     -webkit-overflow-scrolling:touch!important;
     scrollbar-width:none!important;
-    padding:2px 0 0!important;
     min-height:40px!important;
   }
   header .hdr-actions::-webkit-scrollbar{display:none!important;}
   header .hdr-actions .hdate,
-  header .hdr-actions .hsub{display:none!important;}
+  header .hdr-actions .hsub,
   header .hdr-actions .hdr-lbl{display:none!important;}
   header .hdr-actions .btn,
   header .hdr-actions .notif-btn{
+    display:inline-flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
     flex:0 0 auto!important;
     width:auto!important;
     min-width:38px!important;
     height:38px!important;
     min-height:38px!important;
     padding:0 10px!important;
-    display:inline-flex!important;
     align-items:center!important;
     justify-content:center!important;
     border-radius:10px!important;
@@ -1277,10 +1288,15 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
   }
   header #syncStatus,
   header #presenceBar{
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
     flex:0 0 auto!important;
     min-height:34px!important;
-    max-width:150px!important;
+    max-width:155px!important;
     align-items:center!important;
+    gap:4px!important;
     overflow:hidden!important;
     text-overflow:ellipsis!important;
     white-space:nowrap!important;
@@ -1288,49 +1304,31 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
     padding:.28rem .55rem!important;
     font-size:.7rem!important;
   }
-  header #presenceBar{
-    max-width:180px!important;
-  }
-  .nav-tabs-wrap{
-    top:94px!important;
-  }
+  header #presenceBar:empty,
+  header #syncStatus:empty{display:none!important;}
+  .nav-tabs-wrap{top:94px!important;}
 }
 @media(max-width:420px){
-  header .hdr-actions{
-    display:flex!important;
-  }
-  header #syncStatus{max-width:92px!important;}
-  header #presenceBar{max-width:132px!important;}
+  header .hdr-actions{display:flex!important;visibility:visible!important;}
+  header #syncStatus{max-width:96px!important;}
+  header #presenceBar{max-width:136px!important;}
   header .hdr-actions .btn,
   header .hdr-actions .notif-btn{
-    min-width:36px!important;
-    height:36px!important;
-    min-height:36px!important;
-    padding:0 9px!important;
+    min-width:36px!important;height:36px!important;min-height:36px!important;padding:0 9px!important;
   }
-  .nav-tabs-wrap{
-    top:92px!important;
-  }
+  .nav-tabs-wrap{top:92px!important;}
 }
 @media(max-width:360px){
-  header #syncStatus{max-width:78px!important;}
-  header #presenceBar{max-width:112px!important;}
-  header .hdr-actions{
-    gap:5px!important;
-  }
+  header .hdr-actions{gap:5px!important;}
+  header #syncStatus{max-width:82px!important;}
+  header #presenceBar{max-width:118px!important;}
   header .hdr-actions .btn,
   header .hdr-actions .notif-btn{
-    min-width:34px!important;
-    height:34px!important;
-    min-height:34px!important;
-    padding:0 8px!important;
-    font-size:.9rem!important;
+    min-width:34px!important;height:34px!important;min-height:34px!important;padding:0 8px!important;font-size:.9rem!important;
   }
-  .nav-tabs-wrap{
-    top:90px!important;
-  }
+  .nav-tabs-wrap{top:90px!important;}
 }
-/* END COPILOT MOBILE HEADER ACTIONS RESTORE v1 */
+/* END COPILOT MOBILE HEADER ACTIONS RESTORE v2 */
 
 </style>
 </head>
@@ -3339,6 +3337,7 @@ function setPresenceName(name){
   sessionStorage.setItem('kk2_presence_name',name);
   sessionStorage.setItem('kk2_presence_id',String(_myPresenceMemberId));
   document.getElementById('presenceModal').style.display='none';
+  try{updatePresenceBar([{name:_myPresenceName,loginTime:new Date().toISOString(),lastActivity:_lastActivityTs,page:getActivePage()}]);}catch(e){}
   startPresence();
   // Per-træner ulæst-badge skal opdateres nu hvor vi ved hvem der er logget ind
   try{ updateNotifBadge(); }catch(e){}
@@ -3410,6 +3409,10 @@ function leavePresence(){
 function updatePresenceBar(users){
   const bar=document.getElementById('presenceBar');
   if(!bar)return;
+  users=users||[];
+  if((!users||users.length===0)&&_myPresenceName){
+    users=[{name:_myPresenceName,loginTime:new Date().toISOString(),lastActivity:_lastActivityTs,page:getActivePage()}];
+  }
   if(!users||users.length===0){ bar.style.display='none'; return; }
   bar.style.display='flex';
   bar.style.alignItems='center';
