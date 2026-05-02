@@ -1330,6 +1330,187 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 }
 /* END COPILOT MOBILE HEADER ACTIONS RESTORE v2 */
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT MOBILE TRAINING CARD COMPACT v1
+   Dagens træning only: compact student cards on mobile.
+   Desktop unchanged. Score + rating become a small bottom action row.
+═════════════════════════════════════════════════════════════ */
+@media(max-width:640px){
+  #page-training .training-card-list-a{
+    gap:9px!important;
+  }
+  #page-training .training-member-card-a{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-areas:
+      "main main"
+      "score action"!important;
+    gap:8px 10px!important;
+    align-items:center!important;
+    padding:11px 12px!important;
+    border-radius:16px!important;
+  }
+  #page-training .training-member-card-a .tm-main{
+    grid-area:main!important;
+    display:grid!important;
+    grid-template-columns:46px 38px minmax(0,1fr)!important;
+    gap:9px!important;
+    align-items:center!important;
+    min-width:0!important;
+  }
+  #page-training .training-member-card-a .tm-toggle{
+    grid-column:1!important;
+    justify-self:center!important;
+    margin:0!important;
+  }
+  #page-training .training-member-card-a .tm-avatar{
+    grid-column:2!important;
+    width:38px!important;
+    height:38px!important;
+  }
+  #page-training .training-member-card-a .tm-person{
+    grid-column:3!important;
+    min-width:0!important;
+  }
+  #page-training .training-member-card-a .tm-name{
+    font-size:.9rem!important;
+    line-height:1.12!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #page-training .training-member-card-a .tm-meta{
+    margin-top:3px!important;
+    gap:4px!important;
+    font-size:10.5px!important;
+    line-height:1.2!important;
+    max-height:32px!important;
+    overflow:hidden!important;
+  }
+  #page-training .training-member-card-a .tm-meta .grp-chip,
+  #page-training .training-member-card-a .tm-meta .role-chip,
+  #page-training .training-member-card-a .tm-meta .badge{
+    transform:scale(.92)!important;
+    transform-origin:left center!important;
+  }
+  #page-training .training-member-card-a .tm-chips{
+    margin-top:5px!important;
+    gap:4px!important;
+    max-height:24px!important;
+    overflow:hidden!important;
+  }
+  #page-training .training-member-card-a .tm-chips .amt-badge,
+  #page-training .training-member-card-a .tm-chips .db-streak,
+  #page-training .training-member-card-a .tm-chips .db-milestone{
+    font-size:.64rem!important;
+    padding:.12rem .42rem!important;
+    line-height:1.1!important;
+  }
+  #page-training .training-member-card-a .tm-score{
+    grid-area:score!important;
+    justify-self:start!important;
+    align-self:center!important;
+    min-width:0!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:6px!important;
+    padding:4px 8px!important;
+    border-radius:12px!important;
+    background:rgba(255,254,250,.72)!important;
+    border:1px solid var(--dojo-line,rgba(58,44,26,.12))!important;
+  }
+  #page-training .training-member-card-a .tm-score::before{
+    content:"Score"!important;
+    font-size:9px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:.10em!important;
+    text-transform:uppercase!important;
+    color:var(--dojo-muted,#776a58)!important;
+  }
+  #page-training .training-member-card-a .tm-score .score-wrap{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:30px!important;
+  }
+  #page-training .training-member-card-a .tm-score .score-wrap svg{
+    width:30px!important;
+    height:30px!important;
+  }
+  #page-training .training-member-card-a .tm-score .score-wrap svg text{
+    font-size:9px!important;
+  }
+  #page-training .training-member-card-a .tm-score .score-wrap > div[style*="font-size:.6rem"],
+  #page-training .training-member-card-a .tm-score .score-wrap > div[style*="font-size: .6rem"]{
+    display:none!important;
+  }
+  #page-training .training-member-card-a .tm-score > span{
+    font-size:.78rem!important;
+  }
+  #page-training .training-member-card-a .tm-actions-training{
+    grid-area:action!important;
+    justify-self:end!important;
+    align-self:center!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  #page-training .training-member-card-a .tm-actions-training .btn{
+    height:34px!important;
+    min-height:34px!important;
+    padding:0 10px!important;
+    border-radius:11px!important;
+    font-size:.76rem!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+  }
+  #page-training .training-member-card-a .score-tip{
+    max-width:calc(100vw - 22px)!important;
+    min-width:min(250px,calc(100vw - 22px))!important;
+  }
+}
+@media(max-width:380px){
+  #page-training .training-member-card-a{
+    padding:10px!important;
+    gap:7px 8px!important;
+  }
+  #page-training .training-member-card-a .tm-main{
+    grid-template-columns:44px 34px minmax(0,1fr)!important;
+    gap:8px!important;
+  }
+  #page-training .training-member-card-a .tm-avatar{
+    width:34px!important;
+    height:34px!important;
+  }
+  #page-training .training-member-card-a .tm-name{
+    font-size:.86rem!important;
+  }
+  #page-training .training-member-card-a .tm-meta{
+    font-size:10px!important;
+    max-height:29px!important;
+  }
+  #page-training .training-member-card-a .tm-score{
+    padding:4px 7px!important;
+  }
+  #page-training .training-member-card-a .tm-score::before{
+    font-size:8.5px!important;
+  }
+  #page-training .training-member-card-a .tm-score .score-wrap svg{
+    width:28px!important;
+    height:28px!important;
+  }
+  #page-training .training-member-card-a .tm-actions-training .btn{
+    height:32px!important;
+    min-height:32px!important;
+    padding:0 9px!important;
+    font-size:.72rem!important;
+  }
+}
+/* END COPILOT MOBILE TRAINING CARD COMPACT v1 */
+
 </style>
 </head>
 <body>
