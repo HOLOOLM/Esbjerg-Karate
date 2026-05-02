@@ -1511,6 +1511,94 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 }
 /* END COPILOT MOBILE TRAINING CARD COMPACT v1 */
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT MOBILE TRAINING BELT READABILITY v2
+   Dagens træning mobile only: belt gets its own readable line,
+   and no longer fades/overlaps streak or payment chips.
+   Desktop unchanged.
+═════════════════════════════════════════════════════════════ */
+@media(max-width:640px){
+  #page-training .training-member-card-a .tm-meta{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:3px!important;
+    max-height:none!important;
+    overflow:visible!important;
+    line-height:1.2!important;
+  }
+  #page-training .training-member-card-a .tm-meta-main{
+    display:flex!important;
+    align-items:center!important;
+    gap:4px!important;
+    flex-wrap:wrap!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+  }
+  #page-training .training-member-card-a .tm-meta-main .gm,
+  #page-training .training-member-card-a .tm-meta-main .gk,
+  #page-training .training-member-card-a .tm-meta-main div{
+    font-size:10px!important;
+    line-height:1.05!important;
+  }
+  #page-training .training-member-card-a .tm-belt-line{
+    display:flex!important;
+    align-items:center!important;
+    gap:5px!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    padding-top:1px!important;
+    color:var(--dojo-ink,#19140f)!important;
+  }
+  #page-training .training-member-card-a .tm-belt-line .blt{
+    flex:0 0 auto!important;
+    min-width:28px!important;
+    height:9px!important;
+  }
+  #page-training .training-member-card-a .tm-belt-line .belt-label{
+    display:inline-block!important;
+    flex:1 1 auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    font-size:10.5px!important;
+    font-weight:800!important;
+    line-height:1.1!important;
+    color:var(--dojo-ink,#19140f)!important;
+  }
+  #page-training .training-member-card-a .tm-chips{
+    clear:both!important;
+    max-height:none!important;
+    overflow:visible!important;
+    flex-wrap:wrap!important;
+    margin-top:5px!important;
+  }
+  #page-training .training-member-card-a .tm-chips .amt-badge,
+  #page-training .training-member-card-a .tm-chips .db-streak,
+  #page-training .training-member-card-a .tm-chips .db-milestone{
+    white-space:nowrap!important;
+  }
+}
+@media(max-width:380px){
+  #page-training .training-member-card-a .tm-belt-line .belt-label{
+    font-size:10px!important;
+  }
+  #page-training .training-member-card-a .tm-belt-line .blt{
+    min-width:25px!important;
+    height:8px!important;
+  }
+}
+/* END COPILOT MOBILE TRAINING BELT READABILITY v2 */
+
 </style>
 </head>
 <body>
@@ -5506,7 +5594,7 @@ function renderT(){
           <div class="av ${avClass(m.group)} tm-avatar">${avatarInner(m)}</div>
           <div class="tm-person">
             <div class="tm-name">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
-            <div class="tm-meta">${grpChip(m.group)} <span class="tm-dot">·</span> ${gCell(m)} <span class="tm-dot">·</span> ${belt}</div>
+            <div class="tm-meta"><span class="tm-meta-main">${grpChip(m.group)} <span class="tm-dot">·</span> ${gCell(m)}</span><span class="tm-belt-line">${belt}</span></div>
             <div class="tm-chips">${streakBadge}${pay}</div>
           </div>
         </div>
@@ -5671,7 +5759,7 @@ function beltHtml(belt,bc){
   const snipDivs='<div class="blt-snip"></div>'.repeat(snips);
   const danMatch=belt.match(/(\d+)\.\s*Dan/i);
   const label=danMatch?danMatch[1]+'. Dan':belt.replace(/\d+\.\s*(Kyu|Dan)\s*/i,'').replace(/\(|\)/g,'').trim();
-  return `<span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);padding:0 5px">${snipDivs}</span> <span style="font-size:.8rem">${label}</span>`;
+  return `<span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);padding:0 5px">${snipDivs}</span> <span class="belt-label" style="font-size:.8rem">${label}</span>`;
 }
 function renderM(){
   const body=document.getElementById('tbody-m');
