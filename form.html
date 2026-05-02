@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Indmeldelsesblanket — Esbjerg Shuri-Ryu Karate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
 <style>
 :root{
   --td:#1a2e2e; --tm:#4a6060; --tl:#9aacac;
@@ -100,6 +104,190 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
 .lang-btn{padding:7px 16px;border-radius:20px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:700;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s,border-color .15s;letter-spacing:.02em}
 .lang-btn:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.6)}
 .lang-btn.active{background:rgba(255,255,255,.3);border-color:#fff}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM STUNNING — matched to elev.html student-app design
+   CSS/UX polish only: existing IDs, onclick handlers and Apps Script logic preserved.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#fbfaf6;--paper-2:#f3efe6;--line:#ece6d6;--line-2:#d8cfba;
+  --ink:#0e0d0a;--ink-2:#2a2823;--ink-3:#5b5448;--ink-4:#8a8270;
+  --bar:#161512;--forest:#2c5e3a;--forest-2:#1f4429;--forest-soft:#dfe8d7;
+  --ember:#b3392a;--ember-soft:#f3dcd6;--gold:#c9a23a;--gold-soft:#f3e9c8;
+  --td:var(--bar);--tm:var(--forest);--tl:#b6ad96;
+  --bg:var(--paper);--card:#fff;--muted:var(--ink-3);--ok:var(--forest);--bad:var(--ember);--warn:var(--gold);
+  --br:20px;--sh:0 1px 0 rgba(14,13,10,.05),0 18px 45px -30px rgba(14,13,10,.45);
+  --serif:'Newsreader','Iowan Old Style',Georgia,serif;--sans:'Geist',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --form-logo-url:none;
+}
+html{background:var(--paper);scroll-behavior:smooth;}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 16% -10%,rgba(201,162,58,.18),transparent 32rem),
+    radial-gradient(circle at 86% 2%,rgba(44,94,58,.14),transparent 30rem),
+    linear-gradient(180deg,#fffdf8 0%,var(--paper) 45%,#f5f1e8 100%);
+  min-height:100vh;
+  text-rendering:optimizeLegibility;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.36;
+  background-image:linear-gradient(rgba(14,13,10,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(14,13,10,.025) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 12%,#000 78%,transparent 100%);
+}
+::selection{background:var(--ink);color:#fff;}
+button,input,textarea,select{font-family:inherit;}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:3px solid rgba(201,162,58,.36)!important;outline-offset:3px!important;
+}
+
+/* Header now mirrors elev.html premium dojo entrance */
+.hdr{
+  background:
+    radial-gradient(circle at 78% 18%,rgba(201,162,58,.26),transparent 16rem),
+    radial-gradient(circle at 13% 88%,rgba(255,255,255,.08),transparent 14rem),
+    linear-gradient(145deg,#0a0907 0%,#161512 48%,#1f4429 100%);
+  padding:24px 20px 30px;
+  min-height:260px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid rgba(236,230,214,.15);
+  box-shadow:0 26px 58px -42px rgba(0,0,0,.85);
+  isolation:isolate;
+}
+.hdr::before{
+  top:-80px;right:-80px;width:260px;height:260px;
+  background:radial-gradient(circle,rgba(255,255,255,.12) 0%,transparent 67%);
+  z-index:-1;
+}
+.hdr::after{
+  content:"";
+  position:absolute;
+  left:-80px;bottom:-105px;width:220px;height:220px;border-radius:999px;
+  background:radial-gradient(circle,rgba(201,162,58,.2),transparent 66%);
+  pointer-events:none;z-index:-1;
+}
+.hdr-logo,.hdr-logo-placeholder{
+  width:92px;height:92px;border:4px solid rgba(255,255,255,.34);
+  box-shadow:0 20px 38px -24px rgba(0,0,0,.88),0 0 0 1px rgba(201,162,58,.32);
+  margin-top:8px;margin-bottom:15px;
+}
+.hdr h1{
+  font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.05;margin-bottom:8px;color:#f6efde;
+}
+.hdr .hdr-sub{font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:#d7ceb8;opacity:1;font-weight:700;}
+.hdr .hdr-addr,.hdr .hdr-date{color:#b6ad96;opacity:1;}
+.hdr .hdr-sub::after{
+  content:"";display:block;width:58px;height:2px;margin:10px auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:99px;
+}
+.lang-bar{position:absolute;top:14px;right:14px;max-width:none;padding:0;margin:0;z-index:3;}
+.lang-btn{
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#f6efde;border-radius:999px;
+  padding:8px 14px;backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+.lang-btn:hover{background:rgba(255,255,255,.11);transform:translateY(-1px);}
+.lang-btn.active{background:#f6efde;color:#161512;border-color:#f6efde;}
+
+/* Wrapper + intro rhythm */
+.wrap{max-width:880px;padding:24px 18px 72px;}
+.req-note{
+  position:relative;background:linear-gradient(90deg,var(--gold-soft),#fff 72%);border:1px solid #e6d295;border-radius:18px;
+  padding:12px 16px;margin:0 0 18px;color:#6a5012;box-shadow:0 12px 32px -26px rgba(138,106,24,.6);
+}
+
+/* Cards/sections matched to elev.html */
+.section{
+  position:relative;border:1px solid var(--line);border-radius:22px;box-shadow:var(--sh);padding:22px;margin-bottom:18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,255,255,.94));overflow:hidden;
+  transition:box-shadow .18s,border-color .18s,transform .18s;
+}
+.section:hover{box-shadow:0 1px 0 rgba(14,13,10,.06),0 26px 60px -36px rgba(14,13,10,.55);border-color:var(--line-2);}
+.section::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);pointer-events:none;}
+.section-title{
+  font-family:var(--serif);font-size:19px;font-weight:600;text-transform:none;letter-spacing:-.015em;color:var(--ink);margin-bottom:18px;gap:9px;
+}
+.section-title::before{width:34px;height:2px;background:var(--gold);border-radius:99px;order:2;}
+
+/* Put logo watermark into first section and consent box area */
+.section:first-of-type,.section:nth-of-type(5){isolation:isolate;}
+.section:first-of-type::after,.section:nth-of-type(5)::after{
+  content:"";position:absolute;right:-34px;bottom:-60px;width:205px;height:205px;background-image:var(--form-logo-url);background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.07;filter:saturate(.75) contrast(1.1);pointer-events:none;z-index:-1;
+}
+
+/* Fields */
+.row{gap:14px;}
+.field{gap:6px;}
+.field label{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.12em;}
+.field label span{color:var(--ember);}
+.field input,.field select,.field textarea{
+  border:1px solid var(--line-2);background:#fffdf9;border-radius:14px;padding:14px 15px;color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);transition:border-color .16s,box-shadow .16s,transform .16s,background .16s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--forest);background:#fff;box-shadow:0 0 0 4px rgba(44,94,58,.1),inset 0 1px 0 rgba(255,255,255,.9);transform:translateY(-1px);
+}
+.field input.err,.field select.err{border-color:var(--ember);box-shadow:0 0 0 4px rgba(179,57,42,.1);}
+
+/* GDPR and consent */
+.gdpr-box{
+  background:linear-gradient(180deg,#f0f9ff,#fff);border:1px solid #bae6fd;border-radius:18px;color:#0c4a6e;padding:16px 18px;
+}
+.gdpr-box strong{font-family:var(--serif);font-size:17px;color:#0369a1;letter-spacing:-.01em;}
+.consent-row{
+  background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-top:12px;
+}
+.consent-row input[type=checkbox]{accent-color:var(--forest);}
+.consent-row label{color:var(--ink-2);}
+
+/* Signature */
+.sig-wrap{
+  border:1.8px dashed var(--line-2);border-radius:18px;background:radial-gradient(circle at 50% 0%,rgba(201,162,58,.13),transparent 14rem),linear-gradient(180deg,#fff,var(--paper));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75);
+}
+.sig-wrap canvas{height:210px;}
+.sig-tools{border-top:1px solid var(--line);padding:10px 14px;background:rgba(255,255,255,.58);}
+.sig-clear{border:1px solid var(--line-2);border-radius:999px;background:#fff;color:var(--ink-3);padding:7px 14px;}
+.sig-clear:hover{border-color:#f0c9bd;color:var(--ember);background:var(--ember-soft);}
+.sig-ok{color:var(--forest);}
+.date-lbl{color:var(--ink-3);}.date-lbl strong{font-family:var(--serif);font-size:16px;color:var(--ink);}
+
+/* Submit/success */
+.submit-btn,.success .new-btn{
+  background:linear-gradient(135deg,var(--ink) 0%,#000 100%);border-radius:16px;box-shadow:0 14px 26px -18px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.1);
+  transition:transform .16s,filter .16s,box-shadow .16s;
+}
+.submit-btn:hover,.success .new-btn:hover{background:#000;transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 20px 32px -20px rgba(0,0,0,.8);}
+.err-msg{border:1px solid #f0c9bd;background:linear-gradient(180deg,#fbe7df,#fff7f4);color:#8a2a1f;border-radius:16px;}
+.existing-notice{border:1px solid #e6d295;background:linear-gradient(90deg,var(--gold-soft),#fff 72%);color:#6a5012;border-radius:16px;}
+.success{max-width:640px;margin:34px auto;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,255,255,.94));border:1px solid var(--line);border-radius:28px;box-shadow:var(--sh);}
+.success h2{font-family:var(--serif);font-size:28px;letter-spacing:-.03em;color:var(--ink);}
+.success p{color:var(--ink-3);}
+
+/* Desktop: keep main form one-column, but internal field rows remain two-column */
+@media(min-width:900px){
+  .wrap{max-width:880px;}
+  .section{padding:24px;}
+  .row{gap:16px;}
+}
+@media(max-width:620px){
+  .hdr{min-height:235px;padding:58px 16px 26px;}
+  .hdr h1{font-size:25px;}
+  .hdr-logo,.hdr-logo-placeholder{width:82px;height:82px;}
+  .lang-bar{left:12px;right:12px;justify-content:center;}
+  .lang-btn{padding:7px 12px;font-size:12px;}
+  .wrap{padding:18px 12px 56px;}
+  .section{border-radius:19px;padding:17px;margin-bottom:14px;}
+  .section-title{font-size:18px;}
+  .field input,.field select,.field textarea{font-size:16px;padding:13px 14px;}
+  .sig-wrap canvas{height:190px;}
+}
+
 </style>
 </head>
 <body>
@@ -702,5 +890,22 @@ function resetForm() {
   document.getElementById('existingNotice').classList.remove('show');
 }
 </script>
+
+<script>
+/* FORM STUNNING logo bridge — no backend changes */
+(function(){
+  function applyFormLogoVariable(){
+    try{
+      if(typeof LOGO_B64 !== 'undefined' && LOGO_B64){
+        document.documentElement.style.setProperty('--form-logo-url', 'url("' + LOGO_B64 + '")');
+      }
+    }catch(e){}
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyFormLogoVariable);
+  else applyFormLogoVariable();
+  setTimeout(applyFormLogoVariable, 300);
+})();
+</script>
+
 </body>
 </html>
