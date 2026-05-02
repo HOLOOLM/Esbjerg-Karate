@@ -999,6 +999,226 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 @media(max-width:980px){#page-dashboard .dash-pro-row{grid-template-columns:1fr!important}#db-groups-box{grid-template-columns:1fr 1fr!important}#page-dashboard > #dashboardStats{grid-template-columns:1fr 1fr!important}#presenceNameGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:760px){header{min-height:58px!important;padding:8px 12px!important}.hsub,.hdate{display:none!important}.nav-tabs-wrap{top:58px!important;overflow-x:auto!important}.nav-tabs{display:flex!important;min-width:max-content!important}.nav-tab{font-size:12px!important;padding:10px 12px!important;white-space:nowrap!important}.page{padding:14px 12px 86px!important}.dashboard-editorial-hero,.members-editorial-hero{padding:20px!important;border-radius:18px!important}.dashboard-editorial-hero h1,.members-editorial-hero h1,.training-editorial-head h1{font-size:38px!important}.dashboard-corner-badge,.members-corner-badge{display:none!important}.training-program-card{padding:20px 18px 76px 18px!important;min-height:auto!important}.training-corner-badge{width:62px!important;height:62px!important;right:12px!important;bottom:10px!important;opacity:.23!important}.training-date-row,.training-action-row,.members-action-row{display:grid!important;grid-template-columns:1fr 1fr!important}.training-date-row label{grid-column:1/-1;height:auto!important;font-size:10px!important}.tile-action-btn,.training-date-row .btn,.training-date-row #trainingDatePicker{width:100%!important;height:42px!important}.training-filter-row,.members-filter-row{display:grid!important;grid-template-columns:1fr!important}.training-filter-row select.fs,.members-filter-row select.fs{width:100%!important}#page-training > #statsGrid,#page-dashboard > #dashboardStats{grid-template-columns:1fr!important;gap:10px!important}#page-training > #statsGrid .stat-card:nth-child(2),#page-training > #statsGrid .stat-card:nth-child(n+4),#page-dashboard > #dashboardStats .stat-card{min-height:88px!important;padding:16px!important}.tcard{overflow-x:auto!important}.tcard table{min-width:760px!important}#page-dashboard .dash-pro-row{grid-template-columns:1fr!important}.top3-hdr{justify-content:flex-start!important}.top3-hdr .top3-ctrls{width:100%!important;overflow-x:auto!important}.top3-cols{grid-template-columns:1fr!important;padding:14px!important}.top3-cols>*:nth-child(1){transform:none!important}#db-groups-box{grid-template-columns:1fr!important}#page-dashboard .chart-area{height:210px!important;margin-left:30px!important;overflow-x:auto!important}.modal{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important}#presenceModal>div{width:min(390px,calc(100vw - 20px))!important}#presenceNameGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:0 12px 10px!important}#presenceNameGrid>*{min-height:82px!important}#presenceNameGrid img{width:42px!important;height:42px!important}#presenceModal h3{font-size:25px!important}#presenceModal button[onclick="confirmPresenceName()"]{height:42px!important;margin-bottom:12px!important}}
 @media(max-width:420px){.hdr-actions{display:none!important}.dashboard-editorial-hero h1,.members-editorial-hero h1,.training-editorial-head h1{font-size:34px!important}#presenceModal{padding:8px!important}#presenceModal>div{width:calc(100vw - 16px)!important;border-radius:22px!important}#presenceNameGrid>*{min-height:78px!important}#presenceNameGrid img{width:38px!important;height:38px!important}}
+
+/* COPILOT FINAL POLISH: LOGIN ANIMATION, PRESENCE COPY, MEMBERS ICON, EDIT MODAL */
+/* shared card styling from selected version */
+#page-training .training-table-source,#page-members .member-table-source,#page-dashboard .db-member-table-source{display:none!important}
+#page-training .training-list-head,#page-members .member-cards-head,#page-dashboard .db-member-cards-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:22px 2px 12px}
+#page-training .training-list-head h2,#page-members .member-cards-head h2,#page-dashboard .db-member-cards-head h2{font-family:Georgia,'Times New Roman',serif!important;font-weight:500;letter-spacing:-.045em;margin:0;color:var(--dojo-ink,var(--td,#19140f))}
+#page-training .training-list-head h2,#page-dashboard .db-member-cards-head h2{font-size:28px}#page-members .member-cards-head h2{font-size:30px}
+#page-training .training-list-sub,#page-dashboard .db-member-cards-head div div{color:var(--dojo-muted,var(--xtl,#776a58));font-size:12px;font-weight:700;margin-top:4px}
+#page-training .training-status-tabs{display:flex;gap:8px;flex-wrap:wrap}#page-training .training-status-tabs .btn.active{background:var(--dojo-green,#365f38)!important;border-color:var(--dojo-green,#365f38)!important;color:#fffefa!important}
+#page-training .training-card-list,#page-members .member-card-list,#page-dashboard .db-member-card-list{display:grid;gap:12px;margin-bottom:18px}
+#page-training .training-member-card,#page-members .member-profile-card,#page-dashboard .db-member-card{background:linear-gradient(135deg,var(--dojo-card,#fffefa),var(--dojo-soft2,#faf4e5));border:1px solid var(--dojo-line,rgba(58,44,26,.14));box-shadow:var(--dojo-shadow,0 1px 0 rgba(20,14,8,.04),0 14px 36px -28px rgba(20,14,8,.36));border-radius:18px;position:relative;overflow:hidden}
+#page-training .training-member-card-a{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:18px;align-items:center;padding:16px 18px}#page-training .training-member-card.is-present{border-color:rgba(54,95,56,.35);background:linear-gradient(135deg,#f4fbf1,#fffefa)}#page-training .tm-main{display:flex;align-items:center;gap:14px;min-width:0}#page-training .tm-avatar{width:42px!important;height:42px!important;flex:0 0 auto}#page-training .tm-person{min-width:0}#page-training .tm-name{font-weight:900;color:var(--dojo-ink,var(--td,#19140f));line-height:1.2}#page-training .tm-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;font-size:12px;color:var(--dojo-muted,var(--xtm,#776a58))}#page-training .tm-dot{color:var(--dojo-muted,var(--xtl,#776a58))}#page-training .tm-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}#page-training .tm-score{display:flex;justify-content:center;min-width:70px}#page-training .tm-actions .btn{height:38px;border-radius:10px;font-weight:800}
+#page-members .member-card-list{gap:14px}#page-members .mp-main{display:flex;align-items:center;gap:14px;min-width:0}#page-members .mp-main-wide{min-width:280px}#page-members .mp-avatar{width:46px!important;height:46px!important;flex:0 0 auto}#page-members .mp-person{min-width:0}#page-members .mp-name{font-weight:900;color:var(--dojo-ink,var(--td,#19140f));line-height:1.2;font-size:1rem}#page-members .mp-contact{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;color:var(--dojo-muted,var(--xtl,#776a58));font-size:12px}#page-members .mp-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}#page-members .mp-belt{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--dojo-muted,var(--xtm,#776a58))}#page-members .mp-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#page-members .mp-actions .btn{height:38px;border-radius:10px;font-weight:800}#page-members .mp-reminder{background:#fef2f2!important;border:1px solid #fca5a5!important;color:#dc2626!important}#page-members .member-profile-card-3{display:grid;grid-template-columns:6px minmax(290px,1.25fr) minmax(360px,1.15fr) auto;gap:18px;align-items:center;padding:0 18px 0 0;border-radius:20px}#page-members .member-profile-card-3 .mp-left-accent{align-self:stretch;background:linear-gradient(180deg,var(--dojo-green,#365f38),var(--dojo-gold,#9b6b2f))}#page-members .member-profile-card-3 .mp-main-wide{padding:18px 0}#page-members .member-profile-card-3 .mp-mini-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 0}#page-members .member-profile-card-3 .mp-mini-metrics>div{background:rgba(255,254,250,.65);border:1px solid var(--dojo-line,rgba(58,44,26,.12));border-radius:14px;padding:10px 12px;min-height:58px}#page-members .member-profile-card-3 .mp-mini-metrics span{display:block;font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:var(--dojo-muted,var(--xtl,#776a58));margin-bottom:5px}#page-members .member-profile-card-3 .mp-mini-metrics strong{font-size:.88rem;color:var(--dojo-ink,var(--td,#19140f));font-weight:800}#page-members .member-profile-card-3 .mp-actions-vertical{flex-direction:column;align-items:stretch;padding:16px 0;min-width:132px}#page-members .member-profile-card-3 .mp-actions-vertical .btn{width:100%;justify-content:center}#page-members .member-profile-card-3 .mp-danger-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#page-dashboard .db-member-card-3{display:grid;grid-template-columns:auto minmax(260px,1.15fr) minmax(190px,.65fr) minmax(250px,.52fr) minmax(150px,.38fr);gap:14px;align-items:center;padding:16px 18px}#page-dashboard .db-card-person{display:flex;align-items:center;gap:12px;min-width:0}#page-dashboard .db-card-avatar{width:42px!important;height:42px!important}#page-dashboard .db-card-name{font-weight:900;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;color:var(--dojo-ink,var(--td,#19140f))}#page-dashboard .db-card-sub{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px;font-size:12px;color:var(--dojo-muted,var(--xtl,#776a58))}#page-dashboard .db-card-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}#page-dashboard .db-card-metrics{display:grid;gap:10px}#page-dashboard .db-card-metrics-right{grid-template-columns:1fr 1fr!important;justify-self:end;width:min(260px,100%)}#page-dashboard .db-card-metrics div{background:rgba(255,254,250,.68);border:1px solid var(--dojo-line,rgba(58,44,26,.12));border-radius:12px;padding:9px 11px}#page-dashboard .db-card-metrics span{display:block;font-size:10px;font-weight:900;letter-spacing:.10em;text-transform:uppercase;color:var(--dojo-muted,var(--xtl,#776a58));margin-bottom:4px}#page-dashboard .db-card-metrics strong{font-size:.9rem;color:var(--dojo-ink,var(--td,#19140f))}#page-dashboard .db-progress-track{height:8px;width:150px;background:rgba(58,44,26,.12);border-radius:99px;overflow:hidden;justify-self:end}#page-dashboard .db-progress-fill{height:100%;background:linear-gradient(90deg,var(--dojo-green,#365f38),var(--dojo-gold,#9b6b2f));border-radius:99px}
+/* Login/presence animation and improved title */
+@keyframes presenceModalIn{0%{opacity:0;transform:translateY(18px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes presenceTileIn{0%{opacity:0;transform:translateY(10px) scale(.98)}100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes selectedPulse{0%{box-shadow:0 0 0 0 rgba(54,95,56,.28)}100%{box-shadow:0 0 0 8px rgba(54,95,56,0)}}#presenceModal>div{padding:2.35rem 1.45rem 1.15rem!important;max-width:340px!important;animation:presenceModalIn .28s cubic-bezier(.2,.8,.2,1) both!important}#presenceModal h3{font-family:Georgia,'Times New Roman',serif!important;font-size:30px!important;line-height:1.02!important;font-weight:500!important;letter-spacing:-.055em!important;margin:10px 22px 8px!important;color:var(--dojo-ink,#19140f)!important}#presenceModal h3::before{content:'LOGIN';display:block;font-family:'Segoe UI',system-ui,sans-serif;font-size:10px;font-weight:900;letter-spacing:.18em;color:var(--dojo-green,#365f38);margin-bottom:10px}#presenceModal p{margin:0 24px 18px!important;font-size:12.5px!important;line-height:1.4!important;color:var(--dojo-muted,#776a58)!important}#presenceNameGrid>button{position:relative!important;animation:presenceTileIn .22s ease both!important;transition:border-color .05s ease,background .05s ease,box-shadow .05s ease,transform .05s ease!important}#presenceNameGrid>button:nth-child(2){animation-delay:.025s!important}#presenceNameGrid>button:nth-child(3){animation-delay:.05s!important}#presenceNameGrid>button:nth-child(4){animation-delay:.075s!important}#presenceNameGrid>button.selected,#presenceNameGrid>button[aria-selected="true"]{background:linear-gradient(135deg,#f0fbf7,#fffefa)!important;border:2px solid var(--dojo-green,#365f38)!important;box-shadow:0 0 0 4px rgba(54,95,56,.14),0 14px 30px -22px rgba(20,14,8,.55)!important;transform:translateY(-2px)!important;animation:selectedPulse .42s ease-out!important}#presenceNameGrid>button.selected::after,#presenceNameGrid>button[aria-selected="true"]::after{content:'✓';position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--dojo-green,#365f38);color:#fffefa;display:grid;place-items:center;font-size:12px;font-weight:900}
+/* Rediger medlem modal polish */
+#memberModal .modal,#addModal .modal,#editModal .modal{background:linear-gradient(180deg,#fffefa 0%,#faf4e5 100%)!important;border:1px solid var(--dojo-line,rgba(58,44,26,.14))!important;border-radius:24px!important;box-shadow:0 28px 80px -34px rgba(20,14,8,.65)!important;padding:0!important;overflow:hidden!important}#memberModal .mtitle,#addModal .mtitle,#editModal .mtitle{margin:0!important;padding:1.25rem 1.45rem!important;background:linear-gradient(135deg,#1f1711,#3a2a1d)!important;color:#fff4df!important;font-family:Georgia,'Times New Roman',serif!important;font-size:1.35rem!important;font-weight:500!important;letter-spacing:-.03em!important}#memberModal .fg,#addModal .fg,#editModal .fg{padding:1.2rem 1.45rem .4rem!important}#memberModal .fgrp,#addModal .fgrp,#editModal .fgrp{background:rgba(255,254,250,.72)!important;border:1px solid var(--dojo-line,rgba(58,44,26,.12))!important;border-radius:14px!important;padding:.75rem!important}#memberModal .fgrp label,#addModal .fgrp label,#editModal .fgrp label{font-size:.68rem!important;letter-spacing:.13em!important;color:var(--dojo-green,#365f38)!important}#memberModal .ma,#addModal .ma,#editModal .ma{margin:0!important;padding:1rem 1.45rem 1.25rem!important;background:rgba(255,254,250,.55)!important;border-top:1px solid var(--dojo-line,rgba(58,44,26,.12))!important}
+@media(max-width:1120px){#page-members .member-profile-card-3{grid-template-columns:6px 1fr;padding-right:16px}#page-members .member-profile-card-3 .mp-mini-metrics,#page-members .member-profile-card-3 .mp-actions-vertical{grid-column:2}#page-members .member-profile-card-3 .mp-actions-vertical{flex-direction:row;flex-wrap:wrap;padding-top:0}#page-members .member-profile-card-3 .mp-actions-vertical .btn{width:auto}}@media(max-width:860px){#page-training .training-list-head,#page-members .member-cards-head{align-items:flex-start;flex-direction:column}#page-training .training-member-card-a,#page-dashboard .db-member-card-3{grid-template-columns:1fr!important}#page-dashboard .db-card-metrics-right{justify-self:stretch;width:100%}#page-dashboard .db-progress-track{width:100%;justify-self:stretch}}@media(max-width:560px){#page-members .member-profile-card-3 .mp-mini-metrics{grid-template-columns:1fr}#page-members .member-profile-card-3 .mp-actions-vertical{display:grid;grid-template-columns:1fr}.mp-danger-actions{grid-template-columns:1fr 1fr!important}#page-dashboard .db-card-metrics-right{grid-template-columns:1fr!important}}
+/* END COPILOT FINAL POLISH */
+
+/* COPILOT PRESENCE THINKING ANIMATION ON UPLOADED FILE */
+#presenceModal.presence-thinking-active #presenceNameGrid>button.presence-dimmed{
+  opacity:.46!important;
+  filter:saturate(.72) blur(.15px)!important;
+  transform:scale(.985)!important;
+}
+#presenceNameGrid>button.thinking{
+  pointer-events:none!important;
+  overflow:hidden!important;
+  transform:translateY(-2px) scale(1.015)!important;
+  border-color:var(--dojo-green,#365f38)!important;
+  box-shadow:0 0 0 4px rgba(54,95,56,.14),0 22px 46px -28px rgba(20,14,8,.72)!important;
+}
+#presenceNameGrid>button.thinking img,
+#presenceNameGrid>button.thinking > div:first-child{
+  opacity:1!important;
+  filter:none!important;
+}
+.presence-thinking-overlay{
+  position:absolute;
+  left:7px;
+  right:7px;
+  bottom:7px;
+  min-height:34px;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:5px 7px;
+  background:rgba(255,254,250,.91);
+  border:1px solid rgba(54,95,56,.24);
+  box-shadow:0 12px 24px -20px rgba(20,14,8,.62);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  color:var(--dojo-green,#365f38);
+  animation:presenceThinkOverlayIn .18s cubic-bezier(.2,.8,.2,1) both;
+}
+.presence-thinking-orb{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  flex:0 0 auto;
+  background:conic-gradient(from 0deg,var(--dojo-green,#365f38),var(--dojo-gold,#9b6b2f),var(--dojo-green,#365f38));
+  -webkit-mask:radial-gradient(circle at center,transparent 45%,#000 48%);
+  mask:radial-gradient(circle at center,transparent 45%,#000 48%);
+  animation:presenceThinkingSpin .85s linear infinite;
+}
+.presence-thinking-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  line-height:1.05;
+  min-width:0;
+}
+.presence-thinking-copy strong{
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+  color:var(--dojo-green,#365f38)!important;
+}
+.presence-thinking-copy small{
+  font-size:9px!important;
+  font-weight:800!important;
+  letter-spacing:.02em!important;
+  text-transform:none!important;
+  color:var(--dojo-muted,#776a58)!important;
+  margin-top:1px;
+}
+.presence-thinking-dots,.presence-btn-loader{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  flex:0 0 auto;
+}
+.presence-thinking-dots i,.presence-btn-loader i{
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  display:block;
+  background:currentColor;
+  animation:presenceThinkingDot .82s ease-in-out infinite;
+}
+.presence-thinking-dots i:nth-child(2),.presence-btn-loader i:nth-child(2){animation-delay:.12s}
+.presence-thinking-dots i:nth-child(3),.presence-btn-loader i:nth-child(3){animation-delay:.24s}
+#presenceModal button[onclick="confirmPresenceName()"].is-thinking{
+  cursor:wait!important;
+  opacity:1!important;
+  color:#fffefa!important;
+  background:linear-gradient(135deg,var(--dojo-green,#365f38),#287a6f)!important;
+  box-shadow:0 14px 32px -22px rgba(20,14,8,.72)!important;
+}
+#presenceModal button[onclick="confirmPresenceName()"].is-thinking span:last-child{white-space:nowrap}
+@keyframes presenceThinkingDot{
+  0%,80%,100%{transform:translateY(0);opacity:.38}
+  40%{transform:translateY(-4px);opacity:1}
+}
+@keyframes presenceThinkingSpin{to{transform:rotate(360deg)}}
+@keyframes presenceThinkOverlayIn{
+  from{opacity:0;transform:translateY(7px) scale(.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+/* END COPILOT PRESENCE THINKING ANIMATION ON UPLOADED FILE */
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT PERSISTENT FIX v5
+   IMPORTANT: inserted in HEAD style, not the runtime blocker style.
+   1) Dashboard filters on one line.
+   2) Presence instructor cards are truly wider/readable.
+   Scope limited to dashboard filter row + #presenceModal.
+═════════════════════════════════════════════════════════════ */
+#page-dashboard .db-member-filter-row{margin:0 0 14px!important;display:block!important;}
+#page-dashboard .db-member-filter-row .controls{width:100%!important;display:grid!important;grid-template-columns:max-content minmax(260px,1fr) 155px 155px max-content!important;gap:8px!important;align-items:center!important;flex-wrap:nowrap!important;}
+#page-dashboard .db-member-filter-row #dbSessToggle{grid-column:1!important;width:max-content!important;display:inline-flex!important;flex-wrap:nowrap!important;white-space:nowrap!important;}
+#page-dashboard .db-member-filter-row #db-search{grid-column:2!important;width:100%!important;min-width:0!important;height:34px!important;}
+#page-dashboard .db-member-filter-row #dbBadgeScope{grid-column:3!important;width:155px!important;min-width:0!important;height:34px!important;}
+#page-dashboard .db-member-filter-row #dbMGroup{grid-column:4!important;width:155px!important;min-width:0!important;height:34px!important;}
+#page-dashboard .db-member-filter-row .btn{grid-column:5!important;width:max-content!important;height:34px!important;white-space:nowrap!important;justify-content:center!important;}
+#page-dashboard .db-member-filter-row .db-stbtn{height:34px!important;padding:0 14px!important;white-space:nowrap!important;}
+#presenceModal{padding:8px!important;align-items:center!important;justify-content:center!important;}
+#presenceModal>div{width:min(430px,calc(100vw - 12px))!important;max-width:430px!important;max-height:96dvh!important;padding:1.15rem 1rem .95rem!important;border-radius:28px!important;overflow:hidden!important;}
+#presenceModal>div::before{height:82px!important;}
+#presenceModal>div>div:first-child{width:42px!important;height:42px!important;margin:10px auto 7px!important;}
+#presenceModal>div>div:first-child::after{font-size:20px!important;}
+#presenceModal h3{font-size:28px!important;line-height:1!important;margin:7px 18px 6px!important;letter-spacing:-.055em!important;}
+#presenceModal h3::before{font-size:9px!important;letter-spacing:.18em!important;margin-bottom:8px!important;}
+#presenceModal p{max-width:320px!important;margin:0 auto 12px!important;font-size:12px!important;line-height:1.35!important;}
+#presenceNameGrid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin:0 2px 12px!important;padding:2px!important;max-height:58vh!important;overflow-y:auto!important;scrollbar-width:none!important;}
+#presenceNameGrid::-webkit-scrollbar{display:none!important;}
+#presenceNameGrid>button{width:100%!important;min-height:70px!important;height:70px!important;padding:9px 12px!important;border-radius:18px!important;display:grid!important;grid-template-columns:52px minmax(0,1fr)!important;grid-template-rows:auto auto!important;column-gap:12px!important;row-gap:2px!important;align-items:center!important;justify-items:start!important;text-align:left!important;overflow:hidden!important;}
+#presenceNameGrid>button img,#presenceNameGrid>button>div:first-child{grid-row:1 / 3!important;grid-column:1!important;width:52px!important;height:52px!important;margin:0!important;align-self:center!important;justify-self:center!important;box-shadow:0 0 0 4px rgba(238,228,207,.62)!important;}
+#presenceNameGrid>button>div:nth-child(2){grid-column:2!important;grid-row:1!important;width:100%!important;min-width:0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:16px!important;font-weight:700!important;line-height:1.08!important;color:var(--dojo-ink,#19140f)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;display:block!important;-webkit-line-clamp:unset!important;-webkit-box-orient:unset!important;}
+#presenceNameGrid>button>div:nth-child(3){grid-column:2!important;grid-row:2!important;width:100%!important;min-width:0!important;font-size:11px!important;line-height:1.05!important;font-weight:800!important;color:var(--dojo-muted,#776a58)!important;text-transform:none!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+#presenceNameGrid>button.selected,#presenceNameGrid>button[aria-selected="true"]{transform:translateY(-1px)!important;}
+#presenceNameGrid>button.selected::after,#presenceNameGrid>button[aria-selected="true"]::after{top:7px!important;right:7px!important;width:20px!important;height:20px!important;font-size:12px!important;}
+#presenceModal button[onclick="confirmPresenceName()"]{width:calc(100% - 4px)!important;margin:0 2px 0!important;height:44px!important;border-radius:14px!important;font-size:14px!important;letter-spacing:.01em!important;}
+#presenceNameGrid>button.thinking{transform:translateY(-1px)!important;}.presence-thinking-overlay{inset:7px!important;min-height:0!important;height:auto!important;border-radius:15px!important;justify-content:center!important;gap:7px!important;padding:0 10px!important;background:rgba(255,254,250,.94)!important;}.presence-thinking-orb{width:18px!important;height:18px!important;}.presence-thinking-copy{align-items:flex-start!important;justify-content:center!important;}.presence-thinking-copy strong{font-size:10.5px!important;letter-spacing:.06em!important;}.presence-thinking-copy small{font-size:10px!important;margin-top:1px!important;}.presence-thinking-dots i,.presence-btn-loader i{width:4px!important;height:4px!important;}
+@media(max-width:980px){#page-dashboard .db-member-filter-row .controls{grid-template-columns:max-content minmax(190px,1fr) 145px 145px max-content!important;gap:7px!important;}#page-dashboard .db-member-filter-row #dbBadgeScope,#page-dashboard .db-member-filter-row #dbMGroup{width:145px!important;}}
+@media(max-width:760px){#page-dashboard .db-member-filter-row .controls{display:flex!important;flex-wrap:wrap!important;gap:7px!important;}#page-dashboard .db-member-filter-row #dbSessToggle{width:100%!important;overflow-x:auto!important;scrollbar-width:none!important;}#page-dashboard .db-member-filter-row #dbSessToggle::-webkit-scrollbar{display:none!important;}#page-dashboard .db-member-filter-row #db-search{flex:1 1 100%!important;width:100%!important;}#page-dashboard .db-member-filter-row #dbBadgeScope,#page-dashboard .db-member-filter-row #dbMGroup{flex:1 1 calc(50% - 4px)!important;width:auto!important;}#page-dashboard .db-member-filter-row .btn{flex:1 1 100%!important;width:100%!important;}}
+@media(max-width:380px){#presenceModal>div{width:calc(100vw - 10px)!important;padding:1.05rem .75rem .85rem!important;border-radius:24px!important;}#presenceNameGrid{gap:7px!important;margin-left:0!important;margin-right:0!important;max-height:57vh!important;}#presenceNameGrid>button{height:68px!important;min-height:68px!important;grid-template-columns:50px minmax(0,1fr)!important;padding:8px 10px!important;column-gap:10px!important;}#presenceNameGrid>button img,#presenceNameGrid>button>div:first-child{width:50px!important;height:50px!important;}#presenceNameGrid>button>div:nth-child(2){font-size:15.5px!important;}#presenceNameGrid>button>div:nth-child(3){font-size:10.5px!important;}#presenceModal h3{font-size:26px!important;}}
+/* END COPILOT PERSISTENT FIX v5 */
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT MEMBER CARD HEIGHT POLISH v2
+   All members: keep full width, but make member cards less tall.
+   Scope: #page-members cards only. Functions/buttons/onclicks untouched.
+═════════════════════════════════════════════════════════════ */
+#page-members .member-card-list-3{max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important;gap:10px!important;}
+#page-members .member-profile-card-3{grid-template-columns:6px minmax(290px,1.25fr) minmax(360px,1.15fr) auto!important;gap:14px!important;padding:0 14px 0 0!important;min-height:0!important;}
+#page-members .member-profile-card-3 .mp-main-wide{padding:12px 0!important;}#page-members .member-profile-card-3 .mp-avatar{width:42px!important;height:42px!important;}#page-members .member-profile-card-3 .mp-name{font-size:.95rem!important;line-height:1.1!important;}#page-members .member-profile-card-3 .mp-contact{margin-top:2px!important;font-size:11.5px!important;line-height:1.15!important;}#page-members .member-profile-card-3 .mp-chips{margin-top:6px!important;gap:5px!important;}#page-members .member-profile-card-3 .mp-mini-metrics{gap:8px!important;padding:10px 0!important;}#page-members .member-profile-card-3 .mp-mini-metrics>div{min-height:46px!important;padding:7px 10px!important;border-radius:12px!important;}#page-members .member-profile-card-3 .mp-mini-metrics span{font-size:9px!important;margin-bottom:3px!important;}#page-members .member-profile-card-3 .mp-mini-metrics strong{font-size:.82rem!important;line-height:1.15!important;}#page-members .member-profile-card-3 .amt-input{height:31px!important;padding:.22rem .45rem!important;font-size:.82rem!important;}#page-members .member-profile-card-3 .mp-actions-vertical{padding:10px 0!important;min-width:132px!important;gap:7px!important;}#page-members .member-profile-card-3 .mp-actions-vertical .btn{height:34px!important;min-height:34px!important;padding:.34rem .65rem!important;font-size:.8rem!important;}#page-members .member-profile-card-3 .mp-danger-actions{gap:7px!important;}
+@media(max-width:1120px){#page-members .member-profile-card-3{grid-template-columns:6px 1fr!important;padding-right:14px!important;}#page-members .member-profile-card-3 .mp-mini-metrics{grid-column:2!important;padding:0 0 8px!important;}#page-members .member-profile-card-3 .mp-actions-vertical{grid-column:2!important;flex-direction:row!important;flex-wrap:wrap!important;padding:0 0 12px!important;}#page-members .member-profile-card-3 .mp-actions-vertical .btn{width:auto!important;}}
+@media(max-width:560px){#page-members .member-profile-card-3 .mp-main-wide{padding:11px 0 8px!important;}#page-members .member-profile-card-3 .mp-mini-metrics{grid-template-columns:1fr 1fr!important;gap:7px!important;}#page-members .member-profile-card-3 .mp-mini-metrics>div{min-height:44px!important;padding:7px 9px!important;}#page-members .member-profile-card-3 .mp-actions-vertical{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;}#page-members .member-profile-card-3 .mp-actions-vertical .btn{width:100%!important;justify-content:center!important;}#page-members .member-profile-card-3 .mp-danger-actions{grid-column:1 / -1!important;display:grid!important;grid-template-columns:1fr 1fr!important;}}
+/* END COPILOT MEMBER CARD HEIGHT POLISH v2 */
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT GENDER COLORS AND MEMBER MODAL SCROLL FIX v1
+   - Køn/alder tile: blue for dreng/mand, pink for pige/kvinde.
+   - Rediger medlem modal: restore vertical scrolling on desktop + mobile.
+   Scope: #page-members + member modals only. Functions/buttons untouched.
+═════════════════════════════════════════════════════════════ */
+#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-m{background:linear-gradient(135deg,#eff6ff,#dbeafe)!important;border-color:#bfdbfe!important;}#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-m span,#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-m strong,#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-m .gm{color:#1d4ed8!important;}#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-k{background:linear-gradient(135deg,#fff1f7,#fce7f3)!important;border-color:#f9a8d4!important;}#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-k span,#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-k strong,#page-members .member-profile-card-3 .mp-mini-metrics>div.mp-gender-k .gk{color:#be185d!important;}.gm{color:#1d4ed8!important;font-weight:800!important;}.gk{color:#be185d!important;font-weight:800!important;}#memberModal,#addModal,#editModal{overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;align-items:center!important;}#memberModal .modal,#addModal .modal,#editModal .modal{max-height:92vh!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;}#memberModal .ma,#addModal .ma,#editModal .ma{position:sticky!important;bottom:0!important;z-index:5!important;}@media(max-width:480px){#memberModal,#addModal,#editModal{align-items:flex-end!important;overflow-y:auto!important;}#memberModal .modal,#addModal .modal,#editModal .modal{max-height:92dvh!important;height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;border-radius:16px 16px 0 0!important;}}
+/* END COPILOT GENDER COLORS AND MEMBER MODAL SCROLL FIX v1 */
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT AMOUNT LABEL CENTER FIX v1
+   All members: Beløb label and amount input are centered vertically,
+   without moving Betalt badge from original chip row.
+═════════════════════════════════════════════════════════════ */
+#page-members .member-profile-card-3 .mp-amount-tile{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  gap:5px!important;
+}
+#page-members .member-profile-card-3 .mp-amount-tile span{
+  text-align:center!important;
+  width:100%!important;
+  margin-bottom:0!important;
+}
+#page-members .member-profile-card-3 .mp-amount-tile strong{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  width:100%!important;
+}
+#page-members .member-profile-card-3 .mp-amount-tile .amt-input{
+  margin:0 auto!important;
+  text-align:center!important;
+  max-width:120px!important;
+}
+/* END COPILOT AMOUNT LABEL CENTER FIX v1 */
+
 </style>
 </head>
 <body>
@@ -1038,8 +1258,8 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 <div id="presenceModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:9500;background:rgba(10,30,30,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
     <div style="font-size:2rem;margin-bottom:.6rem">👤</div>
-    <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Hvem er du?</h3>
-    <p style="margin:0 0 1.2rem;color:#4a6a6a;font-size:.85rem">Så andre kan se hvem der er online</p>
+    <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Vælg din profil</h3>
+    <p style="margin:0 0 1.2rem;color:#4a6a6a;font-size:.85rem">Markér hvem der logger ind i dag</p>
     <div id="presenceSyncNotice" style="display:none;background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:.7rem .9rem;margin-bottom:1rem;text-align:left">
       <div style="display:flex;align-items:center;gap:.55rem">
         <span style="font-size:1.1rem;animation:phSpin 1.2s linear infinite;display:inline-block">⏳</span>
@@ -1148,7 +1368,7 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 <nav class="nav-tabs" id="mainNavTabs">
   <div class="nav-tab active" onclick="switchTab('training')" id="tab-training">🥋 Dagens træning</div>
   <div class="nav-tab" onclick="switchTab('history')" id="tab-history">📅 Fremmødeoversigt</div>
-  <div class="nav-tab" onclick="switchTab('members')" id="tab-members">👥 Alle medlemmer</div>
+  <div class="nav-tab" onclick="switchTab('members')" id="tab-members">📇 Alle medlemmer</div>
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
   <div class="nav-tab" onclick="switchTab('promotion')" id="tab-promotion" style="display:none">🎯 Graduering</div>
   <div class="nav-tab" onclick="switchTab('board')" id="tab-board">📒 Interne notater</div>
@@ -1198,7 +1418,20 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
     📝 <span id="trainingNoteText"></span>
     <button onclick="openNotesModal()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:#888;margin-left:.4rem">✏️ rediger</button>
   </div>
-  <div class="tcard">
+  
+<!-- COPILOT TRAINING CARDS ONLY START -->
+<div class="training-list-head training-list-head-a">
+  <div><h2>Dagens holdliste</h2></div>
+  <div class="training-status-tabs">
+    <button class="btn active" data-tfilter="all" onclick="document.getElementById('tfc').value='all';renderT()">Alle</button>
+    <button class="btn" data-tfilter="out" onclick="document.getElementById('tfc').value='out';renderT()">Ikke mødt</button>
+    <button class="btn" data-tfilter="in" onclick="document.getElementById('tfc').value='in';renderT()">Til stede</button>
+    <button class="btn" onclick="openHv()">Skal vurderes</button>
+  </div>
+</div>
+<div id="trainingCards" class="training-card-list training-card-list-a"></div>
+<!-- COPILOT TRAINING CARDS ONLY END -->
+<div class="tcard training-table-source">
     <table>
       <thead>
         <tr>
@@ -1501,7 +1734,12 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 
   <div class="m-stats" id="mStats"></div>
   <div class="pay-summary" id="paySummary"></div>
-  <div class="tcard">
+  
+<!-- COPILOT MEMBERS EX3 FIXED START -->
+<div class="member-cards-head member-cards-head-3"><h2>Alle medlemmer</h2></div>
+<div id="memberCards" class="member-card-list member-card-list-3"></div>
+<!-- COPILOT MEMBERS EX3 FIXED END -->
+<div class="tcard member-table-source">
     <table>
       <thead>
         <tr>
@@ -1630,8 +1868,7 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
     <div id="bestDayInfo" style="margin-top:.8rem;font-size:.8rem;color:var(--xtm)"></div>
   </div>
 
-  <div class="sh">
-    <div class="st">🥋 Fremmøde pr. medlem</div>
+  <div class="sh db-member-filter-row">
     <div class="controls">
       <div class="db-sess-toggle" id="dbSessToggle">
         <button id="dbToggleReg" class="db-stbtn active" onclick="setDbSessionFilter('regular')">📅 Tirs/Tors</button>
@@ -1656,7 +1893,11 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
     🔍 Filtreret på: <strong id="dbChartFilterLabel"></strong>
     <button onclick="clearDbChartFilter()" style="margin-left:auto;background:none;border:1px solid #93c5fd;border-radius:6px;padding:.1rem .6rem;cursor:pointer;color:#1e40af;font-size:.78rem">✕ Ryd filter</button>
   </div>
-  <div class="tcard">
+  
+<!-- COPILOT DASHBOARD MEMBER CARDS START -->
+<div id="dbMemberCards" class="db-member-card-list db-member-card-list-3"></div>
+<!-- COPILOT DASHBOARD MEMBER CARDS END -->
+<div class="tcard db-member-table-source">
     <table>
       <thead>
         <tr>
@@ -2858,6 +3099,14 @@ function showPresenceModal(){
   refreshPresenceDatalist();
   const inp=document.getElementById('presenceNameInput');
   if(inp){ inp.value=_myPresenceName||''; }
+  const cta=document.querySelector('#presenceModal button[onclick="confirmPresenceName()"]');
+  if(cta){ cta.disabled=false; cta.classList.remove('is-thinking'); cta.textContent='✓ Fortsæt'; }
+  modal.classList.remove('presence-thinking-active');
+  const grid=document.getElementById('presenceNameGrid');
+  if(grid){
+    grid.querySelectorAll('button[data-full]').forEach(btn=>{btn.disabled=false;btn.classList.remove('thinking','presence-dimmed');btn.removeAttribute('aria-busy');});
+    grid.querySelectorAll('.presence-thinking-overlay').forEach(x=>x.remove());
+  }
   modal.style.display='flex';
   setTimeout(()=>{ if(inp)inp.focus(); },120);
 }
@@ -2901,32 +3150,72 @@ function pickPresenceName(name,memberId){
   if(grid){
     grid.querySelectorAll('button[data-full]').forEach(btn=>{
       const isSel=btn.getAttribute('data-full')===name;
-      btn.style.borderColor=isSel?'#1a5c5c':'#e5e7eb';
-      btn.style.background=isSel?'#ecfeff':'#fff';
-      btn.style.boxShadow=isSel?'0 0 0 3px rgba(26,92,92,.15)':'';
+      btn.classList.toggle('selected',isSel);
+      btn.setAttribute('aria-selected',isSel?'true':'false');
+      btn.style.borderColor=isSel?'#365f38':'var(--dojo-line,#e5e7eb)';
+      btn.style.background=isSel?'linear-gradient(135deg,#f0fbf7,#fffefa)':'rgba(255,254,250,.82)';
+      btn.style.boxShadow=isSel?'0 0 0 4px rgba(54,95,56,.14),0 14px 30px -22px rgba(20,14,8,.55)':'0 12px 28px -24px rgba(20,14,8,.55)';
+      btn.style.transform=isSel?'translateY(-2px)':'translateY(0)';
     });
   }
+  const cta=document.querySelector('#presenceModal button[onclick="confirmPresenceName()"]');
+  if(cta) cta.textContent='✓ Fortsæt som '+name.split(' ')[0];
   // Fortsæt IKKE automatisk — brugeren skal trykke på Fortsæt-knappen selv
 }
 function confirmPresenceName(){
   const name=(document.getElementById('presenceNameInput').value||'').trim();
   if(!name){ showToast('Vælg venligst dit navn fra listen'); return; }
-  if(!config.scriptUrl){ setPresenceName(name); return; }
-  // Tjek om navn allerede er online
-  const btn=document.querySelector('#presenceModal button');
-  if(btn){ btn.disabled=true; btn.textContent='Tjekker…'; }
+  const modal=document.getElementById('presenceModal');
+  const grid=document.getElementById('presenceNameGrid');
+  const firstName=(name.split(' ')[0]||name);
+  const continueBtn=document.querySelector('#presenceModal button[onclick="confirmPresenceName()"]');
+  if(continueBtn&&continueBtn.disabled)return;
+  const selectedTile=grid?Array.from(grid.querySelectorAll('button[data-full]')).find(btn=>btn.getAttribute('data-full')===name):null;
+  const setThinking=(on)=>{
+    if(modal) modal.classList.toggle('presence-thinking-active',!!on);
+    if(grid){
+      grid.querySelectorAll('button[data-full]').forEach(btn=>{
+        const isSel=btn.getAttribute('data-full')===name;
+        btn.classList.toggle('presence-dimmed',!!on&&!isSel);
+        btn.disabled=!!on;
+        if(!on) btn.disabled=false;
+      });
+    }
+    if(selectedTile){
+      selectedTile.classList.toggle('thinking',!!on);
+      selectedTile.setAttribute('aria-busy',on?'true':'false');
+      let overlay=selectedTile.querySelector('.presence-thinking-overlay');
+      if(on&&!overlay){
+        overlay=document.createElement('div');
+        overlay.className='presence-thinking-overlay';
+        overlay.innerHTML='<span class="presence-thinking-orb" aria-hidden="true"></span><span class="presence-thinking-copy"><strong>Tjekker</strong><small>Adgang…</small></span><span class="presence-thinking-dots"><i></i><i></i><i></i></span>';
+        selectedTile.appendChild(overlay);
+      }
+      if(!on&&overlay) overlay.remove();
+    }
+    if(continueBtn){
+      continueBtn.disabled=!!on;
+      continueBtn.classList.toggle('is-thinking',!!on);
+      continueBtn.innerHTML=on
+        ? '<span class="presence-btn-loader" aria-hidden="true"><i></i><i></i><i></i></span><span>Logger ind som '+firstName+'</span>'
+        : '✓ Fortsæt som '+firstName;
+    }
+  };
+  const finish=()=>{ setTimeout(()=>setPresenceName(name),420); };
+  setThinking(true);
+  if(!config.scriptUrl){ finish(); return; }
+  // Tjek om navn allerede er online — uden at ændre profilkortets billede/indhold
   const cb='_prc'+Date.now();
   const s=document.createElement('script');
   let timer;
   const cleanup=()=>{clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);};
   window[cb]=function(d){
     cleanup();
-    if(btn){ btn.disabled=false; btn.textContent='✓ Fortsæt'; }
     const online=(d&&d.online)||[];
-    setPresenceName(name);
+    finish();
   };
-  s.onerror=()=>{ cleanup(); if(btn){btn.disabled=false;btn.textContent='✓ Fortsæt';} setPresenceName(name); };
-  timer=setTimeout(()=>{ cleanup(); if(btn){btn.disabled=false;btn.textContent='✓ Fortsæt';} setPresenceName(name); },6000);
+  s.onerror=()=>{ cleanup(); finish(); };
+  timer=setTimeout(()=>{ cleanup(); finish(); },6000);
   s.src=config.scriptUrl+'?action=presence_check&callback='+cb+'&t='+Date.now();
   document.head.appendChild(s);
 }
@@ -4830,12 +5119,16 @@ function renderT(){
   if(!body) return;
   const q=document.getElementById('tsearch').value.toLowerCase();
   const fc=document.getElementById('tfc').value;
+  document.querySelectorAll('#page-training .training-status-tabs [data-tfilter]').forEach(btn=>btn.classList.toggle('active',btn.dataset.tfilter===fc));
   const fp=document.getElementById('tfp').value;
   const fg=document.getElementById('tfg').value;
   // Beregn streak for alle aktive én gang (undgår gentagne opkald per række)
   const _streakCache={};
   members.filter(m=>!m.archived&&m.status!=='passiv').forEach(m=>{ _streakCache[m.id]=calcStreak(m.id); });
-  body.innerHTML='';let vis=0;
+  body.innerHTML='';
+  const trainingCards=document.getElementById('trainingCards');
+  if(trainingCards) trainingCards.innerHTML='';
+  let vis=0;
   const tList=members.filter(m=>{
     if(m.archived||m.status==='passiv')return false;
     const nm=(m.firstName+' '+m.lastName).toLowerCase();
@@ -4899,6 +5192,33 @@ function renderT(){
       <td>${beltHtml(m.belt,bc)}</td>
       <td data-col="payment">${payBadge(m)}</td>`;
     body.appendChild(tr);
+    // COPILOT TRAINING CARD RENDER START
+    if(trainingCards){
+      const card=document.createElement('article');
+      card.className='training-member-card training-member-card-a'+(m.checkedIn?' is-present':'');
+      if(_promoStyle) card.style.cssText=_promoStyle;
+      const pay=payBadge(m);
+      const belt=beltHtml(m.belt,bc);
+      const sc=scoreCell(m.id);
+      card.innerHTML=`
+        <div class="tm-main">
+          <label class="toggle tm-toggle" title="${m.checkedIn?'Til stede':'Fraværende'}">
+            <input type="checkbox" data-mid="${m.id}" ${m.checkedIn?'checked':''} onchange="toggleCI(${m.id},this.checked)"/>
+            <span class="slider"></span>
+          </label>
+          <div class="av ${avClass(m.group)} tm-avatar">${avatarInner(m)}</div>
+          <div class="tm-person">
+            <div class="tm-name">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
+            <div class="tm-meta">${grpChip(m.group)} <span class="tm-dot">·</span> ${gCell(m)} <span class="tm-dot">·</span> ${belt}</div>
+            <div class="tm-chips">${streakBadge}${pay}</div>
+          </div>
+        </div>
+        <div class="tm-score">${sc}</div>
+        <div class="tm-actions tm-actions-training"><button class="btn bp btn-sm" onclick="openAssessmentModal(${m.id})" title="Vurdering">⚡ Rating</button></div>`;
+      trainingCards.appendChild(card);
+    }
+    // COPILOT TRAINING CARD RENDER END
+
   });
   document.getElementById('empty-t').style.display=vis?'none':'block';
   updateStats();
@@ -5065,7 +5385,10 @@ function renderM(){
   const fr=document.getElementById('mfr').value;
   const fst=document.getElementById('mfstatus').value;
   const sortMode=document.getElementById('mfsort')?.value||'name';
-  body.innerHTML='';let vis=0;
+  body.innerHTML='';
+  const memberCards=document.getElementById('memberCards');
+  if(memberCards) memberCards.innerHTML='';
+  let vis=0;
 
   // Passive sektion
   renderPassiveMembers(q,fg,fr);
@@ -5186,7 +5509,41 @@ function renderM(){
         <button class="btn bdr btn-sm" onclick="confirmDelete(${m.id})" style="margin-left:3px" title="Slet">🗑</button>
       </td>`;
     body.appendChild(tr);
+    // COPILOT MEMBER CARD RENDER START
+    if(memberCards){
+      const memberCard=document.createElement('article');
+      memberCard.className='member-profile-card member-profile-card-3';
+      const score=scoreCell(m.id);
+      const belt=beltHtml(m.belt,bc);
+      const dur=durationStr(m);
+      memberCard.innerHTML=`
+        <div class="mp-left-accent"></div>
+        <div class="mp-main mp-main-wide">
+          <div class="av ${avClass(m.group)} mp-avatar">${avatarInner(m)}</div>
+          <div class="mp-person">
+            <div class="mp-name">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
+            <div class="mp-contact"><span>${m.email||'ingen e-mail'}</span><span>${m.phone||'ingen telefon'}</span></div>
+            <div class="mp-chips">${grpChip(m.group)}${roleChip(m.role||'Medlem')}<span class="mp-belt">${belt}</span>${payBadge(m)}</div>
+          </div>
+        </div>
+        <div class="mp-mini-metrics">
+          <div><span>Score</span><strong>${score}</strong></div>
+          <div class="${m.gender==='M'?'mp-gender-m':m.gender==='K'?'mp-gender-k':''}"><span>Køn/alder</span><strong>${gCell(m)}</strong></div>
+          <div><span>Anciennitet</span><strong>${dur}</strong></div>
+          <div class="mp-amount-tile"><span>Beløb</span><strong><input type="number" class="amt-input" value="${Number(m.betaltBeløb)||0}" min="0" step="50" title="Indbetalt beløb" onchange="onAmountChange(${m.id},this.value)"/></strong></div>
+        </div>
+        <div class="mp-actions mp-actions-vertical">
+          <button class="btn bg btn-sm" onclick="openEditModal(${m.id})" title="Rediger">✏️ Rediger</button>
+          <button class="btn bg btn-sm" onclick="openAssessmentModal(${m.id})" title="Vurdering">📋 Vurdering</button>
+          ${isKontingentReminderPeriod()&&['unpaid','overdue'].includes(effectivePaymentStatus(m))?m.email?`<button class="btn btn-sm mp-reminder" onclick="openIndividualReminder(${m.id})" title="Send betalingspåmindelse">📧 Påmind</button>`:`<button class="btn btn-sm" disabled title="Ingen e-mailadresse registreret">📧</button>`:''}
+          <div class="mp-danger-actions"><button class="btn bg btn-sm" onclick="archiveMember(${m.id})" title="Arkivér">📦</button><button class="btn bdr btn-sm" onclick="confirmDelete(${m.id})" title="Slet">🗑</button></div>
+        </div>`;
+      memberCards.appendChild(memberCard);
+    }
+    // COPILOT MEMBER CARD RENDER END
+
   });
+  if(memberCards&&vis===0)memberCards.innerHTML='<div class="member-card-empty"><div class="icon">📇</div><div>Ingen resultater</div></div>';
   document.getElementById('empty-m').style.display=vis?'none':'block';
   document.getElementById('mCount').textContent='';
   updateMemberStats();
@@ -6605,6 +6962,8 @@ function renderDashboard(){
   // Member table
   const body=document.getElementById('tbody-db');
   body.innerHTML='';
+  const dbMemberCards=document.getElementById('dbMemberCards');
+  if(dbMemberCards) dbMemberCards.innerHTML='';
   let rows=act.filter(m=>{
     if(mgrpF!=='all'&&m.group!==mgrpF)return false;
     if(q&&!(m.firstName+' '+m.lastName).toLowerCase().includes(q))return false;
@@ -6809,6 +7168,20 @@ function renderDashboard(){
       </td>
       <td><div>${pct}%${memberTrend(m.id,sessions)}</div><div class="db-att-bar"><div class="db-att-fill" style="width:${pct}%;background:${pct>=60?'var(--go)':pct>=40?'var(--or)':'var(--rb)'}"></div></div></td>`;
     body.appendChild(tr);
+    // COPILOT DASHBOARD MEMBER CARD RENDER START
+    if(dbMemberCards){
+      const dbCard=document.createElement('article');
+      dbCard.className='db-member-card db-member-card-3';
+      dbCard.innerHTML=`
+        <div class="db-rank ${rankCls}">${i+1}</div>
+        <div class="db-card-person"><div class="av ${avClass(m.group)} db-card-avatar">${avatarInner(m)}</div><div><div class="db-card-name" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="db-card-sub">${grpChip(m.group)} <span>${beltHtml(m.belt,bc)}</span></div></div></div>
+        <div class="db-card-badges">${milestone}${streakBadge}${_winBadgeHtml(m.id)}</div>
+        <div class="db-card-metrics db-card-metrics-right"><div><span>Fremmøde</span><strong>${c}/${totalSess}</strong></div><div><span>%</span><strong>${pct}%</strong></div></div>
+        <div class="db-progress-track"><div class="db-progress-fill" style="width:${Math.min(100,pct)}%"></div></div>`;
+      dbMemberCards.appendChild(dbCard);
+    }
+    // COPILOT DASHBOARD MEMBER CARD RENDER END
+
     vis++;
   });
   document.getElementById('empty-db').style.display=vis?'none':'block';
@@ -11195,6 +11568,74 @@ function exportProgressToPDF(memberId){
   .cta{display:block;text-align:center;padding:9px 16px;background:#1a2e2e;color:#fff!important;border-radius:8px;font-weight:700;font-size:11px;text-decoration:none;margin-top:10px}
   .footer{margin-top:8px;padding-top:6px;border-top:1px solid #e5e7eb;font-size:8.5px;color:#94a3b8;display:flex;justify-content:space-between}
   @media print{button{display:none} *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+
+/* COPILOT CLEANUP PATCH — remove redundant section copy + tighten list/filter rows */
+#page-training .training-list-sub,
+#page-dashboard .db-member-cards-head{
+  display:none!important;
+}
+
+#page-training .training-list-head-a{
+  margin:10px 2px 8px!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+#page-training .training-list-head-a h2{
+  font-size:24px!important;
+  line-height:1!important;
+}
+#page-training .training-status-tabs{
+  margin-left:auto!important;
+  align-items:center!important;
+}
+#page-training .training-status-tabs .btn{
+  min-height:36px!important;
+  padding:.42rem .85rem!important;
+}
+
+#page-dashboard .db-member-filter-row{
+  margin:8px 0 10px!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+#page-dashboard .db-member-filter-row .controls{
+  width:auto!important;
+  justify-content:flex-end!important;
+}
+#page-dashboard #dbMemberCards{
+  margin-top:0!important;
+}
+
+@media(max-width:760px){
+  #page-training .training-list-head-a{
+    margin:8px 0 8px!important;
+    align-items:stretch!important;
+  }
+  #page-training .training-list-head-a h2{
+    font-size:22px!important;
+  }
+  #page-training .training-status-tabs{
+    margin-left:0!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    width:100%!important;
+  }
+  #page-training .training-status-tabs .btn{
+    width:100%!important;
+    justify-content:center!important;
+  }
+  #page-dashboard .db-member-filter-row{
+    margin:6px 0 8px!important;
+    align-items:stretch!important;
+  }
+  #page-dashboard .db-member-filter-row .controls{
+    width:100%!important;
+    justify-content:stretch!important;
+  }
+}
+/* END COPILOT CLEANUP PATCH */
+
 </style></head><body>
 <div class="page-root">
   <div class="hero">
