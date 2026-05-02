@@ -1219,6 +1219,119 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 }
 /* END COPILOT AMOUNT LABEL CENTER FIX v1 */
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT MOBILE HEADER ACTIONS RESTORE v1
+   Restores mobile header actions that were hidden at <=420px:
+   sync status, logged-in/presence bar, inbox, archive, search, settings.
+   Scope: mobile header only. No JS/functions changed.
+═════════════════════════════════════════════════════════════ */
+@media(max-width:480px){
+  header{
+    min-height:auto!important;
+    height:auto!important;
+    align-items:center!important;
+    gap:6px!important;
+    padding:8px 10px 9px!important;
+  }
+  header .hbrand{
+    flex:0 0 100%!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  header .hdr-actions{
+    display:flex!important;
+    flex:0 0 100%!important;
+    width:100%!important;
+    margin-left:0!important;
+    justify-content:flex-start!important;
+    align-items:center!important;
+    gap:6px!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+    padding:2px 0 0!important;
+    min-height:40px!important;
+  }
+  header .hdr-actions::-webkit-scrollbar{display:none!important;}
+  header .hdr-actions .hdate,
+  header .hdr-actions .hsub{display:none!important;}
+  header .hdr-actions .hdr-lbl{display:none!important;}
+  header .hdr-actions .btn,
+  header .hdr-actions .notif-btn{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+    padding:0 10px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:10px!important;
+    font-size:.95rem!important;
+    white-space:nowrap!important;
+  }
+  header #syncStatus,
+  header #presenceBar{
+    flex:0 0 auto!important;
+    min-height:34px!important;
+    max-width:150px!important;
+    align-items:center!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    border-radius:10px!important;
+    padding:.28rem .55rem!important;
+    font-size:.7rem!important;
+  }
+  header #presenceBar{
+    max-width:180px!important;
+  }
+  .nav-tabs-wrap{
+    top:94px!important;
+  }
+}
+@media(max-width:420px){
+  header .hdr-actions{
+    display:flex!important;
+  }
+  header #syncStatus{max-width:92px!important;}
+  header #presenceBar{max-width:132px!important;}
+  header .hdr-actions .btn,
+  header .hdr-actions .notif-btn{
+    min-width:36px!important;
+    height:36px!important;
+    min-height:36px!important;
+    padding:0 9px!important;
+  }
+  .nav-tabs-wrap{
+    top:92px!important;
+  }
+}
+@media(max-width:360px){
+  header #syncStatus{max-width:78px!important;}
+  header #presenceBar{max-width:112px!important;}
+  header .hdr-actions{
+    gap:5px!important;
+  }
+  header .hdr-actions .btn,
+  header .hdr-actions .notif-btn{
+    min-width:34px!important;
+    height:34px!important;
+    min-height:34px!important;
+    padding:0 8px!important;
+    font-size:.9rem!important;
+  }
+  .nav-tabs-wrap{
+    top:90px!important;
+  }
+}
+/* END COPILOT MOBILE HEADER ACTIONS RESTORE v1 */
+
 </style>
 </head>
 <body>
