@@ -1599,6 +1599,28 @@ header{background:linear-gradient(135deg,#1b1410,#2a1d14)!important}.htitle{font
 }
 /* END COPILOT MOBILE TRAINING BELT READABILITY v2 */
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   COPILOT MOBILE SCORE TAP FIX v1
+   Dagens træning mobile only: the whole Score pill is tappable.
+   Prevents the pseudo label area from feeling like a dead button.
+═════════════════════════════════════════════════════════════ */
+@media(max-width:640px){
+  #page-training .training-member-card-a .tm-score{
+    cursor:pointer!important;
+    -webkit-tap-highlight-color:rgba(54,95,56,.18)!important;
+    touch-action:manipulation!important;
+  }
+  #page-training .training-member-card-a .tm-score::before{
+    pointer-events:none!important;
+  }
+  #page-training .training-member-card-a .tm-score .score-wrap{
+    pointer-events:auto!important;
+  }
+}
+/* END COPILOT MOBILE SCORE TAP FIX v1 */
+
 </style>
 </head>
 <body>
@@ -12891,5 +12913,29 @@ function sendInboxReply(){
   _triggerPush('notifyMember',{memberId:_inboxActiveMember,title:'Ny besked fra din træner 🥋',body:shortText,email:sendEmail?1:0});
 }
 </script>
+
+
+<script id="copilot-mobile-score-tap-fix-v1">
+(function(){
+  if(window.__copilotMobileScoreTapFixV1) return;
+  window.__copilotMobileScoreTapFixV1 = true;
+  document.addEventListener('click', function(e){
+    var scoreBox = e.target && e.target.closest ? e.target.closest('#page-training .training-member-card-a .tm-score') : null;
+    if(!scoreBox) return;
+    if(e.target.closest && e.target.closest('.score-wrap')) return; // existing inline handler handles this
+    var wrap = scoreBox.querySelector('.score-wrap');
+    if(!wrap) return;
+    if(typeof window.toggleScoreTip === 'function'){
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleScoreTip(e, wrap);
+    }else{
+      var btn = scoreBox.closest('.training-member-card-a') && scoreBox.closest('.training-member-card-a').querySelector('.tm-actions-training .btn');
+      if(btn) btn.click();
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
