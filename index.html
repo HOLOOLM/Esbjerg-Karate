@@ -2876,6 +2876,7 @@ let activeAnnouncement=null;
 let studentActiveToday=false;
 let nextMessageId=1;
 let deletedAssessmentIds=new Set();
+let deletedSessionKeys=new Set(); // "date|name" keys for sessions deleted by user
 let deletedBoardIds=new Set();
 let _pendingPasswordResets=new Set();
 let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
@@ -3108,6 +3109,7 @@ function load(){
     assessments=av?JSON.parse(av):[];
     nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
     try{ deletedAssessmentIds=new Set(JSON.parse(localStorage.getItem('kk2_deletedAssessments')||'[]')); }catch(e){ deletedAssessmentIds=new Set(); }
+    try{ deletedSessionKeys=new Set(JSON.parse(localStorage.getItem('kk2_deletedSessions')||'[]')); }catch(e){ deletedSessionKeys=new Set(); }
     const pv=localStorage.getItem('kk2_pensum');
     pensum=pv?JSON.parse(pv):{};
     const snv=localStorage.getItem('kk2_skillNotes');
@@ -3593,36 +3595,17 @@ let _pushTimer=null, _isSyncing=false, _hasPending=false;
 
 function pushToCloud(){
   // Debounce: vent 2 sek efter sidste ændring — så 10 check-ins = 1 sync
+  // Server merger nu presentIds union-vis, så pre-pull er ikke længere nødvendigt
   _hasPending=true;
   clearTimeout(_pushTimer);
   setSyncStatus('pending');
-  _pushTimer=setTimeout(()=>_pullThenPush(0),2000);
+  _pushTimer=setTimeout(()=>_doPush(0),2000);
 }
 function pushToCloudNow(){
   clearTimeout(_pushTimer);
   _hasPending=true;
   setSyncStatus('pending');
-  _pullThenPush(0);
-}
-// Pre-pull merge: hent cloud først, flet today's check-ins union, push så
-// — dette eliminerer "last writer wins" tab af check-ins fra anden enhed
-function _pullThenPush(attempt){
-  if(!config.scriptUrl||_isSyncing){_doPush(attempt);return;}
-  // Hvis der ikke er noget at hente (f.eks. ingen cloud-data) eller load fejler,
-  // push vores lokale data alligevel — bedre end at miste dem
-  let done=false;
-  const fallback=setTimeout(()=>{ if(!done){done=true;_doPush(attempt);} },8000);
-  loadFromCloud(()=>{
-    if(done)return;
-    done=true; clearTimeout(fallback);
-    // Genopbyg checkedIn fra (nu union-merged) sessions så UI matcher
-    const sess=sessions.find(s=>s.date===currentTrainingDate);
-    if(sess){
-      const presentSet=new Set(sess.presentIds);
-      members.forEach(x=>x.checkedIn=presentSet.has(x.id));
-    }
-    _doPush(attempt);
-  });
+  _doPush(0);
 }
 
 // Periodisk sync hvert 60 sek — kun hvis der er ændringer og ingen sync kører
@@ -3639,7 +3622,7 @@ window.addEventListener('visibilitychange',()=>{
     try{
       let vault={};
       try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
-      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt});
+      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedSessionKeys:[...deletedSessionKeys],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt});
       navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
     }catch(e){}
   }
@@ -3659,7 +3642,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt})
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedSessionKeys:[...deletedSessionKeys],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -8617,6 +8600,9 @@ function deleteSession(){
   const sess=sessions.find(s=>s.date===ds);
   const cnt=(sess&&sess.presentIds||[]).length;
   if(!confirm(`Slet sessionen den ${fmtDate(ds)} permanent?\n\n${cnt} fremmøderegistrering${cnt===1?'':'er'} vil gå tabt.\n\nDette kan ikke fortrydes.`))return;
+  // Marker alle session-rækker for denne dato som slettet (også multiple navne, fx Træning + Ekstra)
+  sessions.filter(s=>s.date===ds).forEach(s=>{ deletedSessionKeys.add(ds+'|'+(s.name||'')); });
+  localStorage.setItem('kk2_deletedSessions',JSON.stringify([...deletedSessionKeys]));
   sessions=sessions.filter(s=>s.date!==ds);
   const ci=cancelledDates.indexOf(ds);
   if(ci>=0)cancelledDates.splice(ci,1);
