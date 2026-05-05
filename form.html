@@ -324,7 +324,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
     <div class="row" style="margin-top:12px">
       <div class="field">
         <label data-i18n="lblBirthdate">Fødselsdato <span>*</span></label>
-        <input id="birthdate" type="date" max="">
+        <input id="birthdate" type="date" max="" min="">
       </div>
       <div class="field">
         <label data-i18n="lblGender">Køn</label>
@@ -527,6 +527,12 @@ const T = {
   successBodyUpd:{ da: 'Blanketten er gemt og knyttet til den eksisterende profil.', en: 'Form saved and linked to the existing profile.' },
   newFormBtn:   { da: 'Ny indmeldelsesblanket',           en: 'New membership form' },
   errRequired:  { da: 'Udfyld venligst alle obligatoriske felter og underskriv.', en: 'Please fill in all required fields and sign.' },
+  errEmail:     { da: 'Indtast en gyldig email-adresse.', en: 'Please enter a valid email address.' },
+  errPhone:     { da: 'Indtast et gyldigt telefonnummer (mindst 8 cifre).', en: 'Please enter a valid phone number (at least 8 digits).' },
+  errZip:       { da: 'Postnummer skal være 4 cifre.',    en: 'Postal code must be 4 digits.' },
+  errBirthdate: { da: 'Indtast en gyldig fødselsdato (maks. 120 år).', en: 'Please enter a valid date of birth (max 120 years).' },
+  errSignature: { da: 'Underskriften kunne ikke gemmes — prøv at underskrive igen.', en: 'The signature could not be saved — please try signing again.' },
+  errTimeout:   { da: 'Forbindelsen er for langsom. Prøv igen.', en: 'The connection is too slow. Please try again.' },
   errServer:    { da: 'Fejl ved indsendelse: ',           en: 'Submission error: ' },
   errRetry:     { da: '. Prøv igen eller kontakt trænerne.', en: '. Please try again or contact the trainers.' },
   hdrSub:       { da: 'Indmeldelsesblanket',              en: 'Membership Registration Form' }
@@ -588,6 +594,9 @@ document.getElementById('headerDate').textContent =
 document.getElementById('todayDisplay').textContent =
   today.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
 document.getElementById('birthdate').max = todayIso;
+// Floor: 120 years ago — blocks obvious nonsense like year 1800
+const _minBirth = new Date(today); _minBirth.setFullYear(_minBirth.getFullYear() - 120);
+document.getElementById('birthdate').min = _minBirth.toISOString().slice(0,10);
 
 // ── Kontaktperson + hold + email-check ved fødselsdato ──
 document.getElementById('birthdate').addEventListener('change', function(){
@@ -604,13 +613,32 @@ document.getElementById('birthdate').addEventListener('change', function(){
   }
 });
 
-// ── Email-check: vis notice hvis profil sandsynligvis eksisterer ──
-// (kun visuelt hint — GAS håndterer den reelle logik)
-document.getElementById('email').addEventListener('blur', function(){
+// ── Email-check: spørg serveren om profilen eksisterer ──
+// Vi blokerer ikke submit, men viser en venlig notice så brugeren ved hvad der sker.
+let _existingMember = false;
+function _validEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim()); }
+document.getElementById('email').addEventListener('blur', async function(){
   const v = this.value.trim();
   const notice = document.getElementById('existingNotice');
-  // Vi kan ikke slå op uden server-kald, men vi nulstiller noten
   notice.classList.remove('show');
+  _existingMember = false;
+  if (!v || !_validEmail(v)) return;
+  try {
+    const ctrl = ('AbortController' in window) ? new AbortController() : null;
+    const tid  = ctrl ? setTimeout(()=>ctrl.abort(), 6000) : null;
+    const resp = await fetch(SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'checkEmail', email:v }),
+      signal: ctrl ? ctrl.signal : undefined
+    });
+    if (tid) clearTimeout(tid);
+    const data = await resp.json().catch(()=>({}));
+    if (data && data.exists) {
+      _existingMember = true;
+      notice.innerHTML = T.existingNotice[_lang];
+      notice.classList.add('show');
+    }
+  } catch(e) { /* netværksfejl — ignorér, validate() håndterer ved submit */ }
 });
 
 // ── Signaturpad ───────────────────────────────────────
@@ -678,24 +706,65 @@ function markErr(id, yes) { document.getElementById(id).classList.toggle('err', 
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── Validering ────────────────────────────────────────
+function _validPhone(s){ return /^[\d+\s().-]{8,}$/.test(String(s||'').trim()) && (String(s||'').replace(/\D/g,'').length >= 8); }
+function _validZip(s){ return /^\d{4}$/.test(String(s||'').trim()); }
+function _validBirthdate(v){
+  if (!v) return false;
+  const bd = new Date(v);
+  if (isNaN(bd)) return false;
+  const age = (today - bd) / (365.25 * 24 * 3600 * 1000);
+  return age >= 0 && age < 120;
+}
+// Real check: any non-white pixel on the signature canvas?
+function _signatureHasInk(){
+  if (!hasSig) return false;
+  try {
+    const w = canvas.width, h = canvas.height;
+    if (!w || !h) return false;
+    const data = ctx.getImageData(0,0,w,h).data;
+    for (let i=3; i<data.length; i+=4) if (data[i] !== 0) return true;
+    return false;
+  } catch(e) { return hasSig; }
+}
 function validate() {
   let ok = true;
+  let firstFailId = null;
   const required = ['firstName','lastName','birthdate','email','phone','address','zip','city','group'];
-  required.forEach(id => { const empty = !req(id); markErr(id, empty); if (empty) ok = false; });
+  required.forEach(id => { const empty = !req(id); markErr(id, empty); if (empty) { ok = false; if (!firstFailId) firstFailId = id; } });
+
+  // Format checks (skip if already empty — the empty error wins)
+  if (req('email') && !_validEmail(req('email'))) { markErr('email', true); ok = false; if (!firstFailId) firstFailId = 'email'; window._formErrKey = 'errEmail'; }
+  if (req('phone') && !_validPhone(req('phone'))) { markErr('phone', true); ok = false; if (!firstFailId) firstFailId = 'phone'; window._formErrKey = window._formErrKey || 'errPhone'; }
+  if (req('zip')   && !_validZip(req('zip')))     { markErr('zip',   true); ok = false; if (!firstFailId) firstFailId = 'zip';   window._formErrKey = window._formErrKey || 'errZip'; }
+  if (req('birthdate') && !_validBirthdate(req('birthdate'))) { markErr('birthdate', true); ok = false; if (!firstFailId) firstFailId = 'birthdate'; window._formErrKey = window._formErrKey || 'errBirthdate'; }
+  if (req('contactPhone') && !_validPhone(req('contactPhone'))) { markErr('contactPhone', true); ok = false; if (!firstFailId) firstFailId = 'contactPhone'; window._formErrKey = window._formErrKey || 'errPhone'; }
 
   const bd  = new Date(document.getElementById('birthdate').value);
   const age = (today - bd) / (365.25 * 24 * 3600 * 1000);
   if (!isNaN(age) && age < 15) {
-    ['contactName','contactPhone'].forEach(id => { const empty = !req(id); markErr(id, empty); if (empty) ok = false; });
+    ['contactName','contactPhone'].forEach(id => { const empty = !req(id); markErr(id, empty); if (empty) { ok = false; if (!firstFailId) firstFailId = id; } });
   }
   if (!document.getElementById('consentGdpr').checked)  { ok = false; document.getElementById('consentGdpr').style.outline  = '2px solid var(--bad)'; }
   else document.getElementById('consentGdpr').style.outline  = '';
   if (!document.getElementById('consentRules').checked) { ok = false; document.getElementById('consentRules').style.outline = '2px solid var(--bad)'; }
   else document.getElementById('consentRules').style.outline = '';
-  if (!hasSig) { ok = false; document.querySelector('.sig-wrap').style.border = '2px solid var(--bad)'; }
+  if (!_signatureHasInk()) { ok = false; document.querySelector('.sig-wrap').style.border = '2px solid var(--bad)'; }
   else document.querySelector('.sig-wrap').style.border = '';
+
+  if (!ok && firstFailId) {
+    const el = document.getElementById(firstFailId);
+    if (el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
   return ok;
 }
+
+// Forhåndsindlæs logo så drawImage faktisk har et færdig-loaded billede.
+// (Den oprindelige kode lavede new Image() og tegnede synkront — race condition.)
+const _logoImg = new Image();
+let _logoReady = false;
+_logoImg.onload  = function(){ _logoReady = true; };
+_logoImg.onerror = function(){ _logoReady = false; };
+_logoImg.src = LOGO_B64;
 
 // ── Render blanket til canvas ─────────────────────────
 function buildDocumentCanvas() {
@@ -711,18 +780,18 @@ function buildDocumentCanvas() {
   // Header
   c.fillStyle = '#1a2e2e';
   c.fillRect(0, 0, W, 120);
-  // Logo
-  try {
-    const logoImg = new Image();
-    logoImg.src = LOGO_B64;
-    const lSize = 70;
-    c.save();
-    c.beginPath();
-    c.arc(W/2, 38, lSize/2, 0, Math.PI*2);
-    c.clip();
-    c.drawImage(logoImg, W/2 - lSize/2, 3, lSize, lSize);
-    c.restore();
-  } catch(e) {}
+  // Logo (kun hvis reelt færdigindlæst — ellers springer vi det over uden at fejle hele blanketten)
+  if (_logoReady && _logoImg.complete && _logoImg.naturalWidth > 0) {
+    try {
+      const lSize = 70;
+      c.save();
+      c.beginPath();
+      c.arc(W/2, 38, lSize/2, 0, Math.PI*2);
+      c.clip();
+      c.drawImage(_logoImg, W/2 - lSize/2, 3, lSize, lSize);
+      c.restore();
+    } catch(e) { /* logo er pynt — uden er stadig en gyldig blanket */ }
+  }
   c.fillStyle = '#ffffff';
   c.font = 'bold 20px sans-serif';
   c.textAlign = 'center';
@@ -814,21 +883,39 @@ function buildDocumentCanvas() {
 }
 
 // ── Indsend ───────────────────────────────────────────
+let _submitting = false;
 async function submitForm() {
-  document.getElementById('errMsg').classList.remove('show');
+  if (_submitting) return; // Hård dobbelt-klik beskyttelse
+  const errBox = document.getElementById('errMsg');
+  errBox.classList.remove('show');
+  window._formErrKey = null;
+
   if (!validate()) {
-    document.getElementById('errMsg').textContent = T.errRequired[_lang];
-    document.getElementById('errMsg').classList.add('show');
-    document.getElementById('errMsg').scrollIntoView({behavior:'smooth',block:'center'});
+    const key = window._formErrKey || 'errRequired';
+    errBox.textContent = T[key] ? T[key][_lang] : T.errRequired[_lang];
+    errBox.classList.add('show');
+    errBox.scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
 
+  _submitting = true;
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   document.getElementById('submitTxt').innerHTML = '<span class="spinner"></span> ' + T.submitting[_lang];
 
   let docData = '';
-  try { docData = buildDocumentCanvas(); } catch(canvasErr) { /* best-effort — fortsæt uden dokument */ }
+  try {
+    docData = buildDocumentCanvas();
+  } catch(canvasErr) {
+    // Vi vil ikke submitte stille uden underskrift-billede. Stop og fortæl brugeren det.
+    errBox.textContent = T.errSignature[_lang];
+    errBox.classList.add('show');
+    errBox.scrollIntoView({behavior:'smooth',block:'center'});
+    btn.disabled = false;
+    document.getElementById('submitTxt').textContent = T.submitBtn[_lang];
+    _submitting = false;
+    return;
+  }
   const bd  = new Date(document.getElementById('birthdate').value);
   const age = (today - bd) / (365.25 * 24 * 3600 * 1000);
 
@@ -852,11 +939,17 @@ async function submitForm() {
   };
 
   try {
+    // Timeout (30s) — Apps Script kan være langsom, men ikke evig.
+    const ctrl = ('AbortController' in window) ? new AbortController() : null;
+    const tid  = ctrl ? setTimeout(()=>ctrl.abort(), 30000) : null;
     const resp = await fetch(SCRIPT_URL, {
       method:  'POST',
       headers: {'Content-Type':'text/plain'},
-      body:    JSON.stringify(payload)
+      body:    JSON.stringify(payload),
+      signal:  ctrl ? ctrl.signal : undefined
     });
+    if (tid) clearTimeout(tid);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     if (data.ok) {
       document.getElementById('formWrap').style.display = 'none';
@@ -869,11 +962,16 @@ async function submitForm() {
       throw new Error(data.error || 'Server error');
     }
   } catch(err) {
-    document.getElementById('errMsg').textContent = T.errServer[_lang] + err.message + T.errRetry[_lang];
-    document.getElementById('errMsg').classList.add('show');
+    const isAbort = err && (err.name === 'AbortError' || /abort/i.test(String(err.message||'')));
+    errBox.textContent = isAbort
+      ? T.errTimeout[_lang]
+      : (T.errServer[_lang] + (err && err.message ? err.message : 'Network') + T.errRetry[_lang]);
+    errBox.classList.add('show');
+    errBox.scrollIntoView({behavior:'smooth',block:'center'});
   } finally {
     btn.disabled = false;
     document.getElementById('submitTxt').textContent = T.submitBtn[_lang];
+    _submitting = false;
   }
 }
 

@@ -2576,8 +2576,8 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
       </div>
       <div class="fgrp full">
         <label>Google Script URL (deling mellem enheder)</label>
-        <input type="url" id="setScriptUrl" placeholder="https://script.google.com/macros/s/.../exec"/>
-        <div class="age-hint">Lad feltet stå tomt for at bruge appen offline uden deling</div>
+        <input type="url" id="setScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" readonly title="Låst — for at ændre denne URL skal kildekoden opdateres" style="background:#f8fafc;color:#64748b;cursor:not-allowed"/>
+        <div class="age-hint">🔒 Låst til klubbens server — kontakt udvikleren hvis URL'en skal ændres</div>
       </div>
       <div class="fgrp full">
         <label>📅 Faste træningsdage</label>
@@ -12490,6 +12490,9 @@ function updateArrangement(id,field,val){
 
 function deleteArrangement(id){
   if(!config.arrangements) return;
+  const arr=config.arrangements.find(x=>x.id===id);
+  const label=arr&&arr.title?'"'+arr.title+'"':'dette arrangement';
+  if(!confirm('Slet '+label+'? Det kan ikke fortrydes.')) return;
   config.arrangements=config.arrangements.filter(x=>x.id!==id);
   renderArrangementList();
 }

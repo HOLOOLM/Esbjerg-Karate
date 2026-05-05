@@ -850,21 +850,56 @@ function showErr(msg){
   document.getElementById('loginBtn').disabled = false;
 }
 
+// ── Login throttle: 5 forsøg pr. email pr. 15 min ──
+const _LOGIN_MAX = 5;
+const _LOGIN_WINDOW_MS = 15 * 60 * 1000;
+function _loginKey(email){ return 'kk2_login_attempts_' + (email||'').toLowerCase(); }
+function _getAttempts(email){
+  try { return JSON.parse(sessionStorage.getItem(_loginKey(email)) || '{"n":0,"first":0}'); }
+  catch(e){ return {n:0, first:0}; }
+}
+function _setAttempts(email, obj){
+  try { sessionStorage.setItem(_loginKey(email), JSON.stringify(obj)); } catch(e){}
+}
+function _clearAttempts(email){
+  try { sessionStorage.removeItem(_loginKey(email)); } catch(e){}
+}
+function _checkLockout(email){
+  const a = _getAttempts(email);
+  if (a.n < _LOGIN_MAX) return 0;
+  const elapsed = Date.now() - (a.first||0);
+  if (elapsed >= _LOGIN_WINDOW_MS) { _clearAttempts(email); return 0; }
+  return Math.ceil((_LOGIN_WINDOW_MS - elapsed) / 60000);
+}
+function _bumpAttempts(email){
+  const a = _getAttempts(email);
+  if (!a.first || (Date.now() - a.first) > _LOGIN_WINDOW_MS) { a.first = Date.now(); a.n = 0; }
+  a.n += 1;
+  _setAttempts(email, a);
+}
+
 async function doLogin(){
   const input = document.getElementById('emailInput').value.trim().toLowerCase();
   const pw = document.getElementById('passwordInput').value;
   document.getElementById('loginErr').classList.remove('show');
   if(!input){ showErr('Enter your email first.'); return; }
   if(!pw){ showErr('Enter your password.'); return; }
+  const lockedMin = _checkLockout(input);
+  if (lockedMin > 0) { showErr('Too many failed attempts. Try again in ' + lockedMin + ' minute' + (lockedMin===1?'':'s') + '.'); return; }
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginStatus').classList.add('show');
   const hash = await sha256hex(pw);
   fetchStudentWithRetry(input, hash, (err, d)=>{
     if(err){ showErr('Could not fetch data: '+err.message); return; }
     if(!d || !d.ok){
-      showErr(d && d.error ? d.error : 'We could not find a student with that email.');
+      _bumpAttempts(input);
+      const a = _getAttempts(input);
+      const left = Math.max(0, _LOGIN_MAX - a.n);
+      const baseMsg = d && d.error ? d.error : 'Wrong email or password.';
+      showErr(left > 0 ? (baseMsg + ' (' + left + ' attempt' + (left===1?'':'s') + ' left)') : baseMsg);
       return;
     }
+    _clearAttempts(input);
     try{ sessionStorage.setItem('kk2_student_email', input); sessionStorage.setItem('kk2_student_hash', hash); }catch(e){}
     try {
       const tlName = '_tl'+Date.now();
@@ -899,7 +934,14 @@ function _bgRefresh() {
   const hash  = sessionStorage.getItem('kk2_student_hash');
   if (!email || !hash) return;
   fetchStudent(email, hash, (err, d) => {
-    if (err || !d || !d.ok) return; // ignorer fejl i baggrunden
+    // Netværksfejl i baggrunden — ignorér.
+    if (err) return;
+    // Eksplicit auth-fejl fra serveren betyder at sessionen er ugyldig (password ændret, medlem slettet osv.)
+    if (d && d.ok === false && (d.code === 'auth' || /password|unauthor|forbidden|not found/i.test(String(d.error||'')))) {
+      try { doLogout(); } catch(e){}
+      return;
+    }
+    if (!d || !d.ok) return;
     // Opdater data stille
     CURRENT.messages = d.messages || CURRENT.messages;
     // Opdater announcement banner
@@ -2419,13 +2461,40 @@ document.getElementById('passwordInput').addEventListener('keydown', e=>{
   if(e.key==='Enter') doLogin();
 });
 
-try{
-  const saved = sessionStorage.getItem('kk2_student_email');
-  if(saved){
-    document.getElementById('emailInput').value = saved;
-    doLogin();
-  }
-}catch(e){}
+// Auto-login: hvis serveren afviser de gemte credentials, ryd dem så vi ikke bliver siddende fast
+// med en hængende "Logger ind…" status. Vi forsøger 1 stille auto-login og falder tilbage til log ind-skærmen.
+(async function _autoLogin(){
+  try{
+    const savedEmail = sessionStorage.getItem('kk2_student_email');
+    const savedHash  = sessionStorage.getItem('kk2_student_hash');
+    if(!savedEmail || !savedHash) return;
+    document.getElementById('emailInput').value = savedEmail;
+    document.getElementById('loginBtn').disabled = true;
+    document.getElementById('loginStatus').classList.add('show');
+    fetchStudentWithRetry(savedEmail, savedHash, function(err, d){
+      if (err || !d || !d.ok) {
+        try { sessionStorage.removeItem('kk2_student_email'); sessionStorage.removeItem('kk2_student_hash'); } catch(e){}
+        document.getElementById('loginBtn').disabled = false;
+        document.getElementById('loginStatus').classList.remove('show');
+        if (err) {
+          // Vi viser ikke en fejl — det er en stille genoptagelse. Brugeren kan logge ind manuelt.
+          return;
+        }
+        showErr(d && d.error ? d.error : 'Your session has expired — please sign in again.');
+        return;
+      }
+      if (d.forcePasswordChange) {
+        _changePwEmail = savedEmail;
+        _changePwOldHash = savedHash;
+        showChangePwView();
+        renderDashboard(d);
+        return;
+      }
+      renderDashboard(d);
+      _startBgRefresh();
+    });
+  }catch(e){}
+})();
 </script>
 
 
