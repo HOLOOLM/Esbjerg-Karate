@@ -3596,13 +3596,33 @@ function pushToCloud(){
   _hasPending=true;
   clearTimeout(_pushTimer);
   setSyncStatus('pending');
-  _pushTimer=setTimeout(()=>_doPush(0),2000);
+  _pushTimer=setTimeout(()=>_pullThenPush(0),2000);
 }
 function pushToCloudNow(){
   clearTimeout(_pushTimer);
   _hasPending=true;
   setSyncStatus('pending');
-  _doPush(0);
+  _pullThenPush(0);
+}
+// Pre-pull merge: hent cloud først, flet today's check-ins union, push så
+// — dette eliminerer "last writer wins" tab af check-ins fra anden enhed
+function _pullThenPush(attempt){
+  if(!config.scriptUrl||_isSyncing){_doPush(attempt);return;}
+  // Hvis der ikke er noget at hente (f.eks. ingen cloud-data) eller load fejler,
+  // push vores lokale data alligevel — bedre end at miste dem
+  let done=false;
+  const fallback=setTimeout(()=>{ if(!done){done=true;_doPush(attempt);} },8000);
+  loadFromCloud(()=>{
+    if(done)return;
+    done=true; clearTimeout(fallback);
+    // Genopbyg checkedIn fra (nu union-merged) sessions så UI matcher
+    const sess=sessions.find(s=>s.date===currentTrainingDate);
+    if(sess){
+      const presentSet=new Set(sess.presentIds);
+      members.forEach(x=>x.checkedIn=presentSet.has(x.id));
+    }
+    _doPush(attempt);
+  });
 }
 
 // Periodisk sync hvert 60 sek — kun hvis der er ændringer og ingen sync kører
@@ -3823,14 +3843,14 @@ function loadFromCloud(onDone,_attempt){
   };
   s.onerror=()=>{
     cleanup();
-    if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
+    if((_attempt||0)<1){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),3000);}
     else{setSyncStatus('error');if(onDone)onDone(false);}
   };
   timer=setTimeout(()=>{
     cleanup();
-    if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
+    if((_attempt||0)<1){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),3000);}
     else{setSyncStatus('error');showToast('⚠️ Google svarede ikke — prøv igen om et øjeblik');if(onDone)onDone(false);}
-  },10000);
+  },8000);
   s.src=url+'?callback='+cb+'&t='+Date.now();
   document.body.appendChild(s);
 }
@@ -4481,18 +4501,28 @@ function refreshFromCloud(){
   });
 }
 
-// Auto-refresh hvert minut på træningssiden (springer over hvis allerede i gang)
+// Auto-refresh hvert 25. sek på ALLE faner (ikke kun træning)
+// — sikrer at flere enheder ser hinandens check-ins hurtigt
 let _autoRefreshing=false;
 setInterval(()=>{
-  const tp=document.getElementById('page-training');
-  if(tp&&tp.classList.contains('active')&&config.scriptUrl&&!_autoRefreshing){
+  if(!config.scriptUrl||_autoRefreshing||_isSyncing) return;
+  if(document.visibilityState==='hidden') return; // spar batteri når fanen er skjult
+  _autoRefreshing=true;
+  loadFromCloud(ok=>{
+    _autoRefreshing=false;
+    if(ok){ loadCheckInsForDate(currentTrainingDate); renderAll(); }
+  });
+},25000);
+// Når brugeren vender tilbage til fanen, lav et straks-refresh
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&config.scriptUrl&&!_autoRefreshing&&!_isSyncing){
     _autoRefreshing=true;
     loadFromCloud(ok=>{
       _autoRefreshing=false;
       if(ok){ loadCheckInsForDate(currentTrainingDate); renderAll(); }
     });
   }
-},60000);
+});
 
 /* ════════════════════════════════════════
    TABS
