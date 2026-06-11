@@ -669,7 +669,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDj
 
 // Belt colors — matcher hovedappen
 const BC = {
-  '10. Kyu (Hvidt)':'#e8e8e8','9. Kyu (1 Snip)':'#e0e0e0','8. Kyu (2 Snip)':'#d0d0d0',
+  '10. Kyu (Hvidt)':'#e8e8e8','9. Kyu - Hvid + 1 snip':'#e0e0e0','9. Kyu - Hvid + 2 snip':'#d0d0d0',
   '7. Kyu (Gult)':'#f7e040','6. Kyu (Blåt)':'#2980b9','5. Kyu (Grønt)':'#27ae60',
   '4. Kyu (Violet)':'#8e44ad','3. Kyu (Brunt)':'#8d5524','2. Kyu (Brunt + 1 Snip)':'#7a4820',
   '1. Kyu (Brunt + 2 Snip)':'#6b3d18','1. Dan (Sort)':'#212121','2. Dan (Sort)':'#161616','3. Dan (Sort)':'#0a0a0a'
@@ -698,7 +698,7 @@ let CURRENT = null;
 
 // Belt progression order (low → high)
 const BELT_ORDER = [
-  '10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)',
+  '10. Kyu (Hvidt)','9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 2 snip','7. Kyu (Gult)',
   '6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)',
   '2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)',
   '1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'
@@ -850,56 +850,21 @@ function showErr(msg){
   document.getElementById('loginBtn').disabled = false;
 }
 
-// ── Login throttle: 5 forsøg pr. email pr. 15 min ──
-const _LOGIN_MAX = 5;
-const _LOGIN_WINDOW_MS = 15 * 60 * 1000;
-function _loginKey(email){ return 'kk2_login_attempts_' + (email||'').toLowerCase(); }
-function _getAttempts(email){
-  try { return JSON.parse(sessionStorage.getItem(_loginKey(email)) || '{"n":0,"first":0}'); }
-  catch(e){ return {n:0, first:0}; }
-}
-function _setAttempts(email, obj){
-  try { sessionStorage.setItem(_loginKey(email), JSON.stringify(obj)); } catch(e){}
-}
-function _clearAttempts(email){
-  try { sessionStorage.removeItem(_loginKey(email)); } catch(e){}
-}
-function _checkLockout(email){
-  const a = _getAttempts(email);
-  if (a.n < _LOGIN_MAX) return 0;
-  const elapsed = Date.now() - (a.first||0);
-  if (elapsed >= _LOGIN_WINDOW_MS) { _clearAttempts(email); return 0; }
-  return Math.ceil((_LOGIN_WINDOW_MS - elapsed) / 60000);
-}
-function _bumpAttempts(email){
-  const a = _getAttempts(email);
-  if (!a.first || (Date.now() - a.first) > _LOGIN_WINDOW_MS) { a.first = Date.now(); a.n = 0; }
-  a.n += 1;
-  _setAttempts(email, a);
-}
-
 async function doLogin(){
   const input = document.getElementById('emailInput').value.trim().toLowerCase();
   const pw = document.getElementById('passwordInput').value;
   document.getElementById('loginErr').classList.remove('show');
   if(!input){ showErr('Enter your email first.'); return; }
   if(!pw){ showErr('Enter your password.'); return; }
-  const lockedMin = _checkLockout(input);
-  if (lockedMin > 0) { showErr('Too many failed attempts. Try again in ' + lockedMin + ' minute' + (lockedMin===1?'':'s') + '.'); return; }
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginStatus').classList.add('show');
   const hash = await sha256hex(pw);
   fetchStudentWithRetry(input, hash, (err, d)=>{
     if(err){ showErr('Could not fetch data: '+err.message); return; }
     if(!d || !d.ok){
-      _bumpAttempts(input);
-      const a = _getAttempts(input);
-      const left = Math.max(0, _LOGIN_MAX - a.n);
-      const baseMsg = d && d.error ? d.error : 'Wrong email or password.';
-      showErr(left > 0 ? (baseMsg + ' (' + left + ' attempt' + (left===1?'':'s') + ' left)') : baseMsg);
+      showErr(d && d.error ? d.error : 'We could not find a student with that email.');
       return;
     }
-    _clearAttempts(input);
     try{ sessionStorage.setItem('kk2_student_email', input); sessionStorage.setItem('kk2_student_hash', hash); }catch(e){}
     try {
       const tlName = '_tl'+Date.now();
@@ -934,14 +899,7 @@ function _bgRefresh() {
   const hash  = sessionStorage.getItem('kk2_student_hash');
   if (!email || !hash) return;
   fetchStudent(email, hash, (err, d) => {
-    // Netværksfejl i baggrunden — ignorér.
-    if (err) return;
-    // Eksplicit auth-fejl fra serveren betyder at sessionen er ugyldig (password ændret, medlem slettet osv.)
-    if (d && d.ok === false && (d.code === 'auth' || /password|unauthor|forbidden|not found/i.test(String(d.error||'')))) {
-      try { doLogout(); } catch(e){}
-      return;
-    }
-    if (!d || !d.ok) return;
+    if (err || !d || !d.ok) return; // ignorer fejl i baggrunden
     // Opdater data stille
     CURRENT.messages = d.messages || CURRENT.messages;
     // Opdater announcement banner
@@ -2017,7 +1975,7 @@ function renderDashboard(d){
     ascending.forEach(a=>{ if(a.belt&&!bSeen.has(a.belt)){ bSeen.add(a.belt); bHist.push({belt:a.belt,date:a.date}); }});
     if(bHist.length){
       beltHistCard.style.display = '';
-      const BC2={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#fef9c3','8. Kyu (2 Snip)':'#fef9c3','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+      const BC2={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu - Hvid + 1 snip':'#fef9c3','9. Kyu - Hvid + 2 snip':'#fef9c3','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
       const currentBelt = m.belt;
       let bhtml = '';
       bHist.forEach((h,i)=>{
@@ -2461,40 +2419,13 @@ document.getElementById('passwordInput').addEventListener('keydown', e=>{
   if(e.key==='Enter') doLogin();
 });
 
-// Auto-login: hvis serveren afviser de gemte credentials, ryd dem så vi ikke bliver siddende fast
-// med en hængende "Logger ind…" status. Vi forsøger 1 stille auto-login og falder tilbage til log ind-skærmen.
-(async function _autoLogin(){
-  try{
-    const savedEmail = sessionStorage.getItem('kk2_student_email');
-    const savedHash  = sessionStorage.getItem('kk2_student_hash');
-    if(!savedEmail || !savedHash) return;
-    document.getElementById('emailInput').value = savedEmail;
-    document.getElementById('loginBtn').disabled = true;
-    document.getElementById('loginStatus').classList.add('show');
-    fetchStudentWithRetry(savedEmail, savedHash, function(err, d){
-      if (err || !d || !d.ok) {
-        try { sessionStorage.removeItem('kk2_student_email'); sessionStorage.removeItem('kk2_student_hash'); } catch(e){}
-        document.getElementById('loginBtn').disabled = false;
-        document.getElementById('loginStatus').classList.remove('show');
-        if (err) {
-          // Vi viser ikke en fejl — det er en stille genoptagelse. Brugeren kan logge ind manuelt.
-          return;
-        }
-        showErr(d && d.error ? d.error : 'Your session has expired — please sign in again.');
-        return;
-      }
-      if (d.forcePasswordChange) {
-        _changePwEmail = savedEmail;
-        _changePwOldHash = savedHash;
-        showChangePwView();
-        renderDashboard(d);
-        return;
-      }
-      renderDashboard(d);
-      _startBgRefresh();
-    });
-  }catch(e){}
-})();
+try{
+  const saved = sessionStorage.getItem('kk2_student_email');
+  if(saved){
+    document.getElementById('emailInput').value = saved;
+    doLogin();
+  }
+}catch(e){}
 </script>
 
 
@@ -2511,7 +2442,7 @@ document.getElementById('passwordInput').addEventListener('keydown', e=>{
   function avgOfRatings(r){const vals=Object.values(r||{}).map(Number).filter(v=>v>0);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null}
   function ratingsOfSafe(a){if(!a||!a.ratings)return{};if(typeof a.ratings==='object')return a.ratings;try{return JSON.parse(a.ratings)||{}}catch(e){return{}}}
   function calcSimpleAvg(d){const arr=(d&&(d.sortedAssessments||d.assessments))||[];if(!arr.length)return null;return avgOfRatings(ratingsOfSafe(arr[0]))}
-  function getNextBeltName(d){const order=window.BELT_ORDER||['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];const belt=d&&d.member&&d.member.belt;const i=order.indexOf(belt);return i>=0&&i<order.length-1?order[i+1]:'Keep refining'}
+  function getNextBeltName(d){const order=window.BELT_ORDER||['10. Kyu (Hvidt)','9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 2 snip','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];const belt=d&&d.member&&d.member.belt;const i=order.indexOf(belt);return i>=0&&i<order.length-1?order[i+1]:'Keep refining'}
   function scrollToSelector(sel){const el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
   function ensureDock(){if(document.getElementById('uxDock'))return;const dock=document.createElement('div');dock.id='uxDock';dock.className='ux-dock';dock.innerHTML='<button type="button" title="Top" data-go=".hero">⌂</button><button type="button" title="Progress" data-go="#uxCommandCenter">✦</button><button type="button" title="Ratings" data-go="#alist">★</button><button type="button" title="Skills" data-go="#skills">◎</button><button type="button" title="Video" data-go="#videoCard">🎥</button><button type="button" title="Messages" data-go="#msgThread">💬</button>';dock.addEventListener('click',function(e){const btn=e.target.closest('button');if(!btn)return;if(btn.classList.contains('ux-theme')){nextTheme();return}const go=btn.getAttribute('data-go');if(go)scrollToSelector(go)});document.body.appendChild(dock);setTheme(getTheme())}
   function toast(title,body,icon){const old=document.querySelector('.ux-toast');if(old)old.remove();const el=document.createElement('div');el.className='ux-toast';el.innerHTML='<div class="ico">'+safeEscape(icon||'✨')+'</div><div><div class="t">'+safeEscape(title)+'</div><div class="b">'+safeEscape(body)+'</div></div>';document.body.appendChild(el);setTimeout(()=>{if(el&&el.parentNode)el.remove()},5200)}
@@ -2534,7 +2465,7 @@ document.getElementById('passwordInput').addEventListener('keydown', e=>{
   function prevW(w){const y=Math.floor(w/100),n=w%100;if(n===1){const d=new Date(Date.UTC(y-1,11,28));return wk(d.toISOString().slice(0,10));}return y*100+n-1}
   function currentStreakLocal(dates){try{if(typeof calcStreak==='function')return calcStreak(dates||[])}catch(e){}const weeks=[...new Set((dates||[]).map(x=>wk(typeof x==='string'?x:x.date)).filter(Boolean))].sort((a,b)=>b-a);if(!weeks.length)return 0;let c=1,last=weeks[0];for(let i=1;i<weeks.length;i++){if(weeks[i]===prevW(last)){c++;last=weeks[i]}else break}return c}
   function longestStreakLocal(dates){try{if(typeof calcLongestStreak==='function')return calcLongestStreak(dates||[])}catch(e){}const weeks=[...new Set((dates||[]).map(x=>wk(typeof x==='string'?x:x.date)).filter(Boolean))].sort((a,b)=>a-b);let best=0,cur=0,prev=null;weeks.forEach(w=>{cur=(prev!=null&&prevW(w)===prev)?cur+1:1;best=Math.max(best,cur);prev=w});return best}
-  function nextBeltLocal(d){try{if(typeof nextBelt==='function')return nextBelt((d.member||{}).belt)||'Keep refining'}catch(e){}const order=window.BELT_ORDER||['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];const b=d&&d.member&&d.member.belt;const i=order.indexOf(b);return i>=0&&i<order.length-1?order[i+1]:'Keep refining'}
+  function nextBeltLocal(d){try{if(typeof nextBelt==='function')return nextBelt((d.member||{}).belt)||'Keep refining'}catch(e){}const order=window.BELT_ORDER||['10. Kyu (Hvidt)','9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 2 snip','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];const b=d&&d.member&&d.member.belt;const i=order.indexOf(b);return i>=0&&i<order.length-1?order[i+1]:'Keep refining'}
   function activate(btn){document.querySelectorAll('#uxCommandCenter .ux-chip-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false')});btn.classList.add('active');btn.setAttribute('aria-pressed','true')}
   function action(type,btn){activate(btn);if(type==='ratings'){if(typeof openAllAssessments==='function')openAllAssessments();else document.querySelector('#alist,.alist')?.scrollIntoView({behavior:'smooth',block:'start'});}if(type==='training'){if(typeof openTrainingsModal==='function')openTrainingsModal();}if(type==='video'){document.getElementById('videoCard')?.scrollIntoView({behavior:'smooth',block:'start'});}}
   function markTables(){try{const al=document.getElementById('alist');if(al&&al.closest('.card'))al.closest('.card').classList.add('ux-table-watermark');const sk=document.getElementById('skills');if(sk&&sk.closest('.card'))sk.closest('.card').classList.add('ux-table-watermark');}catch(e){}}

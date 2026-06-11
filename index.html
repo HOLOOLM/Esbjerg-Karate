@@ -133,6 +133,10 @@ input:checked+.slider::before{transform:translateX(20px)}
 .tl{font-size:.78rem;color:var(--xtm);min-width:68px;font-weight:500}
 .blt{display:inline-flex;align-items:center;height:10px;border-radius:3px;vertical-align:middle;overflow:hidden;position:relative;min-width:32px}
 .blt-snip{width:2px;height:100%;background:rgba(255,255,255,.7);margin-left:3px;flex-shrink:0}
+.grad-logistik-row{display:flex;gap:5px;flex-wrap:wrap}
+.grad-chip{cursor:pointer;border-radius:999px;padding:2px 9px;font-size:.68rem;font-weight:700;font-family:inherit;transition:background .15s,color .15s;line-height:1.6}
+.grad-chip-on{background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0}
+.grad-chip-off{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}
 .amt-badge{display:inline-flex;align-items:center;gap:3px;padding:.2rem .6rem;border-radius:6px;font-size:.75rem;font-weight:700}
 .amt-paid{background:var(--gb);color:var(--go)}
 .amt-partial{background:var(--ob);color:var(--or)}
@@ -776,8 +780,6 @@ transition:opacity .2s;
 .hv-mav{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4a7a7a,#2c4a4a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;flex-shrink:0}
 .hv-stars span{font-size:1.4rem;color:#d4d4d4;cursor:pointer;user-select:none;padding:0 2px;transition:color .1s;line-height:1}
 .hv-stars span.on{color:#f59e0b}
-.hv-stars.hv-inh span.on{color:#fbbf24;opacity:.45}
-.hv-inh-badge{font-size:.6rem;color:#9ca3af;font-weight:600;margin-left:.3rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .hv-savebar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e3ecec;padding:.85rem 1rem;display:flex;gap:.6rem;align-items:center;z-index:20;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
 .hv-savebar-info{flex:1;font-size:.76rem;color:#6a7b7b;font-weight:600;line-height:1.3}
 .inbox-panel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:9500;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
@@ -1389,29 +1391,21 @@ input,select,textarea,button{max-width:100%;}
 
 <script>const SHURI_BADGE='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAUFBQUFBQUGBgUICAcICAsKCQkKCxEMDQwNDBEaEBMQEBMQGhcbFhUWGxcpIBwcICkvJyUnLzkzMzlHREddXX0BBQUFBQUFBQYGBQgIBwgICwoJCQoLEQwNDA0MERoQExAQExAaFxsWFRYbFykgHBwgKS8nJScvOTMzOUdER11dff/CABEIAJYAlgMBIgACEQEDEQH/xAAxAAADAAMBAAAAAAAAAAAAAAAABAUBAwYCAQACAwEAAAAAAAAAAAAAAAAABAIDBQH/2gAMAwEAAhADEAAAAuyAADAZWl61Zb/BIWm/7SoVd8bZ3mfLFbl998ejI9hyABIAAAwGqDsZzbFKHDVq5ar0ZS5Oltla7KKO+Xjk9vTxW1XduuR0hKoQL+pWAT4Qqk9SSMuhhSxmIZaowCTOPsk4xzZpuwaHU39ms4jamYZQ26TInGfQAatcVtHfkWb+bv8AJzV9mBx0V3x7cjVgOa+ypIeFKR59SxyzG30NdR49mPr+TQb1cKbekJSbWoT7s0DywknOozo7HkAbN+j0Rsb0H+4ZjPgh1UTfMzN2wah3rVJF7N6jz3W8i0hnGdb+dPSdSjtgBeZxsOPOKudxcg5CPQT6ZjbcwbNmGGXYKvX4cvoKCEo/r08WB5vqGhLM4HvXliqKzqfo7mY6KZWz3212J6zlQbNuoj2Dhzajs/NtZQ0VZVy9NtFnNjeKnm2SG9tyPUqDCyrDCLFVdzRUUrv1gDMQADnuhIdkQOinIWN8/wBFytXeg17JHDqpTu2nnDddLeb7rfccbrAGIgAAAAAAATtAV9R0hTY02E4uNhdAA6AAAAf/xAAC/9oADAMBAAIAAwAAACHzjOTBOvXzzzKR59aDfTyuIv8A2xvkx8hcNxdScMDAdV8n9s7p1wqu4195L6Qwl09X8yuHROtVMNCYcif888I8yJs988888D/ie888/8QAJhAAAgICAQQCAgMBAAAAAAAAAgMBBAAFERASExQgIRUjIjAxM//aAAgBAQABBwL42thUp4Wwvvzw125NGrJds6upEchRXxBcbVWDtmJxFhFkO/8Aoc5VdZMO3d2GSurrVE2hc95Ms2NKz5SbrdlFpyx2RT6xr0D++sat291Y6hns5RaVWOvXJ+J2bEFCvlbtqpK8kgTp9v3VF6zZ7GhMazy0dhYrNZ4XQwp1cWwte7W8kspDQqNk9jSLYsp5Zrl+XrAtcBGFaptd6i2N1M4BiwRLq5y66jagWXG+7ZrKtLkCryix6deqGt5Yy49nOdsc85LBg4DB5XPKNkQTGNaRLJmhX5H2bLDAIjEMnVvhfW2f5C74LLAtWGUq43dZeSm89SDAp5IpPo6wKvqTKS7k2xn6iYnolp1ymaxV0q796RwKAgQYqKmqsHwynmwtenUa2mj10AOz1RWzh0RZrIFn8ikj6WfPHWImcqoMZ7ulexNVvfZoWLmxBwpAfu5M1mIvRMTETsC89+nW6X3eazMdX2IXHH+9FsJZdy7Kj+GqdyBIxgQxZhpnEynAJ/bf2LgsoNrEuZCVMYPPHVgkQzDVEqfgulz9iMDER0qM8VtE9NfMK2N9Xmsrr+RgNgU3gB69a2ethtgJnJmSnnqpjh+k+aY56TPHE2HElUnrNl5GTjz8GyA6jK6tfJd6ZvTZdcRbon1IoGOTujGEUnMz1EpAoJdyS4joz/mebBcOeoKFe77V0Nhz7VfNfHA21ZsR5pu6zMRlhiJ5j4RirKBjAYLI5zjuJYsCGAQa/XzSmxMr9ja9kfq2t1eEMEMj2yuSXjFA2OHVhXHPwWIkXA015EQMcZr1+S2M9NV+2zsX7ePCyncwiEY52ae0xsZYN4ZMyU89e0u3uxKbE4I9scTPEc0K8oR0tOiuhrdZX9akkLCAsoammxsqNG383ZUNHjb5lOQdVnjyQCca5K/qZ5mZxD5VOBKzju6Ua8HPswbQMywx92+qt02aSQwdg3XVrsqbttkKRmqvmayEWK7ak9JrpnHgEfwXUMsmiWJreKe6ZiMq68ncHcTYvVeKW3NU+udj1a3OupzUR8HJ/GMKDp1deT7dKm7aO9izsRqWQqnr0s+2VLasmeM8i8juLF6+2zEhrqzRG9G4hwt1m0hpOXYmsmPPr6jGt934EAmMi6s3W92VpRKAzV1mMv2XiAPPzI2NonXc114ryCOpsptWWIzbqcdRhMPz16z6V5d4JJwU6lgrFWg1rIs/Oxqo7yex3iKIJneiZnXWU0rUao+aa81hQO2t5ZrjaSSoCBXAJp1tfLTTFqwMBT1yKkyf9MxExw7TU2F3zr9gqMY/Yp+vfs4udrYz8VZblfWUq338v//EAAL/2gAMAwEAAgADAAAAEPOKZap3c/POFaJ8XTXdPM5GRkYAJicN5MBIGCcLDZIRKABZgo/11AKgBPADwzXygidEN7D629K48IrVPPDJAwXcjvPPPIAnw3/PPP/EADQRAAICAQMBBgQEBQUAAAAAAAECAwQRAAUSQQYQEyExURQiYXEVIHKBIzJSkbE0QmOCwf/aAAgBAgEBPwDu3HtPTqyivWU2bBPEKh8gfYnTb5u9y5LUmupRKnHkmRn2J1Ym3qG7DVlv2Edscj4hxjPqMdNQ299h3h9uj3JiwZgplHIEAchnVXtRZg8EblTwkic1mi8xx9yuq9mC3EssEqujehB/Jv8A2kWax8DXmZK4bjPKn8ze4XVzZqsaQmC25kYcoFWMt4ik5GCOo66bs9Z3KYWrfCuzRKkij52YgY5HoDo9l6jhPFt2XKoIwWKnC+3mNTdnrAtC7X3EmwqlVMyA+o4+q41u1bcuVOtZh8MRxiMSZLeKc9CP8aFqXs5uYhpu8gCp48bHIdiMnGNUL0G41Y7EDZVh6dQfY93avdDQo+FE2Jp8qD7L1Oqk1cUooYJY5RPH4clR1+cSkYDIQPfW01ae0oiOxexji8nqF68V9honAzosTpWJ1Yrw2onhmjDow8wdPSXZ95WazKPBCPKkznJkwMBfuNdmt2FTchDyPg2ThugEh9CO7tVPJb3eyEVmSsgU4GQPcn9zrsbSEtqe265EICp+ptSbdI0pKuOBOfqNH5FAHoBjuUt07u0VIXdrsDGXiHiJ910CVIYHBByDrbrPxdGpY6yRKx+5Gq87m3ueKmOE0waUIuZRk/w+TdfMH9tdnvFaK+80PhyNabK4C4AUY9MDub794IOpFDRup9CpB1RpUjtNszMiysivzYgFRy4j+sgZPsNdm2b8Fo/pYf2Y67RQNBvN5T6M/Mf9hnXYqyDFcqk+YYSD7HyPc2c+fevLrrc7K1Nvtzk/yxtj7nyGktTx1566SYil481wPPicjWx1zBtFBGGD4QJH6vPXbXbi3w95B/xyH/B1UhfZPgtyjm8QMZBIoGF4qwUjJ1BPDbgjmhk5I4yCNFMep7goPXQUDXanc/i2+BruCkZzIf63H+0e+NbPQbctwr1wPlLZc+yj10AFAA9ANWa8VuCWCVeSSKVI09FqF9Ib5lnWLzpRgfLISff399QWLW2XzDTZZ3YNJarqOMaH1+Q9CNU+0G13AAZhFJ1SX5ToGJ/mDqR9DqxuO3UwWmtxr9OWT/Yau77Pfc1ajiojqcTzngX+iadjUMm2XNu8RS3KAx+Thm9m667P7P8AhsDyyqPiZvN+vEdF77tGtuEBhsR8l9Qeqn3B1a2TcdqTcRArWIrKhTKozKgzkgjrnW0LVkW0loxgloooo5MEqC3mQDr4Oq77/irx8BcxDkTxIONVZlqyV7CsGkSXJjK+XEfX66t1/wAbAgo1JHCOTFPkrGgc5YHPrg+2tq2KOjwmsSmeyqBQ7eiAdFH5rO30bY/j1IpD7soJ03Z3Zs/6Ff2Zh/7qtsm0wkMlCLI9CRy/zoAKAAAB+T//xAA0EQACAQMCBAUBBgYDAAAAAAABAgMABBEFEgYhMUETIlFhcRAUI0KCkbEHIDJigaEkcsH/2gAIAQMBAT8ArrUdqTzc49hSxRry2gfPOsEHFFFY4Kg/Ip7VDzXy/wCxTxtGcMPr1qGIRgE/1d/an2IpZnAUDJJ5DFahxpplsxSBGuXHUryT9TS8bajO7CDTY22qzEZZiFXmTVpx5CzAXdkyf3xtu/0cVZ6haajEJbWdZE746j5FOinykZFSxmNsdux+lsnMue3IUXVEZmYBQCWz2xWpcG8Z8TaYL6yhiSwKb4bdpNs069Q+PfsCasLBr68W0M8cDEkEynaMjt81ougWejQssf3ksgxJKw5sPQegriXh3R7OOa6ivBbP1EHJgx9FHUVY391p1wk9tKUcfow9CO4rRdWg1e0S4TysOUid1apUEiEd+o+fpGAkaD2/euMr9rXTFgQ4e5baf+i8zWkfxq0mz0C1gutNuTqFvAsQRNvhSFBgHd2rh+xsNc1Oe5v7lDNJM8v2UAjeSdxPxQAAAAwBXFNloU0aTahM0EuCEkQZZsdven2B22ElMnaSMEiuEL9rTVo4Sfu7keGw/u6qfpOu2V/1/Wph5h5v8elccN/ydPQHKiFiPkmkR5GVEUszHAAGSTXC1tdQW+J9HitTtA8UHEknyPpeQLcW8sbQRSnBKpKMoW7ZrWrG9s7tjd2kVuZMlEi27cD0ArT2KX9ky9RPGR/hhTs3iLjpUiqWBPpSnKqfUCuO7UtBY3QHJGaNvzcxVuIGmjE8jpET5mRdxA9gSK4fawNgosrieaMHBeXdnPtu/wDPpNIkUUjvu2qpLbQScewXnWuy6DK7PYNdPMzeZpG8gH5huNcPWpvNYsEAyFkEjfCeaioJB7ip5GEhAPQCrZ9ybe6/tWoWMWoWU9tL/TIuM+h7GvDl0LUyl3ZRzeGeccgyjqe4qw4vN86W9pokrPyG1XG1R7nHIUucDcADjmBzrWNfvNFdvG0zxYCfu5kfA+G5HBrV9cudXky8ccSZyERf3PU1wloj6fbvdXCYuJwMKeqJ6fJokKCx6CmJYknqTUbmNgwpGVwGByO1ato1nq8Xhzp51zskXkyVccNa/pUjvYyyOh/HA5Rse4pde1+0tPssVhOsn45pQ8khP5qE/GWsQG2aNxE4w7PGIsj3JArROEbfT3Se6dZrgc1H4EPt6munIiriXcdinl3+scrRnl07io5kcHB5nt3pcd6wPNyocqdlAyTgVLcFvKnT1/mSaQEDece/OhzFTyuhAVsUWLHJJJ/k/8QAPxAAAQMBBAUIBgoBBQAAAAAAAQACAxEEEiExEBNBUWEgIjJCUnGBkQViobHB0RQjMDNDU3KCkuEkY3OTovD/2gAIAQEACD8C5MsvO7Ixd5KzWMRt7cx+AU3pJ44Ri6n2qVz9xlNVzx+8qC2zgbC2WoUdtbJwlb8QrZY3M9dnPaoZWvHD7GR4a0bSoK2eznrnpu7ty1TnHMu6TvNUpzqU3KzSyVZQ3LxPkntpNdcDx2pp5zwfJbWO9hULy1xvV4p7NZfDcRnVyhlNntIx5uHs2r0g0Nr0Zh0D37uXJ3BozcdwXpAgBuLIuqz5la4NhdWmypCwLXD3otcWcBXuKfJGyO7TnHEpj3Xx2GmhWvmypS5h7lHbSL2YeKKNw1YvXnVUDOgGO8tpWbjmd6Lg9xrVuYWMljPnF/Sa6rSKgjkSOo1oqVaB/sx9gfNSCvwVpc/V3uaW8dqmtD6HoRDAu7wmfUtONG5nvK27znoridEbiw+rgp2XtmsaMfEIzAQAVDmbeBRHAeKfk43fNOP+HK7m/wCm75HkZ2ezmr/Wfu8F9JdE4NFKbSU9xMUjqcCg0OtFOZXq8U9155zOkYuVcVJgd6B0MxaemzY5WaMlkr8W9l2SLqvc6tBkFObz9UL3Hip3VlhyPaZsOjrZNHrHJdY4vO9xULwJNtdqtsrZCw/VN23u9PNXuzOlnR4aQKp2HDT1D94PirwELQ267NUq7O8c00fdmknFhQyK6sYMz/hp6sWA79vIHS0hVoePIOcfR/SdDsnAhP6cLjGf2rc8RD9qbIDIzpNR6rSUc8z36Q66nEY8hzxTggMNOxxuHx09trJR7ioZAwPtUhkecQApppW64lsjm839KfahPHIW3D48eQG4b0TyGE9yk8tO4g+SbEXndl71PbAXSu5kVOj4obbOR/2VopcEj61FdqbYrRNDd5tQTzt4UTCy5I2rSKUx0lMFUc+QM1q8eGngvokszg3K9di8VE6GNzHgkXajHctupd7wiOhaJB7dG4XvLHSUxgJ38miuXU06O09o9qJIqNmadMZHSOrU8F2bN73L8xrZR7joORFCjmw3fLQ5a3w5LnXeKJJQGjZGL3icNPriMfsXYdcf+l+hxAHFN6LsH/A6GZImvIphovFrVUnv0OHPfznfLQdgw70ekRef3uxT8ntonU18BuOr7CpZL1+pI2IQnUFo/TjnROxHUdvHz0FoTWtLkdGbTmm00y4RMxbx4qXCM9GnV79H4cNJJfgNMQrdFJm72b/Ba15jzDa83FQYyHA+r/a9IkXpOgdtfmn4s2SfPRcUcJrvTuaEHhXqlFTi7H2Nru9Wd2rAJo3K9d9ytzTUYXqY+KuG851Io9uOQTzWV5vSO4nkEXrDKf8AjJ+CcwzMI5m2lVaCdUMuPAK5rWkUI24qB+qd2Dl5IwFw3sxRBHeKK+E2N7u5pRAjHrYn2IztfPvcf/UUQBY3JrcfOqnox96o2BSsbVuRpj4K0ijvwo+wPnyXNBacCCmsM1iObM3R/MKBwMdMFaOnGcjvKcOjhGfihP8AVxte4XscsgtXR7TTgV9HDblam9uw3aIpHC7iWjaE6OupNyQg0JGxMBFM6pzL87zzGNGKtvSH3cWxn9/YWSTUynMdR3eF6Qslw/mDFh8VZix+GGOCdDV5c04Y4Baq5TpYXVXB1+n8k5xAO0LMBtMVPaQA/wDCzw3cVYrMLPD+Y9tPJqxfKelI7P7IioTA6F++M3VFb2v4Ss+IUjLO7uLkLPD/ACPyTPozf5FT+kX90YuJkILu27nH28v/xAAoEAEAAQMDAgYDAQEAAAAAAAABEQAhMUFRYRBxIIGRobHRweHw8TD/2gAIAQEAAT8h8MIBLF88lZ4GwakWQ0/vzQF+1b0UkSRl/fTGuyVGSSVUcC/92LlCEHVT6/8AEWT3oQTYVb46KJ5xZyd1RQa9qsN2pbgXw7y7YoOc1hxl7VZqDmJgEv1UxuUUxsUw0EZNa2aR4NBKkxBunviKl4qP96UIkjbxLU/SA3rIOwbO7SrTN7gJduKEuXlriUSBWcSNjcqRGS7tNjihapJEK2ltWrtckgcUjKGIe+sU0YeQwMY9Kv4Tk8pUpFeRL5VOzXYYLw0NFaxn7qhWKQkR8B4p4qyWuT1XlUF8jDu3KuuEri9gTXkp5tNe8gKjEVS/iO1XbJebnqei3sp6TG7y+FQ5CywH8YqM3HpI+b6VFyaBgnLFWqxLsd3esblcvTwCQGE2dPtpNTlLG05jao8DOs22zRk0zQLl0mRkuf8AOpz2DbvUj5ZmhT4g0DIJx0HPUuD8NYXakX8HYpnaGkCxH3Uj+eXkR2axwuTW/h6RATDnWKT7f1oFoziIFlmGd6HEdHKME6qmSMnm+urzG2+opmb9F4dcE1L9Ok89+vEucH5FToX6gL2KbMhqE4zV50flN9KZKQke9a6dwC3XDfzTy/HgfPPx70qlWV6Alv8ANCk8agjcevL09h6dBylr2bUh3uug9qR9MXf3aBmE6hWM70kqzXLucrvVG6dSjgh2PUJQWOaSPqHNQdh1XWR8P364RlQmLmtkg5moN1wEBkBoxWauKSDB8AAI0kmnil3fApOdk1Iwm0OsWX8ymgUIsE9TgVgdYXfOKP8ARrFO9ppJnpReRCyJamlWCJz+XUmeAqeFW7Yp65XgfGBSCtXVf3FE8AT1DmUXyHutbcKmJ3MUDpUj5jpi8xer1ASgOa4IDseFAiy4qKXdYJpJKO0dCO59RoLgilQOR3okrlmjdzeuEMvcKumx5V6QayoOGpjXa+Ht0IBjCUu8pF3whop2TR4fZSjEAMHSWcv2DrDR5fgX96E0t+fvJ6ciKUFAHmFjf+DoRJLboSlTxLnwWks9ekDG7SntUX3RS0TLBRq23ZdPJ01eOG+g9afWsvOUQEsXnrUdryE+UozC9EF2DtVnTT4kLP01q8dMv9Q16ZBeVBvCRYpsweiOTQKvxdjqK3E6z4GlC6QJXAPz36QUT5z67eLL/wBGifwfucNpoCAtrRtSxZslo3/KoRxzH0ej8p8rfFAy2qLbtT8/mVMxuaOU+CxQsqCklQuL/AcUwuHN0kX8lq7rkHYdagTItcVREu72+rqgiOK9aENp31JCEcVu+6govFzhvaFTyh5BcC+avqhlP9h5Uz3hR9M0M/Ob5VN9lG2xzKvPPnsUm0SACi7aU44k/wBmTV5Hi9QvrN6tTa6HicqCPUh9fV5eEvyoEiNeX5AO1MawhHQ2ot735LsGKu0ksSAyO/xUFFuxlyc07jMCbnFAZut8sOhLcJGDVrzedoO3vUcMkdC6UN7LYng35qE+aRv39/8Ah12tBNJsRcb5V8NTUCyJ0WxToxZ7tEd6OdKdks5qTyQHo8KiGbdhszV4QGsoEXqVcZgGciKfvhKKhVy7f1/yVCTI3pJu1/YWq1NKDL9jL8UaaaGkHdU+KhY2px65p3+pWfG//8QAJxABAAICAQQCAgMBAQEAAAAAAQARITFBEFFhgXGRIKGxweEw8PH/2gAIAQEAAT8Q/EgP/XraynNbWnyZiYgOws8Gc6L6uHowdcqpUHKsZVVIT7sZh6PEGAvThb2QeBYTR4Gx/wCN2+zqIi4WC+Su7vEUuH8/qkGtVZaGncUhrGPZ+7vq5gIzUgCUeKWsh2hYVa0x3x7Q59zvG+NcGNgFwQrALhobiPTlLQ7kWqKvVO5e0wICixMifk0tyZRuuQomLfw6d0jR3NtnULscovLQqA1NJhEjfsS5yH4CRhPNiU0KAGTLwOCCHAlxIMjXzQLwthh4LvYrHGGeeDPNYo+dktBMV6LmuPPgNBwQMo3BNn0Mz8aq/NHcADSMCWIn4McYnsQbUjxH0UxWjuZNeYhMepeGfoodBHO83doaiIntKu8zHeLkt82PQPFoHxw/MQREshchyvs+Rh9kImhRxHJbCHHRaNTeah4RfeYC8rKWqg1qaJG+IX4WIuxsLn+LlvqiOJd7jd+WMta5VtqXICYJC0vQU/MOuFZzsvTi/tlHTOerg7DgOrEDmDryhotXk3FE4/73aCWLSrOh9HOHcKd48soaApAUoucWYZ9+6C0H3tL2D2t/uAxGEdtf/B9A0Z96xaC7bjd5KhenvIGoNCZyaiLTsDQY9vY/fYdhoJR0zV1o5vNZqULK+b6ePCMv1AlSYEPwHUOMtQ3Z0Q/3IqDkkvMYBGo1kUsvwxWgjGEyOTS+W2QXYAtILGFX0y74vqnO/tZXp6mDqcwbPOH/ACFV5XpU6GEdDswwBzLUX4YCAR5OiDhiLsp5P7mzoWkMvI2lzT7rmN0hp2L/ALyBp4GlgOWsO+aodlPuls+2XLnGjKuXsURsXyj1IRC0rRLLyBLNHyw8xaA6/wAQcjn6J1xhE/mmPb0TGOQv9HdChOSgPwJXBiv4FTHbKvN4GIAe0t/Ad4Yp+mNBZ1UTy9dMs92p/rLi1B75cEGu+VWzDFHCpe9mGgHdhbRtleoMcd6G3LJXniOydVYbTS/xAODEyyubX8L4ZwzDybPfpgqCldAgDKRGKVxbGu5AVUiFtmqqhBQiU4rmIRHy4eiR5dV/HAiCOHoiKtqohCB2FH1t/EHBHKun6lGJtqD7MxshtLbL2HRtGYd6r/UYJC/u6FkGxh7hWR2Vmt2hypfj6PhynPkdAl7gaRpIXZM7ttS90eis3kKSU8B3PwFP46jSMC/M+3dE+oE41AUHQjCuO1aL6t60SW/Ln+7lJBi+i0hEEbGKyjZC9srarPwOH8O70ulcyKPF3a1fwTtiJXIJw9oC4CeZ2WB4gbB8tR9y32i8Fr4IzYPNqFej05Td3LHuje1kbWiCPwmpgeRyQ3aaXpNgMpnhSMGYpK4YRnlKX/nr7AMaLdPEuH9DoqqXdLNdkAKnlIvVvb0BP/AUhIS5QEez1JhbVr+9+4xU4hVhS8MN74HS21iuE5f5cvWtrO57WIloVerJyLHIIAW9OxsADcMg2C11I+COIei4AlPgD/mzCdxiK3e5/mIoUEyZ4JlWXy5fwQeY8KMxpyq/Z7yr2wM8rwRsfU9Ec/7TKsjhN6JpsqRMe6W/GXMDZfGVUquA2nBGN/8A6mPGp1BAUUjpGOzo4Sm8vJLWUKcjHnd4cqXEKyHYqXvME5jbd6tbmcMeMs6NPKr5VUUeJr3Y/rNSvf8ATSCAFewGKdnix91UHEvkK+41fbPFnB5RIXJaUHyCGS/ryVMAZrQwvdEPt5SXbgImdvyr/Gy3JMCUiMCYWlfMaNyOSdbs4FyJ5zKj5TsLShIQ3IhaZnneb5Eo6GuNobBYoRTyKlikUl2yiaTVATAdiYIPU1q1maqUIti3DoJKCcIudtpgsAmLyrz58yR7vZ8/j+duI0PKw7TNN1zh2coSRoOTBUKw6eIH+iy1+XygfucWKoQUXgFY13dLSoQUSnzaTVBZpRbkgdrH7wx2aEVkUzXIGjwt/LFn35+Odvg/5FtChATyMXFd/eZMcCwa/cm+FHOfc3w7snrKc8a9VlEMf6fbuHtpqKvur8//2Q==';</script>
 
-<div id="syncErrBanner" style="display:none;position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:10000;
-  background:#fff;color:#1a3a3a;padding:.65rem 1rem;border:1.5px solid #bae6fd;border-radius:14px;max-width:92vw;
-  box-shadow:0 6px 24px rgba(0,0,0,.12);display:none;align-items:center;gap:.65rem;
+<div id="syncErrBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;
+  background:linear-gradient(135deg,#7c2d12,#991b1b);color:#fff;padding:.9rem 1.2rem;
+  box-shadow:0 -4px 20px rgba(0,0,0,.35);display:none;align-items:center;gap:.8rem;
   animation:slideUp .25s ease">
-  <div style="font-size:1.05rem;flex-shrink:0">☁️</div>
-  <div style="flex:1;min-width:0">
-    <div style="font-weight:600;font-size:.83rem;color:#0369a1">Prøver at synkronisere igen…</div>
-    <div style="font-size:.72rem;color:#4a6a6a;margin-top:1px">Dine ændringer er gemt lokalt og sendes når forbindelsen er tilbage</div>
+  <div style="font-size:1.4rem;flex-shrink:0">⚠️</div>
+  <div style="flex:1">
+    <div style="font-weight:700;font-size:.9rem">Synkronisering fejlede</div>
+    <div style="font-size:.78rem;opacity:.85;margin-top:1px">Dine ændringer er gemt lokalt — tryk Genindlæs for at prøve igen</div>
   </div>
-  <button onclick="hideSyncErrBanner(true)" style="background:#f0f9ff;border:1px solid #bae6fd;
-    color:#0369a1;border-radius:8px;padding:.35rem .7rem;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">
-    Prøv nu
+  <button onclick="hideSyncErrBanner(true)" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);
+    color:#fff;border-radius:8px;padding:.45rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+    🔄 Genindlæs
   </button>
-  <button onclick="hideSyncErrBanner(false)" style="background:transparent;border:none;color:#9aacac;
-    font-size:1rem;cursor:pointer;padding:0 .15rem;flex-shrink:0;line-height:1" title="Luk">✕</button>
-</div>
-
-<div id="initSyncOverlay" style="display:none;position:fixed;inset:0;z-index:9700;background:rgba(10,30,30,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:18px;padding:1.6rem 1.8rem;max-width:300px;width:88%;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
-    <div style="font-size:1.8rem;margin-bottom:.5rem;animation:phSpin 1.4s linear infinite;display:inline-block">⏳</div>
-    <div style="font-size:.95rem;font-weight:700;color:#1a3a3a;margin-bottom:.25rem">Henter friske data…</div>
-    <div style="font-size:.78rem;color:#4a6a6a">Et øjeblik — vi sikrer at du ser det nyeste</div>
-  </div>
+  <button onclick="hideSyncErrBanner(false)" style="background:transparent;border:none;color:rgba(255,255,255,.7);
+    font-size:1.2rem;cursor:pointer;padding:0 .2rem;flex-shrink:0" title="Luk">✕</button>
 </div>
 
 <div id="inactivityModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:9600;background:rgba(10,30,30,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center">
@@ -2303,8 +2297,10 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
       <div class="fgrp"><label>Bæltegrad</label>
         <select class="form-select" id="fBT">
           <option>10. Kyu (Hvidt)</option>
-          <option>9. Kyu (1 Snip)</option>
-          <option>8. Kyu (2 Snip)</option>
+          <option>9. Kyu - Hvid + 1 snip</option>
+          <option>9. Kyu - Hvid + 2 snip</option>
+          <option>8. Kyu - Hvid + 3 snip</option>
+          <option>8. Kyu - Hvid + 4 snip</option>
           <option>7. Kyu (Gult)</option>
           <option>6. Kyu (Blåt)</option>
           <option>5. Kyu (Grønt)</option>
@@ -2398,8 +2394,8 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
       <select id="emBeltFilter" onchange="buildEmailList()" style="border:1.5px solid #c8dede;border-radius:8px;padding:.3rem .6rem;font-size:.78rem;color:var(--t2);background:#fff;cursor:pointer;flex:1;min-width:140px">
         <option value="">Alle bælter</option>
         <option>10. Kyu (Hvidt)</option>
-        <option>9. Kyu (1 Snip)</option>
-        <option>8. Kyu (2 Snip)</option>
+        <option>Hvid + 1 snip</option>
+        <option>Hvid + 2 snip</option>
         <option>7. Kyu (Gult)</option>
         <option>6. Kyu (Blåt)</option>
         <option>5. Kyu (Grønt)</option>
@@ -2469,6 +2465,7 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
     <div id="msmStats"></div>
     <div id="msmSquares" style="margin-top:.75rem"></div>
     <div id="msmDayPattern"></div>
+    <div id="msmBeltHistory" style="display:none;margin-top:.75rem"></div>
     <div class="ma" style="margin-top:1rem"><button class="btn bg" onclick="closeModal('memberStatsModal')">Luk</button></div>
   </div>
 </div>
@@ -2586,8 +2583,8 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
       </div>
       <div class="fgrp full">
         <label>Google Script URL (deling mellem enheder)</label>
-        <input type="url" id="setScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" readonly title="Låst — for at ændre denne URL skal kildekoden opdateres" style="background:#f8fafc;color:#64748b;cursor:not-allowed"/>
-        <div class="age-hint">🔒 Låst til klubbens server — kontakt udvikleren hvis URL'en skal ændres</div>
+        <input type="url" id="setScriptUrl" placeholder="https://script.google.com/macros/s/.../exec"/>
+        <div class="age-hint">Lad feltet stå tomt for at bruge appen offline uden deling</div>
       </div>
       <div class="fgrp full">
         <label>📅 Faste træningsdage</label>
@@ -2787,8 +2784,10 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
 ════════════════════════════════════════ */
 const BC = {
   '10. Kyu (Hvidt)':'#e8e8e8',
-  '9. Kyu (1 Snip)':'#e0e0e0',
-  '8. Kyu (2 Snip)':'#d0d0d0',
+  '9. Kyu - Hvid + 1 snip':'#e0e0e0',
+  '9. Kyu - Hvid + 2 snip':'#d0d0d0',
+  '8. Kyu - Hvid + 3 snip':'#c4c4c4',
+  '8. Kyu - Hvid + 4 snip':'#b8b8b8',
   '7. Kyu (Gult)':'#f7e040',
   '6. Kyu (Blåt)':'#2980b9',
   '5. Kyu (Grønt)':'#27ae60',
@@ -2886,7 +2885,6 @@ let activeAnnouncement=null;
 let studentActiveToday=false;
 let nextMessageId=1;
 let deletedAssessmentIds=new Set();
-let deletedSessionKeys=new Set(); // "date|name" keys for sessions deleted by user
 let deletedBoardIds=new Set();
 let _pendingPasswordResets=new Set();
 let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
@@ -3088,7 +3086,7 @@ function load(){
     // Migrer gamle bæltenavne til kyu/dan
     const beltMap={
       'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)',
-      'Gult':'7. Kyu (Gult)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)',
+      'Gult':'7. Kyu (Gult)','9. kyu (Gult)':'9. Kyu - Hvid + 1 snip','8. kyu (Gult m. stribe)':'9. Kyu - Hvid + 2 snip',
       'Orange':'7. Kyu (Gult)','7 kyu':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)',
       'Grønt':'5. Kyu (Grønt)','6 kyu':'6. Kyu (Blåt)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)',
       'Blåt':'6. Kyu (Blåt)','5 kyu':'5. Kyu (Grønt)','5. kyu (Blåt)':'5. Kyu (Grønt)',
@@ -3119,7 +3117,6 @@ function load(){
     assessments=av?JSON.parse(av):[];
     nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
     try{ deletedAssessmentIds=new Set(JSON.parse(localStorage.getItem('kk2_deletedAssessments')||'[]')); }catch(e){ deletedAssessmentIds=new Set(); }
-    try{ deletedSessionKeys=new Set(JSON.parse(localStorage.getItem('kk2_deletedSessions')||'[]')); }catch(e){ deletedSessionKeys=new Set(); }
     const pv=localStorage.getItem('kk2_pensum');
     pensum=pv?JSON.parse(pv):{};
     const snv=localStorage.getItem('kk2_skillNotes');
@@ -3175,12 +3172,11 @@ function setSyncStatus(s){
   } else {
     el.textContent=narrow?'⚠️':'⚠️ Offline';el.style.color='#fcd34d';
     _syncErrCount++;
-    // Vis banner først efter flere fejl i træk — så vi ikke skræmmer brugeren ved et kortvarigt netværksdyk.
-    // En enkelt fejl (fx ved login eller midt i en synk) er typisk selvhelende.
+    // Vis banner efter første fejl — men vent 3 sekunder for ikke at forstyrre ved kortvarigt tab
     clearTimeout(_syncErrTimer);
     _syncErrTimer=setTimeout(()=>{
-      if(_syncErrCount>=2) showSyncErrBanner();
-    },5000);
+      if(_syncErrCount>0) showSyncErrBanner();
+    },3000);
   }
 }
 function showSyncErrBanner(){
@@ -3188,22 +3184,11 @@ function showSyncErrBanner(){
   if(!b||b.style.display==='flex')return;
   b.style.display='flex';
 }
-function hideSyncErrBanner(retry){
+function hideSyncErrBanner(reload){
   const b=document.getElementById('syncErrBanner');
   if(b)b.style.display='none';
   _syncErrCount=0;
-  if(retry){
-    // In-place retry — undgår fuld reload som tabte uudgivne ændringer
-    if(typeof loadFromCloud==='function' && config.scriptUrl){
-      setSyncStatus('loading');
-      loadFromCloud(ok=>{
-        if(ok){
-          if(typeof loadCheckInsForDate==='function') loadCheckInsForDate(currentTrainingDate);
-          if(typeof renderAll==='function') renderAll();
-        }
-      });
-    }
-  }
+  if(reload)window.location.reload();
 }
 
 /* ── PRESENCE ─────────────────────────────────────────── */
@@ -3614,13 +3599,9 @@ function startInactivityTracking(){
 }
 
 let _pushTimer=null, _isSyncing=false, _hasPending=false;
-// Explicit unchecks / re-checks for today — synced to server so other devices can't resurrect them
-let _uncheckedToday={date:null,ids:new Set()};
-let _recheckedToday={date:null,ids:new Set()};
 
 function pushToCloud(){
   // Debounce: vent 2 sek efter sidste ændring — så 10 check-ins = 1 sync
-  // Server merger nu presentIds union-vis, så pre-pull er ikke længere nødvendigt
   _hasPending=true;
   clearTimeout(_pushTimer);
   setSyncStatus('pending');
@@ -3647,9 +3628,7 @@ window.addEventListener('visibilitychange',()=>{
     try{
       let vault={};
       try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
-      const _rmv=_uncheckedToday.date===currentTrainingDate&&_uncheckedToday.ids.size?{date:currentTrainingDate,ids:[..._uncheckedToday.ids]}:null;
-      const _rad=_recheckedToday.date===currentTrainingDate&&_recheckedToday.ids.size?{date:currentTrainingDate,ids:[..._recheckedToday.ids]}:null;
-      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedSessionKeys:[...deletedSessionKeys],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],removedPresentIds:_rmv,readdedPresentIds:_rad,_savedAt:config._savedAt});
+      const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt});
       navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
     }catch(e){}
   }
@@ -3669,7 +3648,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:(()=>{const _rmv=_uncheckedToday.date===currentTrainingDate&&_uncheckedToday.ids.size?{date:currentTrainingDate,ids:[..._uncheckedToday.ids]}:null;const _rad=_recheckedToday.date===currentTrainingDate&&_recheckedToday.ids.size?{date:currentTrainingDate,ids:[..._recheckedToday.ids]}:null;return JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedSessionKeys:[...deletedSessionKeys],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],removedPresentIds:_rmv,readdedPresentIds:_rad,_savedAt:config._savedAt});})()
+    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt})
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -3733,10 +3712,8 @@ function loadFromCloud(onDone,_attempt){
       if(todayLocal){
         const todayCloud=sessions.find(s=>s.date===currentTrainingDate);
         if(todayCloud){
-          // Union of both devices' check-ins, minus any IDs this device explicitly unchecked today.
-          // Subtraction beats the server-side union so unchecks are never resurrected by auto-refresh.
-          const uncheckedIds=_uncheckedToday.date===currentTrainingDate?_uncheckedToday.ids:new Set();
-          const merged=[...new Set([...todayLocal.presentIds,...todayCloud.presentIds])].filter(id=>!uncheckedIds.has(id));
+          // Union: bevar alle id'er fra begge enheder
+          const merged=[...new Set([...todayLocal.presentIds,...todayCloud.presentIds])];
           todayCloud.presentIds=merged;
         } else {
           sessions.push(todayLocal);
@@ -3747,7 +3724,7 @@ function loadFromCloud(onDone,_attempt){
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
       cancelledReasons=d.cancelledReasons||{};
       localStorage.setItem('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
-      const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu (1 Snip)','8. kyu (Gult m. stribe)':'8. Kyu (2 Snip)','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
+      const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu - Hvid + 1 snip','8. kyu (Gult m. stribe)':'9. Kyu - Hvid + 2 snip','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
       members.forEach(mb=>{
         if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];
         // Normaliser datofelter til YYYY-MM-DD
@@ -3855,14 +3832,14 @@ function loadFromCloud(onDone,_attempt){
   };
   s.onerror=()=>{
     cleanup();
-    if((_attempt||0)<1){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),3000);}
+    if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
     else{setSyncStatus('error');if(onDone)onDone(false);}
   };
   timer=setTimeout(()=>{
     cleanup();
-    if((_attempt||0)<1){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),3000);}
-    else{setSyncStatus('error');if(onDone)onDone(false);}
-  },8000);
+    if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
+    else{setSyncStatus('error');showToast('⚠️ Google svarede ikke — prøv igen om et øjeblik');if(onDone)onDone(false);}
+  },10000);
   s.src=url+'?callback='+cb+'&t='+Date.now();
   document.body.appendChild(s);
 }
@@ -4472,25 +4449,13 @@ function initApp(){
   document.getElementById('memberModal').addEventListener('input', ()=>{ _memberModalDirty=true; });
   document.getElementById('memberModal').addEventListener('change', ()=>{ _memberModalDirty=true; });
   loadCheckInsForDate(currentTrainingDate);
+  renderAll();
   _startPeriodicSync();
-  // Sync-først ved opstart: vis "Henter friske data..."-overlay og udsæt første render
-  // indtil cloud-fetch er færdig (eller falder tilbage til lokale data efter timeout).
-  // Tidligere flashede gamle data fra localStorage før synk og kunne fx vise gamle check-ins.
-  if(config.scriptUrl && !cloudLoaded){
-    const ov=document.getElementById('initSyncOverlay');
-    if(ov) ov.style.display='flex';
-    let done=false;
-    const finish=()=>{
-      if(done) return; done=true;
-      if(ov) ov.style.display='none';
+  if(config.scriptUrl){
+    loadFromCloud(()=>{
       loadCheckInsForDate(currentTrainingDate);
       renderAll();
-    };
-    loadFromCloud(()=>finish());
-    // Fallback: hvis cloud aldrig svarer, vis lokale data efter 9s i stedet for at hænge
-    setTimeout(finish, 9000);
-  } else {
-    renderAll();
+    });
   }
 }
 
@@ -4525,28 +4490,18 @@ function refreshFromCloud(){
   });
 }
 
-// Auto-refresh hvert 45. sek på ALLE faner (ikke kun træning)
-// — sikrer at flere enheder ser hinandens check-ins hurtigt
+// Auto-refresh hvert minut på træningssiden (springer over hvis allerede i gang)
 let _autoRefreshing=false;
 setInterval(()=>{
-  if(!config.scriptUrl||_autoRefreshing||_isSyncing) return;
-  if(document.visibilityState==='hidden') return; // spar batteri når fanen er skjult
-  _autoRefreshing=true;
-  loadFromCloud(ok=>{
-    _autoRefreshing=false;
-    if(ok){ loadCheckInsForDate(currentTrainingDate); renderAll(); }
-  });
-},25000);
-// Når brugeren vender tilbage til fanen, lav et straks-refresh
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&config.scriptUrl&&!_autoRefreshing&&!_isSyncing){
+  const tp=document.getElementById('page-training');
+  if(tp&&tp.classList.contains('active')&&config.scriptUrl&&!_autoRefreshing){
     _autoRefreshing=true;
     loadFromCloud(ok=>{
       _autoRefreshing=false;
       if(ok){ loadCheckInsForDate(currentTrainingDate); renderAll(); }
     });
   }
-});
+},60000);
 
 /* ════════════════════════════════════════
    TABS
@@ -4845,6 +4800,7 @@ function _promoCardReady(s){
     ${(()=>{const low=s.weak.filter(w=>w.val<=3&&w.val>0);return low.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${low.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${_promoStarsHtml(w.val)}</span></div>`).join('')}</div>`:'';})()}
     ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
+    ${_gradLogistikRow(m.id)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
@@ -4874,6 +4830,7 @@ function _promoCardAlmost(s){
     ${weakHtml}
     ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
+    ${_gradLogistikRow(m.id)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
@@ -4906,6 +4863,7 @@ function _promoCardOverdue(o){
         <div class="promo-coverage">${dateLine}</div>
       </div>
     </div>
+    ${_gradLogistikRow(m.id)}
     <div class="promo-meta">
       <span>🥋 ${o.never?'Ingen vurderinger':o.info.trainingDaysSince+' træninger siden'}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
@@ -4981,7 +4939,7 @@ function _promoDualScoreRow(s){
 function _computePromoGroups(){
   const active=members.filter(m=>!m.archived&&m.status!=='passiv');
   const ready=[],almost=[],focus=[];
-  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 2 snip','8. Kyu - Hvid + 3 snip','8. Kyu - Hvid + 4 snip','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   const GROUP_ORDER=['Børnehold','Basis-hold','Avanceret'];
   const promoSort=(a,b)=>{
     const ma=members.find(x=>x.id===a.memberId),mb=members.find(x=>x.id===b.memberId);
@@ -5131,6 +5089,17 @@ function deleteAssessmentFromDetail(assessmentId,memberId){
   const remaining=assessments.filter(a=>a.memberId===memberId);
   if(remaining.length>0){openPromoDetail(memberId);}
   else{closePromoDetail();renderPromotion();}
+}
+function _toggleGradField(memberId,field){
+  const m=members.find(x=>x.id===memberId);if(!m)return;
+  m[field]=!m[field];
+  save();pushToCloud();
+  renderPromotion();
+}
+function _gradLogistikRow(memberId){
+  const m=members.find(x=>x.id===memberId)||{};
+  const chip=(field,label)=>`<button class="grad-chip ${m[field]?'grad-chip-on':'grad-chip-off'}" onclick="event.stopPropagation();_toggleGradField(${memberId},'${field}')">${m[field]?'✓':'✗'} ${label}</button>`;
+  return `<div class="grad-logistik-row">${chip('gradSeddel','Seddel')}${chip('gradKommer','Fremmøde')}${chip('gradBetalt','Betalt')}</div>`;
 }
 function renderPromotion(){
   fetchLoginStats(false);
@@ -5401,7 +5370,7 @@ function renderT(){
 /* ════════════════════════════════════════
    RENDER: MEMBERS PAGE
 ════════════════════════════════════════ */
-const _BELT_SORT={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+const _BELT_SORT={'10. Kyu (Hvidt)':0,'9. Kyu - Hvid + 1 snip':1,'9. Kyu - Hvid + 2 snip':2,'8. Kyu - Hvid + 3 snip':2.5,'8. Kyu - Hvid + 4 snip':2.75,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
 const _GRP_ORDER={'Børnehold':0,'Basis-hold':1,'Avanceret':2};
 // Escape-helpers (bruges i innerHTML og inline onclick for at håndtere fx O'Brien, <tag>, " i navne)
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -5433,18 +5402,18 @@ function _scoreVal(id){
 }
 function effectivePensumBelt(m){
   if(!m) return '';
-  const whiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu (1 Snip)';
-  if(whiteOrSnip&&(m.gultPensum||getAge(m)>=15)) return '8. Kyu (2 Snip)';
+  const whiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu - Hvid + 1 snip';
+  if(whiteOrSnip&&(m.gultPensum||getAge(m)>=15)) return '9. Kyu - Hvid + 2 snip';
   return m.belt||'';
 }
 function effectiveNextBelt(m){
   if(!m) return '';
-  const whiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu (1 Snip)';
+  const whiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu - Hvid + 1 snip';
   if(whiteOrSnip&&(m.gultPensum||getAge(m)>=15)) return '7. Kyu (Gult)';
   return _NEXT_BELT_NAME[m.belt]||'';
 }
 const _NEXT_BELT_NAME={
-  '10. Kyu (Hvidt)':'9. Kyu (1 Snip)','9. Kyu (1 Snip)':'8. Kyu (2 Snip)','8. Kyu (2 Snip)':'7. Kyu (Gult)',
+  '10. Kyu (Hvidt)':'9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 1 snip':'9. Kyu - Hvid + 2 snip','9. Kyu - Hvid + 2 snip':'8. Kyu - Hvid + 3 snip','8. Kyu - Hvid + 3 snip':'8. Kyu - Hvid + 4 snip','8. Kyu - Hvid + 4 snip':'7. Kyu (Gult)',
   '7. Kyu (Gult)':'6. Kyu (Blåt)','6. Kyu (Blåt)':'5. Kyu (Grønt)',
   '5. Kyu (Grønt)':'4. Kyu (Violet)','4. Kyu (Violet)':'3. Kyu (Brunt)',
   '3. Kyu (Brunt)':'2. Kyu (Brunt + 1 Snip)','2. Kyu (Brunt + 1 Snip)':'1. Kyu (Brunt + 2 Snip)',
@@ -5510,7 +5479,7 @@ function promotionBadge(memberId){
 }
 // Næste-bælte farve (subtil gradient) når klar til oprykning
 const _NEXT_BELT_COLOR={
-  '10. Kyu (Hvidt)':'#f7e040','9. Kyu (1 Snip)':'#f7e040','8. Kyu (2 Snip)':'#f7e040',
+  '10. Kyu (Hvidt)':'#f7e040','9. Kyu - Hvid + 1 snip':'#f7e040','9. Kyu - Hvid + 2 snip':'#f7e040','8. Kyu - Hvid + 3 snip':'#f7e040','8. Kyu - Hvid + 4 snip':'#f7e040',
   '7. Kyu (Gult)':'#2980b9',
   '6. Kyu (Blåt)':'#27ae60',
   '5. Kyu (Grønt)':'#8e44ad',
@@ -6095,7 +6064,7 @@ function showPresentModal(){
       if(inGrp.length===0) return;
       const gr=GROUPS.find(x=>x.key===gKey)||{icon:'👥',color:'#6b7280',bg:'#f3f4f6',border:'#d1d5db'};
       // Sort by belt rank descending so senior first, then alphabetically
-      const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+      const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu - Hvid + 1 snip':1,'9. Kyu - Hvid + 2 snip':2,'8. Kyu - Hvid + 3 snip':2.5,'8. Kyu - Hvid + 4 snip':2.75,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
       const sorted=[...inGrp].sort((a,b)=>{
         const rb=(BELT_RANK[b.belt]??-1)-(BELT_RANK[a.belt]??-1);
         if(rb!==0) return rb;
@@ -7144,7 +7113,7 @@ function renderDashboard(){
     if(dbChartFilter&&!dbChartFilter.ids.has(m.id))return false;
     return true;
   });
-  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 2 snip','8. Kyu - Hvid + 3 snip','8. Kyu - Hvid + 4 snip','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   const d=dbSort.dir==='asc'?1:-1;
   rows.sort((a,b)=>{
     if(dbSort.col==='baelte'){
@@ -7259,7 +7228,7 @@ function renderDashboard(){
   rows.forEach(m=>{ _dbStreakCache[m.id]=calcStreak(m.id); });
 
   // Longest streak banner — kun én vinder, tiebreakers: sessioner i streakperiode → bæltegrad → anciennitet
-  const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+  const BELT_RANK={'10. Kyu (Hvidt)':0,'9. Kyu - Hvid + 1 snip':1,'9. Kyu - Hvid + 2 snip':2,'8. Kyu - Hvid + 3 snip':2.5,'8. Kyu - Hvid + 4 snip':2.75,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
   function sessInStreakPeriod(memberId){
     return sessions.filter(s=>s.date&&(s.presentIds||[]).includes(memberId)).length;
   }
@@ -8042,7 +8011,7 @@ function renderDashboardBeltDist(){
   if(!card)return;
   const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
   if(!act.length){card.innerHTML='';return;}
-  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu (1 Snip)','8. Kyu (2 Snip)','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','Sort (Dan)'];
+  const BELT_ORDER=['10. Kyu (Hvidt)','9. Kyu - Hvid + 1 snip','9. Kyu - Hvid + 2 snip','8. Kyu - Hvid + 3 snip','8. Kyu - Hvid + 4 snip','7. Kyu (Gult)','6. Kyu (Blåt)','5. Kyu (Grønt)','4. Kyu (Violet)','3. Kyu (Brunt)','2. Kyu (Brunt + 1 Snip)','1. Kyu (Brunt + 2 Snip)','Sort (Dan)'];
   const DAN_BELTS=['1. Dan (Sort)','2. Dan (Sort)','3. Dan (Sort)'];
   // Tæl pr. bælte — slå alle dan-grader sammen til "Sort (Dan)"
   const counts={};
@@ -8122,7 +8091,7 @@ function openGroupDetailModal(groupName){
   const beltDist={};
   act.forEach(m=>{const b=m.belt||'Ukendt'; beltDist[b]=(beltDist[b]||0)+1;});
   const beltChips=Object.entries(beltDist).sort((a,b)=>{
-    const _BS={'10. Kyu (Hvidt)':0,'9. Kyu (1 Snip)':1,'8. Kyu (2 Snip)':2,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
+    const _BS={'10. Kyu (Hvidt)':0,'9. Kyu - Hvid + 1 snip':1,'9. Kyu - Hvid + 2 snip':2,'8. Kyu - Hvid + 3 snip':2.5,'8. Kyu - Hvid + 4 snip':2.75,'7. Kyu (Gult)':3,'6. Kyu (Blåt)':4,'5. Kyu (Grønt)':5,'4. Kyu (Violet)':6,'3. Kyu (Brunt)':7,'2. Kyu (Brunt + 1 Snip)':8,'1. Kyu (Brunt + 2 Snip)':9,'1. Dan (Sort)':10,'2. Dan (Sort)':11,'3. Dan (Sort)':12};
     return (_BS[a[0]]||99)-(_BS[b[0]]||99);
   }).map(([b,n])=>{
     const bc=BC[b]||'#ccc';
@@ -8641,9 +8610,6 @@ function deleteSession(){
   const sess=sessions.find(s=>s.date===ds);
   const cnt=(sess&&sess.presentIds||[]).length;
   if(!confirm(`Slet sessionen den ${fmtDate(ds)} permanent?\n\n${cnt} fremmøderegistrering${cnt===1?'':'er'} vil gå tabt.\n\nDette kan ikke fortrydes.`))return;
-  // Marker alle session-rækker for denne dato som slettet (også multiple navne, fx Træning + Ekstra)
-  sessions.filter(s=>s.date===ds).forEach(s=>{ deletedSessionKeys.add(ds+'|'+(s.name||'')); });
-  localStorage.setItem('kk2_deletedSessions',JSON.stringify([...deletedSessionKeys]));
   sessions=sessions.filter(s=>s.date!==ds);
   const ci=cancelledDates.indexOf(ds);
   if(ci>=0)cancelledDates.splice(ci,1);
@@ -8794,16 +8760,6 @@ function toggleCI(id,val){
     }
   }
   m.checkedIn=val;
-  // Track explicit unchecks/re-checks — sent to server so other devices can't resurrect removed students
-  if(_uncheckedToday.date!==currentTrainingDate) _uncheckedToday={date:currentTrainingDate,ids:new Set()};
-  if(_recheckedToday.date!==currentTrainingDate) _recheckedToday={date:currentTrainingDate,ids:new Set()};
-  if(!val){
-    _uncheckedToday.ids.add(id);
-    _recheckedToday.ids.delete(id);
-  } else {
-    if(_uncheckedToday.ids.has(id)) _recheckedToday.ids.add(id);
-    _uncheckedToday.ids.delete(id);
-  }
   // Nulstil reminder-datoer når eleven møder op igen
   if(val&&(m.rem1||m.rem2)){m.rem1='';m.rem2='';}
   // Opdater sessions med det samme
@@ -8941,7 +8897,7 @@ function renderBeltHistory(memberId){
   ma.forEach(a=>{ if(a.belt&&!seen.has(a.belt)){ seen.add(a.belt); history.push({belt:a.belt,date:a.date}); }});
   if(!history.length){ sec.style.display='none'; return; }
   sec.style.display='';
-  const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#fef9c3','8. Kyu (2 Snip)':'#fef9c3','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+  const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu - Hvid + 1 snip':'#f0f0f0','9. Kyu - Hvid + 2 snip':'#e4e4e4','8. Kyu - Hvid + 3 snip':'#c4c4c4','8. Kyu - Hvid + 4 snip':'#b8b8b8','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
   let html=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--xtl);margin-bottom:.4rem">🏅 Bæltevej · ${history.length} bælte${history.length!==1?'r':''}</div>`;
   history.forEach((h,i)=>{
     const bg=BC[h.belt]||'#f3f4f6'; const isDan=h.belt.includes('Dan');
@@ -9086,6 +9042,7 @@ async function saveMember(){
       const hasAssess=assessments.some(a=>a.memberId===editingId&&a.belt===oldBelt);
       if(hasAssess&&!confirm(`${data.firstName||members[i].firstName} rykker fra ${oldBelt} til ${newBelt}.\n\nScoren nulstilles for det nye bælte.\nHistorikken fra ${oldBelt} bevares.\n\nFortsæt?`))return;
       data.ønskerGraduering=false; // nulstil graduerings-ønske ved bælteskift
+      data.gradSeddel=false; data.gradKommer=false; data.gradBetalt=false;
     }
     members[i]={...members[i],...data};
     savedMember=members[i];
@@ -9316,6 +9273,31 @@ function _renderMsm(){
     ${dayHtml}
     ${extraAtt>0?`<div style="margin-top:.35rem;font-size:.7rem;color:#7c3aed;font-weight:600">✦ ${extraAtt} ekstra-træninger i perioden</div>`:''}
   `:'';
+
+  // Bælteprogression
+  const beltSec=document.getElementById('msmBeltHistory');
+  if(beltSec){
+    const ma=assessments.filter(a=>a.memberId===_msmId).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    const bh=[]; const bseen=new Set();
+    ma.forEach(a=>{ if(a.belt&&!bseen.has(a.belt)){ bseen.add(a.belt); bh.push({belt:a.belt,date:a.date}); }});
+    if(!bh.length){ beltSec.style.display='none'; }
+    else{
+      beltSec.style.display='';
+      const BHC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu - Hvid + 1 snip':'#f0f0f0','9. Kyu - Hvid + 2 snip':'#e4e4e4','8. Kyu - Hvid + 3 snip':'#c4c4c4','8. Kyu - Hvid + 4 snip':'#b8b8b8','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+      let bhtml=`<div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--xtl);margin-bottom:.45rem">🏅 Bæltevej · ${bh.length} bælte${bh.length!==1?'r':''}</div>`;
+      bh.forEach((h,i)=>{
+        const bg=BHC[h.belt]||'#f3f4f6'; const isLast=i===bh.length-1;
+        const d=h.date?new Date(h.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'—';
+        if(i>0) bhtml+=`<div style="width:2px;height:5px;background:#d1d5db;margin:.05rem 0 .05rem 8px"></div>`;
+        bhtml+=`<div style="display:flex;align-items:center;gap:.5rem">
+          <div style="width:20px;height:12px;border-radius:3px;background:${bg};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0${isLast?';outline:2px solid var(--td);outline-offset:1px':''}"></div>
+          <span style="flex:1;font-size:.8rem;${isLast?'font-weight:700;color:var(--td)':'color:var(--xtm)'}">${escHtml(h.belt)}</span>
+          <span style="font-size:.7rem;color:var(--xtl);white-space:nowrap">${d}</span>
+        </div>`;
+      });
+      beltSec.innerHTML=bhtml;
+    }
+  }
 }
 
 /* ════════════════════════════════════════
@@ -10398,7 +10380,7 @@ function openAssessmentModal(memberId, editAssessmentId){
   assessorSel.value=existing?existing.assessorName||'':'';
 
   // Bæltebadge + dato
-  const _BC={'10. Kyu (Hvidt)':'#f5f5f5','9. Kyu (1 Snip)':'#f5f5f5','8. Kyu (2 Snip)':'#f5f5f5','7. Kyu (Gult)':'#fff176','6. Kyu (Blåt)':'#90caf9','5. Kyu (Grønt)':'#a5d6a7','4. Kyu (Violet)':'#ce93d8','3. Kyu (Brunt)':'#bcaaa4','2. Kyu (Brunt + 1 Snip)':'#a1887f','1. Kyu (Brunt + 2 Snip)':'#8d6e63','1. Dan (Sort)':'#424242','2. Dan (Sort)':'#212121','3. Dan (Sort)':'#121212'};
+  const _BC={'10. Kyu (Hvidt)':'#f5f5f5','9. Kyu - Hvid + 1 snip':'#f5f5f5','9. Kyu - Hvid + 2 snip':'#f5f5f5','8. Kyu - Hvid + 3 snip':'#f5f5f5','8. Kyu - Hvid + 4 snip':'#f5f5f5','7. Kyu (Gult)':'#fff176','6. Kyu (Blåt)':'#90caf9','5. Kyu (Grønt)':'#a5d6a7','4. Kyu (Violet)':'#ce93d8','3. Kyu (Brunt)':'#bcaaa4','2. Kyu (Brunt + 1 Snip)':'#a1887f','1. Kyu (Brunt + 2 Snip)':'#8d6e63','1. Dan (Sort)':'#424242','2. Dan (Sort)':'#212121','3. Dan (Sort)':'#121212'};
   const beltForDisplay=existing?existing.belt:m.belt;
   const bg=_BC[beltForDisplay]||'#e0e0e0';
   const fg=(bg==='#424242'||bg==='#212121'||bg==='#121212')?'#fff':'#333';
@@ -10410,7 +10392,7 @@ function openAssessmentModal(memberId, editAssessmentId){
 
   // Gult-pensum toggle (kun for hvidt og 1-snip, og kun når alder ikke allerede bestemmer det)
   const toggleEl=document.getElementById('assessGultToggle');
-  const isWhiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu (1 Snip)';
+  const isWhiteOrSnip=m.belt==='10. Kyu (Hvidt)'||m.belt==='9. Kyu - Hvid + 1 snip';
   const ageForced=getAge(m)>=15;
   if(isWhiteOrSnip&&!ageForced){
     const on=!!m.gultPensum;
@@ -11635,7 +11617,7 @@ function exportProgressToPDF(memberId){
   const year=new Date().getFullYear();
   const trainCount=sessions.filter(s=>s.date&&s.date.startsWith(String(year))&&(s.presentIds||[]).includes(m.id)).length;
   const dateStr=new Date(latest.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
-  const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu (1 Snip)':'#f3f4f6','8. Kyu (2 Snip)':'#f3f4f6','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+  const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu - Hvid + 1 snip':'#f3f4f6','9. Kyu - Hvid + 2 snip':'#f3f4f6','8. Kyu - Hvid + 3 snip':'#f3f4f6','8. Kyu - Hvid + 4 snip':'#f3f4f6','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
   const beltBg=BC[m.belt]||'#f3f4f6';
   const beltFg=(m.belt||'').includes('Dan')?'#fff':'#1a2e2e';
   // Byg progress-graf data: (date, avg) for alle vurderinger, ældste → nyeste
@@ -11921,35 +11903,12 @@ justify-content:stretch!important;
 /* ═══════════════════════════════════════════════════
    HURTIG VURDER
 ═══════════════════════════════════════════════════ */
-let _hvSkills=[], _hvRatings={}, _hvAssessor='', _hvNotes={}, _hvInherited={}, _hvGroupFilter='all';
+let _hvSkills=[], _hvRatings={}, _hvAssessor='', _hvNotes={}, _hvHoldFilter='all';
 
 function openHv(){
   const present=members.filter(m=>m.checkedIn&&!m.archived);
   if(!present.length){showToast('⚠️ Ingen er tjekket ind endnu');return;}
-  _hvSkills=[];_hvRatings={};_hvAssessor='';_hvNotes={};_hvInherited={};_hvGroupFilter='all';
-  // Forudfyld stjerner fra seneste vurdering — så træneren tydeligt ser hvad der allerede er sat,
-  // og hvad der skal opdateres. Markeres som "arvet" indtil træneren klikker.
-  const today=currentTrainingDate;
-  present.forEach(m=>{
-    const todayA=assessments.find(a=>a.memberId===m.id&&a.date===today);
-    const prior=assessments.filter(a=>a.memberId===m.id&&a.date!==today)
-      .sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id))[0];
-    const source=todayA||prior;
-    if(!source) return;
-    try{
-      const r=JSON.parse(source.ratings||'{}');
-      const filtered={}, inh={};
-      Object.entries(r).forEach(([sk,v])=>{
-        const n=Number(v);
-        if(n>0){ filtered[sk]=n; inh[sk]=true; }
-      });
-      if(Object.keys(filtered).length){
-        _hvRatings[m.id]=filtered;
-        _hvInherited[m.id]=inh;
-      }
-    }catch(e){}
-    if(todayA && todayA.assessorName && !_hvAssessor) _hvAssessor=todayA.assessorName;
-  });
+  _hvSkills=[];_hvRatings={};_hvAssessor='';_hvNotes={};_hvHoldFilter='all';
   renderHv();
   document.getElementById('hvPanel').classList.add('open');
   document.body.style.overflow='hidden';
@@ -11957,17 +11916,6 @@ function openHv(){
 function closeHv(){
   document.getElementById('hvPanel').classList.remove('open');
   document.body.style.overflow='';
-}
-
-// Hold-farver — samme palette som bruges i Email-/medlemslister mv.
-const HV_HOLD_COLORS={
-  'Børnehold':  {bg:'#fef9c3', fg:'#854d0e', border:'#fde68a'},
-  'Basis-hold': {bg:'#dbeafe', fg:'#1d4ed8', border:'#bfdbfe'},
-  'Avanceret':  {bg:'#f3e8ff', fg:'#7c3aed', border:'#e9d5ff'}
-};
-function hvHoldStyle(g){
-  const c=HV_HOLD_COLORS[g];
-  return c?`background:${c.bg};color:${c.fg};border-color:${c.border}`:'background:#e5e7eb;color:#374151;border-color:#d1d5db';
 }
 
 const HV_GROUPS=['Ippon','Taezu','Kihon'];
@@ -11980,24 +11928,20 @@ function hvMemberSkillsInGroup(m,group){
   return (pensum[m.belt]||[]).filter(s=>hvGroupOf(s)===group);
 }
 
-function setHvGroup(g){
-  _hvGroupFilter=g;
-  // Ryd valgte færdigheder hvis de ikke længere har eligible elever i det valgte hold
-  const present=members.filter(m=>m.checkedIn&&!m.archived);
-  const filtered=g==='all'?present:present.filter(m=>m.group===g);
-  _hvSkills=_hvSkills.filter(grp=>filtered.some(m=>hvMemberSkillsInGroup(m,grp).length>0));
-  renderHv();
-}
 function renderHv(){
-  const allPresent=members.filter(m=>m.checkedIn&&!m.archived).sort((a,b)=>{
-    const oa=_GRP_ORDER[a.group]??99,ob=_GRP_ORDER[b.group]??99;
-    return oa!==ob?oa-ob:(a.firstName+' '+a.lastName).localeCompare(b.firstName+' '+b.lastName,'da');
-  });
-  const presentGroups=[...new Set(allPresent.map(m=>m.group))].sort((a,b)=>(_GRP_ORDER[a]??99)-(_GRP_ORDER[b]??99));
-  const present=_hvGroupFilter==='all'?allPresent:allPresent.filter(m=>m.group===_hvGroupFilter);
-  document.getElementById('hvPresentChip').textContent=present.length+(present.length!==allPresent.length?'/'+allPresent.length:'')+' tilstede';
+  const present=members.filter(m=>m.checkedIn&&!m.archived);
+  const holdCounts={
+    'Børnehold':  present.filter(m=>m.group==='Børnehold').length,
+    'Basis-hold': present.filter(m=>m.group==='Basis-hold').length,
+    'Avanceret':  present.filter(m=>m.group==='Avanceret').length,
+  };
+  const holdsPresent=['Børnehold','Basis-hold','Avanceret'].filter(h=>holdCounts[h]>0);
+  const showHoldFilter=holdsPresent.length>1;
+  if(!showHoldFilter) _hvHoldFilter='all';
+  const presentFiltered=_hvHoldFilter==='all'?present:present.filter(m=>m.group===_hvHoldFilter);
+  document.getElementById('hvPresentChip').textContent=(showHoldFilter&&_hvHoldFilter!=='all'?presentFiltered.length+' af '+present.length:present.length)+' tilstede';
   const groupSet=new Set();
-  present.forEach(m=>(pensum[m.belt]||[]).forEach(s=>groupSet.add(hvGroupOf(s))));
+  presentFiltered.forEach(m=>(pensum[m.belt]||[]).forEach(s=>groupSet.add(hvGroupOf(s))));
   const allGroups=[...groupSet].sort((a,b)=>{
     const ai=HV_GROUPS.indexOf(a), bi=HV_GROUPS.indexOf(b);
     if(ai>=0&&bi>=0) return ai-bi;
@@ -12008,29 +11952,13 @@ function renderHv(){
   const instructors=members.filter(x=>!x.archived&&(x.role==='Instruktør'||x.role==='Hjælpetræner'))
     .sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da'));
 
-  let html='';
-  // Hold-filter: vises hvis mere end ét hold er tjekket ind, så instruktøren kan
-  // begrænse Quick rating til fx kun Basis-hold når Børnehold lige er gået hjem.
-  if(presentGroups.length>1){
-    const holdCounts={};
-    presentGroups.forEach(h=>{holdCounts[h]=allPresent.filter(m=>m.group===h).length;});
-    html+=`<div class="hv-hold-filter" style="padding:.7rem .75rem .5rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;border-bottom:1px solid #eef2f2;margin-bottom:.4rem">
-      <div style="font-size:.74rem;color:#6a7b7b;font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin-right:.25rem">Hold:</div>
-      <div class="hv-chip${_hvGroupFilter==='all'?' on':''}" onclick="setHvGroup('all')" style="border:1.5px solid ${_hvGroupFilter==='all'?'#1a2e2e':'#d5dcdc'}">Alle <span class="cnt">${allPresent.length}</span></div>
-      ${presentGroups.map(g=>{
-        const sel=_hvGroupFilter===g;
-        const c=HV_HOLD_COLORS[g]||{bg:'#e5e7eb',fg:'#374151',border:'#d1d5db'};
-        const style=sel
-          ? `background:${c.bg};color:${c.fg};border:1.5px solid ${c.fg};box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:700`
-          : `background:#fff;color:${c.fg};border:1.5px solid ${c.border}`;
-        return `<div class="hv-chip${sel?' on':''}" onclick="setHvGroup('${String(g).replace(/'/g,"\\'")}')" style="${style}">${g} <span class="cnt" style="background:${c.bg};color:${c.fg}">${holdCounts[g]||0}</span></div>`;
-      }).join('')}
-    </div>`;
-  } else if(_hvGroupFilter!=='all'){
-    // Hvis kun ét hold er tjekket ind men der ligger et gammelt filter — nulstil
-    _hvGroupFilter='all';
-  }
-  html+=`<div class="hv-step">
+  const holdFilterHtml=showHoldFilter?`<div class="hv-hold-filter" style="display:flex;gap:.4rem;margin-bottom:.8rem;flex-wrap:wrap;align-items:center">
+    <div style="font-size:.74rem;color:#6a7b7b;font-weight:600;margin-right:.2rem">Hold:</div>
+    <div class="hv-chip${_hvHoldFilter==='all'?' on':''}" onclick="setHvHoldFilter('all')">Alle <span class="cnt">${present.length}</span></div>
+    ${holdsPresent.map(h=>`<div class="hv-chip${_hvHoldFilter===h?' on':''}" onclick="setHvHoldFilter('${h}')">${h} <span class="cnt">${holdCounts[h]}</span></div>`).join('')}
+  </div>`:'';
+
+  let html=holdFilterHtml+`<div class="hv-step">
     <div class="hv-step-hdr">
       <div class="hv-step-num${_hvAssessor?' done':''}">1</div>
       <div class="hv-step-title">Hvem bedømmer?</div>
@@ -12047,7 +11975,7 @@ function renderHv(){
       <div style="margin-left:auto;font-size:.74rem;color:#6a7b7b;font-weight:500">${_hvSkills.length?_hvSkills.length+' valgt':'Vælg mindst én'}</div>
     </div>
     ${allGroups.length?`<div class="hv-chip-grid">${allGroups.map(g=>{
-      const cnt=present.filter(m=>hvMemberSkillsInGroup(m,g).length>0).length;
+      const cnt=presentFiltered.filter(m=>hvMemberSkillsInGroup(m,g).length>0).length;
       const on=_hvSkills.includes(g);
       return `<div class="hv-chip${on?' on':''}" onclick="toggleHvSkill('${String(g).replace(/'/g,"\\'")}')"> ${g} <span class="cnt">${cnt}</span></div>`;
     }).join('')}</div>`:'<div style="color:#9aacac;font-style:italic;font-size:.82rem">Ingen pensum fundet for tilstedeværende medlemmer.</div>'}
@@ -12056,7 +11984,7 @@ function renderHv(){
   if(_hvSkills.length){
     html+=`<div class="hv-step"><div class="hv-step-hdr"><div class="hv-step-num${Object.keys(_hvRatings).length?' done':''}">3</div><div class="hv-step-title">Giv stjerner</div></div>`;
     _hvSkills.forEach(group=>{
-      const eligible=present.filter(m=>hvMemberSkillsInGroup(m,group).length>0);
+      const eligible=presentFiltered.filter(m=>hvMemberSkillsInGroup(m,group).length>0);
       if(!eligible.length)return;
       const grpNote=getSkillNote(group);
       const grpInfo=grpNote?` <span style="font-size:.8rem;color:#6366f1;cursor:pointer" title="Vis info" onclick="event.stopPropagation();showSkillNote('${String(group).replace(/'/g,"\\'")}')">ℹ️</span>`:'';
@@ -12067,18 +11995,13 @@ function renderHv(){
         const cur=(_hvRatings[m.id]||{})[specific]||0;
         const ini=(m.firstName[0]||'')+(m.lastName[0]||'');
         const specificLbl=(specific!==group)?` <span style="font-size:.68rem;color:#6a7b7b;font-weight:500">(${specific})</span>`:'';
-        const hc=HV_HOLD_COLORS[m.group]||{bg:'#e5e7eb',fg:'#374151',border:'#d1d5db'};
-        const beltVis=m.belt?beltHtml(m.belt, BC[m.belt]||'#ccc'):'';
-        html+=`<div class="hv-row" style="border-left:3px solid ${hc.fg}">
+        html+=`<div class="hv-row">
           <div style="display:flex;align-items:center;gap:.5rem">
-            <div class="hv-mav" style="background:${hc.bg};color:${hc.fg};border:1.5px solid ${hc.border}" title="${m.group||''}">${ini}</div>
-            <div>
-              <div style="font-size:.86rem;font-weight:600;color:#1a2e2e">${m.firstName} ${m.lastName}${specificLbl}</div>
-              <div style="margin-top:3px;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">${beltVis}${m.group?`<span style="font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:8px;background:${hc.bg};color:${hc.fg};border:1px solid ${hc.border};letter-spacing:.02em">${m.group}</span>`:''}</div>
-            </div>
+            <div class="hv-mav">${ini}</div>
+            <div><div style="font-size:.86rem;font-weight:600;color:#1a2e2e">${m.firstName} ${m.lastName}${specificLbl}</div><div style="font-size:.68rem;color:#6a7b7b">${m.belt||''}</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:.4rem">
-            <div class="hv-stars${(_hvInherited[m.id]||{})[specific]?' hv-inh':''}">${[1,2,3,4,5].map(i=>`<span data-mid="${m.id}" data-skill="${String(specific).replace(/"/g,'&quot;')}" data-val="${i}" onclick="setHvStar(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div>${(_hvInherited[m.id]||{})[specific]?`<span class="hv-inh-badge" title="Fra seneste vurdering — klik for at opdatere">↺ sidst</span>`:''}
+            <div class="hv-stars">${[1,2,3,4,5].map(i=>`<span data-mid="${m.id}" data-skill="${String(specific).replace(/"/g,'&quot;')}" data-val="${i}" onclick="setHvStar(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div>
             <button onclick="openHvNote(${m.id})" title="${_hvNotes[m.id]?'Rediger note':'Tilføj note'}" style="background:${_hvNotes[m.id]?'#fef3c7':'transparent'};border:1px solid ${_hvNotes[m.id]?'#fcd34d':'#d5dcdc'};border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.9rem;line-height:1">${_hvNotes[m.id]?'📝':'✏️'}</button>
           </div>
         </div>`;
@@ -12107,6 +12030,14 @@ function _hvUpdateSaveBar(){
 }
 
 function setHvAssessor(val){_hvAssessor=val;renderHv();}
+
+function setHvHoldFilter(v){
+  _hvHoldFilter=v;
+  const present=members.filter(m=>m.checkedIn&&!m.archived);
+  const filtered=v==='all'?present:present.filter(m=>m.group===v);
+  _hvSkills=_hvSkills.filter(g=>filtered.some(m=>hvMemberSkillsInGroup(m,g).length>0));
+  renderHv();
+}
 
 function openHvNote(mid){
   const m=members.find(x=>x.id===mid);
@@ -12146,13 +12077,9 @@ function toggleHvSkill(skill){
     // Clear ratings for every specific pensum skill whose group matches this chip
     Object.keys(_hvRatings).forEach(mid=>{
       Object.keys(_hvRatings[mid]||{}).forEach(sp=>{
-        if(hvGroupOf(sp)===skill){
-          delete _hvRatings[mid][sp];
-          if(_hvInherited[mid]) delete _hvInherited[mid][sp];
-        }
+        if(hvGroupOf(sp)===skill) delete _hvRatings[mid][sp];
       });
       if(!Object.keys(_hvRatings[mid]||{}).length) delete _hvRatings[mid];
-      if(_hvInherited[mid] && !Object.keys(_hvInherited[mid]).length) delete _hvInherited[mid];
     });
   }else{
     _hvSkills.push(skill);
@@ -12168,8 +12095,6 @@ function setHvStar(el){
   _hvRatings[mid][skill]=(_hvRatings[mid][skill]===val)?0:val;
   if(!_hvRatings[mid][skill])delete _hvRatings[mid][skill];
   if(!Object.keys(_hvRatings[mid]).length)delete _hvRatings[mid];
-  // Klik = træneren har bekræftet/ændret bedømmelsen → fjern "arvet"-markering
-  if(_hvInherited[mid] && _hvInherited[mid][skill]) delete _hvInherited[mid][skill];
   const cur=(_hvRatings[mid]||{})[skill]||0;
   el.parentElement.querySelectorAll('span').forEach(s=>{
     const sv=Number(s.dataset.val);
@@ -12189,22 +12114,25 @@ function saveHv(){
     const m=members.find(x=>x.id===mid);
     if(!m)return;
     const note=_hvNotes[mid]||'';
-    // Only save skills the trainer actually clicked today — inherited pre-fills stay in their original assessment
-    // (the display already carries them forward via getMergedRatings, so we must not re-stamp them with today's date)
-    const inh=_hvInherited[mid]||{};
-    const ownRatings={};
-    Object.entries(skillRatings).forEach(([sk,v])=>{ if(!inh[sk]) ownRatings[sk]=v; });
-    if(!Object.keys(ownRatings).length&&!note) return; // nothing new was rated for this member
+    // Merge forward: fill in unrated skills from the most recent previous assessment so the saved record is complete
+    const prevSorted=assessments.filter(a=>a.memberId===mid&&a.date!==today).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+    let prevRatings={};
+    if(prevSorted.length){try{prevRatings=JSON.parse(prevSorted[0].ratings||'{}');}catch(e){}}
     const existing=assessments.find(a=>a.memberId===mid&&a.date===today);
     if(existing){
       const er=JSON.parse(existing.ratings||'{}');
-      Object.assign(er,ownRatings);
+      // First carry forward from previous (only where today has no value), then overlay new ratings
+      Object.entries(prevRatings).forEach(([sk,v])=>{ if(v>0&&!(er[sk]>0)) er[sk]=v; });
+      Object.assign(er,skillRatings);
       existing.ratings=JSON.stringify(er);
       existing.assessorName=_hvAssessor;
       existing.updatedAt=Date.now();
       if(note) existing.comment=existing.comment?existing.comment+'\n'+note:note;
     }else{
-      assessments.push({id:nextAssessmentId++,memberId:mid,date:today,belt:m.belt||'',ratings:JSON.stringify(ownRatings),comment:note,assessorName:_hvAssessor,updatedAt:Date.now()});
+      const merged={};
+      Object.entries(prevRatings).forEach(([sk,v])=>{ if(v>0) merged[sk]=v; });
+      Object.assign(merged,skillRatings);
+      assessments.push({id:nextAssessmentId++,memberId:mid,date:today,belt:m.belt||'',ratings:JSON.stringify(merged),comment:note,assessorName:_hvAssessor,updatedAt:Date.now()});
     }
     saved++;
   });
@@ -12634,9 +12562,6 @@ function updateArrangement(id,field,val){
 
 function deleteArrangement(id){
   if(!config.arrangements) return;
-  const arr=config.arrangements.find(x=>x.id===id);
-  const label=arr&&arr.title?'"'+arr.title+'"':'dette arrangement';
-  if(!confirm('Slet '+label+'? Det kan ikke fortrydes.')) return;
   config.arrangements=config.arrangements.filter(x=>x.id!==id);
   renderArrangementList();
 }
