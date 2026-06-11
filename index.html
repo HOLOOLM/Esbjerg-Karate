@@ -2295,7 +2295,7 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
         <div class="age-calc" id="ageCalc" style="display:none"></div>
       </div>
       <div class="fgrp"><label>Bæltegrad</label>
-        <select class="form-select" id="fBT">
+        <select class="form-select" id="fBT" onchange="_onBeltChange()">
           <option>10. Kyu (Hvidt)</option>
           <option>9. Kyu - Hvid + 1 snip</option>
           <option>9. Kyu - Hvid + 2 snip</option>
@@ -2310,6 +2310,11 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
           <option>1. Kyu (Brunt + 2 Snip)</option>
           <option>1. Dan (Sort)</option><option>2. Dan (Sort)</option><option>3. Dan (Sort)</option>
         </select>
+      </div>
+      <div class="fgrp" id="fBeltDateGrp" style="display:none">
+        <label style="font-size:.82rem;color:var(--t2)">Dato for nuværende bælte</label>
+        <input type="date" class="form-input" id="fBeltDate" style="width:100%;box-sizing:border-box">
+        <div style="font-size:.72rem;color:var(--xtl);margin-top:3px">Vises i bælteprogression når ingen vurdering er registreret</div>
       </div>
       <div class="fgrp"><label>Gruppe</label>
         <select class="form-select" id="fGRP">
@@ -2477,10 +2482,11 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
       <button class="mclose" onclick="safeCloseModal('assessmentModal')">✕</button>
     </div>
     <div id="assessBeltBar" style="margin-bottom:.6rem"></div>
-    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">
       <div id="assessGultToggle"></div>
       <div id="assessGradToggle"></div>
     </div>
+    <div id="assessGradLogistik" style="display:none;margin-bottom:.75rem"></div>
     <div id="assessSkillList"></div>
     <div id="assessLiveAvg" style="margin-top:.7rem;padding:.6rem .8rem;border-radius:10px;background:linear-gradient(135deg,#eef5f5,#f8fbfb);border:1px solid #d5e3e3;display:flex;align-items:center;justify-content:space-between;gap:.6rem;font-size:.85rem;font-weight:700;color:#1a2e2e"></div>
     <div style="margin-top:.8rem">
@@ -3162,7 +3168,7 @@ function setSyncStatus(s){
   el.style.display='';
   const narrow=window.innerWidth<=480;
   if(s==='pending'){
-    el.textContent=narrow?'💾':'💾 Gemmer...';el.style.color='rgba(255,255,255,.6)';
+    el.textContent=narrow?'💾':'💾 Ikke gemt';el.style.color='#fcd34d';
   } else if(s==='loading'){
     el.textContent=narrow?'⏳':'⏳ Synkroniserer...';el.style.color='#fff';
   } else if(s==='ok'){
@@ -3764,6 +3770,7 @@ function loadFromCloud(onDone,_attempt){
       }
       // Rens lokale assessments for slettede IDs
       assessments=assessments.filter(a=>!deletedAssessmentIds.has(a.id));
+      _amInvalidate();
       nextAssessmentId=assessments.reduce((x,a)=>Math.max(x,a.id+1),1);
       localStorage.setItem('kk2_assessments',JSON.stringify(assessments));
       // Hvis der var lokale vurderinger der ikke var i cloud, push dem nu
@@ -4461,6 +4468,15 @@ function initApp(){
 
 function renderAll(){ renderT(); renderM(); updateStats(); updateBirthdayBanner(); checkCancellationBanner(); updatePromotionTabVisibility(); const _pm=document.getElementById('presenceModal'); if(_pm&&_pm.style.display==='flex') refreshPresenceDatalist(); if(!_presenceShown&&sessionStorage.getItem('kk2_unlocked')==='1'){ _presenceShown=true; if(_myPresenceName)startPresence(); else showPresenceModal(); } }
 
+// Opt 2: lazy tab dirty flags — pre-mark all lazy tabs so first visit renders them
+const _dirtyTabs=new Set(['history','dashboard','promotion']);
+function _markTabsDirty(...tabs){ tabs.forEach(t=>_dirtyTabs.add(t)); }
+
+// Opt 4: assessments Map cache
+let _amCache=null;
+function _amInvalidate(){ _amCache=null; }
+function _am(id){ if(!_amCache){ _amCache=new Map(); assessments.forEach(a=>{ if(!_amCache.has(a.memberId))_amCache.set(a.memberId,[]); _amCache.get(a.memberId).push(a); }); } return _amCache.get(id)||[]; }
+
 /* ════════════════════════════════════════
    MIGRATION: betalingsstatus → auto
    Kører én gang. Beholder kun manuel 'paid'
@@ -4513,10 +4529,12 @@ function switchTab(tab){
   const activeTab=document.getElementById('tab-'+tab);
   activeTab.classList.add('active');
   activeTab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
-  if(tab==='history') renderHistory();
-  if(tab==='dashboard') renderDashboard();
+  const dirty=_dirtyTabs.has(tab);
+  if(dirty) _dirtyTabs.delete(tab);
+  if(tab==='history'&&dirty) renderHistory();
+  if(tab==='dashboard'&&dirty) renderDashboard();
   if(tab==='board') renderBoard();
-  if(tab==='promotion') renderPromotion();
+  if(tab==='promotion'&&dirty) renderPromotion();
   if(tab==='training'){ fetchLoginStats(false); renderLoginBanner(); }
 }
 
@@ -4530,7 +4548,7 @@ function getPromotionStatus(memberId,forceReturn=false){
   const pensumBelt=effectivePensumBelt(_pm);
   const promoThr=config.promotionScore??4.0;
   const almostThr=config.almostReadyScore??3.0;
-  const ma=assessments.filter(x=>x.memberId===memberId&&(x.belt===pensumBelt||x.belt===currentBelt)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const ma=_am(memberId).filter(x=>x.belt===pensumBelt||x.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!ma.length) return null;
   const merged=getMergedRatings(memberId,ma[0].id);
   const pensumSkills=pensum[pensumBelt]||[];
@@ -4628,7 +4646,7 @@ function _promoMotivationBanner(s){
   return `<div style="font-size:.72rem;font-weight:600;color:#15803d;background:linear-gradient(90deg,#dcfce7,#f0fdf4);border-radius:8px;padding:.35rem .65rem;margin-bottom:-.1rem;border:1px solid #bbf7d0">${msg}</div>`;
 }
 function _promoFocusHtml(memberId){
-  const ms=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const ms=_am(memberId).slice().sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const items=[1,2,3].map(n=>{
     const src=ms.find(a=>String(a['focus'+n]||'').trim());
@@ -4783,7 +4801,7 @@ function _promoCardFocus(item){
 }
 function _promoCardReady(s){
   const m=members.find(x=>x.id===s.memberId);if(!m) return '';
-  return `<div class="promo-card ready${m.ønskerGraduering?' grad-wish':''}" onclick="openPromoDetail(${m.id})">
+  return `<div class="promo-card ready${m.ønskerGraduering?' grad-wish':''}" data-mid="${m.id}" onclick="openPromoDetail(${m.id})">
     ${_gradWishBanner(m)}
     ${_promoMotivationBanner(s)}
     <div class="promo-card-top">
@@ -4800,7 +4818,6 @@ function _promoCardReady(s){
     ${(()=>{const low=s.weak.filter(w=>w.val<=3&&w.val>0);return low.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${low.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${_promoStarsHtml(w.val)}</span></div>`).join('')}</div>`:'';})()}
     ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
-    ${_gradLogistikRow(m.id)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
@@ -4813,7 +4830,7 @@ function _promoCardAlmost(s){
   const gap=(promoThr-s.avg).toFixed(1).replace('.',',');
   const lowSkills=s.weak.filter(w=>w.val<=3);
   const weakHtml=lowSkills.length?`<div style="margin-top:.2rem"><div class="promo-missing-lbl" style="color:#7c3aed">💪 Room for improvement!</div>${lowSkills.map(w=>`<div class="promo-skill-line"><span class="promo-skill-name">${w.skill}</span><span class="promo-stars">${w.val>0?_promoStarsHtml(w.val):'<span style="font-size:.7rem;color:#9ca3af">Ikke vurderet</span>'}</span></div>`).join('')}</div>`:'';
-  return `<div class="promo-card almost${m.ønskerGraduering?' grad-wish':''}" onclick="openPromoDetail(${m.id})">
+  return `<div class="promo-card almost${m.ønskerGraduering?' grad-wish':''}" data-mid="${m.id}" onclick="openPromoDetail(${m.id})">
     ${_gradWishBanner(m)}
     ${_promoMotivationBanner(s)}
     <div class="promo-card-top">
@@ -4830,7 +4847,6 @@ function _promoCardAlmost(s){
     ${weakHtml}
     ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
-    ${_gradLogistikRow(m.id)}
     <div class="promo-meta">
       <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
@@ -4848,7 +4864,7 @@ function _promoCardOverdue(o){
     msg=`⏰ ${months>=1?months+' mdr. siden':'Over tærsklen'}`;
     dateLine=`Sidst vurderet ${_promoFormatDate(o.info.lastDate)}`;
   }
-  return `<div class="promo-card overdue${m.ønskerGraduering?' grad-wish':''}" onclick="openAssessmentModal(${m.id})">
+  return `<div class="promo-card overdue${m.ønskerGraduering?' grad-wish':''}" data-mid="${m.id}" onclick="openAssessmentModal(${m.id})">
     ${_gradWishBanner(m)}
     <div class="promo-card-top">
       ${_promoAvatar(m)}
@@ -4863,13 +4879,22 @@ function _promoCardOverdue(o){
         <div class="promo-coverage">${dateLine}</div>
       </div>
     </div>
-    ${_gradLogistikRow(m.id)}
     <div class="promo-meta">
       <span>🥋 ${o.never?'Ingen vurderinger':o.info.trainingDaysSince+' træninger siden'}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:${m.ønskerGraduering?'#f5f3ff':'#fee2e2'};color:${m.ønskerGraduering?'#6d28d9':'#dc2626'}">${m.ønskerGraduering?'Ønsker gradueret':'Påmindelse'}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
 }
+// Opt 1: targeted promo card update — replaces just the one card in the DOM
+function _updatePromoCard(memberId){
+  const el=document.querySelector(`.promo-card[data-mid="${memberId}"]`);
+  if(!el) return;
+  const s=getPromotionStatus(memberId,true);
+  if(!s){ el.outerHTML=''; return; }
+  const fn=s.status==='ready'?_promoCardReady:s.status==='almost'?_promoCardAlmost:_promoCardAlmost;
+  el.outerHTML=fn(s);
+}
+
 function _videoChip(m){
   try{
     const vm=m&&m.videoMeta?JSON.parse(m.videoMeta):null;
@@ -5078,6 +5103,7 @@ function closePromoDetail(){
 function deleteAssessmentFromDetail(assessmentId,memberId){
   if(!confirm('Slet denne vurdering? Det kan ikke fortrydes.'))return;
   assessments=assessments.filter(a=>a.id!==assessmentId);
+  _amInvalidate();
   deletedAssessmentIds.add(assessmentId);
   localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
   save();
@@ -5086,7 +5112,7 @@ function deleteAssessmentFromDetail(assessmentId,memberId){
   if(rowM){const td=rowM.querySelector('td[style*="text-align:center"]');if(td)td.innerHTML=scoreCell(memberId);}
   showToast('🗑 Vurdering slettet');
   updatePromotionTabVisibility();
-  const remaining=assessments.filter(a=>a.memberId===memberId);
+  const remaining=_am(memberId);
   if(remaining.length>0){openPromoDetail(memberId);}
   else{closePromoDetail();renderPromotion();}
 }
@@ -5094,7 +5120,11 @@ function _toggleGradField(memberId,field){
   const m=members.find(x=>x.id===memberId);if(!m)return;
   m[field]=!m[field];
   save();pushToCloud();
-  renderPromotion();
+  _updatePromoCard(memberId);
+  const agel=document.getElementById('assessGradLogistik');
+  if(agel&&agel.style.display!=='none') agel.innerHTML=_gradLogistikRow(memberId);
+  const tc=document.querySelector(`.tm-grad-chips[data-mid="${memberId}"]`);
+  if(tc) tc.innerHTML=_gradLogistikRow(memberId);
 }
 function _gradLogistikRow(memberId){
   const m=members.find(x=>x.id===memberId)||{};
@@ -5246,7 +5276,7 @@ function onDateChange(){
   }
   currentTrainingDate=newDate;
   loadCheckInsForDate(currentTrainingDate);
-  renderAll();
+  renderT();
 }
 function loadCheckInsForDate(date){
   const sess=sessions.find(s=>s.date===date);
@@ -5353,7 +5383,7 @@ function renderT(){
           <div class="tm-person">
             <div class="tm-name">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
             <div class="tm-meta"><span class="tm-meta-main">${grpChip(m.group)} <span class="tm-dot">·</span> ${gCell(m)}</span><span class="tm-belt-line">${belt}</span></div>
-            <div class="tm-chips">${streakBadge}${pay}</div>
+            <div class="tm-chips">${streakBadge}${pay}${m.ønskerGraduering?`<div class="tm-grad-chips" data-mid="${m.id}">${_gradLogistikRow(m.id)}</div>`:''}</div>
           </div>
         </div>
         <div class="tm-score">${sc}</div>
@@ -5421,7 +5451,7 @@ const _NEXT_BELT_NAME={
   '1. Dan (Sort)':'2. Dan (Sort)','2. Dan (Sort)':'3. Dan (Sort)'
 };
 function getLastAssessmentInfo(memberId){
-  const ma=assessments.filter(a=>a.memberId===memberId&&a.date).sort((a,b)=>{
+  const ma=_am(memberId).filter(a=>a.date).sort((a,b)=>{
     const da=String(a.date).slice(0,10), db=String(b.date).slice(0,10);
     const diff=db.localeCompare(da);
     return diff || (Number(b.id)||0)-(Number(a.id)||0);
@@ -8777,17 +8807,17 @@ function toggleCI(id,val){
 }
 function resetAllCheckIns(){
   if(!confirm('Nulstil fremmøde for alle?'))return;
-  members.forEach(m=>m.checkedIn=false);save();renderAll();showToast('🔄 Nulstillet');
+  members.forEach(m=>m.checkedIn=false);save();renderT();showToast('🔄 Nulstillet');
 }
 let _markAllUndoIds=[];
 function markAllPresent(){
   _markAllUndoIds=actMembers().filter(m=>!m.checkedIn).map(m=>m.id);
   actMembers().forEach(m=>m.checkedIn=true);
-  save();renderAll();
+  save();renderT();
   if(_markAllUndoIds.length===0){showToast('☑️ Alle var allerede markeret til stede');return;}
   showToastUndo(`☑️ ${actMembers().length} markeret til stede`,()=>{
     _markAllUndoIds.forEach(id=>{const m=members.find(x=>x.id===id);if(m)m.checkedIn=false;});
-    _markAllUndoIds=[];save();renderAll();showToast('↩️ Fortrudt — fremmøde nulstillet');
+    _markAllUndoIds=[];save();renderT();showToast('↩️ Fortrudt — fremmøde nulstillet');
   });
 }
 function saveSession(){
@@ -8846,6 +8876,10 @@ function openEditModal(id){
   document.getElementById('fBD').value=m.birthdate||'';
   document.getElementById('fAGE').value=m.birthdate?calcAge(m.birthdate):(m.age!=null?m.age:'');
   document.getElementById('fBT').value=m.belt;
+  document.getElementById('fBeltDate').value=m.beltDate||'';
+  const _hasAnyAssess=_am(id).length>0;
+  const _bdGrp=document.getElementById('fBeltDateGrp');
+  if(_bdGrp) _bdGrp.style.display=_hasAnyAssess?'none':'';
   document.getElementById('fPAY').value=m.payment||'';
   const exp=getExpectedAmount(m);
   const effS=effectivePaymentStatus(m);
@@ -8875,6 +8909,11 @@ function openEditModal(id){
   _memberModalDirty = false;
   openModal('memberModal');
 }
+function _onBeltChange(){
+  if(!editingId){ document.getElementById('fBeltDateGrp').style.display='none'; return; }
+  const hasAssess=_am(editingId).length>0;
+  document.getElementById('fBeltDateGrp').style.display=hasAssess?'none':'';
+}
 function updateAgePreview(){
   const bd=document.getElementById('fBD').value;
   const hint=document.getElementById('ageHint'),calc=document.getElementById('ageCalc'),af=document.getElementById('fAGE');
@@ -8892,9 +8931,11 @@ async function sha256hex(str){
 function renderBeltHistory(memberId){
   const sec=document.getElementById('beltHistorySection');
   if(!sec) return;
-  const ma=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  const m=members.find(x=>x.id===memberId);
+  const ma=_am(memberId).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
   const history=[]; const seen=new Set();
   ma.forEach(a=>{ if(a.belt&&!seen.has(a.belt)){ seen.add(a.belt); history.push({belt:a.belt,date:a.date}); }});
+  if(m&&m.belt&&!seen.has(m.belt)&&m.beltDate) history.push({belt:m.belt,date:m.beltDate});
   if(!history.length){ sec.style.display='none'; return; }
   sec.style.display='';
   const BC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu - Hvid + 1 snip':'#f0f0f0','9. Kyu - Hvid + 2 snip':'#e4e4e4','8. Kyu - Hvid + 3 snip':'#c4c4c4','8. Kyu - Hvid + 4 snip':'#b8b8b8','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
@@ -9029,6 +9070,7 @@ async function saveMember(){
     contactName:document.getElementById('fCN').value.trim()||null,
     contactPhone:document.getElementById('fCP').value.trim()||null,
     boardMember:document.getElementById('fBoardMember').checked||false,
+    beltDate:document.getElementById('fBeltDate').value||null,
   };
   const pwInput=document.getElementById('fPW').value;
   if(pwInput) data.passwordHash=await sha256hex(pwInput);
@@ -9039,10 +9081,12 @@ async function saveMember(){
     const oldBelt=members[i].belt;
     const newBelt=data.belt;
     if(oldBelt&&newBelt&&oldBelt!==newBelt){
-      const hasAssess=assessments.some(a=>a.memberId===editingId&&a.belt===oldBelt);
+      const hasAssess=_am(editingId).some(a=>a.belt===oldBelt);
       if(hasAssess&&!confirm(`${data.firstName||members[i].firstName} rykker fra ${oldBelt} til ${newBelt}.\n\nScoren nulstilles for det nye bælte.\nHistorikken fra ${oldBelt} bevares.\n\nFortsæt?`))return;
+      const _hadGrad=members[i].ønskerGraduering||members[i].gradSeddel||members[i].gradKommer||members[i].gradBetalt;
       data.ønskerGraduering=false; // nulstil graduerings-ønske ved bælteskift
       data.gradSeddel=false; data.gradKommer=false; data.gradBetalt=false;
+      if(_hadGrad) showToast(`🔄 Graduerings-logistik nulstillet for ${data.firstName||members[i].firstName}`);
     }
     members[i]={...members[i],...data};
     savedMember=members[i];
@@ -9080,7 +9124,7 @@ async function saveMember(){
   }
   showToast(editingId?('✏️ '+fn+' '+ln+' opdateret'):('✅ '+fn+' '+ln+' oprettet'));
   resetPhotoModalState();
-  _memberModalDirty=false; save();closeModal('memberModal');renderAll();
+  _memberModalDirty=false; save();closeModal('memberModal');renderT();renderM();updateStats();_markTabsDirty('dashboard','history','promotion');
 }
 
 /* ════════════════════════════════════════
@@ -9277,9 +9321,10 @@ function _renderMsm(){
   // Bælteprogression
   const beltSec=document.getElementById('msmBeltHistory');
   if(beltSec){
-    const ma=assessments.filter(a=>a.memberId===_msmId).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    const ma=_am(_msmId).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
     const bh=[]; const bseen=new Set();
     ma.forEach(a=>{ if(a.belt&&!bseen.has(a.belt)){ bseen.add(a.belt); bh.push({belt:a.belt,date:a.date}); }});
+    if(m&&m.belt&&!bseen.has(m.belt)&&m.beltDate) bh.push({belt:m.belt,date:m.beltDate});
     if(!bh.length){ beltSec.style.display='none'; }
     else{
       beltSec.style.display='';
@@ -9380,11 +9425,11 @@ function confirmEndDate(){
         deletePhotoFromDrive(oldPid); // fire-and-forget
       }
     }
-    save();renderAll();pushToCloud();
+    save();renderM();updateStats();_markTabsDirty('dashboard','promotion');pushToCloud();
     closeModal('endDateModal');
     showToast('📦 '+m.firstName+' '+m.lastName+' arkiveret — gendan via 📦 Arkiv i toppen');
   } else {
-    save();renderAll();pushToCloud();
+    save();renderM();updateStats();_markTabsDirty('dashboard');pushToCloud();
     closeModal('endDateModal');
     openArchiveModal();
     showToast('📅 Afslutningsdato opdateret');
@@ -9392,7 +9437,7 @@ function confirmEndDate(){
 }
 function confirmDelete(id){
   const m=members.find(x=>x.id===id);if(!m)return;
-  const aC=assessments.filter(a=>a.memberId===id).length;
+  const aC=_am(id).length;
   const aMsg=aC>0?`\n\n⚠️ ${aC} vurdering${aC===1?'':'er'} vil også blive slettet permanent.`:'';
   const pMsg=m.photoId?'\n\n📷 Foto slettes også fra Google Drive.':'';
   if(!window.confirm(`Slet ${m.firstName} ${m.lastName} permanent?\n\nDette kan ikke fortrydes.${aMsg}${pMsg}`))return;
@@ -9400,7 +9445,8 @@ function confirmDelete(id){
   if(m.photoId) deletePhotoFromDrive(m.photoId);
   members=members.filter(x=>x.id!==id);
   assessments=assessments.filter(a=>a.memberId!==id);
-  save();pushToCloud();renderAll();
+  _amInvalidate();
+  save();pushToCloud();renderM();updateStats();_markTabsDirty('dashboard','history','promotion');
   showToast('🗑 '+m.firstName+' '+m.lastName+' slettet'+(aC>0?' + '+aC+' vurdering'+(aC===1?'':'er'):''));
 }
 function openArchiveModal(){
@@ -9451,7 +9497,7 @@ function openArchiveModal(){
 function restoreMember(id){
   const m=members.find(x=>x.id===id);if(!m)return;
   m.archived=false;m.endDate=null;
-  save();renderAll();openArchiveModal();showToast('✅ '+m.firstName+' '+m.lastName+' gendannet');
+  save();pushToCloud();renderM();updateStats();_markTabsDirty('dashboard','promotion');openArchiveModal();showToast('✅ '+m.firstName+' '+m.lastName+' gendannet');
 }
 async function bulkDeleteArchivedPhotos(){
   const ark=members.filter(m=>m.archived && m.photoId);
@@ -9462,7 +9508,7 @@ async function bulkDeleteArchivedPhotos(){
   try{
     const res=await deletePhotosBulkFromDrive(photoIds);
     ark.forEach(m=>{ m.photoId=null; });
-    save();pushToCloud();openArchiveModal();renderAll();
+    save();pushToCloud();renderM();openArchiveModal();
     showToast('✅ '+res.deleted+' foto'+(res.deleted===1?'':'s')+' slettet fra Drive');
   }catch(err){
     showToast('❌ Fejl: '+err.message);
@@ -10031,7 +10077,7 @@ function renderPhotoPreview(){
       // Lokal preview efter komprimering, inden upload
       previewEl.innerHTML='<img src="'+pid+'" alt=""/>';
     } else {
-      previewEl.innerHTML='<img src="'+photoUrl(pid)+'" alt="" onerror="this.replaceWith(document.createTextNode(\''+(inits(fakeM)||'?').replace(/\'/g,"\\'")+'\'))"/>';
+      previewEl.innerHTML='<img src="'+photoUrl(pid)+'" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode(\''+(inits(fakeM)||'?').replace(/\'/g,"\\'")+'\'))"/>';
     }
   } else {
     previewEl.innerHTML=inits(fakeM)||'👤';
@@ -10137,7 +10183,7 @@ function handleRestoreFile(input){
       if(data.members)   { members=data.members; localStorage.setItem('kk2_members',JSON.stringify(members)); }
       if(data.sessions)  { sessions=data.sessions; localStorage.setItem('kk2_sessions',JSON.stringify(sessions)); }
       if(data.cancelledDates){ cancelledDates=data.cancelledDates; localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates)); }
-      if(data.assessments){ assessments=data.assessments; localStorage.setItem('kk2_assessments',JSON.stringify(assessments)); }
+      if(data.assessments){ assessments=data.assessments; _amInvalidate(); localStorage.setItem('kk2_assessments',JSON.stringify(assessments)); }
       if(data.boardMeetings){ boardMeetings=data.boardMeetings; localStorage.setItem('kk2_board',JSON.stringify(boardMeetings)); }
       if(data.config){ config=Object.assign(config,data.config); localStorage.setItem('kk2_config',JSON.stringify(config)); }
       if(data.endDates){ localStorage.setItem('kk2_endDates',JSON.stringify(data.endDates)); }
@@ -10201,7 +10247,7 @@ function safeCloseModal(id) {
 let _assessMemberId=null, _assessRatings={}, _editingAssessmentId=null;
 
 function latestAssessmentAvg(memberId){
-  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const sorted=_am(memberId).slice().sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   if(!sorted.length)return null;
   let ratings={};
   try{ratings=JSON.parse(sorted[0].ratings||'{}');}catch(e){}
@@ -10251,7 +10297,7 @@ document.addEventListener('click',()=>document.querySelectorAll('.score-tip').fo
 // Beregn merged ratings for én vurdering (egne + forrige vurderingers for uudfyldte kategorier)
 // Returnerer { skill: { val, carried } }
 function getMergedRatings(memberId, assessmentId){
-  const sorted=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date)||Number(a.id)-Number(b.id));
+  const sorted=_am(memberId).slice().sort((a,b)=>new Date(a.date)-new Date(b.date)||Number(a.id)-Number(b.id));
   const idx=sorted.findIndex(a=>Number(a.id)===Number(assessmentId));
   if(idx<0)return {};
   const a=sorted[idx];
@@ -10282,7 +10328,7 @@ function scoreCell(memberId){
   const _scM=members.find(x=>x.id===memberId);
   const currentBelt=_scM?.belt||'';
   const _scPensumBelt=effectivePensumBelt(_scM);
-  const sorted=assessments.filter(a=>a.memberId===memberId&&(a.belt===_scPensumBelt||a.belt===currentBelt)).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const sorted=_am(memberId).filter(a=>a.belt===_scPensumBelt||a.belt===currentBelt).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   if(!sorted.length)return '<span style="color:var(--xtl)">—</span>';
   const latest=sorted[0];
   const merged=getMergedRatings(memberId, latest.id);
@@ -10412,6 +10458,12 @@ function openAssessmentModal(memberId, editAssessmentId){
     <span style="font-weight:600;color:${gradOn?'#6d28d9':'var(--t2)'}">🎓 Ønsker op til graduering</span>
   </label>`;
 
+  const gradLogEl=document.getElementById('assessGradLogistik');
+  if(gradLogEl){
+    if(gradOn){ gradLogEl.style.display=''; gradLogEl.innerHTML=_gradLogistikRow(memberId); }
+    else gradLogEl.style.display='none';
+  }
+
   // Pensum-liste — brug altid effektivt bælte (tager højde for alder og gultPensum)
   const beltKey=effectivePensumBelt(m);
   const skills=pensum[beltKey]||[];
@@ -10439,7 +10491,7 @@ function openAssessmentModal(memberId, editAssessmentId){
   const _slotDate=(a,n)=>String(a['focus'+n+'Date']||a.focusDate||'').slice(0,10);
   const _slotBy=(a,n)=>String(a['focus'+n+'By']||a.assessorName||'');
   const _slotVal=(a,n)=>String(a['focus'+n]||'').trim();
-  const _priorList=assessments.filter(a=>a.memberId===_assessMemberId && (!existing||a.id!==existing.id)).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const _priorList=_am(_assessMemberId).filter(a=>!existing||a.id!==existing.id).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   window._assessFocusInheritedSlots = {};
   [1,2,3].forEach(n=>{
     const ownVal = existing ? _slotVal(existing,n) : '';
@@ -10510,8 +10562,13 @@ function toggleØnskerGraduering(memberId){
     lbl.style.background=on?'#f5f3ff':'var(--bg)';
     lbl.querySelector('span').style.color=on?'#6d28d9':'var(--t2)';
   }
-  renderAll();
+  updatePromotionTabVisibility();
+  _markTabsDirty('promotion');
   if(document.getElementById('page-promotion').classList.contains('active')) renderPromotion();
+  const tc=document.querySelector(`.tm-grad-chips[data-mid="${memberId}"]`);
+  if(tc) tc.innerHTML=on?_gradLogistikRow(memberId):'';
+  const gradLogEl=document.getElementById('assessGradLogistik');
+  if(gradLogEl){ if(on){ gradLogEl.style.display=''; gradLogEl.innerHTML=_gradLogistikRow(memberId); } else gradLogEl.style.display='none'; }
 }
 function graduationWishBadge(memberId){
   const m=members.find(x=>x.id===memberId);
@@ -10603,7 +10660,7 @@ function updateAssessLiveAvg(){
   const skills=pensum[beltKey]||[];
   // Previous assessment (ikke dem vi redigerer på selv samme dag)
   const today=new Date().toISOString().slice(0,10);
-  const prevSorted=assessments.filter(a=>a.memberId===_assessMemberId&&(_editingAssessmentId==null?a.date!==today:Number(a.id)!==Number(_editingAssessmentId))).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+  const prevSorted=_am(_assessMemberId).filter(a=>_editingAssessmentId==null?a.date!==today:Number(a.id)!==Number(_editingAssessmentId)).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
   let prevR={};
   if(prevSorted.length){try{prevR=JSON.parse(prevSorted[0].ratings||'{}');}catch(e){}}
   let own=0,carried=0,missing=0,sum=0,n=0;
@@ -10694,6 +10751,7 @@ function saveAssessment(){
     });
     assessments.push(rec);
   }
+  _amInvalidate();
   save();
   pushToCloudNow();
   renderM();
@@ -10785,6 +10843,7 @@ function showAssessPointPopup(assessmentId, event){
 function deleteAssessment(assessmentId, memberId){
   if(!confirm('Slet denne vurdering? Det kan ikke fortrydes.'))return;
   assessments=assessments.filter(a=>a.id!==assessmentId);
+  _amInvalidate();
   deletedAssessmentIds.add(assessmentId);
   localStorage.setItem('kk2_deletedAssessments',JSON.stringify([...deletedAssessmentIds]));
   save();
@@ -10799,7 +10858,7 @@ function deleteAssessment(assessmentId, memberId){
 }
 
 function renderAssessmentHistory(memberId,targetId='assessHistory',fromDetail=false){
-  const histAsc=assessments.filter(a=>a.memberId===memberId).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const histAsc=_am(memberId).slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
   const el=document.getElementById(targetId);
   if(!el) return;
   if(!histAsc.length){el.innerHTML='';return;}
@@ -11051,8 +11110,7 @@ function renameSkillInAssessments(oldName,newName,belt){
 function exportAssessmentsExcel(memberId){
   const m=members.find(x=>x.id===memberId);
   if(!m)return;
-  const mAssess=assessments.filter(a=>a.memberId===memberId)
-    .sort((a,b)=>new Date(a.date)-new Date(b.date)||Number(a.id)-Number(b.id));
+  const mAssess=_am(memberId).slice().sort((a,b)=>new Date(a.date)-new Date(b.date)||Number(a.id)-Number(b.id));
   if(!mAssess.length){showToast('Ingen vurderinger at eksportere');return;}
 
   const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -12115,7 +12173,7 @@ function saveHv(){
     if(!m)return;
     const note=_hvNotes[mid]||'';
     // Merge forward: fill in unrated skills from the most recent previous assessment so the saved record is complete
-    const prevSorted=assessments.filter(a=>a.memberId===mid&&a.date!==today).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
+    const prevSorted=_am(mid).filter(a=>a.date!==today).sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
     let prevRatings={};
     if(prevSorted.length){try{prevRatings=JSON.parse(prevSorted[0].ratings||'{}');}catch(e){}}
     const existing=assessments.find(a=>a.memberId===mid&&a.date===today);
@@ -12137,6 +12195,7 @@ function saveHv(){
     saved++;
   });
   if(!saved){showToast('⚠️ Ingen vurderinger at gemme');return;}
+  _amInvalidate();
   save();pushToCloudNow();
   closeHv();
   renderT();
@@ -12177,7 +12236,7 @@ function _readerAvatarHtml(idOrName){
   const safeName=escHtml(displayName);
   const style='width:20px;height:20px;border-radius:50%;background:var(--td);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;overflow:hidden;border:1.5px solid #fff;margin-left:-5px;box-shadow:0 0 0 1px #e2e8f0';
   if(m&&m.photoId){
-    return `<span title="${safeName}" style="${style}"><img src="${photoUrl(m.photoId)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${(inits(m)||'?').replace(/'/g,"\\'")}'"/></span>`;
+    return `<span title="${safeName}" style="${style}"><img src="${photoUrl(m.photoId)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${(inits(m)||'?').replace(/'/g,"\\'")}'"/></span>`;
   }
   const ini=m?inits(m):(displayName.trim()[0]||'?').toUpperCase();
   return `<span title="${safeName}" style="${style}">${ini}</span>`;
