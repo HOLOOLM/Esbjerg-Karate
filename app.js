@@ -6334,24 +6334,55 @@ function renderBeltHistory(memberId){
   const m=members.find(x=>x.id===memberId);
   const ma=_am(memberId).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
   const history=[]; const seen=new Set();
-  ma.forEach(a=>{ if(a.belt&&!seen.has(a.belt)){ seen.add(a.belt); history.push({belt:a.belt,date:a.date}); }});
-  if(m&&m.belt&&!seen.has(m.belt)&&m.beltDate) history.push({belt:m.belt,date:m.beltDate});
+  ma.forEach(a=>{ if(a.belt&&!seen.has(a.belt)){ seen.add(a.belt); history.push({belt:a.belt,date:a.date,ref:'a'+a.id}); }});
+  if(m&&m.belt&&!seen.has(m.belt)) history.push({belt:m.belt,date:m.beltDate||'',ref:'current'});
   if(!history.length){ sec.style.display='none'; return; }
   sec.style.display='';
   const BC=BC_SOFT; // pastel kort-farver fra den fælles belts.js
   let html=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--xtl);margin-bottom:.4rem">🏅 Bæltevej · ${history.length} bælte${history.length!==1?'r':''}</div>`;
   history.forEach((h,i)=>{
-    const bg=BC[h.belt]||'#f3f4f6'; const isDan=h.belt.includes('Dan');
-    const d=h.date?new Date(h.date+'T12:00:00').toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'—';
+    const bg=BC[h.belt]||'#f3f4f6';
     const isLast=i===history.length-1;
     if(i>0) html+=`<div style="width:2px;height:5px;background:#d1d5db;margin:.05rem 0 .05rem 8px"></div>`;
     html+=`<div style="display:flex;align-items:center;gap:.5rem">
       <div style="width:20px;height:12px;border-radius:3px;background:${bg};border:1.5px solid rgba(0,0,0,.12);flex-shrink:0${isLast?';outline:2px solid var(--td);outline-offset:1px':''}"></div>
       <span style="flex:1;font-size:.8rem;${isLast?'font-weight:700;color:var(--td)':'color:var(--xtm)'}">${escHtml(h.belt)}</span>
-      <span style="font-size:.7rem;color:var(--xtl);white-space:nowrap">${d}</span>
+      <input type="date" value="${h.date||''}" onchange="updateBeltHistoryDate(${memberId},'${h.ref}',this.value)" title="Ret dato for ${escHtml(h.belt)}" style="font-size:.7rem;padding:2px 5px;border:1px solid #d1d5db;border-radius:6px;color:var(--xtm);background:#fff">
+      <button type="button" onclick="deleteBeltHistoryEntry(${memberId},'${h.ref}')" title="Fjern ${escHtml(h.belt)} fra bæltevejen" style="background:none;border:none;cursor:pointer;font-size:.85rem;line-height:1;color:#dc2626;flex-shrink:0;padding:0 2px">🗑</button>
     </div>`;
   });
+  html+=`<div style="font-size:.68rem;color:var(--xtl);margin-top:.5rem;line-height:1.4">Ret datoen direkte, eller 🗑 for at fjerne en forkert bæltetildeling. Ændringer gemmes med det samme.</div>`;
   sec.innerHTML=html;
+}
+// Ret datoen for et bælte i bæltevejen. ref='current' → medlemmets bæltedato; ref='a<id>' → en vurderings dato.
+function updateBeltHistoryDate(memberId, ref, val){
+  const m=members.find(x=>x.id===memberId); if(!m) return;
+  if(ref==='current'){
+    m.beltDate=val||null;
+    const f=document.getElementById('fBeltDate'); if(f) f.value=val||'';
+  } else {
+    const a=assessments.find(x=>x.id===Number(ref.slice(1))); if(!a) return;
+    a.date=val||''; a.updatedAt=Date.now(); _amInvalidate();
+  }
+  save(); pushToCloudNow();
+  renderBeltHistory(memberId);
+  showToast('📅 Bæltedato opdateret');
+}
+// Fjern et bælte fra bæltevejen. Vurderingens scorer/fokuspunkter bevares — kun selve bæltetildelingen fjernes.
+function deleteBeltHistoryEntry(memberId, ref){
+  const m=members.find(x=>x.id===memberId); if(!m) return;
+  if(ref==='current'){
+    if(!confirm(`Fjern "${m.belt}" fra bæltevejen?\n\nSelve bæltegraden bevares på medlemmet — kun datoen fjernes, så den ikke vises i bæltevejen. Ret evt. bæltegraden i feltet ovenfor hvis den er forkert.`)) return;
+    m.beltDate=null;
+    const f=document.getElementById('fBeltDate'); if(f) f.value='';
+  } else {
+    const a=assessments.find(x=>x.id===Number(ref.slice(1))); if(!a) return;
+    if(!confirm(`Fjern "${a.belt}" fra bæltevejen?\n\nVurderingens scorer og fokuspunkter bevares — kun selve bæltetildelingen fjernes.`)) return;
+    a.belt=''; a.updatedAt=Date.now(); _amInvalidate();
+  }
+  save(); pushToCloudNow();
+  renderBeltHistory(memberId);
+  showToast('🗑 Bælte fjernet fra bæltevejen');
 }
 
 function renderBlanketModalSection(m){
@@ -6728,7 +6759,7 @@ function _renderMsm(){
     if(!bh.length){ beltSec.style.display='none'; }
     else{
       beltSec.style.display='';
-      const BHC={'10. Kyu (Hvidt)':'#f3f4f6','9. Kyu - Hvid + 1 snip':'#f0f0f0','9. Kyu - Hvid + 2 snip':'#e4e4e4','8. Kyu - Hvid + 3 snip':'#c4c4c4','8. Kyu - Hvid + 4 snip':'#b8b8b8','7. Kyu (Gult)':'#fef3c7','6. Kyu (Blåt)':'#dbeafe','5. Kyu (Grønt)':'#dcfce7','4. Kyu (Violet)':'#ede9fe','3. Kyu (Brunt)':'#fef3c7','2. Kyu (Brunt + 1 Snip)':'#fed7aa','1. Kyu (Brunt + 2 Snip)':'#fdba74','1. Dan (Sort)':'#1f2937','2. Dan (Sort)':'#1f2937','3. Dan (Sort)':'#1f2937'};
+      const BHC=BC_SOFT; // fælles pastel-farver fra belts.js (komplet liste)
       let bhtml=`<div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--xtl);margin-bottom:.45rem">🏅 Bæltevej · ${bh.length} bælte${bh.length!==1?'r':''}</div>`;
       bh.forEach((h,i)=>{
         const bg=BHC[h.belt]||'#f3f4f6'; const isLast=i===bh.length-1;
