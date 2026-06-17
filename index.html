@@ -1438,7 +1438,8 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
   }, true);
   setTimeout(function(){
     try{
-      if(sessionStorage.getItem('kk2_unlocked')==='1'){
+      // Kræver et ægte server-token (ikke blot et flag) før UI'en afsløres.
+      if(sessionStorage.getItem('kk2_unlocked')==='1' && sessionStorage.getItem('kk2_token')){
         document.querySelectorAll('style').forEach(function(s){
           if(s.textContent.indexOf('body > *:not(#lockScreen)')>=0 && s.textContent.indexOf('visibility:hidden')>=0) s.remove();
         });

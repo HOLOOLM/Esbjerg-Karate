@@ -820,7 +820,7 @@ function fetchStudent(email, passwordHash, cb){
   window[name] = function(d){ cleanup(); cb(null, d); };
   timer = setTimeout(()=>{ cleanup(); cb(new Error('Timeout')); }, 15000);
   s.onerror = ()=>{ cleanup(); cb(new Error('Network error')); };
-  s.src = SCRIPT_URL + '?action=getStudent&email=' + encodeURIComponent(email) + '&passwordHash=' + encodeURIComponent(passwordHash) + '&callback=' + name + '&t=' + Date.now();
+  s.src = SCRIPT_URL + '?action=getStudent&email=' + encodeURIComponent(email) + '&passwordHash=' + encodeURIComponent(passwordHash) + '&callback=' + name + '&' + appAuthQS() + '&t=' + Date.now();
   document.head.appendChild(s);
 }
 
@@ -899,7 +899,7 @@ async function doLogin(){
       const tlName = '_tl'+Date.now();
       const tlScript = document.createElement('script');
       window[tlName] = function(){ try{ delete window[tlName]; }catch(e){} if(tlScript.parentNode) tlScript.parentNode.removeChild(tlScript); };
-      tlScript.src = SCRIPT_URL + '?action=trackLogin&memberId=' + encodeURIComponent((d.member&&d.member.id)||0) + '&email=' + encodeURIComponent(input) + '&ua=' + encodeURIComponent((navigator.userAgent||'').slice(0,200)) + '&callback=' + tlName + '&t=' + Date.now();
+      tlScript.src = SCRIPT_URL + '?action=trackLogin&memberId=' + encodeURIComponent((d.member&&d.member.id)||0) + '&email=' + encodeURIComponent(input) + '&ua=' + encodeURIComponent((navigator.userAgent||'').slice(0,200)) + '&callback=' + tlName + '&' + appAuthQS() + '&t=' + Date.now();
       document.head.appendChild(tlScript);
     } catch(e){}
     if(d.forcePasswordChange){
@@ -989,7 +989,7 @@ function changePasswordApi(email, oldHash, newHash, cb){
   window[name] = function(d){ cleanup(); cb(null, d); };
   timer = setTimeout(()=>{ cleanup(); cb(new Error('Timeout')); }, 15000);
   s.onerror = ()=>{ cleanup(); cb(new Error('Network error')); };
-  s.src = SCRIPT_URL + '?action=changePassword&email=' + encodeURIComponent(email) + '&oldHash=' + encodeURIComponent(oldHash) + '&newHash=' + encodeURIComponent(newHash) + '&callback=' + name + '&t=' + Date.now();
+  s.src = SCRIPT_URL + '?action=changePassword&email=' + encodeURIComponent(email) + '&oldHash=' + encodeURIComponent(oldHash) + '&newHash=' + encodeURIComponent(newHash) + '&callback=' + name + '&' + appAuthQS() + '&t=' + Date.now();
   document.head.appendChild(s);
 }
 
@@ -1172,7 +1172,7 @@ function _studentMsgJsonp(action, params){
     timer = setTimeout(()=>{ cleanup(); resolve({ok:false,error:'timeout'}); }, 10000);
     s.onerror = ()=>{ cleanup(); resolve({ok:false,error:'network'}); };
     const qs = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
-    s.src = SCRIPT_URL+'?action='+action+'&'+qs+'&callback='+name+'&t='+Date.now();
+    s.src = SCRIPT_URL+'?action='+action+'&'+qs+'&'+appAuthQS()+'&callback='+name+'&t='+Date.now();
     document.head.appendChild(s);
   });
 }
@@ -1356,7 +1356,7 @@ function sendStudentMessage(){
   };
   timer = setTimeout(()=>{ cleanup(); status.textContent='⚠️ Timeout — try again.'; btn.disabled=false; }, 10000);
   s.onerror = ()=>{ cleanup(); status.textContent='⚠️ Network error.'; btn.disabled=false; };
-  s.src = SCRIPT_URL+'?action=sendMessage&memberId='+encodeURIComponent(m.id||'')+'&senderName='+encodeURIComponent(senderName)+'&text='+encodeURIComponent(text)+'&taggedMemberId='+encodeURIComponent(taggedId)+'&callback='+name+'&t='+Date.now();
+  s.src = SCRIPT_URL+'?action=sendMessage&memberId='+encodeURIComponent(m.id||'')+'&senderName='+encodeURIComponent(senderName)+'&text='+encodeURIComponent(text)+'&taggedMemberId='+encodeURIComponent(taggedId)+'&callback='+name+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
 
@@ -1479,14 +1479,14 @@ function uploadVideo(file, title) {
     if (fill) fill.style.width = '38%';
     if (txt)  txt.textContent = '38% — Preparing upload…';
 
-    const body = JSON.stringify({
+    const body = JSON.stringify(appAuthBody({
       action: 'uploadVideo',
       memberId: memberId,
       passwordHash: hash,
       videoData: reader.result,
       mimeType: file.type || 'video/mp4',
       title: title
-    });
+    }));
 
     // Switch to pulse animation while uploading (fetch doesn't expose upload progress)
     if (fill) { fill.style.width = '100%'; fill.classList.add('pulse'); }
@@ -1547,6 +1547,7 @@ function sendVideoNotification(memberId, title) {
     + '&senderName=' + encodeURIComponent(name)
     + '&text=' + encodeURIComponent(text)
     + '&callback=' + cbName
+    + '&' + appAuthQS()
     + '&t=' + Date.now();
   document.head.appendChild(s);
 }
@@ -1569,7 +1570,7 @@ function deleteMyVideo() {
   const cleanup = () => { clearTimeout(timer); delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); };
   window[name] = d => { cleanup(); if (d && d.ok) { CURRENT.member.videoMeta = ''; renderVideoSection(CURRENT.member); } else { alert('Could not delete video. Please try again.'); } };
   timer = setTimeout(() => { cleanup(); alert('Timeout — please try again.'); }, 12000);
-  s.src = SCRIPT_URL + '?action=deleteVideo&memberId=' + encodeURIComponent(memberId) + '&passwordHash=' + encodeURIComponent(hash) + '&callback=' + name + '&t=' + Date.now();
+  s.src = SCRIPT_URL + '?action=deleteVideo&memberId=' + encodeURIComponent(memberId) + '&passwordHash=' + encodeURIComponent(hash) + '&callback=' + name + '&' + appAuthQS() + '&t=' + Date.now();
   document.head.appendChild(s);
 }
 

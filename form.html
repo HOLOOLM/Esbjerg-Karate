@@ -856,6 +856,7 @@ async function submitForm() {
 
   const payload = {
     action:           'registerMember',
+    appSecret:        APP_SECRET,
     firstName:        req('firstName'),
     lastName:         req('lastName'),
     email:            req('email'),

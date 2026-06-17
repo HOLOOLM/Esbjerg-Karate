@@ -560,7 +560,7 @@ function confirmPresenceName(){
   };
   s.onerror=()=>{ cleanup(); finish(); };
   timer=setTimeout(()=>{ cleanup(); finish(); },6000);
-  s.src=config.scriptUrl+'?action=presence_check&callback='+cb+'&t='+Date.now();
+  s.src=config.scriptUrl+'?action=presence_check&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
 function setPresenceName(name){
@@ -644,19 +644,19 @@ function pingPresence(){
   };
   s.onerror=onFail;
   timer=setTimeout(onFail,8000);
-  s.src=config.scriptUrl+'?action=presence_ping&name='+encodeURIComponent(_myPresenceName)+'&ts='+encodeURIComponent(new Date().toISOString())+'&page='+encodeURIComponent(getActivePage())+'&activity='+encodeURIComponent(_lastActivityTs)+'&callback='+cb+'&t='+Date.now();
+  s.src=config.scriptUrl+'?action=presence_ping&name='+encodeURIComponent(_myPresenceName)+'&ts='+encodeURIComponent(new Date().toISOString())+'&page='+encodeURIComponent(getActivePage())+'&activity='+encodeURIComponent(_lastActivityTs)+'&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
 function leavePresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
-  const body=JSON.stringify({action:'presence_leave',name:_myPresenceName});
+  const body=JSON.stringify(appAuthBody({action:'presence_leave',name:_myPresenceName}));
   // sendBeacon garanterer levering selv når siden lukkes
   if(navigator.sendBeacon){
     navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
   } else {
     // Fallback til JSONP på ældre browsere
     const s=document.createElement('script');
-    s.src=config.scriptUrl+'?action=presence_leave&name='+encodeURIComponent(_myPresenceName)+'&t='+Date.now();
+    s.src=config.scriptUrl+'?action=presence_leave&name='+encodeURIComponent(_myPresenceName)+'&'+appAuthQS()+'&t='+Date.now();
     document.head.appendChild(s);
   }
 }
@@ -873,7 +873,7 @@ window.addEventListener('visibilitychange',()=>{
       try{
         let vault={};
         try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
-        const body=JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt});
+        const body=JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}));
         navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
       }catch(e){}
     }
@@ -902,11 +902,12 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt})
+    body:JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}))
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
     _isSyncing=false;
+    if(d&&d.authRequired){ handleAuthExpired(); return; }
     if(d.ok){ setSyncStatus('ok'); _pendingPasswordResets.clear(); }
     else { _hasPending=true; setSyncStatus('error'); }
   })
@@ -936,6 +937,7 @@ function loadFromCloud(onDone,_attempt){
   const cleanup=()=>{clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);};
   window[cb]=function(d){
     cleanup();
+    if(d&&d.authRequired){ handleAuthExpired(); if(onDone)onDone(false); return; }
     if(d.ok&&d.members&&d.members.length>0){
       // Gem lokale endDates + startDates + kontaktinfo inden cloud overskriver (cloud kan mangle kolonnerne)
       const _prevEndDates={};
@@ -1095,7 +1097,7 @@ function loadFromCloud(onDone,_attempt){
     if((_attempt||0)<2){setSyncStatus('pending');setTimeout(()=>loadFromCloud(onDone,(_attempt||0)+1),4000);}
     else{setSyncStatus('error');showToast('⚠️ Google svarede ikke — prøv igen om et øjeblik');if(onDone)onDone(false);}
   },10000);
-  s.src=url+'?callback='+cb+'&t='+Date.now();
+  s.src=url+'?callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.body.appendChild(s);
 }
 
@@ -1594,22 +1596,85 @@ function updateBestDayInfo(){
   el.innerHTML=`📅 Bedste fremmødedag: <strong>${DAYS[best]}</strong> — gennemsnit <strong>${Math.round(bestAvg)}</strong> til stede (${cnts[best]} træninger)`;
 }
 
-/* ── LOCK SCREEN LOGIC ── */
-const APP_PIN='260187';
+/* ── LOCK SCREEN LOGIC ──
+   PIN'en findes IKKE længere i klient-koden (bug #1). Den indtastede PIN sendes
+   til backenden (action=verifyPin), som verificerer den og — ved succes — udsteder
+   et kortlivet token med en rolle (admin/instruktor). Tokenet gemmes i
+   sessionStorage og sendes med alle efterfølgende kald (bug #2). Et sat
+   sessionStorage-flag kan ikke længere bruges til at omgå login. */
+
+// ── Auth-state hjælpere ────────────────────────────────────
+function _clearAuth(){
+  try{
+    sessionStorage.removeItem('kk2_token');
+    sessionStorage.removeItem('kk2_role');
+    sessionStorage.removeItem('kk2_token_exp');
+    sessionStorage.removeItem('kk2_unlocked');
+  }catch(e){}
+}
+function _hasValidToken(){
+  try{
+    const t=sessionStorage.getItem('kk2_token');
+    if(!t) return false;
+    const exp=Number(sessionStorage.getItem('kk2_token_exp')||0);
+    if(exp && Date.now()>exp){ _clearAuth(); return false; }
+    return true;
+  }catch(e){ return false; }
+}
+// Rolle-styret adgang (bug #4): admin har fuld adgang, instruktør begrænset.
+function currentRole(){ try{ return sessionStorage.getItem('kk2_role')||''; }catch(e){ return ''; } }
+function isAdmin(){ return currentRole()==='admin'; }
+// Kaldes når backenden afviser et kald pga. udløbet/ugyldigt token.
+function handleAuthExpired(){
+  _clearAuth();
+  try{ showToast&&showToast('🔒 Din session er udløbet — log ind igen'); }catch(e){}
+  setTimeout(()=>location.reload(), 800);
+}
+
+// Verificér PIN mod backenden via JSONP. cb(res) hvor res={ok,token,role,exp} eller {ok:false}.
+function verifyPinWithServer(pin, cb){
+  try{
+    const name='_vp'+Date.now();
+    const s=document.createElement('script');
+    let done=false;
+    const cleanup=()=>{ try{delete window[name];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+    const timer=setTimeout(()=>{ if(done)return; done=true; cleanup(); cb({ok:false,error:'timeout'}); },15000);
+    window[name]=function(res){ if(done)return; done=true; clearTimeout(timer); cleanup(); cb(res||{ok:false}); };
+    s.onerror=()=>{ if(done)return; done=true; clearTimeout(timer); cleanup(); cb({ok:false,error:'network'}); };
+    s.src=SCRIPT_URL+'?action=verifyPin&pin='+encodeURIComponent(pin)+'&'+appAuthQS()+'&callback='+name+'&t='+Date.now();
+    document.head.appendChild(s);
+  }catch(e){ cb({ok:false,error:String(e.message||e)}); }
+}
+
 function lockSubmit(){
   const input=document.getElementById('lockInput');
   const errEl=document.getElementById('lockErr');
-  if(input.value===APP_PIN){
-    unlockApp();
-  } else {
-    errEl.textContent='Forkert adgangskode – prøv igen';
-    input.value='';
-    const box=document.querySelector('.lock-box');
-    box.classList.remove('lock-shake');
-    void box.offsetWidth;
-    box.classList.add('lock-shake');
-    input.focus();
-  }
+  const btn=document.querySelector('.lock-btn');
+  const pin=input.value;
+  if(!pin){ return; }
+  if(btn) btn.disabled=true;
+  errEl.textContent='Tjekker…';
+  verifyPinWithServer(pin, function(res){
+    if(btn) btn.disabled=false;
+    if(res && res.ok && res.token){
+      try{
+        sessionStorage.setItem('kk2_token',res.token);
+        sessionStorage.setItem('kk2_role',res.role||'instruktor');
+        sessionStorage.setItem('kk2_token_exp',String(res.exp||0));
+      }catch(e){}
+      errEl.textContent='';
+      unlockApp();
+    } else {
+      const networkErr=res&&(res.error==='timeout'||res.error==='network');
+      errEl.textContent=networkErr?'Ingen forbindelse – prøv igen':'Forkert adgangskode – prøv igen';
+      input.value='';
+      const box=document.querySelector('.lock-box');
+      box.classList.remove('lock-shake');
+      void box.offsetWidth;
+      box.classList.add('lock-shake');
+      input.focus();
+    }
+  });
 }
 let _appInited=false;
 function unlockApp(){
@@ -1620,19 +1685,40 @@ function unlockApp(){
   document.querySelectorAll('style').forEach(s=>{
     if(s.textContent.includes('visibility:hidden'))s.remove();
   });
+  applyRoleVisibility();
   if(!_appInited){ _appInited=true; initApp(); }
   // Presence-modal vises efter data er hentet (se renderAll)
 }
 function checkLock(){
-  if(sessionStorage.getItem('kk2_unlocked')==='1'){
+  // Ægte gate: kræver et gyldigt, ikke-udløbet server-token (ikke blot et flag).
+  if(_hasValidToken()){
+    sessionStorage.setItem('kk2_unlocked','1');
     document.getElementById('lockScreen').classList.add('hidden');
     document.querySelectorAll('style').forEach(s=>{
       if(s.textContent.includes('visibility:hidden'))s.remove();
     });
+    applyRoleVisibility();
     return false;
   }
+  _clearAuth();
   setTimeout(()=>document.getElementById('lockInput').focus(),50);
   return true;
+}
+// Skjul admin-kun UI for ikke-admins (bug #4). Backenden håndhæver det samme.
+function applyRoleVisibility(){
+  try{
+    const admin=isAdmin();
+    document.querySelectorAll('[data-admin-only]').forEach(el=>{
+      el.style.display = admin ? '' : 'none';
+    });
+  }catch(e){}
+}
+// Spær en admin-kun handling i frontenden (bug #4). Backenden håndhæver det samme,
+// så dette er kun for at undgå at instruktører forsøger handlinger de ikke må.
+function requireAdmin(){
+  if(isAdmin()) return true;
+  try{ showToast&&showToast('⛔ Kun administratorer kan gøre dette'); }catch(e){}
+  return false;
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -5610,7 +5696,7 @@ function fetchLoginStats(force){
   window[cb]=function(d){ cleanup(); if(d&&d.ok){ _loginStatsCache=d; _loginStatsLastFetch=Date.now(); renderLoginStatsCard(); renderLoginBanner(); if(document.getElementById('page-promotion')?.classList.contains('active')) renderPromotion(); } };
   s.onerror=()=>{ cleanup(); };
   timer=setTimeout(()=>{ cleanup(); },8000);
-  s.src=config.scriptUrl+'?action=getLoginStats&callback='+cb+'&t='+now;
+  s.src=config.scriptUrl+'?action=getLoginStats&callback='+cb+'&'+appAuthQS()+'&t='+now;
   document.head.appendChild(s);
 }
 function _loginAgoLabel(iso){
@@ -5782,7 +5868,7 @@ function fireInstructorLogin(){
     const cb='_tli'+Date.now();
     const sc=document.createElement('script');
     window[cb]=function(){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); };
-    sc.src=config.scriptUrl+'?action=trackLogin&role=instructor&memberId='+encodeURIComponent(instrMid)+'&email='+encodeURIComponent(instrEmail)+'&ua='+encodeURIComponent((navigator.userAgent||'').slice(0,200))+'&callback='+cb+'&t='+Date.now();
+    sc.src=config.scriptUrl+'?action=trackLogin&role=instructor&memberId='+encodeURIComponent(instrMid)+'&email='+encodeURIComponent(instrEmail)+'&ua='+encodeURIComponent((navigator.userAgent||'').slice(0,200))+'&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
     document.head.appendChild(sc);
   }catch(e){}
 }
@@ -6338,7 +6424,7 @@ function trainerDeleteVideo(memberId){
     fetch(config.scriptUrl,{
       method:'POST',
       headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'deletePhoto', photoId:vm.videoId})
+      body:JSON.stringify(appAuthBody({action:'deletePhoto', photoId:vm.videoId}))
     }).catch(()=>{});
   }
   m.videoMeta='';
@@ -6750,6 +6836,7 @@ function confirmEndDate(){
   }
 }
 function confirmDelete(id){
+  if(!requireAdmin()) return; // sletning af medlem → kun admin (#4)
   const m=members.find(x=>x.id===id);if(!m)return;
   const aC=_am(id).length;
   const aMsg=aC>0?`\n\n⚠️ ${aC} vurdering${aC===1?'':'er'} vil også blive slettet permanent.`:'';
@@ -7153,6 +7240,7 @@ function emailQuick(seg){ setEmailGroup(seg==='none'?'all':seg); }
    EXCEL EKSPORT (SpreadsheetML — åbner i Excel)
 ════════════════════════════════════════ */
 function exportToExcel(){
+  if(!requireAdmin()) return; // eksport af alle medlemsdata → kun admin (#4)
   const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const pLabel=p=>p==='paid'?'Betalt ✓':p==='partial'?'Delvis betalt':p==='overdue'?'Overskredet':'Ikke betalt';
   const cell=(v,type='String',sid='')=>`<Cell${sid?` ss:StyleID="${sid}"`:''}><Data ss:Type="${type}">${esc(v)}</Data></Cell>`;
@@ -7252,6 +7340,7 @@ function resetHalvaar(){
 }
 
 function saveSettings(){
+  if(!requireAdmin()) return; // ændre indstillinger → kun admin (#4)
   config.adminEmail=document.getElementById('setAdminEmail').value.trim();
   config.clubEmail=document.getElementById('setClubEmail').value.trim();
   config.scriptUrl=document.getElementById('setScriptUrl').value.trim();
@@ -7333,7 +7422,7 @@ function uploadPhotoToDrive(memberId, base64){
       method:'POST',
       headers:{'Content-Type':'text/plain'},
       signal:ctrl.signal,
-      body:JSON.stringify({action:'uploadPhoto',memberId:String(memberId),photoData:base64})
+      body:JSON.stringify(appAuthBody({action:'uploadPhoto',memberId:String(memberId),photoData:base64}))
     }).then(r=>{clearTimeout(tmo);return r.json();})
       .then(d=>{
         if(d&&d.ok&&d.photoId) resolve(d.photoId);
@@ -7352,7 +7441,7 @@ function deletePhotoFromDrive(photoId){
       method:'POST',
       headers:{'Content-Type':'text/plain'},
       signal:ctrl.signal,
-      body:JSON.stringify({action:'deletePhoto',photoId:String(photoId)})
+      body:JSON.stringify(appAuthBody({action:'deletePhoto',photoId:String(photoId)}))
     }).then(()=>{clearTimeout(tmo);resolve();})
       .catch(()=>{clearTimeout(tmo);resolve();}); // fejl tolereres — best-effort
   });
@@ -7369,7 +7458,7 @@ function deletePhotosBulkFromDrive(photoIds){
       method:'POST',
       headers:{'Content-Type':'text/plain'},
       signal:ctrl.signal,
-      body:JSON.stringify({action:'deletePhotosBulk',photoIds:valid.map(String)})
+      body:JSON.stringify(appAuthBody({action:'deletePhotosBulk',photoIds:valid.map(String)}))
     }).then(r=>{clearTimeout(tmo);return r.json();})
       .then(d=>{if(d&&d.ok)resolve(d);else reject(new Error(d&&d.error?d.error:'Bulk sletning fejlede'));})
       .catch(err=>{clearTimeout(tmo);reject(err);});
@@ -7448,6 +7537,7 @@ function resetPhotoModalState(){
 }
 
 function downloadBackup(){
+  if(!requireAdmin()) return; // fuld backup-eksport af alle data → kun admin (#4)
   const date=localDate();
   const backup={
     _backupDate:date,
@@ -9690,7 +9780,7 @@ function _inboxMarkReadJsonp(id,reader){
   window[cb]=function(){cleanup();};
   timer=setTimeout(cleanup,10000);
   s.onerror=cleanup;
-  s.src=config.scriptUrl+'?action=markMessageRead&id='+encodeURIComponent(id)+'&reader='+encodeURIComponent(reader)+'&callback='+cb+'&t='+Date.now();
+  s.src=config.scriptUrl+'?action=markMessageRead&id='+encodeURIComponent(id)+'&reader='+encodeURIComponent(reader)+'&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
 function openThread(memberId){
@@ -9830,7 +9920,7 @@ function _triggerPush(action, params){
     // Tilføj trainer-auth (bug #6)
     const trainerNmTP=_myPresenceName||sessionStorage.getItem('kk2_presence_name')||'';
     if(trainerNmTP) qs+='&trainer='+encodeURIComponent(trainerNmTP);
-    s.src=config.scriptUrl+'?action='+action+'&'+qs+'&callback='+name+'&t='+Date.now();
+    s.src=config.scriptUrl+'?action='+action+'&'+qs+'&'+appAuthQS()+'&callback='+name+'&t='+Date.now();
     document.head.appendChild(s);
   }catch(e){}
 }
@@ -9885,7 +9975,7 @@ function _callAction(action, params, cb, _attempt){
       const trainerNm=_myPresenceName||sessionStorage.getItem('kk2_presence_name')||'';
       if(trainerNm) qs+=(qs?'&':'')+'trainer='+encodeURIComponent(trainerNm);
     }
-    s.src=config.scriptUrl+'?action='+action+(qs?'&'+qs:'')+'&callback='+name+'&t='+Date.now();
+    s.src=config.scriptUrl+'?action='+action+(qs?'&'+qs:'')+'&'+appAuthQS()+'&callback='+name+'&t='+Date.now();
     document.head.appendChild(s);
   }catch(e){ onNetFail(String(e.message||e)); }
 }
