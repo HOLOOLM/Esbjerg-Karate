@@ -25,6 +25,23 @@ function appAuthQS() {
   return qs;
 }
 
+// ── XSS-beskyttelse (bug #3) ───────────────────────────────────────────────
+// Fælles HTML-escape. SKAL bruges om ALLE bruger-kontrollerede værdier (navne,
+// kontaktinfo, e-mail, noter, søgetekst, beskeder mm.) før de sættes ind via
+// innerHTML / template-strings. Ligger her i config.js, så index.html, elev.html
+// OG form.html alle har den (config.js loades først i alle tre filer).
+// Dækker både tekst-indhold og attribut-værdier (begge citat-typer escapes).
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+// Alias — samme escaping dur til attributter.
+function escAttr(s) { return escHtml(s); }
+
 // Tilføj auth-felter til et POST-body-objekt (text/plain JSON). Returnerer objektet.
 function appAuthBody(obj) {
   obj = obj || {};

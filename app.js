@@ -1,5 +1,40 @@
 
 /* ════════════════════════════════════════
+   GLOBAL FEJL-HÅNDTERING (#4)
+   Sikkerhedsnet: uventede JS-fejl og afviste promises må ALDRIG fejle tavst.
+   Vis en diskret toast så brugeren ved at noget gik galt (og kan genindlæse),
+   og log altid til konsollen. Netværkskald har deres egen retry/fejl-status
+   (setSyncStatus) — dette fanger resten.
+════════════════════════════════════════ */
+(function installGlobalErrorHandlers(){
+  var _lastErrShown = 0;
+  function notifyError(label){
+    try { console.error('[Global fejl]', label); } catch(e){}
+    // Throttle: højst én toast hvert 6. sekund, så en fejl-løkke ikke spammer.
+    var now = +new Date();
+    if (now - _lastErrShown < 6000) return;
+    _lastErrShown = now;
+    var msg = '⚠️ Der opstod en uventet fejl. Prøv at genindlæse siden hvis noget ser forkert ud.';
+    try {
+      if (typeof showToast === 'function') { showToast(msg); return; }
+    } catch(e){}
+    // Fallback hvis toast-systemet ikke er klar endnu (fejl tidligt i load).
+    try {
+      var t = document.getElementById('toast');
+      if (t) { t.textContent = msg; t.classList && t.classList.add('show'); }
+    } catch(e){}
+  }
+  window.addEventListener('error', function(e){
+    // Ignorér ressource-fejl (billeder/scripts der ikke loader) — kun ægte JS-fejl.
+    if (e && e.error) notifyError(e.message || String(e.error));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r = e && e.reason;
+    notifyError((r && (r.message || r)) ? (r.message || String(r)) : 'promise-afvisning');
+  });
+})();
+
+/* ════════════════════════════════════════
    KONSTANTER
 ════════════════════════════════════════ */
 // BC (bæltefarver), BELT_ORDER, _BELT_SORT, BELT_RANK, _NEXT_BELT_NAME og
@@ -9,80 +44,9 @@ const DA_M = ['januar','februar','marts','april','maj','juni','juli','august','s
 const GRP_AV = {Børnehold:'av-boern',Normalhold:'av-junior','Basis-hold':'av-junior',Avanceret:'av-senior'};
 const GRP_CHIP = {Børnehold:'grp-b','Basis-hold':'grp-j',Avanceret:'grp-s'};
 
-/* ════════════════════════════════════════
-   STARTDATA — 65 MEDLEMMER
-   Grupper: Børnehold (B·550kr), Basis-hold (J·650kr), Avanceret (S·850kr)
-════════════════════════════════════════ */
-const SEED = [
-// ── Børnehold ─────────────────────────────────────────
-{id:1,  firstName:'August',       lastName:'Jensen',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
-{id:2,  firstName:'Birke Carlo',  lastName:'Schütt Haahr',        email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
-{id:3,  firstName:'Ella',         lastName:'Smedegaard',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
-{id:4,  firstName:'Emma',         lastName:'Frellsen',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
-{id:5,  firstName:'Filip',        lastName:'Vujovic',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
-{id:6,  firstName:'Frederik',     lastName:'Jakobsen',            email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:10,birthdate:''},
-{id:7,  firstName:'Henry',        lastName:'Breinbjerg',          email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
-{id:8,  firstName:'Ibrahim',      lastName:'Zacharias',           email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-{id:9,  firstName:'Illia',        lastName:'Polozhko',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
-{id:10, firstName:'Jamie',        lastName:'Damkjær',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
-{id:11, firstName:'Johan',        lastName:'Solhaug Sørensen',    email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-{id:12, firstName:'Loui',         lastName:'Just Carlsen',        email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-{id:13, firstName:'Lærke',        lastName:'Lønborg Nørgaard',    email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:10,birthdate:''},
-{id:14, firstName:'Magne',        lastName:'Falk',                email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-{id:15, firstName:'Maria',        lastName:'Pawlowicz',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:8, birthdate:''},
-{id:16, firstName:'Mathilde',     lastName:'Sloth',               email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:null,birthdate:''},
-{id:17, firstName:'Nessa',        lastName:'Uldahl',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
-{id:18, firstName:'Oliver',       lastName:'Thuesen',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-{id:19, firstName:'Olivia',       lastName:'Thuesen',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:10,birthdate:''},
-{id:20, firstName:'Sara Asta',    lastName:'Madsen',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:11,birthdate:''},
-{id:21, firstName:'Sofie',        lastName:'Frellsen',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'K',age:6, birthdate:''},
-{id:22, firstName:'Sophia Isabella',lastName:'Atay',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:9, birthdate:''},
-{id:23, firstName:'Sonja',        lastName:'Puggaard Sørensen',   email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'K',age:10,birthdate:''},
-{id:24, firstName:'Theo',         lastName:'Nørsten',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:550,  group:'Børnehold',checkedIn:false,gender:'M',age:7, birthdate:''},
-{id:25, firstName:'Theo',         lastName:'Sønderskov Kristensen',email:'',phone:'',belt:'9 kyu',payment:'unpaid', betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:9, birthdate:''},
-{id:26, firstName:'Tobias',       lastName:'Rømer Sørensen',      email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Børnehold',checkedIn:false,gender:'M',age:8, birthdate:''},
-// ── Basis-hold ───────────────────────────────────────
-{id:27, firstName:'Adam',         lastName:'Melonik',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:12,birthdate:''},
-{id:28, firstName:'Casandra',     lastName:'Mikkelsen',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'K',age:11,birthdate:''},
-{id:29, firstName:'Charles',      lastName:'Vind',                email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:15,birthdate:''},
-{id:30, firstName:'Emil',         lastName:'Weber',               email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:31, firstName:'Fabian',       lastName:'Barslev Saers',       email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:13,birthdate:''},
-{id:32, firstName:'Giacomo',      lastName:'Skyttehave',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:13,birthdate:''},
-{id:33, firstName:'Karoline',     lastName:'Klarskov',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'K',age:11,birthdate:''},
-{id:34, firstName:'Matilde',      lastName:'Sloth',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'K',age:10,birthdate:''},
-{id:35, firstName:'Matvii',       lastName:'Diduk',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:36, firstName:'Nord',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:325,  group:'Basis-hold',checkedIn:false,gender:'M',age:13,birthdate:''},
-{id:37, firstName:'Sejr',         lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:15,birthdate:''},
-{id:38, firstName:'Selma',        lastName:'Wang Kristensen',     email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'K',age:13,birthdate:''},
-{id:39, firstName:'Smilte',       lastName:'Vesciunas',           email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'K',age:12,birthdate:''},
-{id:40, firstName:'Stipe',        lastName:'Nicpay',              email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:660,  group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:41, firstName:'Valdemar',     lastName:'Friis Holm',          email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:42, firstName:'Villads',      lastName:'Dalby',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:12,birthdate:''},
-{id:43, firstName:'William',      lastName:'Hutchinson',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:12,birthdate:''},
-{id:44, firstName:'William',      lastName:'Myrup',               email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Basis-hold',checkedIn:false,gender:'M',age:11,birthdate:''},
-{id:45, firstName:'Magne',        lastName:'Waskönig',            email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:650,  group:'Basis-hold',checkedIn:false,gender:'M',age:10,birthdate:''},
-// ── Avanceret ─────────────────────────────────────────
-{id:46, firstName:'Anahita',      lastName:'Mashura',             email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:null,birthdate:''},
-{id:47, firstName:'Bardur',       lastName:'Vendelbo',            email:'bardur.vendelbo@gmail.com',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:51,birthdate:''},
-{id:48, firstName:'Bjarne',       lastName:'Moos',                email:'holmoos@mail.dk',phone:'',belt:'1 dan',payment:'partial',betaltBeløb:100,group:'Avanceret',checkedIn:false,gender:'M',age:71,birthdate:''},
-{id:49, firstName:'Emma',         lastName:'Steensbeck',          email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'K',age:22,birthdate:''},
-{id:50, firstName:'Jens Chr.',    lastName:'Højland',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:57,birthdate:''},
-{id:51, firstName:'Jesper',       lastName:'Steenbeck',           email:'jesper@steensbeckfoto.dk',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:52,birthdate:''},
-{id:52, firstName:'Jonas',        lastName:'Holm',                email:'jonasholm@gmail.com',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:39,birthdate:''},
-{id:53, firstName:'Josefine',     lastName:'Fjeldsted Nielsen',   email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:16,birthdate:''},
-{id:54, firstName:'Kamile',       lastName:'Jasinskaite',         email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'K',age:null,birthdate:''},
-{id:55, firstName:'Kim',          lastName:'Nielsen',             email:'kim@newsong.dk',phone:'',belt:'9 kyu',payment:'paid',betaltBeløb:850,group:'Avanceret',checkedIn:false,gender:'M',age:49,birthdate:''},
-{id:56, firstName:'Malte Aske',   lastName:'Lavendt',             email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:22,birthdate:''},
-{id:57, firstName:'Maria',        lastName:'Muff Olesen',         email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'K',age:43,birthdate:''},
-{id:58, firstName:'Michael B.',   lastName:'Jørgensen',           email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:43,birthdate:''},
-{id:59, firstName:'Mikkel',       lastName:'Bach Lautrup',        email:'',phone:'',belt:'9 kyu',payment:'unpaid',  betaltBeløb:0,    group:'Avanceret',checkedIn:false,gender:'M',age:17,birthdate:''},
-{id:60, firstName:'Nana Sophie',  lastName:'Holm',                email:'nana.sophie.holm@gmail.com',phone:'',belt:'9 kyu',payment:'partial',betaltBeløb:750,group:'Avanceret',checkedIn:false,gender:'K',age:33,birthdate:''},
-{id:61, firstName:'Peter',        lastName:'Bigum Schmidt',       email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'M',age:45,birthdate:''},
-{id:62, firstName:'Peter',        lastName:'Wang Kristensen',     email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'M',age:52,birthdate:''},
-{id:63, firstName:'Rasmus',       lastName:'Vestergaard',         email:'',phone:'',belt:'9 kyu',payment:'paid',    betaltBeløb:850,  group:'Avanceret',checkedIn:false,gender:'M',age:37,birthdate:''},
-{id:64, firstName:'Storm',        lastName:'Vendelbo',            email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:637,  group:'Avanceret',checkedIn:false,gender:'M',age:16,birthdate:''},
-{id:65, firstName:'Peter',        lastName:'Christensen',         email:'',phone:'',belt:'9 kyu',payment:'partial', betaltBeløb:425,  group:'Avanceret',checkedIn:false,gender:'M',age:null,birthdate:''},
-];
+// SEED-startdata (65 hardkodede medlemmer) er fjernet — persondata hører ikke
+// hjemme i koden. Appen starter tom og henter den autoritative medlemsliste fra
+// cloud (Google Sheets) via loadFromCloud().
 
 /* ════════════════════════════════════════
    STATE
@@ -158,7 +122,7 @@ function avatarInner(m){
     const fullName=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
     return '<img src="'+photoUrl(m.photoId)+'" loading="lazy" alt="" style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.15);touch-action:manipulation" title="Klik for at se billedet i stort format" onclick="event.stopPropagation();openPhotoLightbox(\''+m.photoId+'\',\''+fullName+'\')" onerror="this.parentElement.textContent=\''+esc+'\'"/>';
   }
-  return inits(m);
+  return escHtml(inits(m));
 }
 
 // Åbn foto i fuld størrelse (lightbox)
@@ -279,7 +243,7 @@ function load(){
     const s=localStorage.getItem('kk2_sessions');
     const c=localStorage.getItem('kk2_config');
     const cd=localStorage.getItem('kk2_cancelled');
-    members =m?JSON.parse(m):JSON.parse(JSON.stringify(SEED));
+    members =m?JSON.parse(m):[]; // start tom — rigtige data hentes fra cloud (Sheets)
     sessions=s?JSON.parse(s):[];
     // Rens sessioner med korrupte datoer (ikke YYYY-MM-DD format)
     sessions=sessions.filter(sess=>{
@@ -340,7 +304,7 @@ function load(){
     nextMessageId=messages.reduce((x,m)=>Math.max(x,(m.id||0)+1),1);
     const annv=localStorage.getItem('kk2_announcement');
     if(annv) try{ activeAnnouncement=JSON.parse(annv); }catch(e){}
-  }catch(e){ members=JSON.parse(JSON.stringify(SEED)); sessions=[]; assessments=[]; boardMeetings=[]; messages=[]; }
+  }catch(e){ members=[]; sessions=[]; assessments=[]; boardMeetings=[]; messages=[]; }
 }
 function safeSet(key,value){
   try{ localStorage.setItem(key,value); }
@@ -718,7 +682,7 @@ function showPresenceList(){
   pop.id='presenceListPopup';
   pop.style.cssText=`position:fixed;top:${rect.bottom+6}px;left:${rect.left}px;background:#1e3a3a;color:#fff;border-radius:8px;padding:.6rem .8rem;font-size:.78rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.4);min-width:160px`;
   pop.innerHTML=_presenceUsers.map(u=>{
-    const n=typeof u==='string'?u:u.name;
+    const n=escHtml(typeof u==='string'?u:u.name);
     const pg=(typeof u==='object'&&u.page)?u.page:'';
     const pageInfo=PAGE_LABELS[pg]||null;
     const pageIcon=pageInfo?` ${pageInfo.icon} ${pageInfo.label}`:'';
@@ -1155,8 +1119,8 @@ function renderQS(){
     return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer;opacity:${m.status==='passiv'?.6:1}" onclick="closeQuickSearch();openEditModal(${m.id})">
       <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}${passivBadge}</div>
-        <div style="font-size:.74rem;color:#666">${m.phone||'ingen tlf.'} · ${m.email||'ingen e-mail'}</div>
+        <div style="font-weight:600;font-size:.88rem">${nm(m)}${passivBadge}</div>
+        <div style="font-size:.74rem;color:#666">${escHtml(m.phone||'ingen tlf.')} · ${escHtml(m.email||'ingen e-mail')}</div>
         <div style="font-size:.73rem;margin-top:2px"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);display:inline-block;vertical-align:middle"></span> ${m.belt}</div>
       </div>
       <div style="font-size:.78rem;font-weight:700;color:${payColor};flex-shrink:0">${m.status==='passiv'?'':payLabel}</div>
@@ -1208,7 +1172,7 @@ function renderGlobalSearch(){
       return `<div class="gs-item" onclick="closeGlobalSearch();switchTab('members');setTimeout(()=>openEditModal(${m.id}),80)">
         <div class="gs-item-icon" style="background:var(--mbg)">${(() => { const cl=avClass(m.group); return `<div class="av ${cl}" style="width:30px;height:30px;font-size:.7rem">${avatarInner(m)}</div>`; })()}</div>
         <div class="gs-item-main">
-          <div class="gs-item-title">${m.firstName} ${m.lastName}${passivBadge}</div>
+          <div class="gs-item-title">${nm(m)}${passivBadge}</div>
           <div class="gs-item-sub"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);width:16px;height:5px;display:inline-block;vertical-align:middle;margin-right:3px"></span>${m.belt} · ${m.group}</div>
         </div>
         <span style="font-size:.72rem;color:var(--xtl)">→</span>
@@ -1230,7 +1194,7 @@ function renderGlobalSearch(){
     html+=sRes.map(s=>{
       const d=new Date(s.date+'T12:00:00');
       const dateStr=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-      const noteSnippet=s.note?`<span style="color:var(--xtl)"> · 📝 ${s.note.slice(0,50)}${s.note.length>50?'…':''}</span>`:'';
+      const noteSnippet=s.note?`<span style="color:var(--xtl)"> · 📝 ${escHtml(s.note.slice(0,50))}${s.note.length>50?'…':''}</span>`:'';
       return `<div class="gs-item" onclick="closeGlobalSearch();switchTab('history')">
         <div class="gs-item-icon" style="background:#e8f0ff;border-radius:8px">📅</div>
         <div class="gs-item-main">
@@ -1269,7 +1233,7 @@ function renderGlobalSearch(){
   }
 
   if(!totalResults){
-    el.innerHTML=`<div class="gs-no-results">Ingen resultater for "<strong>${q}</strong>"</div>`;
+    el.innerHTML=`<div class="gs-no-results">Ingen resultater for "<strong>${escHtml(q)}</strong>"</div>`;
     return;
   }
   el.innerHTML=html;
@@ -1397,7 +1361,7 @@ function updateBirthdayBanner(){
     else if(m._diff>1) lbl=`om ${m._diff} dage <span style="color:#d97706">(fylder ${m._age})</span>`;
     else if(m._diff===-1) lbl=`<span style="color:#94a3b8">fyldte ${m._age} i går</span>`;
     else lbl=`<span style="color:#94a3b8">fyldte ${m._age} for ${Math.abs(m._diff)} dage siden</span>`;
-    return `<strong>${m.firstName} ${m.lastName}</strong> ${lbl}`;
+    return `<strong>${nm(m)}</strong> ${lbl}`;
   }).join(' &nbsp;·&nbsp; ');
 }
 
@@ -1544,7 +1508,7 @@ function renderDashboardBirthdays(){
     return `<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid #f0f9f7">
       <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName} <span style="font-size:.75rem;color:var(--xtl);font-weight:400">fylder ${m._age}</span></div>
+        <div style="font-weight:600;font-size:.88rem">${nm(m)} <span style="font-size:.75rem;color:var(--xtl);font-weight:400">fylder ${m._age}</span></div>
         <div style="font-size:.74rem;color:var(--xtl);margin-top:1px">${dateStr} · ${beltBadge}</div>
       </div>
       <div style="font-size:.82rem;flex-shrink:0">${when}</div>
@@ -2058,9 +2022,9 @@ function _promoCommentsHtml(s){
   const item=(txt,date,assessor)=>`<div style="font-size:.74rem;font-style:italic;color:#6b7280;padding:.35rem .55rem;background:#f9fafb;border-radius:7px;border-left:3px solid #e5e7eb">
     <div style="display:flex;gap:.4rem;align-items:baseline;margin-bottom:.15rem">
       <span style="font-size:.62rem;font-weight:700;color:#9aacac;white-space:nowrap;flex-shrink:0">${_promoFormatDateShort(date)}</span>
-      ${assessor?`<span style="font-size:.62rem;font-weight:700;color:#9aacac;white-space:nowrap;flex-shrink:0;font-style:normal">👤 ${assessor}</span>`:''}
+      ${assessor?`<span style="font-size:.62rem;font-weight:700;color:#9aacac;white-space:nowrap;flex-shrink:0;font-style:normal">👤 ${escHtml(assessor)}</span>`:''}
     </div>
-    💬 "${txt}"
+    💬 "${escHtml(txt)}"
   </div>`;
   return `<div style="display:flex;flex-direction:column;gap:.3rem">${c1?item(c1,s.latestDate,s.assessorName):''}${c2?item(c2,s.prevDate,prevAssessor):''}</div>`;
 }
@@ -2074,7 +2038,7 @@ function openGradEmailModal(memberId){
   const preview=`<div style="display:flex;align-items:center;gap:.6rem">
     <div class="av ${avClass(m.group)}" style="width:40px;height:40px;font-size:.8rem;flex-shrink:0">${avatarInner(m)}</div>
     <div style="flex:1;min-width:0">
-      <div style="font-weight:700;font-size:.92rem">${m.firstName} ${m.lastName}</div>
+      <div style="font-weight:700;font-size:.92rem">${nm(m)}</div>
       <div style="font-size:.75rem;color:var(--xtl)">${m.belt||'—'}${m.group?' · '+m.group:''}</div>
     </div>
   </div>`;
@@ -2193,7 +2157,7 @@ function _promoCardReady(s){
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
-        <div class="promo-name">${m.firstName} ${m.lastName}</div>
+        <div class="promo-name">${nm(m)}</div>
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
           <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
           ${m.group?`<span style="font-size:.68rem;border-radius:6px;padding:1px 6px;white-space:nowrap;font-weight:700;background:${({'Børnehold':'#eff6ff','Basis-hold':'#ecfdf5','Avanceret':'#f5f3ff'}[m.group]||'#f3f4f6')};color:${({'Børnehold':'#3b82f6','Basis-hold':'#10b981','Avanceret':'#8b5cf6'}[m.group]||'#6b7280')}">${m.group}</span>`:''}
@@ -2205,7 +2169,7 @@ function _promoCardReady(s){
     ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
-      <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
+      <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${escHtml(s.assessorName)}`:''}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#dcfce7;color:#16a34a">🏅 Klar</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
@@ -2222,7 +2186,7 @@ function _promoCardAlmost(s){
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
-        <div class="promo-name">${m.firstName} ${m.lastName}</div>
+        <div class="promo-name">${nm(m)}</div>
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
           <div class="promo-belt-row">${_promoBeltPills(s.currentBelt,s.nextBelt)}</div>
           ${m.group?`<span style="font-size:.68rem;border-radius:6px;padding:1px 6px;white-space:nowrap;font-weight:700;background:${({'Børnehold':'#eff6ff','Basis-hold':'#ecfdf5','Avanceret':'#f5f3ff'}[m.group]||'#f3f4f6')};color:${({'Børnehold':'#3b82f6','Basis-hold':'#10b981','Avanceret':'#8b5cf6'}[m.group]||'#6b7280')}">${m.group}</span>`:''}
@@ -2234,7 +2198,7 @@ function _promoCardAlmost(s){
     ${_promoFocusHtml(m.id)}
     ${_promoCommentsHtml(s)}
     <div class="promo-meta">
-      <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${s.assessorName}`:''}</span>
+      <span>📋 Vurderet ${_promoFormatDate(s.date)}${s.assessorName?` · 👤 ${escHtml(s.assessorName)}`:''}</span>
       <span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap">${_promoLoginChip(m.id)}<span class="pill" style="background:#fef3c7;color:#d97706">${gap} ★ mangler${s.coverage.rated<s.coverage.total?` · ${s.coverage.total-s.coverage.rated} uvurderede`:''}</span>${_videoChip(m)}${_promoEmailBtn(m.id)}</span>
     </div>
   </div>`;
@@ -2255,7 +2219,7 @@ function _promoCardOverdue(o){
     <div class="promo-card-top">
       ${_promoAvatar(m)}
       <div style="flex:1;min-width:0">
-        <div class="promo-name">${m.firstName} ${m.lastName}</div>
+        <div class="promo-name">${nm(m)}</div>
         <div class="promo-belt-row">${_promoBeltPills(belt,'')}</div>
       </div>
     </div>
@@ -2744,7 +2708,7 @@ function renderT(){
       </td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
+        <div><div class="mn">${nm(m)}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div><div class="me">${escHtml(m.email)||'<span style="color:var(--or)">ingen e-mail</span>'}</div><div>${roleChip(m.role||'Medlem')}${streakBadge}</div></div>
       </div></td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
       <td>${grpChip(m.group)}</td>
@@ -2768,7 +2732,7 @@ function renderT(){
           </label>
           <div class="av ${avClass(m.group)} tm-avatar">${avatarInner(m)}</div>
           <div class="tm-person">
-            <div class="tm-name">${m.firstName} ${m.lastName}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
+            <div class="tm-name">${nm(m)}${absWarning}${assessClockBadge}${bdBadge}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
             <div class="tm-meta"><span class="tm-meta-main">${grpChip(m.group)} <span class="tm-dot">·</span> ${gCell(m)}</span><span class="tm-belt-line">${belt}</span></div>
             <div class="tm-chips">${streakBadge}${pay}${m.ønskerGraduering?`<div class="tm-grad-chips" data-mid="${m.id}">${_gradLogistikRow(m.id)}</div>`:''}</div>
           </div>
@@ -2793,6 +2757,10 @@ const _GRP_ORDER={'Børnehold':0,'Basis-hold':1,'Avanceret':2};
 // Escape-helpers (bruges i innerHTML og inline onclick for at håndtere fx O'Brien, <tag>, " i navne)
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function escJs(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');}
+// HTML-escaped fuldt navn — bruges i ALLE innerHTML/template-sinks så et medlemsnavn
+// som '<img onerror=...>' (kan sættes via tilmeldingsformularen) ikke kan køre kode.
+// Brug IKKE i textContent/confirm/alert/CSV — der ønskes rå tekst.
+function nm(m){return escHtml(((m&&m.firstName)||'')+' '+((m&&m.lastName)||'')).trim();}
 let _mSort={col:'group',dir:'asc'};
 let _mFilterGrad=false;
 function toggleGradFilter(){
@@ -3040,13 +3008,13 @@ function renderM(){
     tr.innerHTML=`
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}" style="${isPassive?'opacity:.5':''}'">${avatarInner(m)}</div>
-        <div><div class="mn">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div><div class="me">${m.email||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
+        <div><div class="mn">${nm(m)}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div><div class="me">${escHtml(m.email)||'<span style="color:var(--or)">ingen e-mail</span>'}</div>${roleChip(m.role||'Medlem')}${isPassive?'<span class="passive-chip">💤 Passiv</span>':''}</div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${gCell(m)}</td>
       <td>${beltHtml(m.belt,bc)}</td>
       <td style="text-align:center">${scoreCell(m.id)}</td>
-      <td style="font-size:.82rem">${m.phone||'<span style="color:var(--xtl)">—</span>'}</td>
+      <td style="font-size:.82rem">${escHtml(m.phone)||'<span style="color:var(--xtl)">—</span>'}</td>
       <td style="font-size:.8rem;color:var(--xtm)">
         ${(()=>{const dur=durationStr(m);if(dur==='—')return '<span style="color:var(--xtl)">—</span>';const raw=String(m.startDate).slice(0,10);const d=new Date(raw+'T12:00:00');const dateStr=isNaN(d.getTime())?'':d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});const endD=m.endDate?new Date(String(m.endDate).slice(0,10)+'T12:00:00'):null;const endStr=endD&&!isNaN(endD.getTime())?endD.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}):'';return `<div style="font-weight:600">${dur}</div>${dateStr?`<div style="font-size:.7rem;color:var(--xtl)">${dateStr}</div>`:''}${endStr?`<div style="font-size:.7rem;color:#c0392b;margin-top:1px">Sluttede: ${endStr}</div>`:''}`;})()}
       </td>
@@ -3079,8 +3047,8 @@ function renderM(){
         <div class="mp-main mp-main-wide">
           <div class="av ${avClass(m.group)} mp-avatar">${avatarInner(m)}</div>
           <div class="mp-person">
-            <div class="mp-name">${m.firstName} ${m.lastName}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
-            <div class="mp-contact"><span>${m.email||'ingen e-mail'}</span><span>${m.phone||'ingen telefon'}</span></div>
+            <div class="mp-name">${nm(m)}${absWarning}${birthdayBadge(m)}${promotionBadge(m.id)}${graduationWishBadge(m.id)}${videoBadge(m)}</div>
+            <div class="mp-contact"><span>${escHtml(m.email||'ingen e-mail')}</span><span>${escHtml(m.phone||'ingen telefon')}</span></div>
             <div class="mp-chips">${grpChip(m.group)}${roleChip(m.role||'Medlem')}<span class="mp-belt">${belt}</span>${payBadge(m)}</div>
           </div>
         </div>
@@ -3151,14 +3119,14 @@ function renderPassiveMembers(q,fg,fr){
         <div style="display:flex;align-items:center;gap:.7rem">
           <div class="av ${avClass(m.group)}" style="opacity:.6;flex-shrink:0">${avatarInner(m)}</div>
           <div>
-            <div style="font-weight:600;font-size:.88rem">${m.firstName} ${m.lastName}</div>
-            <div style="font-size:.74rem;color:var(--xtl)">${m.email||'ingen e-mail'}</div>
+            <div style="font-weight:600;font-size:.88rem">${nm(m)}</div>
+            <div style="font-size:.74rem;color:var(--xtl)">${escHtml(m.email||'ingen e-mail')}</div>
           </div>
         </div>
       </td>
       <td style="padding:.6rem .5rem">${grpChip(m.group)}</td>
       <td style="padding:.6rem .5rem"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12)"></span> <span style="font-size:.78rem">${m.belt}</span></td>
-      <td style="padding:.6rem .5rem;font-size:.78rem;color:var(--xtl)">${m.phone||'—'}</td>
+      <td style="padding:.6rem .5rem;font-size:.78rem;color:var(--xtl)">${escHtml(m.phone||'—')}</td>
       <td style="padding:.6rem .5rem;text-align:right;white-space:nowrap">
         <button class="btn bg btn-sm" data-act="edit" data-id="${m.id}" title="Rediger">✏️</button>
         <button class="btn bs btn-sm" style="margin-left:3px;font-size:.72rem" data-act="reactivate" data-id="${m.id}" title="Gør aktiv igen">▶ Aktiver</button>
@@ -3173,7 +3141,7 @@ function reactivateMember(id){
   m.status='aktiv';
   save();
   renderM();
-  showToast(`✅ ${m.firstName} ${m.lastName} er nu aktivt medlem igen`);
+  showToast(`✅ ${nm(m)} er nu aktivt medlem igen`);
 }
 
 /* ════════════════════════════════════════
@@ -3278,7 +3246,7 @@ function showExpectedModal(){
       </tr></thead>
       <tbody>
         ${list.map(x=>`<tr style="border-bottom:1px solid #eef3f3">
-          <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}</td>
+          <td style="padding:.5rem;font-weight:600">${nm(x.m)}</td>
           <td style="padding:.5rem;color:var(--xtl);font-size:.8rem">${x.m.group||'—'}</td>
           <td style="padding:.5rem;text-align:right;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
           <td style="padding:.5rem;text-align:right;font-weight:600;color:#4f46e5">${fmt(x.exp)}</td>
@@ -3357,7 +3325,7 @@ function showUnpaidModal(){
         <tbody>
           ${missing.map(x=>`
             <tr style="border-bottom:1px solid #eef3f3">
-              <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}</td>
+              <td style="padding:.5rem;font-weight:600">${nm(x.m)}</td>
               <td style="padding:.5rem;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
               <td style="padding:.5rem;text-align:right;color:var(--xtl)">${fmt(x.exp)}</td>
               <td style="padding:.5rem;text-align:right;color:${x.paid>0?'#15803d':'var(--xtl)'}">${fmt(x.paid)}</td>
@@ -3387,7 +3355,7 @@ function showPaidModal(){
   };
   const rowsHtml=list=>list.map(x=>`
     <tr style="border-bottom:1px solid #eef3f3">
-      <td style="padding:.5rem;font-weight:600">${x.m.firstName} ${x.m.lastName}</td>
+      <td style="padding:.5rem;font-weight:600">${nm(x.m)}</td>
       <td style="padding:.5rem;color:var(--xtl)">${x.age!==null?x.age+' år':'—'}</td>
       <td style="padding:.5rem;text-align:right;color:var(--xtl)">${fmt(x.exp)}</td>
       <td style="padding:.5rem;text-align:right;font-weight:700;color:#15803d">${fmt(x.paid)}</td>
@@ -3513,7 +3481,7 @@ function showPresentModal(){
             return `<div class="m-person" style="cursor:pointer" onclick="closeModal('presentModal');openMemberStatsModal(${m.id})" title="Klik for detaljer">
               <div class="m-avatar av ${typeof avClass==='function'?avClass(m.group):''}" style="width:36px;height:36px;font-size:.78rem">${avatarInner(m)}</div>
               <div style="flex:1;min-width:0">
-                <div style="font-weight:700;font-size:.88rem;color:var(--tt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+                <div style="font-weight:700;font-size:.88rem;color:var(--tt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm(m)}</div>
                 <div style="font-size:.7rem;color:var(--xtl);display:flex;align-items:center;gap:.3rem">
                   <span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);display:inline-block;width:14px;height:8px;border-radius:2px"></span>
                   <span>${m.belt||'—'}</span>
@@ -3560,7 +3528,7 @@ function _memberRowHtml(m,extraRight,extraBelow){
   return `<div class="m-person" style="cursor:pointer;align-items:stretch;${dimmed}" onclick="closeAllTileModals();openMemberStatsModal(${m.id})" title="Klik for detaljer">
     <div class="m-avatar av ${typeof avClass==='function'?avClass(grp):''}" style="width:38px;height:38px;font-size:.82rem;align-self:center">${avatarInner(m)}</div>
     <div style="flex:1;min-width:0">
-      <div style="font-weight:700;font-size:.9rem;color:var(--tt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+      <div style="font-weight:700;font-size:.9rem;color:var(--tt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm(m)}</div>
       <div style="font-size:.7rem;color:var(--xtl);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-top:2px">
         <span style="background:${grpBg};color:${grpCol};border-radius:8px;padding:1px 6px;font-weight:700;font-size:.64rem">${grp}</span>
         <span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.12);display:inline-block;width:14px;height:8px;border-radius:2px"></span>
@@ -3827,7 +3795,7 @@ function renderHistory(){
           const dateStr=d.toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
           return `<div style="display:flex;gap:.75rem;padding:.5rem 0;border-bottom:1px solid #f0f4f4;align-items:flex-start">
             <div style="font-size:.72rem;font-weight:700;color:var(--pr);white-space:nowrap;padding-top:1px;min-width:70px">${dateStr}</div>
-            <div style="font-size:.8rem;color:var(--t2);line-height:1.5">${s.note.trim()}</div>
+            <div style="font-size:.8rem;color:var(--t2);line-height:1.5">${escHtml(s.note.trim())}</div>
           </div>`;
         }).join('')}
       </div>`;
@@ -3961,7 +3929,7 @@ function renderHistory(){
           </div>
         </div>`:''}
       </div>
-      ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${saved.note}</div>`:''}`:
+      ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${escHtml(saved.note)}</div>`:''}`:
       !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:'')}
       ${!isCancelled?`<div style="display:flex;gap:.4rem;align-items:center;margin-top:.75rem">
         <select id="cr-${ds}" class="fs" style="flex:1;font-size:.76rem;padding:.35rem .5rem;box-sizing:border-box" onclick="event.stopPropagation()">
@@ -4684,7 +4652,7 @@ function renderDashboard(){
       <div style="font-size:2.4rem;line-height:1;flex-shrink:0">🔥</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${flameColor};margin-bottom:2px">Længste fremmøde-streak</div>
-        <div style="font-weight:800;font-size:1rem;color:#1a1a2e">${top.m.firstName} ${top.m.lastName}</div>
+        <div style="font-weight:800;font-size:1rem;color:#1a1a2e">${nm(top.m)}</div>
         <div style="font-size:.78rem;color:#6b7280;margin-top:2px">har mødt op <strong style="color:${flameColor}">${weeks} uger i træk${trophy}</strong></div>
       </div>
       <div style="text-align:center;flex-shrink:0">
@@ -4730,7 +4698,7 @@ function renderDashboard(){
       <td style="text-align:center"><div class="db-rank ${rankCls}">${i+1}</div></td>
       <td><div class="mrow">
         <div class="av ${avClass(m.group)}">${avatarInner(m)}</div>
-        <div><div class="mn" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="me">${m.email||''}</div><div>${milestone}${streakBadge}${_winBadgeHtml(m.id)}</div></div>
+        <div><div class="mn" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${nm(m)}${absW}</div><div class="me">${escHtml(m.email||'')}</div><div>${milestone}${streakBadge}${_winBadgeHtml(m.id)}</div></div>
       </div></td>
       <td>${grpChip(m.group)}</td>
       <td>${beltHtml(m.belt,bc)}</td>
@@ -4747,7 +4715,7 @@ function renderDashboard(){
       dbCard.className='db-member-card db-member-card-3';
       dbCard.innerHTML=`
         <div class="db-rank ${rankCls}">${i+1}</div>
-        <div class="db-card-person"><div class="av ${avClass(m.group)} db-card-avatar">${avatarInner(m)}</div><div><div class="db-card-name" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${m.firstName} ${m.lastName}${absW}</div><div class="db-card-sub">${grpChip(m.group)} <span>${beltHtml(m.belt,bc)}</span></div></div></div>
+        <div class="db-card-person"><div class="av ${avClass(m.group)} db-card-avatar">${avatarInner(m)}</div><div><div class="db-card-name" onclick="event.stopPropagation();openMemberStatsModal(${m.id})">${nm(m)}${absW}</div><div class="db-card-sub">${grpChip(m.group)} <span>${beltHtml(m.belt,bc)}</span></div></div></div>
         <div class="db-card-badges">${milestone}${streakBadge}${_winBadgeHtml(m.id)}</div>
         <div class="db-card-metrics db-card-metrics-right"><div><span>Fremmøde</span><strong>${c}/${totalSess}</strong></div><div><span>%</span><strong>${pct}%</strong></div></div>
         <div class="db-progress-track"><div class="db-progress-fill" style="width:${Math.min(100,pct)}%"></div></div>`;
@@ -4915,7 +4883,7 @@ function openDayBreakdownModal(dayOfWeek){
     return `<div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--brd)">
       <div class="av ${avClass(m.group)}" style="width:30px;height:30px;font-size:.75rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:.82rem;font-weight:600;color:var(--td)">${m.firstName} ${m.lastName}</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--td)">${nm(m)}</div>
         <div style="font-size:.7rem;color:${gc}">${m.group||'—'}</div>
       </div>
       <div style="text-align:right">
@@ -5117,7 +5085,7 @@ function renderHeatmap(){
       const d=col.date;
       const active=(!m.startDate||m.startDate<=d)&&(!m.endDate||m.endDate>=d);
       if(!active){
-        return `<td class="hm-cell hm-na" title="${m.firstName} ${m.lastName} — ikke aktiv ${d}"></td>`;
+        return `<td class="hm-cell hm-na" title="${nm(m)} — ikke aktiv ${d}"></td>`;
       }
       if(col.cancelled){
         return `<td class="hm-cell hm-cancel" title="${d} — aflyst"></td>`;
@@ -5126,9 +5094,9 @@ function renderHeatmap(){
       if(was){
         const cls=col.isExtra?'hm-present-extra':'hm-present';
         const lbl=col.isExtra?'til stede (ekstra)':'til stede';
-        return `<td class="hm-cell ${cls}" title="${m.firstName} ${m.lastName} — ${d} — ${lbl}"></td>`;
+        return `<td class="hm-cell ${cls}" title="${nm(m)} — ${d} — ${lbl}"></td>`;
       }
-      return `<td class="hm-cell hm-absent" title="${m.firstName} ${m.lastName} — ${d} — fravær"></td>`;
+      return `<td class="hm-cell hm-absent" title="${nm(m)} — ${d} — fravær"></td>`;
     }).join('');
 
     const pctCls=pct>=80?'hm-pct-hi':pct>=50?'hm-pct-mid':'hm-pct-lo';
@@ -5137,7 +5105,7 @@ function renderHeatmap(){
 
     return `<tr>
       <td class="hm-name" onclick="openMemberStatsModal(${m.id})" title="Klik for fremmøde-detaljer">
-        ${m.firstName} ${m.lastName}
+        ${nm(m)}
         <span class="hm-sub">${m.group||''}</span>
       </td>
       ${cells}
@@ -5372,7 +5340,7 @@ function renderDashboardTop3(){
         <span style="font-size:1.1rem;flex-shrink:0">${medals[i]}</span>
         <div class="av ${avClass(m.group)}" style="width:26px;height:26px;font-size:.62rem;flex-shrink:0">${avatarInner(m)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+          <div style="font-weight:700;font-size:.8rem;color:#1a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm(m)}</div>
           ${badgeLine?`<div style="margin-top:2px;display:flex;gap:3px;flex-wrap:wrap">${badgeLine}</div>`:''}
         </div>
         <div style="font-weight:800;font-size:.82rem;color:#1a3a3a;flex-shrink:0;white-space:nowrap;text-align:right">${total}<span style="font-size:.6rem;font-weight:400;color:#8aacac">x</span>${breakdownInline}</div>
@@ -5605,7 +5573,7 @@ function openGroupDetailModal(groupName){
     html+=`<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;${i<sorted.length-1?'border-bottom:1px solid #f0f0f0;':''}${_promoRow?_promoRow+';':''}">
       <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.7rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:.82rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="closeModal('groupDetailModal');setTimeout(()=>openMemberStatsModal(${m.id}),200)">${m.firstName} ${m.lastName}${promotionBadge(m.id)}${streakHtml}</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px" onclick="closeModal('groupDetailModal');setTimeout(()=>openMemberStatsModal(${m.id}),200)">${nm(m)}${promotionBadge(m.id)}${streakHtml}</div>
         <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
           <span style="display:inline-block;padding:1px 6px;border-radius:8px;background:${bc};color:${beltTc};font-size:.6rem;font-weight:700;border:1px solid rgba(0,0,0,.08)">${beltLbl}</span>
           ${m.age?`<span style="font-size:.6rem;color:var(--xtl)">${m.age} år</span>`:''}
@@ -5652,17 +5620,17 @@ function renderDashboardAbsent(){
     const r1btn=!hasEmail?noEmailBtn
       :m.rem1
         ?`<span style="font-size:.7rem;font-weight:700;background:#dcfce7;color:#15803d;border-radius:7px;padding:3px 7px;white-space:nowrap;cursor:default" title="Påmind. 1 sendt ${r1date}">✓ R1 · ${r1date}</span>`
-        :`<button onclick="sendReminder(${m.id},1)" title="Send 1. påmindelse til ${m.firstName}" style="font-size:.72rem;font-weight:700;background:#fef3c7;color:#b45309;border:1.5px solid #fcd34d;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">✉️ Send R1</button>`;
+        :`<button onclick="sendReminder(${m.id},1)" title="Send 1. påmindelse til ${escHtml(m.firstName)}" style="font-size:.72rem;font-weight:700;background:#fef3c7;color:#b45309;border:1.5px solid #fcd34d;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">✉️ Send R1</button>`;
     const r2btn=!hasEmail?''
       :m.rem2
         ?`<span style="font-size:.7rem;font-weight:700;background:#dcfce7;color:#15803d;border-radius:7px;padding:3px 7px;white-space:nowrap;cursor:default" title="Påmind. 2 sendt ${r2date}">✓ R2 · ${r2date}</span>`
         :m.rem1
-          ?`<button onclick="sendReminder(${m.id},2)" title="Send 2. påmindelse til ${m.firstName}" style="font-size:.72rem;font-weight:700;background:#ede9fe;color:#6d28d9;border:1.5px solid #c4b5fd;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">✉️ Send R2</button>`
+          ?`<button onclick="sendReminder(${m.id},2)" title="Send 2. påmindelse til ${escHtml(m.firstName)}" style="font-size:.72rem;font-weight:700;background:#ede9fe;color:#6d28d9;border:1.5px solid #c4b5fd;border-radius:7px;padding:3px 7px;cursor:pointer;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">✉️ Send R2</button>`
           :`<span style="font-size:.7rem;font-weight:400;color:var(--xtl);border:1.5px dashed #d1d5db;border-radius:7px;padding:3px 7px;white-space:nowrap" title="Send R1 først">R2</span>`;
     return `<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid #f5f5f0;flex-wrap:wrap">
       <div class="av ${avClass(m.group)}" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:120px">
-        <div style="font-weight:700;font-size:.88rem">${m.firstName} ${m.lastName}</div>
+        <div style="font-weight:700;font-size:.88rem">${nm(m)}</div>
         <div style="font-size:.75rem;color:var(--xtl)">${m.group||''}${m.belt?' · '+m.belt:''}</div>
       </div>
       <span style="font-size:.72rem;font-weight:700;background:${bg};color:${col};border-radius:8px;padding:2px 8px;white-space:nowrap">⚠️ ${label} siden</span>
@@ -5909,7 +5877,7 @@ function renderLoginStatsCard(){
     return `<div style="display:flex;align-items:center;gap:.55rem;padding:.4rem 0;border-bottom:1px solid #f5f5f0">
       <div class="av ${avClass(m.group)}" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0">${avatarInner(m)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.firstName} ${m.lastName}</div>
+        <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm(m)}</div>
         <div style="font-size:.68rem;color:var(--xtl)">${ago} · i alt: ${x.total}</div>
       </div>
       <div style="display:flex;gap:.3rem;align-items:center;flex-shrink:0">
@@ -5986,7 +5954,7 @@ function sendReminder(memberId,num){
   else m.rem2=localDate();
   save();pushToCloud();
   renderDashboardAbsent();
-  showToast(`📧 Påmindelse ${num} registreret for ${m.firstName}`);
+  showToast(`📧 Påmindelse ${num} registreret for ${escHtml(m.firstName)}`);
 }
 
 
@@ -6052,7 +6020,7 @@ function deleteSession(){
 function renderHDContent(c,pm,am,split,note=''){
   const row=(m,present,variant='')=>`<div class="dm-row ${present?'present':''} ${variant}">
     <div class="av ${present?avClass(m.group):''}" style="width:28px;height:28px;font-size:.7rem${present?'':';background:var(--xtl)'}">${avatarInner(m)}</div>
-    <span class="dm-name">${m.firstName} ${m.lastName}</span>
+    <span class="dm-name">${nm(m)}</span>
     ${payBadge(m)}
     ${present?'✅':'❌'}
   </div>`;
@@ -6156,7 +6124,7 @@ function openNotesOverview(){
           <div style="font-weight:700;font-size:.88rem;color:var(--td)">${dateStr}</div>
           <span class="badge bgg" style="font-size:.72rem">${present} til stede</span>
         </div>
-        <div style="font-size:.83rem;color:#5d4037;background:#fffde7;border-radius:7px;padding:.4rem .7rem;border:1px solid #ffe082">📝 ${s.note}</div>
+        <div style="font-size:.83rem;color:#5d4037;background:#fffde7;border-radius:7px;padding:.4rem .7rem;border:1px solid #ffe082">📝 ${escHtml(s.note)}</div>
       </div>`;
     }).join('');
   }
@@ -6202,7 +6170,7 @@ function toggleCI(id,val){
   // Debounced push til Sheets (samler hurtige check-ins)
   clearTimeout(_ciPushTimer);
   _ciPushTimer=setTimeout(()=>pushToCloud(),1500);
-  showToast(val?`✅ ${m.firstName} ${m.lastName} mødt op`:`❌ ${m.firstName} ${m.lastName} fjernet`);
+  showToast(val?`✅ ${nm(m)} mødt op`:`❌ ${nm(m)} fjernet`);
   updateStats();
 }
 function resetAllCheckIns(){
@@ -6474,7 +6442,7 @@ function resetMemberPassword(){
   pushToCloud();
   document.getElementById('pwStatusLine').textContent='🔓 Bruger standard-adgangskode (fornavn)';
   document.getElementById('pwResetBtn').style.display='none';
-  showToast(`🔄 Adgangskode nulstillet for ${m.firstName}`);
+  showToast(`🔄 Adgangskode nulstillet for ${escHtml(m.firstName)}`);
 }
 async function saveMember(){
   const fn=document.getElementById('fFN').value.trim(),ln=document.getElementById('fLN').value.trim();
@@ -6517,7 +6485,7 @@ async function saveMember(){
       const _hadGrad=members[i].ønskerGraduering||members[i].gradSeddel||members[i].gradKommer||members[i].gradBetalt;
       data.ønskerGraduering=false; // nulstil graduerings-ønske ved bælteskift
       data.gradSeddel=false; data.gradKommer=false; data.gradBetalt=false;
-      if(_hadGrad) showToast(`🔄 Graduerings-logistik nulstillet for ${data.firstName||members[i].firstName}`);
+      if(_hadGrad) showToast(`🔄 Graduerings-logistik nulstillet for ${escHtml(data.firstName||members[i].firstName)}`);
     }
     members[i]={...members[i],...data};
     savedMember=members[i];
@@ -6647,7 +6615,7 @@ function _renderMsm(){
       photoBox.style.display='';
       const _fn=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
       photoBox.innerHTML=`<div style="display:inline-block;width:140px;height:140px;border-radius:50%;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.12);border:4px solid #fff;background:#f5f9f9;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.15);touch-action:manipulation" onclick="openPhotoLightbox('${m.photoId}','${_fn}')" title="Klik for at se i fuld størrelse">
-        <img src="${photoUrl(m.photoId)}" alt="${m.firstName} ${m.lastName}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.parentElement.style.display='none'"/>
+        <img src="${photoUrl(m.photoId)}" alt="${nm(m)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.parentElement.style.display='none'"/>
       </div>`;
     } else {
       photoBox.style.display='none';
@@ -6820,7 +6788,7 @@ function renderEndDatePersonCard(m,mode){
     <div class="m-person">
       <div class="m-avatar">${initials}</div>
       <div class="m-person-meta">
-        <div class="m-person-name">${m.firstName} ${m.lastName}</div>
+        <div class="m-person-name">${nm(m)}</div>
         <div class="m-person-sub">${sub||'Medlem'}</div>
       </div>
     </div>`;
@@ -6914,7 +6882,7 @@ function openArchiveModal(){
       <div class="archive-row">
         <div class="av ${avClass(m.group)}" style="background:var(--xtl)">${avatarInner(m)}</div>
         <div style="flex:1">
-          <div class="mn">${m.firstName} ${m.lastName}</div>
+          <div class="mn">${nm(m)}</div>
           <div class="me">${m.group} · ${payBadge(m)}</div>
           <div style="font-size:.72rem;color:${endColor};margin-top:2px">📅 Sluttede: ${endStr}</div>
         </div>
@@ -7176,8 +7144,8 @@ function buildEmailList(){
     div.innerHTML=`
       <input type="checkbox" id="ec-${m.id}" ${m.email?'':'disabled title="Ingen e-mail registreret"'} onchange="updateEmailCount()"/>
       <div style="flex:1;min-width:0">
-        <div class="em-name">${m.firstName} ${m.lastName}<span style="font-size:.72rem;font-weight:400;color:var(--xtl);margin-left:.4rem">${getAge(m)!==null?getAge(m)+' år':''}</span></div>
-        <div class="em-email">${m.email||'<span style="color:#dc2626">Ingen e-mailadresse</span>'}</div>
+        <div class="em-name">${nm(m)}<span style="font-size:.72rem;font-weight:400;color:var(--xtl);margin-left:.4rem">${getAge(m)!==null?getAge(m)+' år':''}</span></div>
+        <div class="em-email">${escHtml(m.email)||'<span style="color:#dc2626">Ingen e-mailadresse</span>'}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0">
         ${m.belt?beltBadgeEM(m.belt):''}
@@ -7214,7 +7182,7 @@ function emailSelectVisible(select){
       const warn=document.createElement('div');
       warn.id='emNoEmailWarn';
       warn.style.cssText='background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;font-size:.78rem;color:#92400e;display:flex;gap:.5rem;align-items:flex-start';
-      warn.innerHTML=`<span style="flex-shrink:0">⚠️</span><div><strong>${missing.length} ${missing.length===1?'medlem mangler':'medlemmer mangler'} e-mailadresse:</strong><br>${missing.map(m=>`${m.firstName} ${m.lastName}`).join(', ')}</div><button onclick="document.getElementById('emNoEmailWarn').remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:.9rem;color:#92400e;flex-shrink:0">✕</button>`;
+      warn.innerHTML=`<span style="flex-shrink:0">⚠️</span><div><strong>${missing.length} ${missing.length===1?'medlem mangler':'medlemmer mangler'} e-mailadresse:</strong><br>${missing.map(m=>`${nm(m)}`).join(', ')}</div><button onclick="document.getElementById('emNoEmailWarn').remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:.9rem;color:#92400e;flex-shrink:0">✕</button>`;
       const list=document.getElementById('emList');
       if(list) list.parentNode.insertBefore(warn,list);
     }
@@ -7787,8 +7755,8 @@ function scoreCell(memberId){
     else if(diff!==null&&diff<0) changeHtml=`<span style="color:#dc2626;font-size:.7rem;font-weight:900;flex-shrink:0">↓ ${'★'.repeat(Math.abs(diff))}</span>`;
     return `<div class="score-tip-row"><span class="score-tip-skill">${skill}${carryMark}</span>${changeHtml}<span class="score-tip-stars" style="width:4.5rem;text-align:right;${carried?'color:#c4b5a0;opacity:.8':''}">${stars}</span></div>`;
   }).join('');
-  const commentHtml=latest.comment?`<div class="score-tip-comment">"${latest.comment}"</div>`:'';
-  const assessorHtml=latest.assessorName?`<div style="font-size:.68rem;color:var(--xtl);margin-top:3px">👤 ${latest.assessorName}</div>`:'';
+  const commentHtml=latest.comment?`<div class="score-tip-comment">"${escHtml(latest.comment)}"</div>`:'';
+  const assessorHtml=latest.assessorName?`<div style="font-size:.68rem;color:var(--xtl);margin-top:3px">👤 ${escHtml(latest.assessorName)}</div>`:'';
   const _scMember=members.find(x=>x.id===memberId);
   const _scBeltSkills=pensum[effectivePensumBelt(_scMember)]||[];
   let progressTipHtml='';
@@ -7857,7 +7825,7 @@ function openAssessmentModal(memberId, editAssessmentId){
   // Byg bedømmerliste fra instruktører og hjælpetrænere
   const assessorSel=document.getElementById('assessorName');
   const instructors=members.filter(x=>!x.archived&&(x.role==='Instruktør'||x.role==='Hjælpetræner')).sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'da'));
-  assessorSel.innerHTML='<option value="">— Vælg bedømmer —</option>'+instructors.map(x=>`<option value="${x.firstName} ${x.lastName}">${x.firstName} ${x.lastName} (${x.role})</option>`).join('');
+  assessorSel.innerHTML='<option value="">— Vælg bedømmer —</option>'+instructors.map(x=>`<option value="${escAttr(x.firstName+' '+x.lastName)}">${escHtml(x.firstName+' '+x.lastName)} (${escHtml(x.role)})</option>`).join('');
   assessorSel.value=existing?existing.assessorName||'':'';
 
   // Bæltebadge + dato
@@ -7911,7 +7879,7 @@ function openAssessmentModal(memberId, editAssessmentId){
       const hasNote=!!getSkillNote(skill);
       const nameHtml=hasNote
         ? `<span class="assess-skill-name" onclick="showSkillNote('${skill.replace(/'/g,"\\'")}')"  style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${skill} <span style="font-size:.72rem;color:#6366f1">ℹ️</span></span>`
-        : `<span class="assess-skill-name">${skill}</span>`;
+        : `<span class="assess-skill-name">${escHtml(skill)}</span>`;
       return `<div class="assess-skill-row">
         ${nameHtml}
         <div class="assess-stars" id="stars-${CSS.escape(skill)}">
@@ -8040,7 +8008,7 @@ function toggleGultPensum(memberId){
       const hasNote=!!getSkillNote(skill);
       const nameHtml=hasNote
         ?`<span class="assess-skill-name" onclick="showSkillNote('${skill.replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${skill} <span style="font-size:.72rem;color:#6366f1">ℹ️</span></span>`
-        :`<span class="assess-skill-name">${skill}</span>`;
+        :`<span class="assess-skill-name">${escHtml(skill)}</span>`;
       return `<div class="assess-skill-row">${nameHtml}<div class="assess-stars" id="stars-${CSS.escape(skill)}">${[1,2,3,4,5].map(i=>`<span data-skill="${skill.replace(/"/g,'&quot;')}" data-val="${i}" onclick="setStarRating(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div></div>`;
     }).join('');
   }
@@ -8256,7 +8224,7 @@ function showAssessPointPopup(assessmentId, event){
   pop.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
     <div>
       <div style="font-weight:700;color:#111">${a.date}</div>
-      <div style="font-size:.78rem;color:#6b7280;margin-top:.1rem">👤 Bedømt af: <strong>${a.assessorName||'Ikke angivet'}</strong></div>
+      <div style="font-size:.78rem;color:#6b7280;margin-top:.1rem">👤 Bedømt af: <strong>${escHtml(a.assessorName||'Ikke angivet')}</strong></div>
     </div>
     <div style="display:flex;align-items:center;gap:.3rem">
       ${overallArrow}
@@ -8426,8 +8394,8 @@ function renderAssessmentHistory(memberId,targetId='assessHistory',fromDetail=fa
         </div>`;
         return `<div class="assess-history-skill"><span style="flex:1">${sk}${_infoBtn}</span>${changeHtml}<span class="assess-history-stars">${filled}</span></div>`;
       }).join('');
-      const commentHtml=a.comment?`<div class="assess-history-comment">"${a.comment}"</div>`:'';
-      const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${a.assessorName}</strong></div>`:'';
+      const commentHtml=a.comment?`<div class="assess-history-comment">"${escHtml(a.comment)}"</div>`:'';
+      const assessorHtml=a.assessorName?`<div style="font-size:.72rem;color:var(--xtl);margin-top:2px">👤 Bedømt af: <strong>${escHtml(a.assessorName)}</strong></div>`:'';
       // Per-slot focus display with carry-forward: each slot independently finds its source
       const _esc=(s)=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       const _slotSrc=(n)=>{
@@ -8581,7 +8549,7 @@ function exportAssessmentsExcel(memberId){
     rows+=`<Row>${cell(a.date,'String',sid)}${cell(a.belt||'','String',sid)}${avg!==''?cell(avg,'Number',sid):cell('','String',sid)}${cell(a.assessorName||'','String',sid)}${cell(a.comment||'','String',sid)}${skillCells}</Row>\n`;
   });
 
-  const memberName=`${m.firstName} ${m.lastName}`;
+  const memberName=`${nm(m)}`;
   const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">
@@ -8785,7 +8753,9 @@ function formatBoardPreview(text){
 function formatBoardText(text){
   // Fuld formatering til detail-visning (ingen max-height)
   if(!text) return '';
-  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  // HTML-escape hver linje (referat-tekst er bruger-skrevet) — regex'erne nedenfor
+  // matcher tal/bullets som ikke påvirkes af escaping, så formateringen bevares.
+  const lines=text.split('\n').map(l=>escHtml(l.trim())).filter(l=>l);
   if(!lines.length) return '';
   const isNumbered=lines.every(l=>/^\d+[\.\)]/.test(l));
   if(isNumbered){
@@ -9192,7 +9162,7 @@ function exportProgressToPDF(memberId){
   const commentBlockNew=latest.comment?`<div class="comment">
     <div class="comment-lbl">💬 Trænerens kommentar</div>
     <div class="comment-txt">"${String(latest.comment).replace(/[<>]/g,'')}"</div>
-    ${latest.assessorName?`<div class="comment-author">— ${latest.assessorName}</div>`:''}
+    ${latest.assessorName?`<div class="comment-author">— ${escHtml(latest.assessorName)}</div>`:''}
   </div>`:'';
   // Fokuspunkter — per-slot carry-forward: hver slot finder selv sin seneste kilde
   const _slotSrcPdf=(n)=>{
@@ -9220,7 +9190,7 @@ function exportProgressToPDF(memberId){
   </div>`:'';
   const appUrl='https://holoolm.github.io/Esbjerg-Karate/elev?email='+encodeURIComponent(m.email||'');
   const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"/>
-<title>Progress – ${m.firstName} ${m.lastName}</title>
+<title>Progress – ${nm(m)}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 @page{size:A4 portrait;margin:8mm}
@@ -9332,10 +9302,10 @@ justify-content:stretch!important;
   <div class="student">
     ${m.photoId
       ? `<div class="avatar" style="padding:0;overflow:hidden;background:#e5e7eb"><img src="${photoUrl(m.photoId,'s200')}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/></div>`
-      : `<div class="avatar">${(m.firstName||'?')[0]}${(m.lastName||'')[0]||''}</div>`}
+      : `<div class="avatar">${escHtml(((m.firstName||'?')[0]||'')+((m.lastName||'')[0]||''))}</div>`}
     <div style="flex:1">
-      <div class="s-name">${m.firstName} ${m.lastName}</div>
-      <div class="s-meta">${m.group||''}${latest.assessorName?' · Vurderet af '+latest.assessorName:''}</div>
+      <div class="s-name">${nm(m)}</div>
+      <div class="s-meta">${escHtml(m.group||'')}${latest.assessorName?' · Vurderet af '+escHtml(latest.assessorName):''}</div>
       <div class="belt-pill">${m.belt||'—'}</div>
     </div>
   </div>
@@ -9463,7 +9433,7 @@ function renderHv(){
     </div>
     <select onchange="setHvAssessor(this.value)" style="width:100%;padding:.7rem .8rem;border:1.5px solid ${_hvAssessor?'#c8dede':'#ef4444'};border-radius:10px;font-size:.9rem;font-weight:600;color:#1a2e2e;background:#fff;font-family:inherit;outline:none">
       <option value="">— Vælg bedømmer —</option>
-      ${instructors.map(x=>`<option value="${x.firstName} ${x.lastName}"${_hvAssessor===x.firstName+' '+x.lastName?' selected':''}>${x.firstName} ${x.lastName} (${x.role})</option>`).join('')}
+      ${instructors.map(x=>`<option value="${escAttr(x.firstName+' '+x.lastName)}"${_hvAssessor===x.firstName+' '+x.lastName?' selected':''}>${escHtml(x.firstName+' '+x.lastName)} (${escHtml(x.role)})</option>`).join('')}
     </select>
   </div>
   <div class="hv-step">
@@ -9496,7 +9466,7 @@ function renderHv(){
         html+=`<div class="hv-row">
           <div style="display:flex;align-items:center;gap:.5rem">
             <div class="hv-mav">${ini}</div>
-            <div><div style="font-size:.86rem;font-weight:600;color:#1a2e2e">${m.firstName} ${m.lastName}${specificLbl}</div><div style="font-size:.68rem;color:#6a7b7b">${m.belt||''}</div></div>
+            <div><div style="font-size:.86rem;font-weight:600;color:#1a2e2e">${nm(m)}${specificLbl}</div><div style="font-size:.68rem;color:#6a7b7b">${m.belt||''}</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:.4rem">
             <div class="hv-stars">${[1,2,3,4,5].map(i=>`<span data-mid="${m.id}" data-skill="${String(specific).replace(/"/g,'&quot;')}" data-val="${i}" onclick="setHvStar(this)" class="${i<=cur?'on':''}">${i<=cur?'★':'☆'}</span>`).join('')}</div>
@@ -9547,7 +9517,7 @@ function openHvNote(mid){
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem';
   overlay.onclick=(e)=>{if(e.target===overlay)closeHvNote();};
   overlay.innerHTML=`<div style="background:#fff;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.25);width:100%;max-width:380px;padding:1.1rem 1.15rem">
-    <div style="font-size:.92rem;font-weight:700;color:#1a2e2e;margin-bottom:.2rem">📝 Note til ${m.firstName} ${m.lastName}</div>
+    <div style="font-size:.92rem;font-weight:700;color:#1a2e2e;margin-bottom:.2rem">📝 Note til ${nm(m)}</div>
     <div style="font-size:.72rem;color:#6a7b7b;margin-bottom:.7rem">Kommentar der gemmes sammen med vurderingen</div>
     <textarea id="hvNoteInput" rows="4" placeholder="Skriv note…" style="width:100%;border:1.5px solid #c8dede;border-radius:10px;padding:.6rem .75rem;font-size:.9rem;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box">${(existing||'').replace(/</g,'&lt;')}</textarea>
     <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.8rem">
@@ -9774,13 +9744,13 @@ function showInboxList(){
     return;
   }
   el.innerHTML=list.map(t=>{
-    const name=t.member?t.member.firstName+' '+t.member.lastName:'Ukendt';
-    const preview=(t.latest.text||'').slice(0,55)+((t.latest.text||'').length>55?'…':'');
+    const name=escHtml(t.member?t.member.firstName+' '+t.member.lastName:'Ukendt');
+    const preview=escHtml((t.latest.text||'').slice(0,55))+((t.latest.text||'').length>55?'…':'');
     const taggedId=Number(t.latest.taggedMemberId)||0;
     let tagChip='';
     if(taggedId){
       const inst=members.find(m=>m.id===taggedId);
-      const tn=inst?(inst.firstName+' '+(inst.lastName||'')).trim():'#'+taggedId;
+      const tn=escHtml(inst?(inst.firstName+' '+(inst.lastName||'')).trim():'#'+taggedId);
       tagChip=`<span style="font-size:.6rem;background:#eef2ff;color:#4338ca;border-radius:10px;padding:1px 6px;font-weight:700;margin-left:4px">@${tn}</span>`;
     }
     return `<div class="inbox-list-item${t.unread?' unread':''}" onclick="openThread(${t.mid})">
@@ -9837,7 +9807,7 @@ function openThread(memberId){
 }
 function renderThread(memberId){
   const member=members.find(m=>m.id===memberId);
-  const name=member?member.firstName+' '+member.lastName:'Ukendt';
+  const name=escHtml(member?member.firstName+' '+member.lastName:'Ukendt');
   document.getElementById('inboxBackBtn').style.display='';
   const tb=document.getElementById('inboxToolbar'); if(tb) tb.style.display='none';
   const replyBar=document.getElementById('inboxReplyBar');
@@ -9859,7 +9829,7 @@ function renderThread(memberId){
         let tagChip='';
         if(taggedId){
           const inst=members.find(m=>m.id===taggedId);
-          const tn=inst?(inst.firstName+' '+(inst.lastName||'')).trim():'#'+taggedId;
+          const tn=escHtml(inst?(inst.firstName+' '+(inst.lastName||'')).trim():'#'+taggedId);
           tagChip=`<div style="margin-bottom:2px"><span style="font-size:.65rem;background:#eef2ff;color:#4338ca;border-radius:10px;padding:1px 7px;font-weight:700">@${tn}</span></div>`;
         }
         const isOwn=msg.sender==='trainer';
@@ -9878,9 +9848,9 @@ function renderThread(memberId){
           : '';
         return `<div style="display:flex;flex-direction:column;align-items:${msg.sender==='trainer'?'flex-end':'flex-start'}">
           ${tagChip}
-          <div class="inbox-msg ${msg.sender}">${msg.text.replace(/</g,'&lt;')}
+          <div class="inbox-msg ${msg.sender}">${escHtml(msg.text)}
             ${videoBtn}
-            <div class="inbox-msg-meta">${msg.senderName||''} · ${formatMsgDate(msg.date)}</div>
+            <div class="inbox-msg-meta">${escHtml(msg.senderName||'')} · ${formatMsgDate(msg.date)}</div>
           </div>
           ${readInfo}
           ${actions}
