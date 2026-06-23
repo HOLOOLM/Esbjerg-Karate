@@ -70,6 +70,16 @@ function localDate(d){
   const x=d||new Date();
   return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
 }
+// BUG #5: træk N måneder fra UDEN at JS ruller over på 31-dages-måneder.
+// (setMonth alene: 31. maj −3 mdr → "31. feb" → ruller frem til 2.-3. marts.)
+// Klemmer dagen til sidste gyldige dag i målmåneden.
+function subMonths(base, n){
+  const x=new Date(base); const day=x.getDate();
+  x.setDate(1); x.setMonth(x.getMonth()-n);
+  const lastDay=new Date(x.getFullYear(), x.getMonth()+1, 0).getDate();
+  x.setDate(Math.min(day, lastDay));
+  return x;
+}
 function parseDateSafe(val){
   // Håndterer alle datoformater robust — returnerer Date-objekt eller null
   if(!val) return null;
@@ -1832,6 +1842,7 @@ function switchTab(tab){
   if(tab==='history'&&dirty) renderHistory();
   if(tab==='dashboard'&&dirty) renderDashboard();
   if(tab==='board') renderBoard();
+  if(tab==='trainingplan') tpEnsureLoaded();
   if(tab==='promotion'&&dirty) renderPromotion();
   if(tab==='training'){ fetchLoginStats(false); renderLoginBanner(); }
 }
@@ -4754,7 +4765,7 @@ function renderDayPatternCard(){
   function getRange(monthsBack){
     const to=new Date(); to.setHours(23,59,59,999);
     if(!monthsBack) return {from:null,to};
-    const from=new Date(); from.setMonth(from.getMonth()-monthsBack); from.setHours(0,0,0,0);
+    const from=subMonths(new Date(), monthsBack); from.setHours(0,0,0,0); // BUG #5
     return {from,to};
   }
   function _isExtraSess(s){
@@ -4791,8 +4802,8 @@ function renderDayPatternCard(){
   const {dc,sc}=computeCounts(currSess);
   let prev=null;
   if(dpPeriod){
-    const to=new Date(); to.setMonth(to.getMonth()-dpPeriod); to.setHours(23,59,59,999);
-    const from=new Date(); from.setMonth(from.getMonth()-dpPeriod*2); from.setHours(0,0,0,0);
+    const to=subMonths(new Date(), dpPeriod); to.setHours(23,59,59,999); // BUG #5
+    const from=subMonths(new Date(), dpPeriod*2); from.setHours(0,0,0,0); // BUG #5
     prev=computeCounts(filterSess({from,to}));
   }
 
@@ -4857,7 +4868,7 @@ function openDayBreakdownModal(dayOfWeek){
   const dpPeriod=config.dpPeriod||null;
   const now=new Date(); now.setHours(23,59,59,999);
   let fromDate=null;
-  if(dpPeriod){fromDate=new Date();fromDate.setMonth(fromDate.getMonth()-dpPeriod);fromDate.setHours(0,0,0,0);}
+  if(dpPeriod){fromDate=subMonths(new Date(), dpPeriod);fromDate.setHours(0,0,0,0);} // BUG #5
   const _obdTd=config.trainingDays||[2,4];
   const daySessions=sessions.filter(s=>{
     if(!s.date||cancelledDates.includes(s.date)) return false;
@@ -4930,8 +4941,7 @@ window.addEventListener('resize',()=>{
 });
 function setHmRange(months){
   const today=new Date(); today.setHours(0,0,0,0);
-  const from=new Date(today);
-  from.setMonth(from.getMonth()-months);
+  const from=subMonths(today, months); // BUG #5
   const fromEl=document.getElementById('hmFrom');
   const toEl=document.getElementById('hmTo');
   if(fromEl) fromEl.value=localDate(from);
@@ -4957,7 +4967,7 @@ function renderHeatmap(){
   let fromStr=fromEl?.value||'';
   let toStr=toEl?.value||'';
   if(!fromStr){
-    const defFrom=new Date(today); defFrom.setMonth(defFrom.getMonth()-3);
+    const defFrom=subMonths(today, 3); // BUG #5
     fromStr=localDate(defFrom);
     if(fromEl) fromEl.value=fromStr;
   }
@@ -5480,7 +5490,7 @@ function openGroupDetailModal(groupName){
   // Beregn statistik
   const td=config.trainingDays||[2,4];
   const now=new Date(); now.setHours(0,0,0,0);
-  const from3m=new Date(now); from3m.setMonth(from3m.getMonth()-3);
+  const from3m=subMonths(now, 3); // BUG #5
   const fromStr=localDate(from3m);
   const regSess=sessions.filter(s=>s.date&&s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
   const totalSess=regSess.length;
@@ -6264,6 +6274,8 @@ function openEditModal(id){
   document.getElementById('fCN').value=m.contactName||'';
   document.getElementById('fCP').value=m.contactPhone||'';
   document.getElementById('fBoardMember').checked=!!m.boardMember;
+  // Progress synlig: default afkrydset (synlig). Kun eksplicit false = skjult.
+  document.getElementById('fProgressVisible').checked=(m.progressSynlig!==false&&m.progressSynlig!=='false');
   document.getElementById('fPW').value='';
   document.getElementById('pwStatusLine').textContent=m.passwordHash?'🔒 Eleven har sat sin egen adgangskode':'🔓 Bruger standard-adgangskode (fornavn)';
   document.getElementById('pwResetBtn').style.display=m.passwordHash?'inline-flex':'none';
@@ -6469,6 +6481,7 @@ async function saveMember(){
     contactName:document.getElementById('fCN').value.trim()||null,
     contactPhone:document.getElementById('fCP').value.trim()||null,
     boardMember:document.getElementById('fBoardMember').checked||false,
+    progressSynlig:document.getElementById('fProgressVisible').checked, // true=synlig, false=skjul progress for eleven
     beltDate:document.getElementById('fBeltDate').value||null,
   };
   const pwInput=document.getElementById('fPW').value;
@@ -6564,7 +6577,7 @@ function renderMemberAttendanceSection(memberId){
 
   // Last 3 months attendance % — faste og ekstra separat
   const now=new Date(); now.setHours(0,0,0,0);
-  const threeMonthsAgo=new Date(now); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth()-3);
+  const threeMonthsAgo=subMonths(now, 3); // BUG #5
   const tmaStr=localDate(threeMonthsAgo);
   const recent3Reg=regSess.filter(s=>s.date>=tmaStr);
   const recent3RegAttended=recent3Reg.filter(s=>attended.has(s.date)).length;
@@ -6631,9 +6644,9 @@ function _renderMsm(){
 
   // Beregn periode
   const now=new Date(); now.setHours(0,0,0,0);
-  const from=new Date(now);
-  if(_msmPeriod==='3m') from.setMonth(from.getMonth()-3);
-  else if(_msmPeriod==='6m') from.setMonth(from.getMonth()-6);
+  let from=new Date(now); // BUG #5
+  if(_msmPeriod==='3m') from=subMonths(now,3);
+  else if(_msmPeriod==='6m') from=subMonths(now,6);
   else from.setFullYear(from.getFullYear()-1);
   const fromStr=localDate(from);
 
@@ -9784,17 +9797,25 @@ function _inboxMarkReadJsonp(id,reader){
   s.src=config.scriptUrl+'?action=markMessageRead&id='+encodeURIComponent(id)+'&reader='+encodeURIComponent(reader)+'&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
+// BUG #4: stabilt, UNIKT læser-token pr. træner — aldrig den delte literal 'Træner'
+// (som ellers fik flere trænere til at tælle som én i readBy).
+function _trainerReaderToken(){
+  if(_myPresenceMemberId) return String(_myPresenceMemberId);
+  if(_myPresenceName) return _myPresenceName;
+  // sidste udvej: stabilt id pr. browser, så to navnløse trænere ikke kolliderer
+  let t=null; try{ t=localStorage.getItem('kk2_trainer_rtoken'); }catch(e){}
+  if(!t){ t='tr_'+Date.now()+'_'+Math.floor(Math.random()*1e6); try{ localStorage.setItem('kk2_trainer_rtoken',t); }catch(e){} }
+  return t;
+}
 function openThread(memberId){
   _inboxActiveMember=memberId;
   _inboxShowAll=false;
-  const myId=_myPresenceMemberId;
-  const myName=_myPresenceName||'Træner';
-  const readerToken=myId?String(myId):myName; // foretrækker ID, falder tilbage til navn
+  const readerToken=_trainerReaderToken();
   messages.forEach(msg=>{
     if(msg.memberId===memberId&&msg.sender==='student'){
       msg.read=true;
       const rb=(msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
-      const alreadyRead=(myId&&rb.indexOf(String(myId))!==-1)||(rb.indexOf(myName)!==-1);
+      const alreadyRead=rb.indexOf(readerToken)!==-1;
       if(!alreadyRead){
         rb.push(readerToken);
         msg.readBy=rb.join(', ');
@@ -10199,3 +10220,229 @@ function sendInboxReply(){
   const shortText=(text.length>80?text.slice(0,79)+'…':text);
   _triggerPush('notifyMember',{memberId:_inboxActiveMember,title:'Ny besked fra din træner 🥋',body:shortText,email:sendEmail?1:0});
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   TRÆNINGSPLAN — træner pusher øvelser til elever (Sheets-ark "Træningsøvelser")
+   ------------------------------------------------------------------------
+   Henter biblioteket via JSONP (getTrainingLibrary) og gemmer hele biblioteket
+   via POST (saveTrainingLibrary) — begge token-autoriserede (requireAuth).
+   Målretning pr. øvelse: alle / hold / bælte / enkelt elev. Eleverne ser de
+   øvelser der matcher dem (skrivebeskyttet) i deres egen træningsplan.
+   Alle symboler er tp-præfikset for at undgå kollision med resten af app.js.
+════════════════════════════════════════════════════════════════════════ */
+const TP_ICONS=['🏃','💪','🥋','🧘','🤸','🦵','🛡️','⏱️','🏋️','🚴','🤾','🔥'];
+const TP_WK_ORDER=[1,2,3,4,5,6,0];
+const TP_DAY_SHORT=['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
+const TP_BASE_GROUPS=['Børnehold','Basis-hold','Avanceret','Normalhold'];
+let tpLib=[], tpLoaded=false, tpLoading=false;
+let tpEditingId=null, tpIcon='🥋', tpDays=[1,3,5], tpGroups=[], tpSecs=[];
+let tpMemberItems=[], tpMemberSel=new Set(), tpMemberQuery='';
+let tpOverview=null, tpOvLoaded=false, tpOvLoading=false;
+
+function tpGroupsAll(){ const extra=members.map(m=>m.group).filter(Boolean); return [...new Set([...TP_BASE_GROUPS,...extra])]; }
+function tpActiveMembers(){
+  return members.filter(m=>m.status!=='passiv' && !m.archived)
+    .map(m=>({id:m.id, name:((m.firstName||'')+' '+(m.lastName||'')).trim()||('#'+m.id), group:m.group||''}))
+    .sort((a,b)=>a.name.localeCompare(b.name,'da'));
+}
+function tpBeltShort(b){ const m=String(b).match(/\(([^)]+)\)/); return m?m[1]:String(b).replace(/\s*-\s*.*/,''); }
+function tpAssignSummary(a){
+  if(!a) return ''; if(a.all) return 'Alle elever';
+  const p=[];
+  if((a.groups||[]).length) p.push(a.groups.join(', '));
+  if((a.belts||[]).length) p.push(a.belts.map(tpBeltShort).join('/')+' bælte');
+  if((a.members||[]).length){ const nm=(a.members||[]).map(id=>{ const m=members.find(x=>x.id===Number(id)); return m?(((m.firstName||'')+' '+(m.lastName||'')).trim()):('#'+id); }); p.push(nm.join(', ')); }
+  return p.join(' · ') || 'Ingen modtagere';
+}
+function tpDayTxt(ex){ const d=(ex.days||[0,1,2,3,4,5,6]); return d.length===7?'Hver dag':d.slice().sort().map(i=>TP_DAY_SHORT[i]).join(', '); }
+function tpSecsOf(ex){ return Array.isArray(ex.secs)?ex.secs : (ex.sec?[ex.sec]:[]); }
+function tpTgtTxt(ex){ const base=ex.type==='check'?'afkrydsning':(ex.target?(ex.target+' '+(ex.unit||'')+'/dag'):'frit'); const extra=tpSecsOf(ex).map(s=>' + '+(s.label||'')+(s.unit?(' ('+s.unit+')'):'')).join(''); return base+extra; }
+
+function tpEnsureLoaded(){ if(tpLoaded||tpLoading){ renderTPList(); } else { tpLoadLibrary(); } tpEnsureOverview(); }
+function tpEnsureOverview(){ if(tpOvLoaded||tpOvLoading){ renderTPOverview(); return; } tpLoadOverview(); }
+function tpLoadLibrary(){
+  tpLoading=true;
+  const list=document.getElementById('tpLibList'); if(list) list.innerHTML='<div class="tp-empty">Henter øvelser…</div>';
+  const cb='_tplib'+Date.now();
+  const s=document.createElement('script');
+  const cleanup=()=>{ delete window[cb]; if(s.parentNode)s.parentNode.removeChild(s); };
+  const fail=(msg)=>{ const el=document.getElementById('tpLibList'); if(el) el.innerHTML='<div class="tp-empty">'+escHtml(msg)+'</div>'; };
+  const timer=setTimeout(()=>{ cleanup(); tpLoading=false; fail('Kunne ikke hente øvelser (timeout). Skift fane og prøv igen.'); },15000);
+  window[cb]=function(d){ clearTimeout(timer); cleanup(); tpLoading=false;
+    if(d&&d.authRequired){ if(typeof handleAuthExpired==='function') handleAuthExpired(); return; }
+    if(!d||!d.ok){ fail('Kunne ikke hente øvelser'+(d&&d.error?(': '+d.error):'')+'.'); return; }
+    tpLib=d.exercises||[]; tpLoaded=true; renderTPList();
+  };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); tpLoading=false; fail('Netværksfejl — kunne ikke hente øvelser.'); };
+  s.src=SCRIPT_URL+'?action=getTrainingLibrary&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function tpSaveLibrary(){
+  tpOvLoaded=false; // målretning kan have ændret sig → genindlæs efterlevelse ved næste visning
+  fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(appAuthBody({action:'saveTrainingLibrary', exercises:tpLib}))})
+    .then(r=>r.json()).then(d=>{
+      if(d&&d.authRequired){ if(typeof handleAuthExpired==='function') handleAuthExpired(); return; }
+      if(!d||!d.ok){ showToast('⚠️ Kunne ikke gemme øvelsen — prøv igen'); }
+    }).catch(()=>{ showToast('⚠️ Netværksfejl — øvelsen blev ikke gemt'); });
+}
+function renderTPList(){
+  const el=document.getElementById('tpLibList'); if(!el) return;
+  if(!tpLib.length){ el.innerHTML='<div class="tp-empty">Ingen øvelser endnu. Tryk "+ Ny øvelse" for at pushe den første ud til eleverne.</div>'; return; }
+  el.innerHTML=tpLib.map(ex=>`<div class="tp-row">
+    <div class="tp-ico">${escHtml(ex.icon||'🏋️')}</div>
+    <div class="tp-body">
+      <div class="tp-name">${escHtml(ex.name)} <span class="tp-chip">${escHtml(tpTgtTxt(ex))} · ${escHtml(tpDayTxt(ex))}</span></div>
+      <div class="tp-meta">→ ${escHtml(tpAssignSummary(ex.assign))}</div>
+    </div>
+    <button class="tp-iconbtn" title="Kopiér til andre elever" onclick="tpDuplicateExercise('${escAttr(ex.id)}')">📋</button>
+    <button class="tp-iconbtn" title="Ret" onclick="openTPExercise('${escAttr(ex.id)}')">✏️</button>
+    <button class="tp-iconbtn" title="Slet" onclick="tpDeleteExercise('${escAttr(ex.id)}')">🗑️</button>
+  </div>`).join('');
+}
+// Kopiér en eksisterende øvelse → åbn editoren som NY (samme indhold, ny målretning).
+function tpDuplicateExercise(id){
+  openTPExercise(id);
+  tpEditingId=null; // gem opretter en ny biblioteks-øvelse i stedet for at overskrive
+  const t=document.getElementById('tpMTitle'); if(t) t.textContent='Kopiér øvelse → vælg elever';
+}
+function tpRenderIcons(){ document.getElementById('tpIcons').innerHTML=TP_ICONS.map(ic=>`<span class="${ic===tpIcon?'on':''}" onclick="tpIcon='${ic}';tpRenderIcons()">${ic}</span>`).join(''); }
+function tpRenderDays(){ document.getElementById('tpDays').innerHTML=TP_WK_ORDER.map(i=>`<div class="pill ${tpDays.includes(i)?'on':''}" onclick="tpToggleDay(${i})">${TP_DAY_SHORT[i]}</div>`).join(''); }
+function tpToggleDay(i){ const k=tpDays.indexOf(i); if(k>=0)tpDays.splice(k,1); else tpDays.push(i); tpRenderDays(); }
+function tpRenderGroups(){ document.getElementById('tpGroups').innerHTML=tpGroupsAll().map(g=>`<div class="pill ${tpGroups.includes(g)?'on':''}" onclick="tpToggleGroup('${escAttr(g)}')">${escHtml(g)}</div>`).join(''); }
+function tpToggleGroup(g){ const k=tpGroups.indexOf(g); if(k>=0)tpGroups.splice(k,1); else tpGroups.push(g); tpRenderGroups(); }
+function tpFillMulti(id, items, sel){ const selS=(sel||[]).map(String); document.getElementById(id).innerHTML=items.map(it=>`<option value="${escAttr(String(it.v))}" ${selS.includes(String(it.v))?'selected':''}>${escHtml(it.t)}</option>`).join(''); }
+function tpGetMulti(id){ return [...document.getElementById(id).selectedOptions].map(o=>o.value); }
+
+// ── Ekstra målinger (fx km + tid på løb) ──
+function tpRenderMetricRows(){
+  const list=document.getElementById('tpSecList'); if(!list) return;
+  list.innerHTML=tpSecs.map((s,i)=>`<div class="tp-metric-row">
+    <input class="form-select tp-mlabel" placeholder="Etiket (fx Tid)" value="${escAttr(s.label||'')}" oninput="tpSecs[${i}].label=this.value">
+    <input class="form-select" placeholder="Enhed (fx min)" value="${escAttr(s.unit||'')}" oninput="tpSecs[${i}].unit=this.value">
+    <button type="button" class="tp-iconbtn" title="Fjern" onclick="tpRemoveMetricRow(${i})">🗑️</button>
+  </div>`).join('');
+}
+function tpAddMetricRow(){ tpSecs.push({label:'',unit:''}); tpRenderMetricRows(); }
+function tpRemoveMetricRow(i){ tpSecs.splice(i,1); tpRenderMetricRows(); }
+
+// ── Søgbar elev-multivælger ──
+function tpRenderMembers(){
+  const q=(tpMemberQuery||'').toLowerCase().trim();
+  const items=q ? tpMemberItems.filter(m=>m.t.toLowerCase().includes(q)) : tpMemberItems;
+  document.getElementById('tpMembers').innerHTML=items.map(m=>`<option value="${escAttr(String(m.v))}" ${tpMemberSel.has(String(m.v))?'selected':''}>${escHtml(m.t)}</option>`).join('');
+}
+function tpSyncMemberSel(){ // synk valg fra de SYNLIGE options (skjulte/filtrerede bevares i Set'et)
+  const sel=document.getElementById('tpMembers');
+  const visible=new Set([...sel.options].map(o=>o.value));
+  const chosen=new Set([...sel.selectedOptions].map(o=>o.value));
+  visible.forEach(v=>{ if(chosen.has(v)) tpMemberSel.add(v); else tpMemberSel.delete(v); });
+}
+function tpFilterMembers(q){ tpSyncMemberSel(); tpMemberQuery=q||''; tpRenderMembers(); }
+function tpOnTypeChange(){ const isCheck=document.getElementById('tpType').value==='check'; document.getElementById('tpTargetWrap').style.display=isCheck?'none':''; const sw=document.getElementById('tpSecWrap'); if(sw) sw.style.display=isCheck?'none':''; }
+function tpOnAllChange(){ const all=document.getElementById('tpAll').checked; const t=document.getElementById('tpTargets'); t.style.opacity=all?'.4':'1'; t.style.pointerEvents=all?'none':'auto'; }
+function openTPExercise(id){
+  tpEditingId=id||null;
+  const ex=id?tpLib.find(e=>e.id===id):null;
+  document.getElementById('tpMTitle').textContent=ex?'Ret øvelse':'Ny øvelse';
+  document.getElementById('tpName').value=ex?ex.name:'';
+  document.getElementById('tpType').value=ex?ex.type:'reps';
+  document.getElementById('tpUnit').value=ex?(ex.unit||''):'reps';
+  document.getElementById('tpTarget').value=ex&&ex.target!=null?ex.target:'';
+  tpIcon=ex?(ex.icon||'🥋'):'🥋';
+  tpDays=ex?(ex.days?[...ex.days]:[1,3,5]):[1,3,5];
+  tpSecs=ex?tpSecsOf(ex).map(s=>({label:s.label||'',unit:s.unit||''})):[];
+  const a=(ex&&ex.assign)?ex.assign:{all:true,groups:[],belts:[],members:[]};
+  tpGroups=[...(a.groups||[])];
+  document.getElementById('tpAll').checked=!!a.all;
+  tpRenderIcons(); tpRenderDays(); tpRenderGroups(); tpRenderMetricRows();
+  tpFillMulti('tpBelts', BELT_ORDER.map(b=>({v:b,t:b})), (a.belts||[]));
+  tpMemberItems=tpActiveMembers().map(m=>({v:m.id,t:m.name+(m.group?(' · '+m.group):'')}));
+  tpMemberSel=new Set((a.members||[]).map(String));
+  tpMemberQuery=''; const ms=document.getElementById('tpMemberSearch'); if(ms) ms.value='';
+  tpRenderMembers();
+  tpOnAllChange(); tpOnTypeChange();
+  openModal('tpModal');
+}
+function tpSaveExercise(){
+  const name=document.getElementById('tpName').value.trim();
+  if(!name){ alert('Giv øvelsen et navn.'); return; }
+  const type=document.getElementById('tpType').value;
+  const all=document.getElementById('tpAll').checked;
+  tpSyncMemberSel();
+  const assign=all?{all:true,groups:[],belts:[],members:[]}
+    :{all:false,groups:[...tpGroups],belts:tpGetMulti('tpBelts'),members:[...tpMemberSel].map(Number)};
+  if(!all && !assign.groups.length && !assign.belts.length && !assign.members.length){
+    alert('Vælg mindst ét hold, bælte eller elev — eller slå "Alle elever" til.'); return;
+  }
+  const secs = type==='check' ? [] : tpSecs
+    .map(s=>({label:(s.label||'').trim(), unit:(s.unit||'').trim()}))
+    .filter(s=>s.label || s.unit);
+  const obj={ id: tpEditingId || ('co_'+Date.now()+'_'+Math.floor(Math.random()*1000)),
+    name, icon:tpIcon, type,
+    unit: type==='check'?'':document.getElementById('tpUnit').value.trim(),
+    target: type==='check'?null:(Number(document.getElementById('tpTarget').value)||0),
+    secs: secs,
+    days: tpDays.length?[...tpDays].sort():[0,1,2,3,4,5,6], assign };
+  const wasEditing=!!tpEditingId;
+  if(wasEditing){ const i=tpLib.findIndex(e=>e.id===tpEditingId); if(i>=0) tpLib[i]=obj; else tpLib.push(obj); }
+  else tpLib.push(obj);
+  closeModal('tpModal'); renderTPList(); tpSaveLibrary();
+  showToast(wasEditing?('✏️ "'+name+'" opdateret'):('✅ "'+name+'" pushet til eleverne'));
+}
+function tpDeleteExercise(id){
+  const ex=tpLib.find(e=>e.id===id);
+  if(!confirm('Fjern "'+(ex?ex.name:'')+'" fra alle elevers træningsplan?')) return;
+  tpLib=tpLib.filter(e=>e.id!==id);
+  renderTPList(); tpSaveLibrary();
+  showToast('🗑️ Øvelse fjernet');
+}
+
+// ── Efterlevelse: hvor godt følger eleverne de pushede øvelser ──
+function tpLoadOverview(force){
+  if(force){ tpOvLoaded=false; }
+  if(tpOvLoading) return;
+  tpOvLoading=true;
+  const el=document.getElementById('tpOverviewList'); if(el) el.innerHTML='<div class="tp-empty">Henter efterlevelse…</div>';
+  const cb='_tpov'+Date.now();
+  const s=document.createElement('script');
+  const cleanup=()=>{ delete window[cb]; if(s.parentNode)s.parentNode.removeChild(s); };
+  const fail=(msg)=>{ const e2=document.getElementById('tpOverviewList'); if(e2) e2.innerHTML='<div class="tp-empty">'+escHtml(msg)+'</div>'; };
+  const timer=setTimeout(()=>{ cleanup(); tpOvLoading=false; fail('Kunne ikke hente efterlevelse (timeout).'); },15000);
+  window[cb]=function(d){ clearTimeout(timer); cleanup(); tpOvLoading=false;
+    if(d&&d.authRequired){ if(typeof handleAuthExpired==='function') handleAuthExpired(); return; }
+    if(!d||!d.ok){ fail('Kunne ikke hente efterlevelse'+(d&&d.error?(': '+d.error):'')+'.'); return; }
+    tpOverview=d; tpOvLoaded=true; renderTPOverview();
+  };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); tpOvLoading=false; fail('Netværksfejl — kunne ikke hente efterlevelse.'); };
+  s.src=SCRIPT_URL+'?action=getTrainingOverview&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
+  document.head.appendChild(s);
+}
+function tpInitials(name){ return (String(name||'').trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('')||'?').toUpperCase(); }
+function tpPctColor(p){ return p>=80?'#10b981':p>=50?'#d97706':'#c0392b'; }
+function renderTPOverview(){
+  const el=document.getElementById('tpOverviewList'); if(!el) return;
+  if(!tpOverview){ el.innerHTML='<div class="tp-empty">Ingen data endnu.</div>'; return; }
+  let list=(tpOverview.students||[]).slice();
+  if(!list.length){ el.innerHTML='<div class="tp-empty">Ingen aktive elever med træningsplan slået til.</div>'; return; }
+  const sortBy=(document.getElementById('tpOvSort')||{}).value||'pct';
+  list.sort((a,b)=> sortBy==='name' ? a.name.localeCompare(b.name,'da') : (a.assigned&&b.assigned? a.pct-b.pct : b.assigned-a.assigned) );
+  el.innerHTML=list.map(s=>{
+    if(!s.assigned){
+      return `<div class="tp-row"><div class="tp-dot" style="background:#94a3b8">${escHtml(tpInitials(s.name))}</div>
+        <div class="tp-body"><div class="tp-name">${escHtml(s.name)} <span class="tp-chip">${escHtml(s.group||'')}</span></div>
+        <div class="tp-meta">Ingen øvelser tildelt</div></div></div>`;
+    }
+    const col=tpPctColor(s.pct);
+    const last=s.lastActive?('sidst aktiv '+tpFmtDate(s.lastActive)):'aldrig aktiv';
+    return `<div class="tp-row"><div class="tp-dot" style="background:${col}">${escHtml(tpInitials(s.name))}</div>
+      <div class="tp-body">
+        <div class="tp-name">${escHtml(s.name)} <span class="tp-chip">${escHtml(s.group||'')}</span></div>
+        <div class="tp-meta">${s.done}/${s.scheduled} planlagte gennemført · ${s.assigned} øvelse${s.assigned===1?'':'r'} · ${last}</div>
+        <div class="tp-bar"><i style="width:${s.pct}%;background:${col}"></i></div>
+      </div>
+      <div class="tp-pct" style="color:${col}">${s.pct}%</div>
+    </div>`;
+  }).join('');
+}
+function tpFmtDate(ds){ try{ const p=String(ds).split('-'); return p[2]+'/'+p[1]; }catch(e){ return ds; } }

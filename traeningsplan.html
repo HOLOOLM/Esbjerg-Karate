@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Min træningsplan — Esbjerg Shuri-Ryu Karate</title>
+<!--
+  ════════════════════════════════════════════════════════════════════════════
+   TRÆNINGSPLAN-MODUL · elevens side  (matcher elev.html's stil 1:1)
+  ────────────────────────────────────────────────────────────────────────────
+   Åbnes fra elev.html ("Min træningsplan"). Eleven er logget ind dér; email +
+   password-hash ligger i sessionStorage (kk2_student_email / kk2_student_hash)
+   og deles med denne side (samme fane, samme origin). Er man ikke logget ind,
+   sendes man tilbage til elev.html.
+
+   Hvad det kan:
+     1. Tikke dagens øvelser af + skrive ANTAL/tal ind (også for øvelser der ikke
+        er planlagt i dag — se "Andre øvelser").
+     2. Skræddersy et program (tilføj/ret/slet EGNE øvelser + ugedage + dagsmål).
+     3. Se udvikling pr. øvelse + statistikker (total, snit/gang, bedste,
+        og for løb: snit-tid + tempo min/km).
+     4. Dag- / uge- / måneds-visning der tæller sammen og summerer.
+     5. DANSK + ENGELSK — skift sprog i topbaren (gemmes i localStorage 'kk2_plan_lang').
+     6. Træner-øvelser (skrivebeskyttede) målrettet eleven efter hold/bælte/elev —
+        pushet fra index.html, gemt i Sheets-arket "Træningsøvelser".
+
+   BACKEND (apps-script.gs):
+     • GET  getTrainingPlan(email, passwordHash) → { coach[], self[], logs{}, badges{} }
+     • POST saveTrainingPlan(memberId, passwordHash, plan{self,logs,badges})
+     Ark: "Træningsøvelser" (delt bibliotek) + "Træningsplaner" (per-elev JSON).
+     Træneren redigerer biblioteket i index.html (get/saveTrainingLibrary, token).
+
+   DATAMODEL (gemt server-side pr. elev):
+     { self:[ { id, name, icon, type:'reps'|'distance'|'time'|'check',
+         unit, target, sec:{label,unit}|null, days:[0..6] } ],
+       logs:{ 'YYYY-MM-DD': { <exId>: <tal | true | {v,t}> } },
+       badges:{ <key>: 'YYYY-MM-DD' } }
+  ════════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --xtd:#1a2e2e; --xtm:#4a6060; --xtl:#9aacac; --t2:#4b5563;
+  --bg:#f4f6f6; --card:#ffffff; --ink:#1a2e2e; --muted:#6b7878;
+  --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626; --gold:#c9a23a;
+  --br:12px; --sh:0 2px 8px rgba(26,46,46,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:18px;padding-bottom:56px}
+
+/* Responsivt dashboard: 1 kolonne på mobil, 2 kolonner (hoved + side) på computer */
+.layout{display:grid;grid-template-columns:1fr;gap:16px}
+.col-main,.col-side{min-width:0;display:flex;flex-direction:column;gap:16px}
+.col-main>.card,.col-side>.card{margin-bottom:0}
+@media(min-width:900px){
+  .layout{grid-template-columns:1.55fr 1fr;align-items:start}
+}
+
+/* Topbar — som elev.html */
+.topbar{background:var(--xtd);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.topbar-inner{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.topbar h2{margin:0;font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{background:rgba(255,255,255,.15);color:#fff;border:0;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.tb-btn:hover{background:rgba(255,255,255,.27)}
+.lang-seg{display:flex;background:rgba(255,255,255,.12);border-radius:8px;overflow:hidden}
+.lang-seg button{background:transparent;border:0;color:#fff;opacity:.55;font-size:12px;font-weight:700;padding:6px 9px;cursor:pointer}
+.lang-seg button.on{background:rgba(255,255,255,.24);opacity:1}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--xtd) 0%,var(--xtm) 100%);color:#fff;border-radius:var(--br);padding:22px;margin:16px 0 14px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:-50px;right:-50px;width:220px;height:220px;background:radial-gradient(circle,rgba(201,162,58,.20) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+.hero-title{font-size:21px;font-weight:700;margin:0 0 3px;letter-spacing:-.01em}
+.hero-sub{font-size:12.5px;opacity:.85}
+.stats-row{display:flex;gap:8px;margin-top:16px;position:relative;z-index:1}
+.stat{flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 6px;text-align:center}
+.stat-num{font-size:21px;font-weight:700;line-height:1.1}
+.stat-lbl{font-size:10.5px;opacity:.85;margin-top:3px}
+@media(min-width:900px){
+  .hero{display:flex;align-items:center;justify-content:space-between;gap:30px;padding:26px 30px}
+  .hero-main{flex:1;min-width:0}
+  .hero-title{font-size:28px}
+  .hero-sub{font-size:14px}
+  .stats-row{margin-top:0;flex:0 0 auto;min-width:380px}
+  .stat{padding:15px 20px;min-width:110px}
+  .stat-num{font-size:27px}
+  .stat-lbl{font-size:11px}
+}
+
+/* Period-toggle (pills) */
+.seg{display:flex;background:#e7ecec;border-radius:11px;padding:4px;gap:4px;margin-bottom:14px;max-width:460px}
+.seg button{flex:1;border:0;background:transparent;padding:9px 6px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--xtm);cursor:pointer;transition:all .15s}
+.seg button.on{background:#fff;color:var(--xtd);box-shadow:0 1px 4px rgba(26,46,46,.12)}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--br);box-shadow:var(--sh);padding:18px;margin-bottom:14px}
+.card h3{margin:0 0 14px;font-size:15px;color:var(--xtd);font-weight:600;display:flex;align-items:center;gap:7px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-head h3{margin:0}
+
+/* Dagens checklist */
+.chk{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #eef1f1}
+.chk:last-child{border-bottom:0}
+.chk-ico{width:38px;height:38px;border-radius:10px;background:#eef4f2;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+/* chk-main lader felterne ombryde UNDER navnet på smalle kort (navnet kan aldrig
+   klemmes til 0 → ingen overlap mellem inputfelt og øvelsesnavn/afkrydsning) */
+.chk-main{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.chk-body{flex:1 1 120px;min-width:110px}
+.chk-name{font-size:14px;font-weight:600;color:var(--ink)}
+.chk-meta{font-size:11.5px;color:var(--muted);margin-top:1px}
+.chk-fields{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-left:auto}
+.chk-field{display:inline-flex;align-items:center;gap:4px}
+.chk-input{width:60px;padding:7px 8px;border:1.5px solid #d5dcdc;border-radius:8px;font-size:14px;text-align:center;outline:none}
+.chk-input:focus{border-color:var(--xtm)}
+.chk-unit{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.tick{width:30px;height:30px;border-radius:50%;border:2px solid #cfd8d8;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:transparent;transition:all .15s}
+.tick.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.chk.is-done .chk-name{color:var(--muted);text-decoration:line-through}
+.sub-divider{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--xtl);margin:14px 0 2px;padding-top:8px;border-top:1px dashed #e2e8e8}
+.chk.dim{opacity:.72}
+
+/* Progress pr. øvelse */
+.ex{padding:14px 0;border-bottom:1px solid #eef1f1}
+.ex:last-child{border-bottom:0}
+.ex-top{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.ex-ico{width:34px;height:34px;border-radius:9px;background:#eef4f2;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.ex-name{font-size:14px;font-weight:600;flex:1}
+.ex-sum{font-size:14px;font-weight:700;color:var(--xtd)}
+.ex-sum small{font-size:11px;color:var(--muted);font-weight:500}
+.bar{height:8px;background:#eceeef;border-radius:5px;overflow:hidden}
+.bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--xtm),var(--ok));border-radius:5px;transition:width .3s}
+.bar.over > i{background:linear-gradient(90deg,var(--gold),var(--ok))}
+.ex-goal{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+.ex-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ex-stat{flex:1;min-width:72px;background:#f3f6f5;border-radius:9px;padding:7px 8px;text-align:center}
+.ex-stat b{display:block;font-size:14px;font-weight:700;color:var(--xtd);line-height:1.2}
+.ex-stat span{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.ex-stat.hl{background:#eef4f2}.ex-stat.hl b{color:var(--ok)}
+/* Metric-skifter (fx km / min / min-pr-km på løb) */
+.metric-seg{display:inline-flex;gap:3px;background:#eef1f1;border-radius:8px;padding:3px;margin-top:11px}
+.metric-seg button{border:0;background:transparent;color:var(--xtm);font-size:11px;font-weight:700;padding:5px 9px;border-radius:6px;cursor:pointer}
+.metric-seg button.on{background:#fff;color:var(--xtd);box-shadow:0 1px 3px rgba(26,46,46,.12)}
+.metric-cap{font-size:10.5px;color:var(--muted);margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.metric-cap .trend{font-weight:700}
+/* Mini søjlediagram */
+.spark{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:9px}
+.spark .col{flex:1;background:#e3e9e8;border-radius:3px 3px 0 0;min-height:2px;position:relative;transition:height .3s}
+.spark .col.hit{background:linear-gradient(180deg,var(--xtm),var(--xtd))}
+.spark .col.today{outline:2px solid var(--gold);outline-offset:1px}
+.spark-x{display:flex;gap:3px;margin-top:4px}
+.spark-x span{flex:1;text-align:center;font-size:8.5px;color:var(--xtl)}
+.spark .col{cursor:pointer}
+.spark .col.sel{background:linear-gradient(180deg,var(--gold),#9a7726)}
+
+/* Aktivitets-kalender (heatmap) */
+.head-pill{font-size:11px;font-weight:600;color:var(--xtm);background:#eef4f2;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.heat-head{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px}
+.heat-head span{text-align:center;font-size:9.5px;font-weight:700;color:var(--xtl)}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cell{aspect-ratio:1;border-radius:7px;background:#eceeef;border:1px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .15s}
+.cell:hover{transform:translateY(-1px);box-shadow:0 3px 8px -3px rgba(26,46,46,.3)}
+.cell[data-rest="1"]{background:transparent;border:1px dashed #dbe2e2;cursor:default}
+.cell[data-rest="1"]:hover{transform:none;box-shadow:none}
+.cell[data-future="1"]{background:#f3f5f5;border:1px solid #eaeeee;cursor:default;opacity:.55}
+.cell[data-future="1"]:hover{transform:none;box-shadow:none}
+.cell.l1{background:#cfe6da}.cell.l2{background:#93c7ab}.cell.l3{background:#54a07a}.cell.l4{background:var(--ok)}
+.cell.today{outline:2px solid var(--gold);outline-offset:1.5px}
+.heat-legend{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:11px;font-size:10px;color:var(--muted)}
+.heat-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* Boble (tap-tooltip på kalender + graf) */
+#bubble{position:fixed;z-index:70;background:var(--xtd);color:#fff;padding:8px 11px;border-radius:10px;font-size:12px;font-weight:600;line-height:1.45;box-shadow:0 10px 28px -8px rgba(0,0,0,.45);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .16s,transform .16s;max-width:230px}
+#bubble.show{opacity:1;transform:translateY(0)}
+#bubble b{color:var(--gold)}
+#bubble::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--xtd);border-bottom:0}
+
+/* Builder */
+.bx{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef1f1}
+.bx:last-child{border-bottom:0}
+.bx-ico{width:32px;height:32px;border-radius:8px;background:#eef4f2;display:flex;align-items:center;justify-content:center;font-size:16px}
+.bx-body{flex:1;min-width:0}
+.bx-name{font-size:13.5px;font-weight:600}
+.bx-meta{font-size:11px;color:var(--muted)}
+.icon-btn{background:none;border:0;cursor:pointer;font-size:15px;padding:5px;border-radius:7px;color:var(--muted)}
+.icon-btn:hover{background:#f0f3f3;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--xtd);color:#fff;border:0;padding:11px 16px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--xtm)}
+.btn.ghost{background:#eef4f2;color:var(--xtd)}
+.btn.ghost:hover{background:#e1ebe8}
+.btn.block{width:100%;justify-content:center;margin-top:6px}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}
+
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(20,30,30,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.ov.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px 18px 26px;box-shadow:0 -6px 30px rgba(0,0,0,.25);max-height:90vh;overflow:auto}
+@media(min-width:560px){.ov{align-items:center}.modal{border-radius:16px}}
+.modal h3{margin:0 0 16px;font-size:16px;color:var(--xtd)}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px}
+.fld input,.fld select{width:100%;padding:11px;border:1.5px solid #d5dcdc;border-radius:9px;font-size:15px;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--xtm)}
+.row2{display:flex;gap:10px}.row2 .fld{flex:1}
+.days{display:flex;gap:5px;flex-wrap:wrap}
+.day-pill{flex:1;min-width:36px;text-align:center;padding:8px 0;border:1.5px solid #d5dcdc;border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+.day-pill.on{background:var(--xtd);color:#fff;border-color:var(--xtd)}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn{flex:1;justify-content:center}
+.ico-pick{display:flex;gap:6px;flex-wrap:wrap}
+.ico-pick span{width:38px;height:38px;border-radius:9px;border:1.5px solid #d5dcdc;display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer}
+.ico-pick span.on{border-color:var(--xtd);background:#eef4f2}
+.metric-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.metric-row input{flex:1;min-width:0;padding:10px;border:1.5px solid #d5dcdc;border-radius:9px;font-size:14px;outline:none}
+.metric-row input:focus{border-color:var(--xtm)}
+.metric-row .metric-label{flex:1.4}
+.metric-row .metric-del{flex:0 0 auto}
+.hint{font-size:11px;color:var(--xtl)}
+.foot-note{text-align:center;font-size:11px;color:var(--xtl);margin-top:6px}
+
+/* Bedrifter (badges) */
+.badges{display:flex;flex-wrap:wrap;gap:7px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#eef4f2;border:1px solid #e1ebe8;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--xtd)}
+
+/* Påmindelser */
+.rem-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rem-lbl{font-size:14px;font-weight:600}
+.rem-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.switch{position:relative;width:46px;height:27px;flex-shrink:0;cursor:pointer;display:inline-block}
+.switch .track{position:absolute;inset:0;background:#cfd8d8;border-radius:999px;transition:background .2s}
+.switch .knob{position:absolute;top:3px;left:3px;width:21px;height:21px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch.on .track{background:var(--ok)}
+.switch.on .knob{transform:translateX(19px)}
+.rem-time{margin-top:12px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--t2)}
+.rem-time input{padding:8px 10px;border:1.5px solid #d5dcdc;border-radius:8px;font-size:14px;outline:none}
+.rem-time input:focus{border-color:var(--xtm)}
+
+/* Toast + konfetti */
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-14px);z-index:80;background:var(--xtd);color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600;line-height:1.5;box-shadow:0 14px 40px -10px rgba(0,0,0,.5);opacity:0;transition:opacity .25s,transform .25s;max-width:88vw;text-align:center;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;cursor:pointer}
+#toast b{color:var(--gold)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
+
+/* Simulator-bar (kun prototype) + træner-målretning */
+.simbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#fff;border:1.5px dashed var(--gold);border-radius:12px;padding:10px 13px;margin:0 0 14px;font-size:13px}
+.simbar label{font-weight:600;color:var(--t2)}
+.simbar select{padding:7px 9px;border:1.5px solid #d5dcdc;border-radius:8px;font-size:13px;outline:none;font-family:inherit;color:var(--ink)}
+.sim-tag{background:var(--gold);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:3px 7px;border-radius:5px}
+.sim-meta{color:var(--muted);font-size:12px;font-weight:600}
+.tag-coach{display:inline-block;background:#eef4f2;color:var(--xtm);border:1px solid #dbe7e2;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;vertical-align:middle}
+.bx.locked{opacity:.9}
+.toggle-all{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--t2);margin-bottom:10px;cursor:pointer}
+.toggle-all input{width:18px;height:18px;accent-color:var(--ok)}
+.fld select[multiple]{height:auto;min-height:104px;padding:6px}
+.fld select[multiple] option{padding:5px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<canvas id="fx"></canvas>
+<div id="toast"></div>
+<div id="bubble"></div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <h2>🥋 <span data-i18n="title">Min træningsplan</span></h2>
+    <div class="tb-right">
+      <div class="lang-seg" id="langSeg">
+        <button data-lang="da" class="on">DA</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="tb-btn" data-i18n="back" onclick="location.href='elev.html'">← Til min side</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-main">
+      <div class="hero-eyebrow">Esbjerg Shuri-Ryu Karate</div>
+      <div class="hero-title" id="heroTitle" data-i18n="heroGood">Godt arbejde! 💪</div>
+      <div class="hero-sub" id="heroSub">—</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="stDone">0/0</div><div class="stat-lbl" data-i18n="lblDone">dagens øvelser</div></div>
+      <div class="stat"><div class="stat-num" id="stStreak">0</div><div class="stat-lbl" data-i18n="lblStreak">dages stime</div></div>
+      <div class="stat"><div class="stat-num" id="stPct">0%</div><div class="stat-lbl" data-i18n="lblPct">af periodens mål</div></div>
+    </div>
+  </div>
+
+  <!-- PERIODE-TOGGLE -->
+  <div class="seg" id="seg">
+    <button data-p="day" class="on" data-i18n="segDay">I dag</button>
+    <button data-p="week" data-i18n="segWeek">Uge</button>
+    <button data-p="month" data-i18n="segMonth">Måned</button>
+  </div>
+
+  <div class="layout">
+   <div class="col-main">
+
+    <!-- DAGENS PROGRAM (checklist) -->
+    <div class="card">
+      <div class="card-head"><h3>✅ <span data-i18n="cardToday">Dagens program</span> <span id="dayName" style="font-weight:500;color:var(--muted);font-size:12px"></span></h3></div>
+      <div id="todayList"></div>
+      <button class="btn ghost block" data-i18n="addToday" onclick="openExercise(null,true)">+ Tilføj øvelse til i dag</button>
+    </div>
+
+    <!-- UDVIKLING -->
+    <div class="card">
+      <div class="card-head"><h3 id="progHead">📈 Udvikling</h3></div>
+      <div id="progList"></div>
+    </div>
+
+   </div>
+   <div class="col-side">
+
+    <!-- AKTIVITETS-KALENDER -->
+    <div class="card">
+      <div class="card-head"><h3>🔥 <span data-i18n="cardHeat">Aktivitet</span></h3><span class="head-pill" id="heatPill"></span></div>
+      <div class="heat-head" id="heatHead"></div>
+      <div class="heat" id="heat"></div>
+      <div class="heat-legend"><span data-i18n="heatLess">mindre</span><i style="background:#eceeef"></i><i style="background:#cfe6da"></i><i style="background:#93c7ab"></i><i style="background:#54a07a"></i><i style="background:var(--ok)"></i><span data-i18n="heatMore">mere</span></div>
+    </div>
+
+    <!-- BEDRIFTER (rekorder + milepæle) -->
+    <div class="card">
+      <div class="card-head"><h3>🏅 <span data-i18n="cardBadges">Bedrifter</span></h3></div>
+      <div class="badges" id="badgeList"></div>
+    </div>
+
+    <!-- TILPAS PROGRAM -->
+    <div class="card">
+      <div class="card-head"><h3>🛠️ <span data-i18n="cardCustom">Tilpas dit program</span></h3></div>
+      <div id="builderList"></div>
+      <button class="btn block" data-i18n="addEx" onclick="openExercise()">+ Tilføj øvelse</button>
+    </div>
+
+   </div>
+  </div>
+</div>
+
+<!-- MODAL: opret/ret øvelse -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <h3 id="mTitle">Ny øvelse</h3>
+    <div class="fld">
+      <label data-i18n="mName">Navn</label>
+      <input id="mName" data-i18n-ph="mNamePh" placeholder="f.eks. Løb, Armbøjninger, Selvforsvar"/>
+    </div>
+    <div class="fld">
+      <label data-i18n="mIcon">Ikon</label>
+      <div class="ico-pick" id="mIcons"></div>
+    </div>
+    <div class="row2">
+      <div class="fld">
+        <label data-i18n="mType">Type</label>
+        <select id="mType">
+          <option value="reps" data-i18n="optReps">Antal (reps)</option>
+          <option value="distance" data-i18n="optDistance">Distance</option>
+          <option value="time" data-i18n="optTime">Tid</option>
+          <option value="check" data-i18n="optCheck">Bare afkrydsning</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label data-i18n="mUnit">Enhed</label>
+        <input id="mUnit" data-i18n-ph="mUnitPh" placeholder="reps / km / min"/>
+      </div>
+    </div>
+    <div class="fld" id="mTargetWrap">
+      <label data-i18n="mTarget">Dagsmål (tal)</label>
+      <input id="mTarget" type="number" min="0" step="1" data-i18n-ph="mTargetPh" placeholder="f.eks. 50"/>
+    </div>
+    <div class="fld" id="mSecWrap">
+      <label><span data-i18n="mMetrics">Ekstra målinger</span> <span class="hint" data-i18n="metricsOpt">(valgfri — fx Tid, Distance)</span></label>
+      <div id="mSecList"></div>
+      <button type="button" class="btn ghost" style="padding:9px 13px;font-size:13px" onclick="addMetricRow()">+ <span data-i18n="addMetric">Tilføj måling</span></button>
+      <div class="hint" style="margin-top:8px" data-i18n="secHint">Spor fx tid og distance på løb → så beregnes snit og tempo automatisk.</div>
+    </div>
+    <div class="fld">
+      <label data-i18n="mDays">Hvilke ugedage?</label>
+      <div class="days" id="mDays"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-i18n="cancel" onclick="closeModal()">Annullér</button>
+      <button class="btn" data-i18n="save" onclick="saveExercise()">Gem</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+"use strict";
+// ── i18n ──────────────────────────────────────────────────────────────────
+const T = {
+  da:{ title:'Min træningsplan', back:'← Til min side', heroGood:'Godt arbejde! 💪',
+    lblDone:'dagens øvelser', lblStreak:'dages stime', lblPct:'af periodens mål',
+    segDay:'I dag', segWeek:'Uge', segMonth:'Måned',
+    cardToday:'Dagens program', cardHeat:'Aktivitet', cardBadges:'Bedrifter', cardCustom:'Tilpas dit program', addEx:'+ Tilføj øvelse', addToday:'+ Tilføj øvelse til i dag',
+    heatLess:'mindre', heatMore:'mere',
+    foot:'Udkast · data gemmes lokalt i browseren (localStorage)',
+    mName:'Navn', mNamePh:'f.eks. Løb, Armbøjninger, Selvforsvar', mIcon:'Ikon', mType:'Type',
+    optReps:'Antal (reps)', optDistance:'Distance', optTime:'Tid', optCheck:'Bare afkrydsning',
+    mUnit:'Enhed', mUnit2:'Enhed', mUnitPh:'reps / km / min', mTarget:'Dagsmål (tal)', mTargetPh:'f.eks. 50',
+    mSecLabel:'Ekstra værdi — etiket', optional:'(valgfri)', mSecLabelPh:'f.eks. Tid',
+    secHint:'Spor fx tid og distance på løb → så beregnes snit og tempo automatisk.',
+    mMetrics:'Ekstra målinger', metricsOpt:'(valgfri — fx Tid, Distance)', addMetric:'Tilføj måling',
+    mDays:'Hvilke ugedage?', cancel:'Annullér', save:'Gem' },
+  en:{ title:'My training plan', back:'← Back to my page', heroGood:'Good work! 💪',
+    lblDone:"today's exercises", lblStreak:'day streak', lblPct:'of period goal',
+    segDay:'Today', segWeek:'Week', segMonth:'Month',
+    cardToday:"Today's program", cardHeat:'Activity', cardBadges:'Achievements', cardCustom:'Customize your program', addEx:'+ Add exercise', addToday:'+ Add exercise for today',
+    heatLess:'less', heatMore:'more',
+    foot:'Draft · data stored locally in your browser (localStorage)',
+    mName:'Name', mNamePh:'e.g. Running, Push-ups, Self-defense', mIcon:'Icon', mType:'Type',
+    optReps:'Count (reps)', optDistance:'Distance', optTime:'Time', optCheck:'Just check-off',
+    mUnit:'Unit', mUnit2:'Unit', mUnitPh:'reps / km / min', mTarget:'Daily goal (number)', mTargetPh:'e.g. 50',
+    mSecLabel:'Extra value — label', optional:'(optional)', mSecLabelPh:'e.g. Time',
+    secHint:'Track e.g. time and distance on runs → averages and pace are computed automatically.',
+    mMetrics:'Extra metrics', metricsOpt:'(optional — e.g. Time, Distance)', addMetric:'Add metric',
+    mDays:'Which weekdays?', cancel:'Cancel', save:'Save' }
+};
+const DAYS_SHORT = { da:['Søn','Man','Tir','Ons','Tor','Fre','Lør'], en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] };
+const DAYS_FULL  = { da:['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'], en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] };
+const WK_ORDER = [1,2,3,4,5,6,0]; // mandag-først til kalender-header
+let lang = (()=>{ try{ return localStorage.getItem('kk2_plan_lang')||'da'; }catch(e){ return 'da'; } })();
+function t(k){ return (T[lang]&&T[lang][k]!=null)?T[lang][k]:k; }
+function L(da,en){ return lang==='da'?da:en; }           // til sammensatte/interpolerede strenge
+function dShort(i){ return DAYS_SHORT[lang][i]; }
+function dFull(i){ return DAYS_FULL[lang][i]; }
+
+function applyStaticLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('on', b.dataset.lang===lang));
+}
+function setLang(l){ lang=l; try{ localStorage.setItem('kk2_plan_lang', l); }catch(e){} applyStaticLang(); render(); }
+document.getElementById('langSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setLang(b.dataset.lang); });
+
+// ── Dato-hjælpere ───────────────────────────────────────────────────────────
+const ICONS = ['🏃','💪','🥋','🧘','🤸','🦵','🛡️','⏱️','🏋️','🚴','🤾','🔥'];
+function pad(n){ return String(n).padStart(2,'0'); }
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); } // LOKAL dato (ikke UTC)
+function parseYmd(s){ return new Date(s+'T12:00:00'); }                                 // lokal middag = TZ-sikker
+function todayStr(){ return ymd(new Date()); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function startOfWeek(d){ const x=new Date(d); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); x.setHours(0,0,0,0); return x; }
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function periodDates(period){
+  const now=new Date(); const out=[];
+  if(period==='day'){ return [todayStr()]; }
+  if(period==='week'){ const s=startOfWeek(now); for(let i=0;i<7;i++){ const d=new Date(s); d.setDate(s.getDate()+i); out.push(ymd(d)); } return out; }
+  const s=startOfMonth(now); const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  for(let i=0;i<days;i++){ const d=new Date(s); d.setDate(s.getDate()+i); out.push(ymd(d)); }
+  return out;
+}
+function rnd(x,d=1){ return (Math.round(x*Math.pow(10,d))/Math.pow(10,d)); }
+
+// ── State ───────────────────────────────────────────────────────────────────
+// plan = elevens EGNE data: { self:[øvelser eleven selv har lavet], logs, badges }
+// plan.exercises = AFLEDT (træner-øvelser der matcher eleven + egne) — bygges af syncActive()
+let plan = { self: [], exercises: [], logs: {} };
+let period = 'day';
+let editingId = null;
+let exView = {}; // exId -> 'main' | 'sec' | 'pace'  (hvilken måleenhed grafen viser)
+let selSpark = {}; // exId -> valgt søjle-dato (til boble)
+function setExView(id, v){ exView[id]=v; selSpark[id]=null; render(); }
+
+// ── Logget-ind elev + træner-øvelser (kommer fra backenden, getTrainingPlan) ──
+// me: { memberId, name, group, belt } — sættes af onPlanLoaded().
+// coachActive: træner-øvelser der ALLEREDE er målrettet denne elev (server-side filter)
+//   → skrivebeskyttede her; eleven kan kun ændre sine EGNE (plan.self).
+let me = null;
+let coachActive = [];
+// Byg den aktive liste: træner-øvelser (skrivebeskyttet) + elevens egne.
+function syncActive(){
+  const coach=(coachActive||[]).map(e=>Object.assign({},e,{owner:'coach'}));
+  const self =(plan.self||[]).map(e=>Object.assign({},e,{owner:'self'}));
+  plan.exercises=[...coach, ...self];
+}
+
+// ── Beregning ─────────────────────────────────────────────────────────────
+// Ekstra målinger på en øvelse: ex.secs = [{label,unit}, …]. Bagudkompatibel med
+// gammel ex.sec (ét objekt). Logværdi pr. dag/øvelse:
+//   tal (kun primær) · true (afkrydsning) · {v:primær, s:[m0,m1,…]} (primær + målinger).
+function secsOf(ex){ return Array.isArray(ex.secs) ? ex.secs : (ex.sec ? [ex.sec] : []); }
+function valFor(dateStr, exId){ const day=plan.logs[dateStr]; if(!day) return 0; const v=day[exId]; if(v===true) return 1; if(v&&typeof v==='object') return Number(v.v)||0; return Number(v)||0; }
+function valSec(dateStr, exId, i){ const day=plan.logs[dateStr]; if(!day) return 0; const v=day[exId]; if(!v||typeof v!=='object') return 0; if(Array.isArray(v.s)) return Number(v.s[i])||0; if(i===0) return Number(v.t)||0; return 0; }
+function isScheduled(ex, dateStr){ return (ex.days||[0,1,2,3,4,5,6]).includes(parseYmd(dateStr).getDay()); }
+function periodStats(ex){
+  const dates=periodDates(period);
+  let sum=0, scheduledDays=0;
+  dates.forEach(ds=>{ sum+=valFor(ds,ex.id); if(isScheduled(ex,ds)) scheduledDays++; });
+  const target=(ex.type==='check') ? scheduledDays : (Number(ex.target)||0)*scheduledDays;
+  return { sum, target, scheduledDays, dates };
+}
+function periodStatsForDay(ex,dateStr){
+  const v=valFor(dateStr,ex.id);
+  const done = ex.type==='check' ? v>0 : (Number(ex.target)||0)>0 ? v>=Number(ex.target) : v>0;
+  return { v, done };
+}
+function calcStreak(){
+  let n=0; const d=new Date();
+  for(let i=0;i<400;i++){
+    const ds=ymd(d);
+    const sched=plan.exercises.filter(ex=>isScheduled(ex,ds));
+    const any=sched.some(ex=>valFor(ds,ex.id)>0);
+    if(sched.length===0){ d.setDate(d.getDate()-1); continue; } // hviledag bryder ikke stimen
+    if(any) n++; else break;
+    d.setDate(d.getDate()-1);
+  }
+  return n;
+}
+function isDoneOn(ex, dateStr){ return periodStatsForDay(ex,dateStr).done; }
+// Hvor "fuld" var en given dag? 0..1 (af planlagte øvelser den dag)
+function dayCompletion(ds){
+  const sched=plan.exercises.filter(ex=>isScheduled(ex,ds));
+  if(!sched.length) return { rest:true, ratio:0, done:0, total:0 };
+  const done=sched.filter(ex=>isDoneOn(ex,ds)).length;
+  return { rest:false, ratio:done/sched.length, done, total:sched.length };
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render(){ syncActive(); renderHero(); renderToday(); renderHeatmap(); renderBadges(); renderProgress(); renderBuilder(); }
+
+function renderHero(){
+  const t0=todayStr();
+  const todays=plan.exercises.filter(ex=>isScheduled(ex,t0));
+  const done=todays.filter(ex=>periodStatsForDay(ex,t0).done).length;
+  document.getElementById('stDone').textContent = done+'/'+todays.length;
+  document.getElementById('stStreak').textContent = calcStreak();
+  let s=0,tg=0; plan.exercises.forEach(ex=>{ const st=periodStats(ex); s+=Math.min(st.sum,st.target||st.sum); tg+=st.target; });
+  document.getElementById('stPct').textContent = (tg>0?Math.round(s/tg*100):0)+'%';
+  document.getElementById('heroSub').textContent = L('Din fremgang ','Your progress ') +
+    (period==='day'?L('i dag','today'):period==='week'?L('denne uge','this week'):L('denne måned','this month'));
+}
+
+// Én checklist-række (bruges til både dagens + "andre øvelser")
+function chkRow(ex, t0, dim){
+  const {v,done}=periodStatsForDay(ex,t0);
+  const goal = ex.type==='check' ? '' : (ex.target?(L('mål ','goal ')+ex.target+' '+esc(ex.unit||'')):'');
+  let fields = '';
+  if(ex.type!=='check'){
+    fields += `<span class="chk-field"><input class="chk-input" type="number" min="0" inputmode="decimal" value="${v||''}" placeholder="0" title="${esc(ex.unit||'')}" onchange="setLog('${ex.id}','v',this.value)"><span class="chk-unit">${esc(ex.unit||'')}</span></span>`;
+    secsOf(ex).forEach((sc,i)=>{
+      fields += `<span class="chk-field"><input class="chk-input" type="number" min="0" inputmode="decimal" value="${valSec(t0,ex.id,i)||''}" placeholder="0" title="${esc(sc.label||'')}" onchange="setLog('${ex.id}','s${i}',this.value)"><span class="chk-unit">${esc(sc.unit||'')}</span></span>`;
+    });
+  }
+  return `<div class="chk ${done?'is-done':''} ${dim?'dim':''}">
+    <div class="chk-ico">${esc(ex.icon||'🏋️')}</div>
+    <div class="chk-main">
+      <div class="chk-body"><div class="chk-name">${esc(ex.name)}${ex.owner==='coach'?' <span class="tag-coach">🥋</span>':''}</div><div class="chk-meta">${goal}</div></div>
+      ${fields?`<div class="chk-fields">${fields}</div>`:''}
+    </div>
+    <div class="tick ${done?'done':''}" title="${esc(L('Markér som lavet','Mark as done'))}" onclick="toggleDone('${ex.id}')">✓</div>
+  </div>`;
+}
+function renderToday(){
+  const t0=todayStr();
+  document.getElementById('dayName').textContent = '· '+dFull(new Date().getDay());
+  const list=document.getElementById('todayList');
+  const todays=plan.exercises.filter(ex=>isScheduled(ex,t0));
+  const others=plan.exercises.filter(ex=>!isScheduled(ex,t0));
+  let html='';
+  html += todays.length
+    ? todays.map(ex=>chkRow(ex,t0,false)).join('')
+    : `<div class="empty">${L('Ingen øvelser planlagt i dag.','No exercises scheduled today.')}</div>`;
+  // "Andre øvelser" — så man ALTID kan skrive antal ind, også på en hviledag / ekstra træning
+  if(others.length){
+    html += `<div class="sub-divider">${L('Andre øvelser (ikke planlagt i dag)','Other exercises (not scheduled today)')}</div>`;
+    html += others.map(ex=>chkRow(ex,t0,true)).join('');
+  }
+  if(!plan.exercises.length) html = `<div class="empty">${L('Ingen øvelser endnu. Tilføj nogle nedenfor 👇','No exercises yet. Add some below 👇')}</div>`;
+  list.innerHTML = html;
+}
+
+// ── Aktivitets-kalender (5 uger) — tryk på en dag for at se hvad der blev lavet ──
+function renderHeatmap(){
+  document.getElementById('heatHead').innerHTML = WK_ORDER.map(i=>`<span>${dShort(i)[0]}</span>`).join('');
+  const weeks=5;
+  const start=startOfWeek(new Date()); start.setDate(start.getDate()-(weeks-1)*7);
+  const todayY=todayStr(); const nowY=ymd(new Date());
+  let cells=''; let activeDays=0;
+  for(let w=0;w<weeks;w++){
+    for(let di=0;di<7;di++){
+      const d=new Date(start); d.setDate(start.getDate()+w*7+di); const ds=ymd(d);
+      const future = parseYmd(ds) > parseYmd(nowY);
+      if(future){ cells+=`<div class="cell" data-future="1"></div>`; continue; }
+      const c=dayCompletion(ds);
+      if(c.rest){ cells+=`<div class="cell" data-rest="1" onclick="heatTap(this,'${ds}')"></div>`; continue; }
+      if(c.done>0) activeDays++;
+      const lvl = c.ratio>=1?4 : c.ratio>=.66?3 : c.ratio>=.34?2 : c.done>0?1:0;
+      const cls = (lvl?('l'+lvl):'')+(ds===todayY?' today':'');
+      cells+=`<div class="cell ${cls}" onclick="heatTap(this,'${ds}')"></div>`;
+    }
+  }
+  document.getElementById('heat').innerHTML=cells;
+  document.getElementById('heatPill').textContent = L(activeDays+' aktive dage · 5 uger', activeDays+' active days · 5 weeks');
+}
+function heatTap(el, ds){
+  if(el.getAttribute('data-future')) return;
+  const c=dayCompletion(ds);
+  const dt=parseYmd(ds);
+  const head=`${dFull(dt.getDay())} ${dt.getDate()}/${dt.getMonth()+1}`;
+  let body;
+  if(c.rest){ body=L('Hviledag','Rest day'); }
+  else {
+    const done=plan.exercises.filter(ex=>isScheduled(ex,ds)&&isDoneOn(ex,ds));
+    body = done.length
+      ? done.map(ex=>esc(ex.icon||'')+' '+esc(ex.name)).join('<br>')
+      : L('Intet registreret','Nothing logged');
+  }
+  showBubble(el, `<b>${head}</b><br>${body}`);
+}
+
+function renderProgress(){
+  document.getElementById('progHead').textContent =
+    '📈 ' + L('Udvikling','Progress') + ' — ' + (period==='day'?L('i dag','today'):period==='week'?L('denne uge','this week'):L('denne måned','this month'));
+  const list=document.getElementById('progList');
+  if(!plan.exercises.length){ list.innerHTML=`<div class="empty">${L('Ingen øvelser endnu.','No exercises yet.')}</div>`; return; }
+  list.innerHTML = plan.exercises.map(ex=>{
+    const st=periodStats(ex);
+    const pct = st.target>0 ? Math.min(100, Math.round(st.sum/st.target*100)) : (st.sum>0?100:0);
+    const over = st.target>0 && st.sum>st.target;
+    const unit = ex.type==='check' ? L('dage','days') : esc(ex.unit||'');
+    const dayVals = st.dates.map(ds=>valFor(ds,ex.id));
+    const activeDays = dayVals.filter(v=>v>0).length;
+    const best = dayVals.reduce((m,v)=>Math.max(m,v),0);
+    const round = (x,d=1)=> (Math.round(x*Math.pow(10,d))/Math.pow(10,d));
+    let tiles = '';
+    if(ex.type==='check'){
+      tiles = `<div class="ex-stat hl"><b>${activeDays}</b><span>${L('dage lavet','days done')}</span></div>
+               <div class="ex-stat"><b>${st.scheduledDays}</b><span>${L('planlagte','scheduled')}</span></div>`;
+    } else {
+      const avgPerDay = activeDays? round(st.sum/activeDays) : 0;
+      tiles = `<div class="ex-stat hl"><b>${round(st.sum)}</b><span>${L('total','total')} ${unit}</span></div>
+               <div class="ex-stat"><b>${avgPerDay}</b><span>${L('snit/gang','avg/session')}</span></div>
+               <div class="ex-stat"><b>${round(best)}</b><span>${L('bedste','best')}</span></div>`;
+      // Én total- + snit-flise pr. ekstra måling (fx tid på løb).
+      secsOf(ex).forEach((sc,i)=>{
+        const su=esc(sc.unit||''); const lbl=esc(sc.label||su);
+        const sumI = st.dates.reduce((s,ds)=>s+valSec(ds,ex.id,i),0);
+        const avgI = activeDays? round(sumI/activeDays) : 0;
+        tiles += `<div class="ex-stat"><b>${round(sumI)}</b><span>${L('total','total')} ${su}</span></div>
+                  <div class="ex-stat"><b>${avgI}</b><span>${L('snit','avg')} ${lbl}/${L('gang','session')}</span></div>`;
+      });
+      // Tempo (fx min/km) når det er en distance-øvelse med mindst én ekstra måling.
+      if(ex.type==='distance' && secsOf(ex).length){
+        const su=esc(secsOf(ex)[0].unit||'');
+        const sum0 = st.dates.reduce((s,ds)=>s+valSec(ds,ex.id,0),0);
+        const pace = st.sum>0? round(sum0/st.sum) : 0;
+        tiles += `<div class="ex-stat"><b>${pace}</b><span>${su}/${unit} ${L('tempo','pace')}</span></div>`;
+      }
+    }
+    const statsHtml = `<div class="ex-stats">${tiles}</div>`;
+    const sparkDates = period==='day'
+      ? (()=>{ const a=[]; const d=new Date(); for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);a.push(ymd(x));} return a; })()
+      : st.dates;
+
+    // ── Hvilken måling viser grafen? main · sec0..secN · pace (kun øvelser m. ekstra målinger) ──
+    const secs = secsOf(ex);
+    const hasSec = secs.length>0;
+    const canPace = ex.type==='distance' && secs.length>0;
+    let view = exView[ex.id]||'main';
+    // valider gemt view mod aktuelle målinger
+    const validViews = ['main', ...secs.map((s,i)=>'sec'+i), ...(canPace?['pace']:[])];
+    if(validViews.indexOf(view)<0) view='main';
+    function metricVal(ds){
+      if(view==='pace'){ const a=valFor(ds,ex.id), b=valSec(ds,ex.id,0); return (a>0&&b>0)? round(b/a) : 0; } // fx min/km
+      const m=/^sec(\d+)$/.exec(view); if(m) return valSec(ds,ex.id,Number(m[1]));
+      return valFor(ds,ex.id);
+    }
+    const pace0Unit = canPace ? (esc(secs[0].unit||'')+'/'+unit) : '';
+    function viewUnit(vw){ if(vw==='pace') return pace0Unit; const m=/^sec(\d+)$/.exec(vw); if(m) return esc(secs[Number(m[1])].unit||''); return unit; }
+    const metricUnit = viewUnit(view);
+    const lowerBetter = view==='pace'; // hurtigere tempo = lavere tal
+    let toggle='';
+    if(hasSec){
+      let btns = `<button class="${view==='main'?'on':''}" onclick="setExView('${ex.id}','main')">${unit||L('antal','count')}</button>`;
+      secs.forEach((sc,i)=>{ btns += `<button class="${view==='sec'+i?'on':''}" onclick="setExView('${ex.id}','sec${i}')">${esc(sc.unit||sc.label||('#'+(i+1)))}</button>`; });
+      if(canPace) btns += `<button class="${view==='pace'?'on':''}" onclick="setExView('${ex.id}','pace')">${pace0Unit}</button>`;
+      toggle = `<div class="metric-seg">${btns}</div>`;
+    }
+
+    const mvals = sparkDates.map(metricVal);
+    const max = Math.max(1, ...mvals, (view==='main' && ex.type!=='check' && ex.target ? Number(ex.target) : 0));
+    const sel = selSpark[ex.id];
+    const bars = sparkDates.map((ds,i)=>{
+      const v=mvals[i]; const h=Math.round(v/max*100);
+      const cls=(v>0?'hit':'')+(ds===todayStr()?' today':'')+(ds===sel?' sel':'');
+      return `<div class="col ${cls}" style="height:${Math.max(v>0?8:2,h)}%" onclick="sparkTap(this,'${ex.id}','${ds}',${v},'${metricUnit}')"></div>`;
+    }).join('');
+    const xaxis = period==='week'
+      ? '<div class="spark-x">'+sparkDates.map(ds=>`<span>${dShort(parseYmd(ds).getDay())[0]}</span>`).join('')+'</div>'
+      : (period==='day' ? '<div class="spark-x">'+sparkDates.map(ds=>`<span>${parseYmd(ds).getDate()}</span>`).join('')+'</div>' : '');
+
+    // Retnings-indikator: sammenlign første halvdel af de aktive målinger med sidste halvdel.
+    let cap = '';
+    if(hasSec){
+      const series = mvals.filter(v=>v>0);
+      let trend='';
+      if(series.length>=2){
+        const h=Math.floor(series.length/2);
+        const avg=a=>a.reduce((s,x)=>s+x,0)/a.length;
+        const early=avg(series.slice(0,h)), late=avg(series.slice(series.length-h));
+        if(Math.abs(late-early)>=0.05){
+          const improving = lowerBetter ? late<early : late>early;
+          const arrow = late<early?'↓':'↑';
+          trend = `<span class="trend" style="color:${improving?'var(--ok)':'var(--bad)'}">${arrow} ${improving?L('rigtig vej','right direction'):L('forkert vej','wrong direction')}</span>`;
+        }
+      }
+      const hint = view==='pace' ? L('lavere er bedre','lower is better') : '';
+      cap = `<div class="metric-cap"><span>${metricUnit}${hint?' · '+hint:''}</span>${trend}</div>`;
+    }
+
+    return `<div class="ex">
+      <div class="ex-top">
+        <div class="ex-ico">${esc(ex.icon||'🏋️')}</div>
+        <div class="ex-name">${esc(ex.name)}</div>
+        <div class="ex-sum">${st.sum} <small>/ ${st.target||'–'} ${unit}</small></div>
+      </div>
+      <div class="bar ${over?'over':''}"><i style="width:${pct}%"></i></div>
+      <div class="ex-goal"><span>${pct}% ${L('af mål','of goal')}</span><span>${st.scheduledDays} ${L('planlagte dage','scheduled days')}</span></div>
+      ${toggle}
+      <div class="spark">${bars}</div>${xaxis}
+      ${cap}
+      ${statsHtml}
+    </div>`;
+  }).join('');
+}
+
+// Tryk på en søjle → boble med præcis værdi + dato
+function sparkTap(el, exId, ds, v, unit){
+  selSpark[exId] = (selSpark[exId]===ds)? null : ds;
+  document.querySelectorAll('.spark .col.sel').forEach(c=>c.classList.remove('sel'));
+  if(selSpark[exId]){ el.classList.add('sel'); }
+  const dt=parseYmd(ds);
+  showBubble(el, `<b>${dt.getDate()}/${dt.getMonth()+1}</b> · ${rnd(v)} ${unit}`);
+}
+
+// ── Boble (tap-tooltip på kalender + graf) ──────────────────────────────────
+let bubbleTimer=null;
+function showBubble(targetEl, html){
+  const b=document.getElementById('bubble');
+  b.innerHTML=html;
+  b.classList.add('show');
+  const r=targetEl.getBoundingClientRect();
+  const bw=b.offsetWidth, bh=b.offsetHeight;
+  let x=r.left+r.width/2-bw/2; x=Math.max(8,Math.min(window.innerWidth-bw-8,x));
+  let y=r.top-bh-10; if(y<8) y=r.bottom+10;
+  b.style.left=x+'px'; b.style.top=y+'px';
+  clearTimeout(bubbleTimer); bubbleTimer=setTimeout(hideBubble,2600);
+}
+function hideBubble(){ document.getElementById('bubble').classList.remove('show'); }
+document.addEventListener('click',e=>{ if(!e.target.closest('.col')&&!e.target.closest('.cell')) hideBubble(); });
+
+function dayTxtOf(ex){ const days=(ex.days||[0,1,2,3,4,5,6]); return days.length===7?L('Hver dag','Every day'):days.slice().sort().map(d=>dShort(d)).join(', '); }
+function tgtTxtOf(ex){ const secTxt=secsOf(ex).map(s=>' + '+esc(s.label||'')+(s.unit?(' ('+esc(s.unit||'')+')'):'')).join(''); return (ex.type==='check'?L('afkrydsning','check-off'):(ex.target?(ex.target+' '+esc(ex.unit||'')+L('/dag','/day')):L('frit','free')))+secTxt; }
+function renderBuilder(){
+  const list=document.getElementById('builderList');
+  const coachEx=plan.exercises.filter(e=>e.owner==='coach');
+  const selfEx =plan.exercises.filter(e=>e.owner!=='coach');
+  let html='';
+  if(coachEx.length){
+    html += `<div class="sub-divider" style="margin-top:0">${L('Fra træneren 🥋 (kan ikke ændres)','From your coach 🥋 (read-only)')}</div>`;
+    html += coachEx.map(ex=>`<div class="bx locked">
+      <div class="bx-ico">${esc(ex.icon||'🏋️')}</div>
+      <div class="bx-body"><div class="bx-name">${esc(ex.name)} <span class="tag-coach">🥋 ${L('træner','coach')}</span></div><div class="bx-meta">${tgtTxtOf(ex)} · ${dayTxtOf(ex)}</div></div>
+    </div>`).join('');
+    html += `<div class="sub-divider">${L('Dine egne øvelser','Your own exercises')}</div>`;
+  }
+  if(selfEx.length){
+    html += selfEx.map(ex=>`<div class="bx">
+      <div class="bx-ico">${esc(ex.icon||'🏋️')}</div>
+      <div class="bx-body"><div class="bx-name">${esc(ex.name)}</div><div class="bx-meta">${tgtTxtOf(ex)} · ${dayTxtOf(ex)}</div></div>
+      <button class="icon-btn" title="${esc(L('Ret','Edit'))}" onclick="openExercise('${ex.id}')">✏️</button>
+      <button class="icon-btn" title="${esc(L('Slet','Delete'))}" onclick="delExercise('${ex.id}')">🗑️</button>
+    </div>`).join('');
+  } else if(!coachEx.length){
+    html = `<div class="empty">${L('Endnu ingen øvelser. Byg dit program 👇','No exercises yet. Build your program 👇')}</div>`;
+  } else {
+    html += `<div class="empty">${L('Du har ikke tilføjet egne øvelser endnu.',"You haven't added your own exercises yet.")}</div>`;
+  }
+  list.innerHTML = html;
+}
+// ── Logning ─────────────────────────────────────────────────────────────────
+// Byg en {v,s[]}-logværdi for en øvelse med ekstra målinger ud fra dagens værdier.
+function buildMetricLog(ex, t0, override){
+  const v = (override && override.field==='v') ? override.n : valFor(t0,ex.id);
+  const s = secsOf(ex).map((sc,i)=> (override && override.field==='s'+i) ? override.n : valSec(t0,ex.id,i));
+  return { v, s };
+}
+function setLog(exId, field, raw){
+  const wasAll=todayProgress().all;
+  const t0=todayStr(); plan.logs[t0]=plan.logs[t0]||{};
+  const ex=plan.exercises.find(e=>e.id===exId);
+  const n=Number(raw)||0;
+  if(secsOf(ex).length){
+    const o=buildMetricLog(ex, t0, {field, n});
+    if(!o.v && !o.s.some(x=>x>0)) delete plan.logs[t0][exId]; else plan.logs[t0][exId]=o;
+  } else {
+    if(n>0) plan.logs[t0][exId]=n; else delete plan.logs[t0][exId];
+  }
+  afterChange(wasAll);
+}
+function toggleDone(exId){
+  const wasAll=todayProgress().all;
+  const t0=todayStr(); plan.logs[t0]=plan.logs[t0]||{};
+  const ex=plan.exercises.find(e=>e.id===exId); const cur=valFor(t0,exId);
+  if(ex.type==='check'){ if(cur>0) delete plan.logs[t0][exId]; else plan.logs[t0][exId]=true; }
+  else {
+    const done = (Number(ex.target)||0)>0 ? cur>=Number(ex.target) : cur>0;
+    if(done){ delete plan.logs[t0][exId]; }
+    else { const pv=Number(ex.target)||cur+1||1; plan.logs[t0][exId]= secsOf(ex).length ? buildMetricLog(ex, t0, {field:'v', n:pv}) : pv; }
+  }
+  afterChange(wasAll);
+}
+
+// ── Toast + konfetti 🎉 ──────────────────────────────────────────────────────
+let toastTimer=null;
+function showToast(html){ const el=document.getElementById('toast'); el.innerHTML=html; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),4200); }
+document.getElementById('toast').addEventListener('click',()=>document.getElementById('toast').classList.remove('show'));
+const fx=document.getElementById('fx'), fxc=fx.getContext('2d');
+function fxResize(){ fx.width=innerWidth*devicePixelRatio; fx.height=innerHeight*devicePixelRatio; fxc.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+addEventListener('resize',fxResize); fxResize();
+function confetti(){
+  const cols=['#c9a23a','#16a34a','#4a6060','#ffffff','#1a2e2e']; const parts=[];
+  for(let i=0;i<120;i++){ parts.push({ x:innerWidth/2+(Math.random()-.5)*120, y:innerHeight*0.30, vx:(Math.random()-.5)*9, vy:-(6+Math.random()*9), g:0.28+Math.random()*0.12, s:5+Math.random()*7, rot:Math.random()*6.28, vr:(Math.random()-.5)*0.4, col:cols[i%cols.length] }); }
+  const t0=performance.now();
+  (function loop(now){ const el=now-t0; fxc.clearRect(0,0,innerWidth,innerHeight); let alive=false;
+    parts.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; if(p.y<innerHeight+30) alive=true; fxc.save(); fxc.translate(p.x,p.y); fxc.rotate(p.rot); fxc.globalAlpha=Math.max(0,1-el/2200); fxc.fillStyle=p.col; fxc.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6); fxc.restore(); });
+    if(alive && el<2400) requestAnimationFrame(loop); else fxc.clearRect(0,0,innerWidth,innerHeight);
+  })(t0);
+}
+
+// ── Bedrifter: personlige rekorder + milepæle ───────────────────────────────
+let recGuard={}; // exId -> højeste værdi vi allerede har fejret i denne session (undgår gentagne rekord-toasts)
+const TOTAL_MILESTONES={ reps:[100,250,500,1000,2500,5000,10000], distance:[10,25,50,100,250,500], time:[60,180,300,600,1200,3000], check:[10,25,50,100,200,365] };
+const STREAK_MILESTONES=[3,7,14,30,50,100,200,365];
+function allTimeTotal(ex){ let s=0; for(const ds in plan.logs){ s+=valFor(ds,ex.id); } return s; }
+function allTimeBestExcl(ex, exclDs){ let m=0; for(const ds in plan.logs){ if(ds===exclDs) continue; const v=valFor(ds,ex.id); if(v>m) m=v; } return m; }
+function currentBadges(){
+  const out={}; const streak=calcStreak();
+  STREAK_MILESTONES.forEach(s=>{ if(streak>=s) out['streak_'+s]=true; });
+  plan.exercises.forEach(ex=>{ const tot=allTimeTotal(ex); (TOTAL_MILESTONES[ex.type]||[]).forEach(th=>{ if(tot>=th) out['tot_'+ex.id+'_'+th]=true; }); });
+  return out;
+}
+function badgeLabel(key){
+  if(key.indexOf('streak_')===0){ return '🔥 '+key.split('_')[1]+L('-dages stime','-day streak'); }
+  if(key.indexOf('tot_')===0){ const p=key.split('_'); const th=p.pop(); const exId=p.slice(1).join('_'); const ex=plan.exercises.find(e=>e.id===exId); const unit= ex?(ex.type==='check'?L('dage','days'):esc(ex.unit||'')):''; return '🏅 '+th+' '+unit+(ex?' · '+esc(ex.name):''); }
+  return esc(key);
+}
+function detectRecords(){
+  const t0=todayStr(); const recs=[];
+  plan.exercises.forEach(ex=>{ if(ex.type==='check') return; const tv=valFor(t0,ex.id); if(tv<=0) return; const prev=allTimeBestExcl(ex,t0); if(prev>0 && tv>prev) recs.push({ex,v:tv}); });
+  return recs;
+}
+function checkAchievements(recs){
+  plan.badges=plan.badges||{};
+  const cur=currentBadges();
+  const fresh=Object.keys(cur).filter(k=>!plan.badges[k]);
+  fresh.forEach(k=>plan.badges[k]=todayStr());
+  const lines=[];
+  (recs||[]).forEach(r=> lines.push(L('🎉 Ny rekord — ','🎉 New record — ')+esc(r.ex.name)+': <b>'+rnd(r.v)+' '+esc(r.ex.unit||'')+'</b>'));
+  fresh.forEach(k=> lines.push(L('🏅 Ny bedrift: ','🏅 New achievement: ')+'<b>'+badgeLabel(k)+'</b>'));
+  if(lines.length){ showToast(lines.join('<br>')); confetti(); if(fresh.length) STORE.save(plan); renderBadges(); }
+}
+function renderBadges(){
+  const el=document.getElementById('badgeList'); if(!el) return;
+  const keys=Object.keys(plan.badges||{});
+  if(!keys.length){ el.innerHTML=`<div class="empty">${L('Ingen bedrifter endnu — log dine øvelser og saml rekorder og stimer 💪','No achievements yet — log your exercises to earn records and streaks 💪')}</div>`; return; }
+  const ord=k=>k.indexOf('streak_')===0?0:1;
+  keys.sort((a,b)=> ord(a)-ord(b) || a.localeCompare(b));
+  el.innerHTML = keys.map(k=>`<div class="badge">${badgeLabel(k)}</div>`).join('');
+}
+function todayProgress(){ const t0=todayStr(); const todays=plan.exercises.filter(ex=>isScheduled(ex,t0)); const done=todays.filter(ex=>isDoneOn(ex,t0)).length; return { done, total:todays.length, remaining:todays.length-done, all: todays.length>0 && done===todays.length }; }
+function afterChange(wasAll){
+  STORE.save(plan); render();
+  const recs=detectRecords().filter(r=> r.v > (recGuard[r.ex.id]||0));
+  recs.forEach(r=> recGuard[r.ex.id]=r.v);
+  checkAchievements(recs);
+  const tp=todayProgress();
+  if(!wasAll && tp.all){ confetti(); showToast(L('🎉 Perfekt dag! Alle dagens øvelser er fuldført.',"🎉 Perfect day! All of today's exercises done.")); }
+}
+
+// ── Builder-modal ───────────────────────────────────────────────────────────
+let mIcon='🏃', mDays=[1,2,3,4,5], mSecs=[];
+function renderMetricRows(){
+  const list=document.getElementById('mSecList');
+  list.innerHTML = mSecs.map((s,i)=>`<div class="metric-row">
+    <input class="metric-label" placeholder="${esc(L('Etiket (fx Tid)','Label (e.g. Time)'))}" value="${esc(s.label||'')}" oninput="mSecs[${i}].label=this.value">
+    <input class="metric-unit" placeholder="${esc(L('Enhed (fx min)','Unit (e.g. min)'))}" value="${esc(s.unit||'')}" oninput="mSecs[${i}].unit=this.value">
+    <button type="button" class="icon-btn metric-del" title="${esc(L('Fjern','Remove'))}" onclick="removeMetricRow(${i})">🗑️</button>
+  </div>`).join('');
+}
+function addMetricRow(){ mSecs.push({label:'',unit:''}); renderMetricRows(); }
+function removeMetricRow(i){ mSecs.splice(i,1); renderMetricRows(); }
+function openExercise(id, presetToday){
+  editingId = id||null;
+  const ex = id ? plan.exercises.find(e=>e.id===id) : null;
+  document.getElementById('mTitle').textContent = ex?L('Ret øvelse','Edit exercise'):L('Ny øvelse','New exercise');
+  document.getElementById('mName').value = ex?ex.name:'';
+  document.getElementById('mType').value = ex?ex.type:'reps';
+  document.getElementById('mUnit').value = ex?(ex.unit||''):'reps';
+  document.getElementById('mTarget').value = ex&&ex.target!=null?ex.target:'';
+  mSecs = ex ? secsOf(ex).map(s=>({label:s.label||'',unit:s.unit||''})) : [];
+  mIcon = ex?(ex.icon||'🏃'):'🏃';
+  mDays = ex?(ex.days?[...ex.days]:[0,1,2,3,4,5,6]):(presetToday?[new Date().getDay()]:[1,2,3,4,5]);
+  renderIconPick(); renderDayPick(); renderMetricRows(); onTypeChange();
+  document.getElementById('ov').classList.add('show');
+}
+function closeModal(){ document.getElementById('ov').classList.remove('show'); }
+function renderIconPick(){
+  document.getElementById('mIcons').innerHTML = ICONS.map(ic=>`<span class="${ic===mIcon?'on':''}" onclick="mIcon='${ic}';renderIconPick()">${ic}</span>`).join('');
+}
+function renderDayPick(){
+  document.getElementById('mDays').innerHTML = [0,1,2,3,4,5,6].map(i=>`<div class="day-pill ${mDays.includes(i)?'on':''}" onclick="toggleDay(${i})">${dShort(i)}</div>`).join('');
+}
+function toggleDay(i){ const k=mDays.indexOf(i); if(k>=0)mDays.splice(k,1); else mDays.push(i); renderDayPick(); }
+document.getElementById('mType').addEventListener('change', onTypeChange);
+function onTypeChange(){
+  const isCheck=document.getElementById('mType').value==='check';
+  document.getElementById('mTargetWrap').style.display=isCheck?'none':'';
+  document.getElementById('mSecWrap').style.display=isCheck?'none':'';
+}
+function saveExercise(){
+  const name=document.getElementById('mName').value.trim();
+  if(!name){ alert(L('Giv øvelsen et navn.','Please give the exercise a name.')); return; }
+  const type=document.getElementById('mType').value;
+  const secs = (type==='check') ? [] : mSecs
+    .map(s=>({label:(s.label||'').trim(), unit:(s.unit||'').trim()}))
+    .filter(s=>s.label || s.unit);
+  const obj={
+    id: editingId || ('ex_'+Date.now()+'_'+Math.floor(Math.random()*1000)),
+    name, icon:mIcon, type,
+    unit: type==='check'?'':document.getElementById('mUnit').value.trim(),
+    target: type==='check'?null:(Number(document.getElementById('mTarget').value)||0),
+    secs: secs,
+    days: mDays.length?[...mDays].sort():[0,1,2,3,4,5,6]
+  };
+  obj.owner='self';
+  plan.self = plan.self||[];
+  if(editingId){ const i=plan.self.findIndex(e=>e.id===editingId); if(i>=0) plan.self[i]=obj; else plan.self.push(obj); }
+  else plan.self.push(obj);
+  STORE.save(plan); closeModal(); syncActive(); render();
+}
+function delExercise(id){
+  const ex=(plan.self||[]).find(e=>e.id===id);
+  const msg = L('Slet "%s"? (Historik for øvelsen forsvinder fra visningen.)','Delete "%s"? (The exercise history disappears from view.)').replace('%s', ex?ex.name:'');
+  if(!confirm(msg)) return;
+  plan.self=(plan.self||[]).filter(e=>e.id!==id);
+  STORE.save(plan); syncActive(); render();
+}
+
+// ── Periode-toggle ──────────────────────────────────────────────────────────
+document.getElementById('seg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  period=b.dataset.p; selSpark={};
+  [...document.querySelectorAll('#seg button')].forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+
+// ── Lagring: backend (Apps Script) ───────────────────────────────────────────
+// Eleven er logget ind i elev.html, som gemmer email + password-hash i
+// sessionStorage (samme fane → deles med denne side). Vi gemmer KUN elevens egne
+// data (self/logs/badges); træner-øvelser er skrivebeskyttede og kommer fra biblioteket.
+const STUDENT = (()=>{ try{ return { email:sessionStorage.getItem('kk2_student_email'), hash:sessionStorage.getItem('kk2_student_hash') }; }catch(e){ return {email:null,hash:null}; } })();
+let _saveTimer=null;
+// STORE.save bevares som navn (kaldes mange steder) men gemmer nu mod backenden (debounced).
+const STORE = {
+  save(p){
+    if(!me || !STUDENT.hash) return;
+    clearTimeout(_saveTimer);
+    _saveTimer=setTimeout(()=>{
+      try{
+        fetch(SCRIPT_URL,{ method:'POST', headers:{'Content-Type':'text/plain'},
+          body:JSON.stringify(appAuthBody({
+            action:'saveTrainingPlan', memberId:me.memberId, passwordHash:STUDENT.hash,
+            plan:{ self:(p.self||[]), logs:(p.logs||{}), badges:(p.badges||{}) }
+          })) }).then(r=>r.json()).catch(()=>{});
+      }catch(e){}
+    }, 800);
+  }
+};
+
+// ── Henter elevens plan fra backenden (JSONP) ─────────────────────────────────
+function showFatal(msg){
+  document.querySelector('.layout').innerHTML =
+    `<div class="card" style="grid-column:1/-1"><div class="empty">${esc(msg)}<br><br>
+      <button class="btn" onclick="location.href='elev.html'">${L('Til min side','Back to my page')}</button></div></div>`;
+}
+function loadPlan(){
+  const name='_gtp'+Date.now();
+  const s=document.createElement('script');
+  const cleanup=()=>{ delete window[name]; if(s.parentNode) s.parentNode.removeChild(s); };
+  const timer=setTimeout(()=>{ cleanup(); showFatal(L('Kunne ikke hente din træningsplan (timeout). Prøv igen.','Could not load your training plan (timeout). Please try again.')); }, 15000);
+  window[name]=function(d){ clearTimeout(timer); cleanup(); onPlanLoaded(d); };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); showFatal(L('Netværksfejl — kunne ikke hente din træningsplan.','Network error — could not load your training plan.')); };
+  s.src = SCRIPT_URL + '?action=getTrainingPlan&email=' + encodeURIComponent(STUDENT.email)
+    + '&passwordHash=' + encodeURIComponent(STUDENT.hash) + '&callback=' + name + '&' + appAuthQS() + '&t=' + Date.now();
+  document.head.appendChild(s);
+}
+function onPlanLoaded(d){
+  if(!d || !d.ok){
+    // Træningsplan slået fra for eleven (samme gate som progress/graduering) → vis besked, ingen redirect
+    if(d && d.hidden){ showFatal(L('Din træningsplan er ikke slået til endnu. Spørg din træner.','Your training plan is not enabled yet. Ask your trainer.')); return; }
+    // Ikke autoriseret / forkert kode → tilbage til login i elev.html
+    if(d && d.error && /adgangskode|password|autor|Unauthorized/i.test(d.error)){ location.href='elev.html'; return; }
+    showFatal((d&&d.error) ? d.error : L('Kunne ikke hente din træningsplan.','Could not load your training plan.'));
+    return;
+  }
+  me = { memberId:d.memberId, name:d.name, group:d.group, belt:d.belt };
+  coachActive = d.coach || [];
+  plan = { self:(d.self||[]), exercises:[], logs:(d.logs||{}), badges:(d.badges||{}) };
+  syncActive();
+  // Seed bedrifter lydløst første gang (så historik ikke udløser en byge af toasts)
+  if(!plan.badges || !Object.keys(plan.badges).length){ plan.badges = currentBadges(); STORE.save(plan); }
+  // Prim rekord-vagten med dagens nuværende værdier (undgår "ny rekord" ved genindlæsning)
+  recGuard={}; plan.exercises.forEach(ex=>{ recGuard[ex.id]=valFor(todayStr(),ex.id); });
+  render();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+applyStaticLang();
+if(!STUDENT.email || !STUDENT.hash){
+  showFatal(L('Du er ikke logget ind. Log ind på din side først.','You are not logged in. Please log in on your page first.'));
+} else {
+  loadPlan();
+}
+</script>
+</body>
+</html>

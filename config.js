@@ -4,6 +4,16 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLWqovr35WjKrjfKBDjVHDlYf7P4rTzcGBddXxeGkazQjF6Mt0GnJ_eKMou6B8OQwY/exec';
 
 // ── Delt hemmelighed (bug #3) ──────────────────────────────────────────────
+// ⚠️ VIGTIGT — DETTE ER IKKE "AUTH". Denne fil serveres til browseren, så APP_SECRET
+// er reelt OFFENTLIG (kan ses i Kilde/DevTools af enhver bruger). Den er KUN en
+// anti-spam-spærre, der gør det lidt sværere at hamre endpointet anonymt med scripts.
+// Den RIGTIGE adgangskontrol er:
+//   • Elever: email + password-hash (verificeres server-side i handleGetStudent,
+//     med lockout efter 5 fejl — se apps-script.gs).
+//   • Trænere: PIN → server-udstedt token (requireAuth i apps-script.gs).
+// Stol ALDRIG på APP_SECRET som beskyttelse af følsomme data — det skal altid
+// håndhæves i backenden. Roteres ved at ændre værdien begge steder samtidig.
+//
 // Sendes med ALLE kald til Apps Script som en simpel anti-misbrugs-spærring, så
 // endpointet ikke kan hamres anonymt selvom SCRIPT_URL er offentligt synligt.
 // VIGTIGT: Denne værdi SKAL matche Script Property 'APP_SECRET' i Apps Script

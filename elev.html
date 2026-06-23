@@ -520,18 +520,28 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
           </div>
         </div>
       </div>
-      <div class="stats-row">
+      <div class="stats-row progress-only">
         <div class="stat" onclick="openTrainingsModal()"><div id="stTrain" class="stat-num">–</div><div class="stat-lbl">trainings this year</div></div>
         <div class="stat" onclick="openAllAssessments()"><div id="stVurd" class="stat-num">–</div><div class="stat-lbl">ratings</div></div>
         <div class="stat"><div id="stSnit" class="stat-num">–</div><div class="stat-lbl">latest average</div></div>
       </div>
     </div>
 
-    <div id="motivBox"></div>
+    <div class="card progress-only" id="trainingPlanEntry" onclick="location.href='traeningsplan.html'"
+         style="cursor:pointer;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--xtd),var(--xtm));color:#fff;border:none">
+      <div style="font-size:30px;line-height:1">🗓️</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:16px">Min træningsplan</div>
+        <div style="font-size:12.5px;opacity:.85">Dagens øvelser, dine mål og din udvikling — tjek dem af her</div>
+      </div>
+      <div style="font-size:22px;opacity:.9">→</div>
+    </div>
 
-    <div id="streakBox"></div>
+    <div id="motivBox" class="progress-only"></div>
 
-    <div class="card">
+    <div id="streakBox" class="progress-only"></div>
+
+    <div class="card progress-only">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
         <h3 style="margin:0">🏅 Your badges</h3>
         <select id="badgeScopeSelect" style="font-size:.72rem;padding:.15rem .45rem;border-radius:7px;border:1px solid #d1d5db;background:#f9fafb;color:#374151;cursor:pointer" onchange="renderBadges()">
@@ -542,11 +552,11 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <div id="badgesBox" class="badges"></div>
     </div>
 
-    <div class="card">
+    <div class="card progress-only">
       <div id="pensumCard"></div>
     </div>
 
-    <div class="card">
+    <div class="card progress-only">
       <h3>📊 Progress over time</h3>
       <div id="graphBox" class="graph"></div>
     </div>
@@ -557,13 +567,13 @@ document.addEventListener('DOMContentLoaded',()=>{try{['loginBadgeImg','topbarBa
       <ol id="focusList" style="margin:0;padding-left:22px;color:#0c4a6e;font-size:14px;line-height:1.5"></ol>
     </div>
 
-    <div class="card">
+    <div class="card progress-only">
       <h3>📝 Latest ratings</h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tap a rating to see all details</div>
       <ul id="alist" class="alist"></ul>
     </div>
 
-    <div class="card">
+    <div class="card progress-only">
       <h3>🎯 Progress per skill</h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tap a skill to see all your ratings of it</div>
       <div id="skills" class="skills"></div>
@@ -886,6 +896,8 @@ async function doLogin(){
   fetchStudentWithRetry(input, hash, (err, d)=>{
     if(err){ showErr('Could not fetch data: '+err.message); return; }
     if(!d || !d.ok){
+      // Server-side lockout har forrang: vis trænerens nulstil-besked rent (uden klient-tæller).
+      if(d && d.locked){ showErr(d.error || 'Account locked after too many failed attempts. Please ask your trainer to reset your password.'); return; }
       _bumpAttempts(input);
       const a = _getAttempts(input);
       const left = Math.max(0, _LOGIN_MAX - a.n);
@@ -912,6 +924,33 @@ async function doLogin(){
     renderDashboard(d);
     _startBgRefresh(); // start baggrundsopdatering
   });
+}
+
+// ── Auto-login inden for samme fane-session ────────────────────────────────
+// Når eleven allerede har logget ind (email + hash gemt i sessionStorage),
+// logges der automatisk ind igen ved reload ELLER ved retur fra træningsplanen,
+// så man ikke smides ud på login-skærmen. Bruger den GEMTE hash (intet password
+// at indtaste igen). Fejler kun pænt (fx hvis koden er skiftet) → normal login.
+function autoLoginFromSession(){
+  let email='', hash='';
+  try{ email=sessionStorage.getItem('kk2_student_email')||''; hash=sessionStorage.getItem('kk2_student_hash')||''; }catch(e){}
+  if(!email || !hash) return false;
+  document.getElementById('emailInput').value = email;
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginStatus').classList.add('show');
+  fetchStudentWithRetry(email, hash, (err, d)=>{
+    document.getElementById('loginBtn').disabled = false;
+    document.getElementById('loginStatus').classList.remove('show');
+    if(err || !d || !d.ok){
+      // Gemt session duer ikke længere (fx skiftet kode) → ryd og lad eleven logge normalt ind.
+      try{ sessionStorage.removeItem('kk2_student_hash'); }catch(e){}
+      return;
+    }
+    if(d.forcePasswordChange){ _changePwEmail=email; _changePwOldHash=hash; showChangePwView(); renderDashboard(d); return; }
+    renderDashboard(d);
+    _startBgRefresh();
+  });
+  return true;
 }
 
 // ── Baggrundsopdatering (hvert 3. minut) ───────────────
@@ -1188,7 +1227,7 @@ async function editStudentMessage(id){
   if(!trimmed){ alert('Message cannot be empty.'); return; }
   if(trimmed === m.text) return;
   const memberId = (CURRENT.member||{}).id || 0;
-  const res = await _studentMsgJsonp('editMessage', {id, memberId, text: trimmed});
+  const res = await _studentMsgJsonp('editMessage', {id, memberId, text: trimmed, passwordHash: sessionStorage.getItem('kk2_student_hash')||''});
   if(res.ok){
     m.text = trimmed;
     renderMessages();
@@ -1204,7 +1243,7 @@ async function deleteStudentMessage(id){
   if(!_canDeleteMessage(m)){ alert('You can only delete a message on the same day it was sent.'); renderMessages(); return; }
   if(!confirm('Delete this message?')) return;
   const memberId = (CURRENT.member||{}).id || 0;
-  const res = await _studentMsgJsonp('deleteMessage', {id, memberId});
+  const res = await _studentMsgJsonp('deleteMessage', {id, memberId, passwordHash: sessionStorage.getItem('kk2_student_hash')||''});
   if(res.ok){
     CURRENT.messages = (CURRENT.messages||[]).filter(x=>Number(x.id)!==Number(id));
     renderMessages();
@@ -1356,7 +1395,7 @@ function sendStudentMessage(){
   };
   timer = setTimeout(()=>{ cleanup(); status.textContent='⚠️ Timeout — try again.'; btn.disabled=false; }, 10000);
   s.onerror = ()=>{ cleanup(); status.textContent='⚠️ Network error.'; btn.disabled=false; };
-  s.src = SCRIPT_URL+'?action=sendMessage&memberId='+encodeURIComponent(m.id||'')+'&senderName='+encodeURIComponent(senderName)+'&text='+encodeURIComponent(text)+'&taggedMemberId='+encodeURIComponent(taggedId)+'&callback='+name+'&'+appAuthQS()+'&t='+Date.now();
+  s.src = SCRIPT_URL+'?action=sendMessage&memberId='+encodeURIComponent(m.id||'')+'&senderName='+encodeURIComponent(senderName)+'&text='+encodeURIComponent(text)+'&taggedMemberId='+encodeURIComponent(taggedId)+'&passwordHash='+encodeURIComponent(sessionStorage.getItem('kk2_student_hash')||'')+'&callback='+name+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
 
@@ -1546,6 +1585,7 @@ function sendVideoNotification(memberId, title) {
     + '&memberId=' + encodeURIComponent(memberId)
     + '&senderName=' + encodeURIComponent(name)
     + '&text=' + encodeURIComponent(text)
+    + '&passwordHash=' + encodeURIComponent(sessionStorage.getItem('kk2_student_hash')||'')
     + '&callback=' + cbName
     + '&' + appAuthQS()
     + '&t=' + Date.now();
@@ -1849,6 +1889,16 @@ function showSkillNote(skill){
 function renderDashboard(d){
   CURRENT = d;
   const m = d.member || {};
+
+  // ── Feature-gate: progress & graduering ──
+  // Serveren (handleGetStudent) har ALLEREDE udeladt progress-dataene hvis trænerne
+  // har slået det fra — dette skjuler blot kortene kosmetisk. Bruger setProperty med
+  // !important for at slå konkurrerende media-query-regler (display:block!important).
+  const _hideProgress = (m.progressSynlig===false || m.progressSynlig==='false');
+  document.querySelectorAll('.progress-only').forEach(el=>{
+    if(_hideProgress) el.style.setProperty('display','none','important');
+    else el.style.removeProperty('display');
+  });
   const pensum = d.pensum || {};
   const assessments = (d.assessments||[])
     .map(a => ({...a, date: a.date ? String(a.date).slice(0,10) : a.date}))
@@ -2451,13 +2501,7 @@ document.getElementById('passwordInput').addEventListener('keydown', e=>{
   if(e.key==='Enter') doLogin();
 });
 
-try{
-  const saved = sessionStorage.getItem('kk2_student_email');
-  if(saved){
-    document.getElementById('emailInput').value = saved;
-    doLogin();
-  }
-}catch(e){}
+autoLoginFromSession();
 </script>
 
 
@@ -2478,7 +2522,12 @@ try{
   function scrollToSelector(sel){const el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
   function ensureDock(){if(document.getElementById('uxDock'))return;const dock=document.createElement('div');dock.id='uxDock';dock.className='ux-dock';dock.innerHTML='<button type="button" title="Top" data-go=".hero">⌂</button><button type="button" title="Progress" data-go="#uxCommandCenter">✦</button><button type="button" title="Ratings" data-go="#alist">★</button><button type="button" title="Skills" data-go="#skills">◎</button><button type="button" title="Video" data-go="#videoCard">🎥</button><button type="button" title="Messages" data-go="#msgThread">💬</button>';dock.addEventListener('click',function(e){const btn=e.target.closest('button');if(!btn)return;if(btn.classList.contains('ux-theme')){nextTheme();return}const go=btn.getAttribute('data-go');if(go)scrollToSelector(go)});document.body.appendChild(dock);setTheme(getTheme())}
   function toast(title,body,icon){const old=document.querySelector('.ux-toast');if(old)old.remove();const el=document.createElement('div');el.className='ux-toast';el.innerHTML='<div class="ico">'+safeEscape(icon||'✨')+'</div><div><div class="t">'+safeEscape(title)+'</div><div class="b">'+safeEscape(body)+'</div></div>';document.body.appendChild(el);setTimeout(()=>{if(el&&el.parentNode)el.remove()},5200)}
-  function enhanceStudentUI(d){try{applyLogoVariable();ensureDock();const hero=document.querySelector('.hero');if(!hero||!d)return;const avg=calcSimpleAvg(d);const pct=avg==null?0:Math.max(0,Math.min(100,Math.round(avg/5*100)));const avgTxt=avg==null?'–':avg.toFixed(1).replace('.',',');const trainings=d.trainingsThisYear||(d.trainingDates||[]).length||0;const assessments=(d.sortedAssessments||d.assessments||[]).length;let streak=0;try{streak=typeof calcStreak==='function'?calcStreak(d.trainingDates||[]):0}catch(e){}const next=getNextBeltName(d);const first=(d.member&&d.member.firstName)||'there';let center=document.getElementById('uxCommandCenter');if(!center){center=document.createElement('div');center.id='uxCommandCenter';center.className='ux-command-center';hero.insertAdjacentElement('afterend',center)}center.innerHTML='<div class="ux-command-inner"><div class="ux-ring" style="--p:'+pct+'"><div style="display:grid;place-items:center;position:relative"><div class="ux-ring-val">'+avgTxt+'</div><div class="ux-ring-lbl">avg / 5</div></div></div><div class="ux-command-copy"><div class="ux-eyebrow">My progression</div><div class="ux-title">'+safeEscape(first)+', your next level is taking shape.</div><div class="ux-sub">A quick overview of your training momentum, latest rating and next belt direction — built on your existing data.</div><div class="ux-actions"><button type="button" class="ux-chip-btn primary" onclick="openAllAssessments && openAllAssessments()">See ratings</button><button type="button" class="ux-chip-btn" onclick="openTrainingsModal && openTrainingsModal()">Training log</button><button type="button" class="ux-chip-btn" onclick="document.getElementById(\'videoCard\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">Video feedback</button></div></div></div><div class="ux-metrics"><div class="ux-metric"><div class="k">Trainings this year</div><div class="v">'+safeEscape(trainings)+'</div></div><div class="ux-metric"><div class="k">Ratings</div><div class="v">'+safeEscape(assessments)+'</div></div><div class="ux-metric"><div class="k">Current streak</div><div class="v">'+safeEscape(streak?streak+' weeks':'Start now')+'</div></div><div class="ux-metric"><div class="k">Next belt</div><div class="v">'+safeEscape(next)+'</div></div></div>';if(!sessionStorage.getItem('kk2_ux_toast_seen')){sessionStorage.setItem('kk2_ux_toast_seen','1');toast('Dashboard upgraded',streak>=2?'You are on a '+streak+'-week streak. Keep it alive.':'New dashboard polish is active — use the floating dock to jump around.',streak>=2?'🔥':'✨')}}catch(err){console.warn('Student UX enhancement skipped:',err)}}
+  function enhanceStudentUI(d){try{applyLogoVariable();ensureDock();const hero=document.querySelector('.hero');if(!hero||!d)return;
+/* Feature-gate: skjul progress-command-center + progress-dock-knapper når trænerne har slået progress fra (serveren har allerede udeladt dataene) */
+var _hideProg=(d.member&&(d.member.progressSynlig===false||d.member.progressSynlig==='false'));
+if(_hideProg){var _c=document.getElementById('uxCommandCenter');if(_c)_c.style.setProperty('display','none','important');['#uxCommandCenter','#alist','#skills'].forEach(function(sel){var b=document.querySelector('#uxDock button[data-go="'+sel+'"]');if(b)b.style.display='none';});return;}
+else{['#uxCommandCenter','#alist','#skills'].forEach(function(sel){var _b=document.querySelector('#uxDock button[data-go="'+sel+'"]');if(_b)_b.style.display='';});}
+const avg=calcSimpleAvg(d);const pct=avg==null?0:Math.max(0,Math.min(100,Math.round(avg/5*100)));const avgTxt=avg==null?'–':avg.toFixed(1).replace('.',',');const trainings=d.trainingsThisYear||(d.trainingDates||[]).length||0;const assessments=(d.sortedAssessments||d.assessments||[]).length;let streak=0;try{streak=typeof calcStreak==='function'?calcStreak(d.trainingDates||[]):0}catch(e){}const next=getNextBeltName(d);const first=(d.member&&d.member.firstName)||'there';let center=document.getElementById('uxCommandCenter');if(!center){center=document.createElement('div');center.id='uxCommandCenter';center.className='ux-command-center';hero.insertAdjacentElement('afterend',center)}center.style.removeProperty('display');center.innerHTML='<div class="ux-command-inner"><div class="ux-ring" style="--p:'+pct+'"><div style="display:grid;place-items:center;position:relative"><div class="ux-ring-val">'+avgTxt+'</div><div class="ux-ring-lbl">avg / 5</div></div></div><div class="ux-command-copy"><div class="ux-eyebrow">My progression</div><div class="ux-title">'+safeEscape(first)+', your next level is taking shape.</div><div class="ux-sub">A quick overview of your training momentum, latest rating and next belt direction — built on your existing data.</div><div class="ux-actions"><button type="button" class="ux-chip-btn primary" onclick="openAllAssessments && openAllAssessments()">See ratings</button><button type="button" class="ux-chip-btn" onclick="openTrainingsModal && openTrainingsModal()">Training log</button><button type="button" class="ux-chip-btn" onclick="document.getElementById(\'videoCard\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">Video feedback</button></div></div></div><div class="ux-metrics"><div class="ux-metric"><div class="k">Trainings this year</div><div class="v">'+safeEscape(trainings)+'</div></div><div class="ux-metric"><div class="k">Ratings</div><div class="v">'+safeEscape(assessments)+'</div></div><div class="ux-metric"><div class="k">Current streak</div><div class="v">'+safeEscape(streak?streak+' weeks':'Start now')+'</div></div><div class="ux-metric"><div class="k">Next belt</div><div class="v">'+safeEscape(next)+'</div></div></div>';if(!sessionStorage.getItem('kk2_ux_toast_seen')){sessionStorage.setItem('kk2_ux_toast_seen','1');toast('Dashboard upgraded',streak>=2?'You are on a '+streak+'-week streak. Keep it alive.':'New dashboard polish is active — use the floating dock to jump around.',streak>=2?'🔥':'✨')}}catch(err){console.warn('Student UX enhancement skipped:',err)}}
   function patch(){if(typeof window.renderDashboard!=='function'||window.__uxRenderPatched)return;const original=window.renderDashboard;window.renderDashboard=function(d){const result=original.apply(this,arguments);setTimeout(()=>enhanceStudentUI(d||window.CURRENT),0);return result};window.__uxRenderPatched=true;if(window.CURRENT)setTimeout(()=>enhanceStudentUI(window.CURRENT),0)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){applyLogoVariable();patch()});else patch();setTimeout(function(){applyLogoVariable();patch()},300);
 })();

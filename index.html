@@ -157,6 +157,7 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
   <div class="nav-tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
   <div class="nav-tab" onclick="switchTab('promotion')" id="tab-promotion" style="display:none">🎯 Graduering</div>
   <div class="nav-tab" onclick="switchTab('board')" id="tab-board">📒 Interne notater</div>
+  <div class="nav-tab" onclick="switchTab('trainingplan')" id="tab-trainingplan">🗓️ Træningsplan</div>
 </nav>
 </div>
 
@@ -767,6 +768,75 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
   <div id="boardMeetingsList"></div>
 </div>
 
+<div class="page" id="page-trainingplan">
+  <div class="board-hero">
+    <h2>🗓️ Træningsplan — push øvelser til eleverne</h2>
+    <p>Opret øvelser og målret dem mod hele klubben, bestemte hold, bælter eller enkelte elever. Eleverne ser dem (skrivebeskyttet) i deres egen træningsplan, hvor de tikker af og logger.</p>
+  </div>
+  <div class="sh">
+    <div class="st">🥋 Øvelsesbibliotek</div>
+    <div class="controls">
+      <button class="btn bp" onclick="openTPExercise()">+ Ny øvelse</button>
+    </div>
+  </div>
+  <div id="tpLibList"></div>
+
+  <div class="sh" style="margin-top:1.6rem">
+    <div class="st">📊 Elevernes efterlevelse <span style="font-weight:400;color:var(--xtl);font-size:.8rem">(seneste 14 dage)</span></div>
+    <div class="controls">
+      <select class="fs" id="tpOvSort" onchange="renderTPOverview()">
+        <option value="pct">Sortér: laveste efterlevelse</option>
+        <option value="name">Sortér: navn</option>
+      </select>
+      <button class="btn bs" onclick="tpLoadOverview(true)">↻ Opdatér</button>
+    </div>
+  </div>
+  <div id="tpOverviewList"></div>
+</div>
+
+<div class="mbd" id="tpModal">
+  <div class="modal">
+    <div class="mtitle">
+      <div class="mtitle-left"><span>🥋</span><span id="tpMTitle">Ny øvelse</span></div>
+      <button class="mclose" onclick="closeModal('tpModal')">✕</button>
+    </div>
+    <div class="fg">
+      <div class="fgrp full"><label>Navn *</label><input type="text" id="tpName" placeholder="f.eks. Armbøjninger, Løb, Kata"/></div>
+      <div class="fgrp full"><label>Ikon</label><div class="tp-icons" id="tpIcons"></div></div>
+      <div class="fgrp"><label>Type</label>
+        <select class="form-select" id="tpType" onchange="tpOnTypeChange()">
+          <option value="reps">Antal (reps)</option>
+          <option value="distance">Distance</option>
+          <option value="time">Tid</option>
+          <option value="check">Bare afkrydsning</option>
+        </select>
+      </div>
+      <div class="fgrp"><label>Enhed</label><input type="text" id="tpUnit" placeholder="reps / km / min"/></div>
+      <div class="fgrp" id="tpTargetWrap"><label>Dagsmål (tal)</label><input type="number" id="tpTarget" min="0" step="1" placeholder="f.eks. 40"/></div>
+      <div class="fgrp full" id="tpSecWrap">
+        <label>Ekstra målinger <span class="tp-hint">(valgfri — fx Tid, Distance på løb)</span></label>
+        <div id="tpSecList"></div>
+        <button type="button" class="btn bs" style="padding:8px 12px;font-size:.85rem" onclick="tpAddMetricRow()">+ Tilføj måling</button>
+      </div>
+      <div class="fgrp full"><label>Hvilke ugedage?</label><div class="tp-days" id="tpDays"></div></div>
+    </div>
+    <div class="tp-divider">Hvem skal lave den?</div>
+    <label class="tp-allrow"><input type="checkbox" id="tpAll" onchange="tpOnAllChange()"> <span>Alle elever</span></label>
+    <div id="tpTargets" class="fg">
+      <div class="fgrp full"><label>Hold</label><div class="tp-days" id="tpGroups"></div></div>
+      <div class="fgrp"><label>Bælter <span class="tp-hint">(Ctrl/Cmd for flere)</span></label><select class="form-select" id="tpBelts" multiple size="6"></select></div>
+      <div class="fgrp"><label>Enkelte elever <span class="tp-hint">(valgfri)</span></label>
+        <input type="text" id="tpMemberSearch" class="form-select" placeholder="🔍 Søg elev…" style="margin-bottom:6px" oninput="tpFilterMembers(this.value)"/>
+        <select class="form-select" id="tpMembers" multiple size="6" onchange="tpSyncMemberSel()"></select>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="btn bg" onclick="closeModal('tpModal')">Annuller</button>
+      <button class="btn bp" onclick="tpSaveExercise()">💾 Gem & push</button>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-promotion">
   <div class="promo-hero">
     <h2>🎯 Graduering</h2>
@@ -914,6 +984,12 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
         <label style="display:flex;align-items:center;gap:.55rem;cursor:pointer;font-weight:400">
           <input type="checkbox" id="fBoardMember" style="width:16px;height:16px;accent-color:#6d28d9;cursor:pointer"/>
           <span>🏛️ Bestyrelsesmedlem <span style="font-size:.76rem;color:var(--xtl);font-weight:400">(modtager bestyrelsesmøde-påmindelser)</span></span>
+        </label>
+      </div>
+      <div class="fgrp full">
+        <label style="display:flex;align-items:center;gap:.55rem;cursor:pointer;font-weight:400">
+          <input type="checkbox" id="fProgressVisible" style="width:16px;height:16px;accent-color:#0369a1;cursor:pointer"/>
+          <span>📊 Vis progress &amp; graduering for eleven <span style="font-size:.76rem;color:var(--xtl);font-weight:400">(slå fra → eleven ser kun beskeder og video-upload)</span></span>
         </label>
       </div>
       <div class="fgrp">
