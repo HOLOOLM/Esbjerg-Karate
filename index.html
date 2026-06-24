@@ -782,10 +782,10 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
   <div id="tpLibList"></div>
 
   <div class="sh" style="margin-top:1.6rem">
-    <div class="st">📊 Elevernes efterlevelse <span style="font-weight:400;color:var(--xtl);font-size:.8rem">(seneste 14 dage)</span></div>
+    <div class="st">📊 Elevernes fremgang <span style="font-weight:400;color:var(--xtl);font-size:.8rem">(seneste 4 uger · tryk på en elev for detaljer)</span></div>
     <div class="controls">
       <select class="fs" id="tpOvSort" onchange="renderTPOverview()">
-        <option value="pct">Sortér: laveste efterlevelse</option>
+        <option value="pct">Sortér: laveste fremgang</option>
         <option value="name">Sortér: navn</option>
       </select>
       <button class="btn bs" onclick="tpLoadOverview(true)">↻ Opdatér</button>

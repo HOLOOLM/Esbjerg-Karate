@@ -1398,3 +1398,35 @@ input,select,textarea,button{max-width:100%;}
 .tp-bar>i{display:block;height:100%;border-radius:5px;transition:width .3s}
 .tp-pct{flex:0 0 auto;font-weight:700;font-size:1.05rem;min-width:48px;text-align:right}
 .tp-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* ── Elevernes fremgang: klikbare kort + detaljepanel ── */
+.tp-card{border:1px solid #e5e9e9;border-radius:12px;margin-bottom:8px;background:#fff;overflow:hidden;transition:box-shadow .2s,border-color .2s}
+.tp-card.open{border-color:#cdd9d9;box-shadow:0 4px 16px rgba(26,46,46,.10)}
+.tp-card .tp-row{border:0;border-radius:0;margin:0;background:transparent}
+.tp-clickable{cursor:pointer;transition:background .15s}
+.tp-clickable:hover{background:#f7faf9}
+/* Procent-ring (conic-gradient) i stedet for farvet prik */
+.tp-ring{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.tp-ring-in{width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.tp-ring-in b{font-size:12px;font-weight:800;line-height:1}
+.tp-ring-in small{font-size:8px;font-weight:700}
+.tp-caret{flex:0 0 auto;color:#94a3b8;font-size:15px;width:20px;text-align:center}
+.tp-detail{padding:4px 14px 16px;border-top:1px dashed #e5e9e9;animation:tpFade .25s ease}
+@keyframes tpFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.tp-dh{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8;margin:14px 0 8px}
+/* Uge-søjler */
+.tp-weeks{display:flex;gap:10px;align-items:flex-end}
+.tp-week{flex:1;min-width:0;text-align:center}
+.tp-wbar{height:64px;background:#f1f4f4;border-radius:7px;display:flex;align-items:flex-end;overflow:hidden}
+.tp-wbar>i{display:block;width:100%;border-radius:7px;transition:height .4s ease}
+.tp-wpct{font-size:12px;font-weight:700;margin-top:5px}
+.tp-wlbl{font-size:10px;color:#64748b}
+/* Øvelse-rækker */
+.tp-exlist{display:flex;flex-direction:column;gap:7px}
+.tp-exrow{display:flex;align-items:center;gap:9px;font-size:13px}
+.tp-exico{width:26px;height:26px;border-radius:8px;background:#eef4f2;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tp-exname{flex:0 0 34%;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-exbar{flex:1;height:7px;background:#eceeef;border-radius:5px;overflow:hidden}
+.tp-exbar>i{display:block;height:100%;border-radius:5px;transition:width .4s ease}
+.tp-exnum{flex:0 0 auto;color:#64748b;font-size:12px;min-width:38px;text-align:right}
+.tp-expct{flex:0 0 auto;font-weight:700;min-width:38px;text-align:right}

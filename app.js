@@ -10237,7 +10237,7 @@ const TP_BASE_GROUPS=['Børnehold','Basis-hold','Avanceret','Normalhold'];
 let tpLib=[], tpLoaded=false, tpLoading=false;
 let tpEditingId=null, tpIcon='🥋', tpDays=[1,3,5], tpGroups=[], tpSecs=[];
 let tpMemberItems=[], tpMemberSel=new Set(), tpMemberQuery='';
-let tpOverview=null, tpOvLoaded=false, tpOvLoading=false;
+let tpOverview=null, tpOvLoaded=false, tpOvLoading=false, tpExpanded=new Set();
 
 function tpGroupsAll(){ const extra=members.map(m=>m.group).filter(Boolean); return [...new Set([...TP_BASE_GROUPS,...extra])]; }
 function tpActiveMembers(){
@@ -10278,7 +10278,7 @@ function tpLoadLibrary(){
   document.head.appendChild(s);
 }
 function tpSaveLibrary(){
-  tpOvLoaded=false; // målretning kan have ændret sig → genindlæs efterlevelse ved næste visning
+  tpOvLoaded=false; // målretning kan have ændret sig → genindlæs fremgang ved næste visning
   fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
     body:JSON.stringify(appAuthBody({action:'saveTrainingLibrary', exercises:tpLib}))})
     .then(r=>r.json()).then(d=>{
@@ -10403,18 +10403,18 @@ function tpLoadOverview(force){
   if(force){ tpOvLoaded=false; }
   if(tpOvLoading) return;
   tpOvLoading=true;
-  const el=document.getElementById('tpOverviewList'); if(el) el.innerHTML='<div class="tp-empty">Henter efterlevelse…</div>';
+  const el=document.getElementById('tpOverviewList'); if(el) el.innerHTML='<div class="tp-empty">Henter fremgang…</div>';
   const cb='_tpov'+Date.now();
   const s=document.createElement('script');
   const cleanup=()=>{ delete window[cb]; if(s.parentNode)s.parentNode.removeChild(s); };
   const fail=(msg)=>{ const e2=document.getElementById('tpOverviewList'); if(e2) e2.innerHTML='<div class="tp-empty">'+escHtml(msg)+'</div>'; };
-  const timer=setTimeout(()=>{ cleanup(); tpOvLoading=false; fail('Kunne ikke hente efterlevelse (timeout).'); },15000);
+  const timer=setTimeout(()=>{ cleanup(); tpOvLoading=false; fail('Kunne ikke hente fremgang (timeout).'); },15000);
   window[cb]=function(d){ clearTimeout(timer); cleanup(); tpOvLoading=false;
     if(d&&d.authRequired){ if(typeof handleAuthExpired==='function') handleAuthExpired(); return; }
-    if(!d||!d.ok){ fail('Kunne ikke hente efterlevelse'+(d&&d.error?(': '+d.error):'')+'.'); return; }
+    if(!d||!d.ok){ fail('Kunne ikke hente fremgang'+(d&&d.error?(': '+d.error):'')+'.'); return; }
     tpOverview=d; tpOvLoaded=true; renderTPOverview();
   };
-  s.onerror=()=>{ clearTimeout(timer); cleanup(); tpOvLoading=false; fail('Netværksfejl — kunne ikke hente efterlevelse.'); };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); tpOvLoading=false; fail('Netværksfejl — kunne ikke hente fremgang.'); };
   s.src=SCRIPT_URL+'?action=getTrainingOverview&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
@@ -10423,26 +10423,59 @@ function tpPctColor(p){ return p>=80?'#10b981':p>=50?'#d97706':'#c0392b'; }
 function renderTPOverview(){
   const el=document.getElementById('tpOverviewList'); if(!el) return;
   if(!tpOverview){ el.innerHTML='<div class="tp-empty">Ingen data endnu.</div>'; return; }
-  let list=(tpOverview.students||[]).slice();
-  if(!list.length){ el.innerHTML='<div class="tp-empty">Ingen aktive elever med træningsplan slået til.</div>'; return; }
+  // Vis kun elever der faktisk har fået tildelt øvelser (s.assigned>0).
+  let list=(tpOverview.students||[]).filter(s=>s.assigned>0);
+  if(!list.length){ el.innerHTML='<div class="tp-empty">Ingen elever har fået tildelt øvelser endnu. Push en øvelse ovenfor, så dukker de op her.</div>'; return; }
   const sortBy=(document.getElementById('tpOvSort')||{}).value||'pct';
-  list.sort((a,b)=> sortBy==='name' ? a.name.localeCompare(b.name,'da') : (a.assigned&&b.assigned? a.pct-b.pct : b.assigned-a.assigned) );
+  list.sort((a,b)=> sortBy==='name' ? a.name.localeCompare(b.name,'da') : a.pct-b.pct );
   el.innerHTML=list.map(s=>{
-    if(!s.assigned){
-      return `<div class="tp-row"><div class="tp-dot" style="background:#94a3b8">${escHtml(tpInitials(s.name))}</div>
-        <div class="tp-body"><div class="tp-name">${escHtml(s.name)} <span class="tp-chip">${escHtml(s.group||'')}</span></div>
-        <div class="tp-meta">Ingen øvelser tildelt</div></div></div>`;
-    }
     const col=tpPctColor(s.pct);
-    const last=s.lastActive?('sidst aktiv '+tpFmtDate(s.lastActive)):'aldrig aktiv';
-    return `<div class="tp-row"><div class="tp-dot" style="background:${col}">${escHtml(tpInitials(s.name))}</div>
-      <div class="tp-body">
-        <div class="tp-name">${escHtml(s.name)} <span class="tp-chip">${escHtml(s.group||'')}</span></div>
-        <div class="tp-meta">${s.done}/${s.scheduled} planlagte gennemført · ${s.assigned} øvelse${s.assigned===1?'':'r'} · ${last}</div>
-        <div class="tp-bar"><i style="width:${s.pct}%;background:${col}"></i></div>
+    const open=tpExpanded.has(String(s.memberId));
+    const last=s.lastActive?('sidst aktiv '+tpFmtDate(s.lastActive)):'endnu ikke aktiv';
+    return `<div class="tp-card${open?' open':''}">
+      <div class="tp-row tp-clickable" onclick="tpToggleStudent('${escAttr(String(s.memberId))}')">
+        <div class="tp-ring" style="background:conic-gradient(${col} ${s.pct*3.6}deg, #eceeef 0)">
+          <span class="tp-ring-in"><b style="color:${col}">${s.pct}<small>%</small></b></span>
+        </div>
+        <div class="tp-body">
+          <div class="tp-name">${escHtml(s.name)} <span class="tp-chip">${escHtml(s.group||'')}</span></div>
+          <div class="tp-meta">${s.done}/${s.scheduled} planlagte gennemført · ${s.assigned} øvelse${s.assigned===1?'':'r'} · ${last}</div>
+          <div class="tp-bar"><i style="width:${s.pct}%;background:${col}"></i></div>
+        </div>
+        <span class="tp-caret">${open?'▾':'▸'}</span>
       </div>
-      <div class="tp-pct" style="color:${col}">${s.pct}%</div>
+      ${open?tpStudentDetail(s):''}
     </div>`;
   }).join('');
+}
+// Detaljepanel: pr. uge + pr. øvelse for én elev.
+function tpStudentDetail(s){
+  const weeks=(s.weeks||[]).map(w=>{
+    const col=tpPctColor(w.pct);
+    return `<div class="tp-week" title="${w.done}/${w.scheduled} gennemført">
+      <div class="tp-wbar"><i style="height:${Math.max(w.pct,3)}%;background:${col}"></i></div>
+      <div class="tp-wpct" style="color:${col}">${w.pct}%</div>
+      <div class="tp-wlbl">${escHtml(w.label)}</div>
+    </div>`;
+  }).join('');
+  const exs=(s.exercises||[]).slice().sort((a,b)=>a.pct-b.pct).map(ex=>{
+    const col=tpPctColor(ex.pct);
+    return `<div class="tp-exrow">
+      <span class="tp-exico">${escHtml(ex.icon||'🏋️')}</span>
+      <span class="tp-exname">${escHtml(ex.name)}</span>
+      <span class="tp-exbar"><i style="width:${ex.pct}%;background:${col}"></i></span>
+      <span class="tp-exnum">${ex.done}/${ex.scheduled}</span>
+      <span class="tp-expct" style="color:${col}">${ex.pct}%</span>
+    </div>`;
+  }).join('');
+  return `<div class="tp-detail">
+    ${weeks?`<div class="tp-dh">Pr. uge</div><div class="tp-weeks">${weeks}</div>`:''}
+    ${exs?`<div class="tp-dh">Pr. øvelse</div><div class="tp-exlist">${exs}</div>`:'<div class="tp-empty">Ingen øvelser planlagt i perioden.</div>'}
+  </div>`;
+}
+function tpToggleStudent(id){
+  id=String(id);
+  if(tpExpanded.has(id)) tpExpanded.delete(id); else tpExpanded.add(id);
+  renderTPOverview();
 }
 function tpFmtDate(ds){ try{ const p=String(ds).split('-'); return p[2]+'/'+p[1]; }catch(e){ return ds; } }
