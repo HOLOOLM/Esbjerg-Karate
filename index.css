@@ -1430,3 +1430,18 @@ input,select,textarea,button{max-width:100%;}
 .tp-exbar>i{display:block;height:100%;border-radius:5px;transition:width .4s ease}
 .tp-exnum{flex:0 0 auto;color:#64748b;font-size:12px;min-width:38px;text-align:right}
 .tp-expct{flex:0 0 auto;font-weight:700;min-width:38px;text-align:right}
+/* Klikbar øvelse → dag-for-dag-log */
+.tp-exwrap{border-radius:9px;transition:background .15s}
+.tp-exwrap.open{background:#f7faf9}
+.tp-exclick{cursor:pointer;padding:5px 6px;margin:-5px -6px;border-radius:9px}
+.tp-exclick:hover{background:#eef4f2}
+.tp-excaret{flex:0 0 auto;color:#a3b1b1;font-size:12px;width:14px;text-align:center}
+.tp-entries{display:flex;flex-direction:column;gap:1px;margin:6px 0 8px;padding:4px 6px;background:#fff;border:1px solid #eceeef;border-radius:9px;animation:tpFade .2s ease}
+.tp-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 8px;border-radius:7px;font-size:13px}
+.tp-entry:nth-child(odd){background:#f7faf9}
+.tp-edate{color:#64748b;font-weight:600;font-size:12px;flex:0 0 auto;text-transform:capitalize}
+.tp-eval{text-align:right;color:#1a2e2e}
+.tp-eval b{font-weight:800}
+.tp-edot{color:#cbd5d5;margin:0 6px}
+.tp-tick{color:#10b981;font-weight:700}
+.tp-noentries{font-size:12px;color:#94a3b8;padding:8px 10px;font-style:italic}

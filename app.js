@@ -10237,7 +10237,7 @@ const TP_BASE_GROUPS=['Børnehold','Basis-hold','Avanceret','Normalhold'];
 let tpLib=[], tpLoaded=false, tpLoading=false;
 let tpEditingId=null, tpIcon='🥋', tpDays=[1,3,5], tpGroups=[], tpSecs=[];
 let tpMemberItems=[], tpMemberSel=new Set(), tpMemberQuery='';
-let tpOverview=null, tpOvLoaded=false, tpOvLoading=false, tpExpanded=new Set();
+let tpOverview=null, tpOvLoaded=false, tpOvLoading=false, tpExpanded=new Set(), tpExpEx=new Set();
 
 function tpGroupsAll(){ const extra=members.map(m=>m.group).filter(Boolean); return [...new Set([...TP_BASE_GROUPS,...extra])]; }
 function tpActiveMembers(){
@@ -10460,19 +10460,56 @@ function tpStudentDetail(s){
   }).join('');
   const exs=(s.exercises||[]).slice().sort((a,b)=>a.pct-b.pct).map(ex=>{
     const col=tpPctColor(ex.pct);
-    return `<div class="tp-exrow">
-      <span class="tp-exico">${escHtml(ex.icon||'🏋️')}</span>
-      <span class="tp-exname">${escHtml(ex.name)}</span>
-      <span class="tp-exbar"><i style="width:${ex.pct}%;background:${col}"></i></span>
-      <span class="tp-exnum">${ex.done}/${ex.scheduled}</span>
-      <span class="tp-expct" style="color:${col}">${ex.pct}%</span>
+    const key=s.memberId+':'+ex.id;
+    const open=tpExpEx.has(key);
+    const reg=(ex.entries||[]).length;
+    return `<div class="tp-exwrap${open?' open':''}">
+      <div class="tp-exrow tp-exclick" onclick="tpToggleEx('${escAttr(String(s.memberId))}','${escAttr(ex.id)}')">
+        <span class="tp-exico">${escHtml(ex.icon||'🏋️')}</span>
+        <span class="tp-exname">${escHtml(ex.name)}</span>
+        <span class="tp-exbar"><i style="width:${ex.pct}%;background:${col}"></i></span>
+        <span class="tp-exnum">${ex.done}/${ex.scheduled}</span>
+        <span class="tp-expct" style="color:${col}">${ex.pct}%</span>
+        <span class="tp-excaret">${open?'▾':'▸'}</span>
+      </div>
+      ${open?tpExEntries(ex):''}
     </div>`;
   }).join('');
   return `<div class="tp-detail">
     ${weeks?`<div class="tp-dh">Pr. uge</div><div class="tp-weeks">${weeks}</div>`:''}
-    ${exs?`<div class="tp-dh">Pr. øvelse</div><div class="tp-exlist">${exs}</div>`:'<div class="tp-empty">Ingen øvelser planlagt i perioden.</div>'}
+    ${exs?`<div class="tp-dh">Pr. øvelse <span class="tp-hint">— tryk på en øvelse for datoer & tal</span></div><div class="tp-exlist">${exs}</div>`:'<div class="tp-empty">Ingen øvelser planlagt i perioden.</div>'}
   </div>`;
 }
+// Dag-for-dag-log for én øvelse: dato + primær værdi + ekstra målinger (fx tid på løb).
+function tpExEntries(ex){
+  const list=ex.entries||[];
+  if(!list.length) return '<div class="tp-noentries">Ingen registreringer i perioden endnu.</div>';
+  const defs=ex.secs||[];
+  const rows=list.map(en=>{
+    let val;
+    if(en.check){
+      val='<span class="tp-tick">✓ gennemført</span>';
+    } else {
+      const parts=['<b>'+tpNum(en.v)+'</b>'+(ex.unit?(' '+escHtml(ex.unit)):'')];
+      (en.s||[]).forEach((sv,i)=>{ const d=defs[i]||{}; parts.push((d.label?escHtml(d.label)+' ':'')+tpNum(sv)+(d.unit?(' '+escHtml(d.unit)):'')); });
+      val=parts.join('<span class="tp-edot">·</span>');
+    }
+    return `<div class="tp-entry"><span class="tp-edate">${escHtml(tpFmtDateFull(en.date))}</span><span class="tp-eval">${val}</span></div>`;
+  }).join('');
+  return `<div class="tp-entries">${rows}</div>`;
+}
+function tpToggleEx(mid,exid){
+  const key=mid+':'+exid;
+  if(tpExpEx.has(key)) tpExpEx.delete(key); else tpExpEx.add(key);
+  renderTPOverview();
+}
+// "ma 23/6" — ugedag-forkortelse + dato (lokal, undgår UTC-skæv parsing).
+function tpFmtDateFull(ds){
+  try{ const p=String(ds).split('-').map(Number); const dt=new Date(p[0],p[1]-1,p[2]);
+    return ['sø','ma','ti','on','to','fr','lø'][dt.getDay()]+' '+p[2]+'/'+p[1]; }
+  catch(e){ return ds; }
+}
+function tpNum(n){ n=Number(n)||0; return (Math.round(n*100)/100).toString(); }
 function tpToggleStudent(id){
   id=String(id);
   if(tpExpanded.has(id)) tpExpanded.delete(id); else tpExpanded.add(id);
