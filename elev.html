@@ -942,7 +942,9 @@ function autoLoginFromSession(){
     document.getElementById('loginBtn').disabled = false;
     document.getElementById('loginStatus').classList.remove('show');
     if(err || !d || !d.ok){
-      // Gemt session duer ikke længere (fx skiftet kode) → ryd og lad eleven logge normalt ind.
+      // Gemt session duer ikke længere (fx skiftet kode) → ryd hash'en og lad eleven
+      // logge normalt ind. kk2_student_email beholdes BEVIDST: den prefiller
+      // email-feltet ovenfor, så eleven kun skal taste sin kode igen.
       try{ sessionStorage.removeItem('kk2_student_hash'); }catch(e){}
       return;
     }

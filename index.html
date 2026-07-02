@@ -818,7 +818,13 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
         <div id="tpSecList"></div>
         <button type="button" class="btn bs" style="padding:8px 12px;font-size:.85rem" onclick="tpAddMetricRow()">+ Tilføj måling</button>
       </div>
-      <div class="fgrp full"><label>Hvilke ugedage?</label><div class="tp-days" id="tpDays"></div></div>
+      <div class="fgrp full"><label>Hvor ofte?</label>
+        <div class="tp-days" id="tpMode"></div>
+        <div id="tpDaysWrap"><div class="tp-days" id="tpDays"></div></div>
+        <div id="tpWeeklyWrap" style="display:none;align-items:center;gap:8px">
+          <input type="number" id="tpWeekly" min="1" max="7" step="1" value="3" style="width:80px"/> <span class="tp-hint">gange om ugen — eleven vælger selv dagene</span>
+        </div>
+      </div>
     </div>
     <div class="tp-divider">Hvem skal lave den?</div>
     <label class="tp-allrow"><input type="checkbox" id="tpAll" onchange="tpOnAllChange()"> <span>Alle elever</span></label>

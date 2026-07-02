@@ -10236,6 +10236,7 @@ const TP_DAY_SHORT=['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
 const TP_BASE_GROUPS=['Børnehold','Basis-hold','Avanceret','Normalhold'];
 let tpLib=[], tpLoaded=false, tpLoading=false;
 let tpEditingId=null, tpIcon='🥋', tpDays=[1,3,5], tpGroups=[], tpSecs=[];
+let tpModeVal='days', tpWeeklyVal=3; // 'days' = faste ugedage · 'week' = N gange om ugen (ex.weekly)
 let tpMemberItems=[], tpMemberSel=new Set(), tpMemberQuery='';
 let tpOverview=null, tpOvLoaded=false, tpOvLoading=false, tpExpanded=new Set(), tpExpEx=new Set();
 
@@ -10254,12 +10255,17 @@ function tpAssignSummary(a){
   if((a.members||[]).length){ const nm=(a.members||[]).map(id=>{ const m=members.find(x=>x.id===Number(id)); return m?(((m.firstName||'')+' '+(m.lastName||'')).trim()):('#'+id); }); p.push(nm.join(', ')); }
   return p.join(' · ') || 'Ingen modtagere';
 }
-function tpDayTxt(ex){ const d=(ex.days||[0,1,2,3,4,5,6]); return d.length===7?'Hver dag':d.slice().sort().map(i=>TP_DAY_SHORT[i]).join(', '); }
+// Uge-mode: ex.weekly = 1..7 → "N gange om ugen" (valgfrie dage). 0 = dage-mode (faste ex.days).
+// SKAL matche weeklyOf() i traeningsplan.html og _tpWeeklyOf() i apps-script.gs.
+function weeklyOf(ex){ const n=Number(ex&&ex.weekly); return (n>=1&&n<=7)?Math.round(n):0; }
+function tpDayTxt(ex){ const w=weeklyOf(ex); if(w) return w===7?'Hver dag':(w+'× om ugen'); const d=(ex.days||[0,1,2,3,4,5,6]); return d.length===7?'Hver dag':d.slice().sort().map(i=>TP_DAY_SHORT[i]).join(', '); }
 function tpSecsOf(ex){ return Array.isArray(ex.secs)?ex.secs : (ex.sec?[ex.sec]:[]); }
-function tpTgtTxt(ex){ const base=ex.type==='check'?'afkrydsning':(ex.target?(ex.target+' '+(ex.unit||'')+'/dag'):'frit'); const extra=tpSecsOf(ex).map(s=>' + '+(s.label||'')+(s.unit?(' ('+s.unit+')'):'')).join(''); return base+extra; }
+function tpTgtTxt(ex){ const per=weeklyOf(ex)?'/gang':'/dag'; const base=ex.type==='check'?'afkrydsning':(ex.target?(ex.target+' '+(ex.unit||'')+per):'frit'); const extra=tpSecsOf(ex).map(s=>' + '+(s.label||'')+(s.unit?(' ('+s.unit+')'):'')).join(''); return base+extra; }
 
-function tpEnsureLoaded(){ if(tpLoaded||tpLoading){ renderTPList(); } else { tpLoadLibrary(); } tpEnsureOverview(); }
-function tpEnsureOverview(){ if(tpOvLoaded||tpOvLoading){ renderTPOverview(); return; } tpLoadOverview(); }
+// Ved tpLoading: gør intet — "Henter øvelser…"-placeholderen står allerede, og
+// load-callbacket kalder selv renderTPList (ellers overskrives den med "Ingen øvelser endnu").
+function tpEnsureLoaded(){ if(tpLoaded){ renderTPList(); } else if(!tpLoading){ tpLoadLibrary(); } tpEnsureOverview(); }
+function tpEnsureOverview(){ if(tpOvLoaded){ renderTPOverview(); } else if(!tpOvLoading){ tpLoadOverview(); } }
 function tpLoadLibrary(){
   tpLoading=true;
   const list=document.getElementById('tpLibList'); if(list) list.innerHTML='<div class="tp-empty">Henter øvelser…</div>';
@@ -10340,6 +10346,17 @@ function tpSyncMemberSel(){ // synk valg fra de SYNLIGE options (skjulte/filtrer
 }
 function tpFilterMembers(q){ tpSyncMemberSel(); tpMemberQuery=q||''; tpRenderMembers(); }
 function tpOnTypeChange(){ const isCheck=document.getElementById('tpType').value==='check'; document.getElementById('tpTargetWrap').style.display=isCheck?'none':''; const sw=document.getElementById('tpSecWrap'); if(sw) sw.style.display=isCheck?'none':''; }
+// ── Frekvens-mode: faste ugedage vs. "N gange om ugen" ──
+function tpSetMode(m){ tpModeVal=m; tpRenderMode(); }
+function tpRenderMode(){
+  const el=document.getElementById('tpMode'); if(!el) return;
+  el.innerHTML=`<div class="pill ${tpModeVal==='days'?'on':''}" onclick="tpSetMode('days')">Faste ugedage</div>
+    <div class="pill ${tpModeVal==='week'?'on':''}" onclick="tpSetMode('week')">Antal gange om ugen</div>`;
+  const dw=document.getElementById('tpDaysWrap'), ww=document.getElementById('tpWeeklyWrap');
+  if(dw) dw.style.display=tpModeVal==='days'?'':'none';
+  if(ww) ww.style.display=tpModeVal==='week'?'flex':'none';
+  const wi=document.getElementById('tpWeekly'); if(wi) wi.value=tpWeeklyVal;
+}
 function tpOnAllChange(){ const all=document.getElementById('tpAll').checked; const t=document.getElementById('tpTargets'); t.style.opacity=all?'.4':'1'; t.style.pointerEvents=all?'none':'auto'; }
 function openTPExercise(id){
   tpEditingId=id||null;
@@ -10351,11 +10368,13 @@ function openTPExercise(id){
   document.getElementById('tpTarget').value=ex&&ex.target!=null?ex.target:'';
   tpIcon=ex?(ex.icon||'🥋'):'🥋';
   tpDays=ex?(ex.days?[...ex.days]:[1,3,5]):[1,3,5];
+  tpModeVal=weeklyOf(ex)?'week':'days';
+  tpWeeklyVal=weeklyOf(ex)||3;
   tpSecs=ex?tpSecsOf(ex).map(s=>({label:s.label||'',unit:s.unit||''})):[];
   const a=(ex&&ex.assign)?ex.assign:{all:true,groups:[],belts:[],members:[]};
   tpGroups=[...(a.groups||[])];
   document.getElementById('tpAll').checked=!!a.all;
-  tpRenderIcons(); tpRenderDays(); tpRenderGroups(); tpRenderMetricRows();
+  tpRenderIcons(); tpRenderDays(); tpRenderGroups(); tpRenderMetricRows(); tpRenderMode();
   tpFillMulti('tpBelts', BELT_ORDER.map(b=>({v:b,t:b})), (a.belts||[]));
   tpMemberItems=tpActiveMembers().map(m=>({v:m.id,t:m.name+(m.group?(' · '+m.group):'')}));
   tpMemberSel=new Set((a.members||[]).map(String));
@@ -10378,14 +10397,20 @@ function tpSaveExercise(){
   const secs = type==='check' ? [] : tpSecs
     .map(s=>({label:(s.label||'').trim(), unit:(s.unit||'').trim()}))
     .filter(s=>s.label || s.unit);
+  // Uge-mode: weekly=N + days=[0..6] (så en forældet klient degraderer til "Hver dag").
+  const weekly = tpModeVal==='week' ? Math.min(7,Math.max(1,Math.round(Number(document.getElementById('tpWeekly').value)||tpWeeklyVal||3))) : null;
   const obj={ id: tpEditingId || ('co_'+Date.now()+'_'+Math.floor(Math.random()*1000)),
     name, icon:tpIcon, type,
     unit: type==='check'?'':document.getElementById('tpUnit').value.trim(),
     target: type==='check'?null:(Number(document.getElementById('tpTarget').value)||0),
-    secs: secs,
-    days: tpDays.length?[...tpDays].sort():[0,1,2,3,4,5,6], assign };
+    secs: secs, weekly: weekly,
+    days: weekly?[0,1,2,3,4,5,6]:(tpDays.length?[...tpDays].sort():[0,1,2,3,4,5,6]), assign };
   const wasEditing=!!tpEditingId;
-  if(wasEditing){ const i=tpLib.findIndex(e=>e.id===tpEditingId); if(i>=0) tpLib[i]=obj; else tpLib.push(obj); }
+  if(wasEditing){
+    const i=tpLib.findIndex(e=>e.id===tpEditingId);
+    if(i>=0) tpLib[i]=obj;
+    else { tpLib.push(obj); showToast('⚠️ Øvelsen fandtes ikke længere — gemt som ny'); } // fx slettet af en anden træner
+  }
   else tpLib.push(obj);
   closeModal('tpModal'); renderTPList(); tpSaveLibrary();
   showToast(wasEditing?('✏️ "'+name+'" opdateret'):('✅ "'+name+'" pushet til eleverne'));
@@ -10439,7 +10464,7 @@ function renderTPOverview(){
         </div>
         <div class="tp-body">
           <div class="tp-name">${escHtml(s.name)} <span class="tp-chip">${escHtml(s.group||'')}</span></div>
-          <div class="tp-meta">${s.done}/${s.scheduled} planlagte gennemført · ${s.assigned} øvelse${s.assigned===1?'':'r'} · ${last}</div>
+          <div class="tp-meta">${s.done}/${s.scheduled} ugentlige mål nået · ${s.assigned} øvelse${s.assigned===1?'':'r'} · ${last}</div>
           <div class="tp-bar"><i style="width:${s.pct}%;background:${col}"></i></div>
         </div>
         <span class="tp-caret">${open?'▾':'▸'}</span>
@@ -10452,7 +10477,7 @@ function renderTPOverview(){
 function tpStudentDetail(s){
   const weeks=(s.weeks||[]).map(w=>{
     const col=tpPctColor(w.pct);
-    return `<div class="tp-week" title="${w.done}/${w.scheduled} gennemført">
+    return `<div class="tp-week" title="${w.done}/${w.scheduled} mål nået">
       <div class="tp-wbar"><i style="height:${Math.max(w.pct,3)}%;background:${col}"></i></div>
       <div class="tp-wpct" style="color:${col}">${w.pct}%</div>
       <div class="tp-wlbl">${escHtml(w.label)}</div>
