@@ -825,6 +825,8 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
           <input type="number" id="tpWeekly" min="1" max="7" step="1" value="3" style="width:80px"/> <span class="tp-hint">gange om ugen — eleven vælger selv dagene</span>
         </div>
       </div>
+      <div class="fgrp"><label>Blok fra <span class="tp-hint">(valgfri — fx graduerings-forberedelse)</span></label><input type="date" id="tpStart" class="form-select"/></div>
+      <div class="fgrp"><label>Blok til <span class="tp-hint">(valgfri)</span></label><input type="date" id="tpEnd" class="form-select"/></div>
     </div>
     <div class="tp-divider">Hvem skal lave den?</div>
     <label class="tp-allrow"><input type="checkbox" id="tpAll" onchange="tpOnAllChange()"> <span>Alle elever</span></label>

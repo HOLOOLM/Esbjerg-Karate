@@ -1413,7 +1413,7 @@ function doLogout(){
 
 function initials(f,l){ return ((f||'')[0]||'') + ((l||'')[0]||''); }
 function photoUrl(id, sz){ return 'https://lh3.googleusercontent.com/d/'+id+'=s'+(sz||160); }
-function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeHtml(s){ return escHtml(s); } // delegerer til den delte escHtml (config.js) — samme logik, én kilde
 
 // ── Video-sektion ─────────────────────────────────────────
 function renderVideoSection(m) {
@@ -2511,7 +2511,7 @@ autoLoginFromSession();
 /* STUNNING FINAL UX layer — no backend changes */
 (function(){
   const THEMES=['dojo','calm','night'];
-  function safeEscape(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function safeEscape(s){return escHtml(s);} // delegerer til den delte escHtml (config.js)
   function applyLogoVariable(){try{if(typeof SHURI_BADGE!=='undefined'&&SHURI_BADGE){document.documentElement.style.setProperty('--ux-logo-url','url("'+SHURI_BADGE+'")')}}catch(e){}}
   function getTheme(){try{return localStorage.getItem('kk2_student_theme')||'dojo'}catch(e){return'dojo'}}
   function setTheme(t){document.body.setAttribute('data-student-theme',t);try{localStorage.setItem('kk2_student_theme',t)}catch(e){}const b=document.querySelector('.ux-theme');if(b)b.textContent=t==='night'?'☀️':t==='calm'?'🌙':'🎨'}
@@ -2539,7 +2539,7 @@ const avg=calcSimpleAvg(d);const pct=avg==null?0:Math.max(0,Math.min(100,Math.ro
 <script>
 /* FINAL COMPLETE V2 — My progression, robust streak and table watermarks */
 (function(){
-  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function esc(s){return escHtml(s);} // delegerer til den delte escHtml (config.js)
   function applyLogo(){try{if(typeof SHURI_BADGE!=='undefined'&&SHURI_BADGE){document.documentElement.style.setProperty('--ux-logo-url','url("'+SHURI_BADGE+'")')}}catch(e){}}
   function ratingsOfLocal(a){if(!a||!a.ratings)return{};if(typeof a.ratings==='object')return a.ratings;try{return JSON.parse(a.ratings)||{}}catch(e){return{}}}
   function avgOfLocal(r){const v=Object.values(r||{}).map(Number).filter(x=>x>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}

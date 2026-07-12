@@ -57,6 +57,7 @@ let studentActiveToday=false;
 let nextMessageId=1;
 let deletedAssessmentIds=new Set();
 let deletedBoardIds=new Set();
+let deletedSessionDates=new Set();
 let _pendingPasswordResets=new Set();
 let gultPensumOverrides={}; // {memberId: true} — gemt separat, overlever cloud-sync
 let nextBoardId=1, editingBoardId=null;
@@ -307,6 +308,7 @@ function load(){
     boardMeetings.forEach(b=>{ b.date=normDateStr(b.date); });
     nextBoardId=boardMeetings.reduce((x,b)=>Math.max(x,b.id+1),1);
     try{ deletedBoardIds=new Set(JSON.parse(localStorage.getItem('kk2_deletedBoards')||'[]')); }catch(e){ deletedBoardIds=new Set(); }
+    try{ deletedSessionDates=new Set(JSON.parse(localStorage.getItem('kk2_deletedSessions')||'[]')); }catch(e){ deletedSessionDates=new Set(); }
     const gpv=localStorage.getItem('kk2_gultPensum');
     gultPensumOverrides=gpv?JSON.parse(gpv):{};
     const msgv=localStorage.getItem('kk2_messages');
@@ -847,7 +849,7 @@ window.addEventListener('visibilitychange',()=>{
       try{
         let vault={};
         try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
-        const body=JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}));
+        const body=JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],deletedSessionDates:[...deletedSessionDates],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}));
         navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
       }catch(e){}
     }
@@ -876,7 +878,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}))
+    body:JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],deletedSessionDates:[...deletedSessionDates],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}))
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -931,8 +933,15 @@ function loadFromCloud(onDone,_attempt){
       members.forEach(mb=>{ if(gultPensumOverrides[mb.id]) mb.gultPensum=true; });
       // Omdøb "Normal hold" → "Basis-hold" i Sheets-data
       members.forEach(mb=>{ if(mb.group==='Normal hold') mb.group='Basis-hold'; });
+      // Synkroniser deletedSessionDates fra cloud — union af lokale + cloud (samme
+      // mønster som deletedAssessmentIds), så en session slettet fra en anden enhed
+      // ikke ved et uheld genopstår her.
+      if(Array.isArray(d.deletedSessionDates)&&d.deletedSessionDates.length){
+        d.deletedSessionDates.forEach(ds=>deletedSessionDates.add(ds));
+        localStorage.setItem('kk2_deletedSessions',JSON.stringify([...deletedSessionDates]));
+      }
       const _prevSessions=sessions;
-      sessions=(d.sessions||[]).map(s=>({...s,date:s.date?String(s.date).slice(0,10):s.date}));
+      sessions=(d.sessions||[]).map(s=>({...s,date:s.date?String(s.date).slice(0,10):s.date})).filter(s=>!deletedSessionDates.has(s.date));
       // Bevar lokale noter + sessioner der endnu ikke er synket til Sheets
       sessions.forEach(s=>{
         if(s.note==null){const prev=_prevSessions.find(p=>p.date===s.date);if(prev&&prev.note)s.note=prev.note;}
@@ -6019,6 +6028,8 @@ function deleteSession(){
   const cnt=(sess&&sess.presentIds||[]).length;
   if(!confirm(`Slet sessionen den ${fmtDate(ds)} permanent?\n\n${cnt} fremmøderegistrering${cnt===1?'':'er'} vil gå tabt.\n\nDette kan ikke fortrydes.`))return;
   sessions=sessions.filter(s=>s.date!==ds);
+  deletedSessionDates.add(ds);
+  localStorage.setItem('kk2_deletedSessions',JSON.stringify([...deletedSessionDates]));
   const ci=cancelledDates.indexOf(ds);
   if(ci>=0)cancelledDates.splice(ci,1);
   save();pushToCloud();
@@ -10295,16 +10306,28 @@ function tpSaveLibrary(){
 function renderTPList(){
   const el=document.getElementById('tpLibList'); if(!el) return;
   if(!tpLib.length){ el.innerHTML='<div class="tp-empty">Ingen øvelser endnu. Tryk "+ Ny øvelse" for at pushe den første ud til eleverne.</div>'; return; }
-  el.innerHTML=tpLib.map(ex=>`<div class="tp-row">
+  // Aktive først, arkiverede nederst (dæmpet, med gendan/permanent-slet).
+  el.innerHTML=tpLib.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)).map(ex=>`<div class="tp-row${ex.archived?' tp-row-archived':''}">
     <div class="tp-ico">${escHtml(ex.icon||'🏋️')}</div>
     <div class="tp-body">
-      <div class="tp-name">${escHtml(ex.name)} <span class="tp-chip">${escHtml(tpTgtTxt(ex))} · ${escHtml(tpDayTxt(ex))}</span></div>
+      <div class="tp-name">${escHtml(ex.name)} <span class="tp-chip">${escHtml(tpTgtTxt(ex))} · ${escHtml(tpDayTxt(ex))}</span>${ex.archived?' <span class="tp-chip">📦 arkiveret</span>':''}${(ex.startDate||ex.endDate)?` <span class="tp-chip">📅 ${escHtml(tpBlockTxt(ex))}</span>`:''}</div>
       <div class="tp-meta">→ ${escHtml(tpAssignSummary(ex.assign))}</div>
     </div>
-    <button class="tp-iconbtn" title="Kopiér til andre elever" onclick="tpDuplicateExercise('${escAttr(ex.id)}')">📋</button>
-    <button class="tp-iconbtn" title="Ret" onclick="openTPExercise('${escAttr(ex.id)}')">✏️</button>
-    <button class="tp-iconbtn" title="Slet" onclick="tpDeleteExercise('${escAttr(ex.id)}')">🗑️</button>
+    ${ex.archived
+      ? `<button class="tp-iconbtn" title="Gendan — bliver aktiv hos eleverne igen" onclick="tpRestoreExercise('${escAttr(ex.id)}')">♻️</button>
+         <button class="tp-iconbtn" title="Slet permanent" onclick="tpDeleteExercise('${escAttr(ex.id)}')">🗑️</button>`
+      : `<button class="tp-iconbtn" title="Kopiér til andre elever" onclick="tpDuplicateExercise('${escAttr(ex.id)}')">📋</button>
+         <button class="tp-iconbtn" title="Ret" onclick="openTPExercise('${escAttr(ex.id)}')">✏️</button>
+         <button class="tp-iconbtn" title="Arkivér — historik bevares, kan gendannes" onclick="tpArchiveExercise('${escAttr(ex.id)}')">📦</button>`}
   </div>`).join('');
+}
+// "12/8–8/9 · afsluttet" — kort blok-periode til biblioteks-chippen.
+function tpBlockTxt(ex){
+  const f=ds=>{ if(!ds) return '…'; const p=String(ds).split('-'); return Number(p[2])+'/'+Number(p[1]); };
+  const n=new Date(); // LOKAL dato — ikke UTC (Bug 3-lektien: undgå dags-skæv ved midnat)
+  const t0=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+  const state = ex.endDate&&t0>ex.endDate ? ' · afsluttet' : (ex.startDate&&t0<ex.startDate ? ' · kommende' : '');
+  return f(ex.startDate)+'–'+f(ex.endDate)+state;
 }
 // Kopiér en eksisterende øvelse → åbn editoren som NY (samme indhold, ny målretning).
 function tpDuplicateExercise(id){
@@ -10371,6 +10394,8 @@ function openTPExercise(id){
   tpModeVal=weeklyOf(ex)?'week':'days';
   tpWeeklyVal=weeklyOf(ex)||3;
   tpSecs=ex?tpSecsOf(ex).map(s=>({label:s.label||'',unit:s.unit||''})):[];
+  const tpS=document.getElementById('tpStart'); if(tpS) tpS.value=ex?(ex.startDate||''):'';
+  const tpE=document.getElementById('tpEnd');   if(tpE) tpE.value=ex?(ex.endDate||''):'';
   const a=(ex&&ex.assign)?ex.assign:{all:true,groups:[],belts:[],members:[]};
   tpGroups=[...(a.groups||[])];
   document.getElementById('tpAll').checked=!!a.all;
@@ -10399,28 +10424,50 @@ function tpSaveExercise(){
     .filter(s=>s.label || s.unit);
   // Uge-mode: weekly=N + days=[0..6] (så en forældet klient degraderer til "Hver dag").
   const weekly = tpModeVal==='week' ? Math.min(7,Math.max(1,Math.round(Number(document.getElementById('tpWeekly').value)||tpWeeklyVal||3))) : null;
+  // Blok-vindue (valgfri): start må ikke ligge efter slut.
+  const sd=(document.getElementById('tpStart')||{}).value||'';
+  const ed=(document.getElementById('tpEnd')||{}).value||'';
+  if(sd && ed && sd>ed){ alert('Blok-perioden er ugyldig: startdatoen ligger efter slutdatoen.'); return; }
   const obj={ id: tpEditingId || ('co_'+Date.now()+'_'+Math.floor(Math.random()*1000)),
     name, icon:tpIcon, type,
     unit: type==='check'?'':document.getElementById('tpUnit').value.trim(),
     target: type==='check'?null:(Number(document.getElementById('tpTarget').value)||0),
     secs: secs, weekly: weekly,
+    startDate: sd, endDate: ed,
     days: weekly?[0,1,2,3,4,5,6]:(tpDays.length?[...tpDays].sort():[0,1,2,3,4,5,6]), assign };
   const wasEditing=!!tpEditingId;
   if(wasEditing){
     const i=tpLib.findIndex(e=>e.id===tpEditingId);
-    if(i>=0) tpLib[i]=obj;
+    if(i>=0){ obj.archived=!!tpLib[i].archived; tpLib[i]=obj; } // bevar arkiv-status ved redigering
     else { tpLib.push(obj); showToast('⚠️ Øvelsen fandtes ikke længere — gemt som ny'); } // fx slettet af en anden træner
   }
   else tpLib.push(obj);
   closeModal('tpModal'); renderTPList(); tpSaveLibrary();
   showToast(wasEditing?('✏️ "'+name+'" opdateret'):('✅ "'+name+'" pushet til eleverne'));
 }
+// Arkivér i stedet for at slette: øvelsen forsvinder fra elevernes daglige program
+// og efterlevelses-oversigten, men AL historik bevares (og vises stadig hos eleven
+// under Udvikling). Permanent sletning kræver arkivering først — to bevidste trin.
+function tpArchiveExercise(id){
+  const ex=tpLib.find(e=>e.id===id); if(!ex) return;
+  if(!confirm('Arkivér "'+ex.name+'"? Den forsvinder fra elevernes daglige program, men al historik bevares. Du kan gendanne den igen.')) return;
+  ex.archived=true;
+  renderTPList(); tpSaveLibrary();
+  showToast('📦 "'+ex.name+'" arkiveret — kan gendannes');
+}
+function tpRestoreExercise(id){
+  const ex=tpLib.find(e=>e.id===id); if(!ex) return;
+  ex.archived=false;
+  renderTPList(); tpSaveLibrary();
+  showToast('♻️ "'+ex.name+'" gendannet — er igen aktiv hos eleverne');
+}
 function tpDeleteExercise(id){
-  const ex=tpLib.find(e=>e.id===id);
-  if(!confirm('Fjern "'+(ex?ex.name:'')+'" fra alle elevers træningsplan?')) return;
+  const ex=tpLib.find(e=>e.id===id); if(!ex) return;
+  if(!ex.archived){ showToast('⚠️ Arkivér øvelsen først — slet er permanent'); return; }
+  if(!confirm('SLET "'+ex.name+'" permanent? Elevernes historik for øvelsen bliver usynlig (rådata bevares i arket, men kan ikke ses i appen igen).')) return;
   tpLib=tpLib.filter(e=>e.id!==id);
   renderTPList(); tpSaveLibrary();
-  showToast('🗑️ Øvelse fjernet');
+  showToast('🗑️ Øvelse slettet permanent');
 }
 
 // ── Efterlevelse: hvor godt følger eleverne de pushede øvelser ──
@@ -10491,7 +10538,7 @@ function tpStudentDetail(s){
     return `<div class="tp-exwrap${open?' open':''}">
       <div class="tp-exrow tp-exclick" onclick="tpToggleEx('${escAttr(String(s.memberId))}','${escAttr(ex.id)}')">
         <span class="tp-exico">${escHtml(ex.icon||'🏋️')}</span>
-        <span class="tp-exname">${escHtml(ex.name)}</span>
+        <span class="tp-exname">${escHtml(ex.name)}${TP_FEEL[ex.lastFeel]?` <span class="tp-exfeel" title="Elevens seneste feedback: ${TP_FEEL[ex.lastFeel][1]}">${TP_FEEL[ex.lastFeel][0]}</span>`:''}${ex.suggest?` <span class="tp-exsug" title="Målet er nået 3 hele uger i træk — overvej at hæve dagsmålet til ${ex.suggest}${ex.unit?' '+escAttr(ex.unit):''} (kopiér evt. øvelsen kun til denne elev med højere mål)">🎯 ${ex.suggest}?</span>`:''}</span>
         <span class="tp-exbar"><i style="width:${ex.pct}%;background:${col}"></i></span>
         <span class="tp-exnum">${ex.done}/${ex.scheduled}</span>
         <span class="tp-expct" style="color:${col}">${ex.pct}%</span>
@@ -10505,7 +10552,9 @@ function tpStudentDetail(s){
     ${exs?`<div class="tp-dh">Pr. øvelse <span class="tp-hint">— tryk på en øvelse for datoer & tal</span></div><div class="tp-exlist">${exs}</div>`:'<div class="tp-empty">Ingen øvelser planlagt i perioden.</div>'}
   </div>`;
 }
-// Dag-for-dag-log for én øvelse: dato + primær værdi + ekstra målinger (fx tid på løb).
+// Dag-for-dag-log for én øvelse: dato + primær værdi + ekstra målinger (fx tid på løb)
+// + elevens feedback (😅/👍/🥱 + note) fra træningsplanens fb-struktur.
+const TP_FEEL={1:['😅','for svært'],2:['👍','tilpas'],3:['🥱','for let']};
 function tpExEntries(ex){
   const list=ex.entries||[];
   if(!list.length) return '<div class="tp-noentries">Ingen registreringer i perioden endnu.</div>';
@@ -10514,12 +10563,17 @@ function tpExEntries(ex){
     let val;
     if(en.check){
       val='<span class="tp-tick">✓ gennemført</span>';
-    } else {
+    } else if(en.v>0 || (en.s||[]).some(x=>x>0)){
       const parts=['<b>'+tpNum(en.v)+'</b>'+(ex.unit?(' '+escHtml(ex.unit)):'')];
       (en.s||[]).forEach((sv,i)=>{ const d=defs[i]||{}; parts.push((d.label?escHtml(d.label)+' ':'')+tpNum(sv)+(d.unit?(' '+escHtml(d.unit)):'')); });
       val=parts.join('<span class="tp-edot">·</span>');
+    } else {
+      val='<span class="tp-eonlyfb">kun feedback</span>'; // fb uden logværdi (fx note på hviledag)
     }
-    return `<div class="tp-entry"><span class="tp-edate">${escHtml(tpFmtDateFull(en.date))}</span><span class="tp-eval">${val}</span></div>`;
+    const feel=TP_FEEL[en.f];
+    const feelHtml=feel?` <span class="tp-efeel" title="Eleven fandt det ${feel[1]}">${feel[0]}</span>`:'';
+    const noteHtml=en.n?`<div class="tp-enote">💬 ${escHtml(en.n)}</div>`:'';
+    return `<div class="tp-entry"><span class="tp-edate">${escHtml(tpFmtDateFull(en.date))}</span><span class="tp-eval">${val}${feelHtml}</span>${noteHtml}</div>`;
   }).join('');
   return `<div class="tp-entries">${rows}</div>`;
 }

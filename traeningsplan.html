@@ -25,8 +25,8 @@
         pushet fra index.html, gemt i Sheets-arket "Træningsøvelser".
 
    BACKEND (apps-script.gs):
-     • GET  getTrainingPlan(email, passwordHash) → { coach[], self[], logs{}, badges{} }
-     • POST saveTrainingPlan(memberId, passwordHash, plan{self,logs,badges})
+     • GET  getTrainingPlan(email, passwordHash) → { coach[], self[], logs{}, badges{}, fb{} }
+     • POST saveTrainingPlan(memberId, passwordHash, plan{self,logs,badges,fb})
      Ark: "Træningsøvelser" (delt bibliotek) + "Træningsplaner" (per-elev JSON).
      Træneren redigerer biblioteket i index.html (get/saveTrainingLibrary, token).
 
@@ -34,7 +34,10 @@
      { self:[ { id, name, icon, type:'reps'|'distance'|'time'|'check',
          unit, target, sec:{label,unit}|null, days:[0..6] } ],
        logs:{ 'YYYY-MM-DD': { <exId>: <tal | true | {v,t}> } },
-       badges:{ <key>: 'YYYY-MM-DD' } }
+       badges:{ <key>: 'YYYY-MM-DD' },
+       fb:{ 'YYYY-MM-DD': { <exId>: { f:1|2|3, n:'note til træner' } } }
+         — f: 1=for svært, 2=tilpas, 3=for let. BEVIDST adskilt fra logs, så
+           done/kvote/stime-beregninger aldrig påvirkes af feedback. }
   ════════════════════════════════════════════════════════════════════════════
 -->
 <style>
@@ -73,6 +76,9 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
 .hero-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
 .hero-title{font-size:21px;font-weight:700;margin:0 0 3px;letter-spacing:-.01em}
 .hero-sub{font-size:12.5px;opacity:.85}
+/* Fokuspunkter fra trænerens seneste vurdering */
+.hero-focus{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px;font-size:11.5px;font-weight:700;color:var(--gold)}
+.hero-focus .fp{background:rgba(201,162,58,.16);border:1px solid rgba(201,162,58,.45);color:#f0dfae;border-radius:7px;padding:3px 9px;font-weight:600;font-size:11.5px}
 .stats-row{display:flex;gap:8px;margin-top:16px;position:relative;z-index:1}
 .stat{flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 6px;text-align:center}
 .stat-num{font-size:21px;font-weight:700;line-height:1.1}
@@ -189,7 +195,15 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
 .btn.ghost{background:#eef4f2;color:var(--xtd)}
 .btn.ghost:hover{background:#e1ebe8}
 .btn.block{width:100%;justify-content:center;margin-top:6px}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:7px}
 .empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 8px}
+
+/* Log-dato-vælger (Dagens program) — bagdatér et log op til LOG_LOOKBACK_DAYS dage */
+.logdate-bar{display:flex;align-items:center;gap:6px}
+.logdate-lbl{font-size:12px;color:var(--muted);white-space:nowrap}
+.logdate-input{border:1.5px solid #d5dcdc;border-radius:7px;padding:5px 7px;font-size:12px;color:var(--ink);background:#fff}
+.card.logging-past{box-shadow:0 0 0 2px var(--warn),var(--sh)}
+.logdate-warn{font-size:11px;color:var(--warn);font-weight:600;padding:0 2px 8px}
 
 /* Modal */
 .ov{position:fixed;inset:0;background:rgba(20,30,30,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
@@ -251,6 +265,22 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
 /* Ugens fremdrift-chip på checklist-rækker (fx "2/3 denne uge") */
 .wk-chip{display:inline-block;background:#f2efe4;color:#8a7724;border:1px solid #e3dcc2;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;vertical-align:middle;white-space:nowrap}
 .wk-chip.ok{background:#e8f5ec;color:var(--ok);border-color:#cbe7d4}
+
+/* Feedback til træneren (adaptiv plan): 😅/👍/🥱 + kort note pr. øvelse */
+.fb-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid #d5dcdc;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;opacity:.75}
+.fb-btn:hover{opacity:1;border-color:var(--xtm)}
+.fb-btn.has{opacity:1;border-color:var(--gold);background:#fdf9ec}
+.chk-fb{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f7f9f9;border:1px solid #e4eaea;border-radius:10px;padding:8px 10px;margin-top:2px}
+.fb-feels{display:flex;gap:6px;flex-wrap:wrap}
+.fb-feel{border:1.5px solid #d5dcdc;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--t2)}
+.fb-feel.on{border-color:var(--xtm);background:var(--xtd);color:#fff}
+.fb-note{flex:1 1 160px;min-width:140px;padding:7px 9px;border:1.5px solid #d5dcdc;border-radius:8px;font-size:12.5px;outline:none;font-family:inherit}
+.fb-note:focus{border-color:var(--xtm)}
+.ex-archived{opacity:.65}
+/* Progressions-forslag (egne øvelser): målet nået 3 uger i træk */
+.chk-sug{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#fdf6e3;border:1px solid #e8dcae;border-radius:10px;padding:7px 10px;margin-top:2px;font-size:12px;font-weight:600;color:#8a7724}
+.sug-yes{border:0;background:var(--gold);color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.sug-no{border:0;background:transparent;color:#b6a25c;font-size:13px;font-weight:700;cursor:pointer;margin-left:auto;padding:4px 6px}
 .bx.locked{opacity:.9}
 .toggle-all{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--t2);margin-bottom:10px;cursor:pointer}
 .toggle-all input{width:18px;height:18px;accent-color:var(--ok)}
@@ -285,6 +315,7 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
       <div class="hero-eyebrow">Esbjerg Shuri-Ryu Karate</div>
       <div class="hero-title" id="heroTitle" data-i18n="heroGood">Godt arbejde! 💪</div>
       <div class="hero-sub" id="heroSub">—</div>
+      <div class="hero-focus" id="heroFocus" style="display:none"></div>
     </div>
     <div class="stats-row">
       <div class="stat"><div class="stat-num" id="stDone">0/0</div><div class="stat-lbl" data-i18n="lblDone">dagens øvelser</div></div>
@@ -304,8 +335,16 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
    <div class="col-main">
 
     <!-- DAGENS PROGRAM (checklist) -->
-    <div class="card">
-      <div class="card-head"><h3>✅ <span data-i18n="cardToday">Dagens program</span> <span id="dayName" style="font-weight:500;color:var(--muted);font-size:12px"></span></h3></div>
+    <div class="card" id="todayCard">
+      <div class="card-head">
+        <h3>✅ <span data-i18n="cardToday">Dagens program</span> <span id="dayName" style="font-weight:500;color:var(--muted);font-size:12px"></span></h3>
+        <div class="logdate-bar">
+          <label for="logDateInput" class="logdate-lbl" data-i18n="logForLbl">Logger for</label>
+          <input type="date" id="logDateInput" class="logdate-input" onchange="setLogDate(this.value)">
+          <button class="btn ghost sm" id="logDateTodayBtn" style="display:none" data-i18n="logToday" onclick="resetLogDate()">I dag</button>
+        </div>
+      </div>
+      <div class="logdate-warn" id="logDateWarn" style="display:none"></div>
       <div id="todayList"></div>
       <button class="btn ghost block" data-i18n="addToday" onclick="openExercise(null,true)">+ Tilføj øvelse til i dag</button>
     </div>
@@ -398,6 +437,8 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe
 </div>
 
 <script src="config.js"></script>
+<script src="belts.js"></script>
+<script src="api.js"></script>
 <script>
 "use strict";
 // ── i18n ──────────────────────────────────────────────────────────────────
@@ -415,6 +456,7 @@ const T = {
     mMetrics:'Ekstra målinger', metricsOpt:'(valgfri — fx Tid, Distance)', addMetric:'Tilføj måling',
     mFreq:'Hvor ofte?', mFreqDays:'Faste ugedage', mFreqWeek:'Antal gange om ugen',
     mWeeklyHint:'gange om ugen — du vælger selv dagene',
+    logForLbl:'Logger for', logToday:'I dag', logDateWarn:'Du logger for en tidligere dato — ikke i dag.',
     cancel:'Annullér', save:'Gem' },
   en:{ title:'My training plan', back:'← Back to my page', heroGood:'Good work! 💪',
     lblDone:"today's exercises", lblStreak:'day streak', lblPct:'of period goal',
@@ -429,6 +471,7 @@ const T = {
     mMetrics:'Extra metrics', metricsOpt:'(optional — e.g. Time, Distance)', addMetric:'Add metric',
     mFreq:'How often?', mFreqDays:'Fixed weekdays', mFreqWeek:'Times per week',
     mWeeklyHint:'times per week — you pick the days',
+    logForLbl:'Logging for', logToday:'Today', logDateWarn:"You're logging for a past date — not today.",
     cancel:'Cancel', save:'Save' }
 };
 const DAYS_SHORT = { da:['Søn','Man','Tir','Ons','Tor','Fre','Lør'], en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] };
@@ -455,7 +498,7 @@ function pad(n){ return String(n).padStart(2,'0'); }
 function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); } // LOKAL dato (ikke UTC)
 function parseYmd(s){ return new Date(s+'T12:00:00'); }                                 // lokal middag = TZ-sikker
 function todayStr(){ return ymd(new Date()); }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function esc(s){ return escHtml(s); } // delegerer til den delte escHtml (config.js) — samme logik, én kilde
 function startOfWeek(d){ const x=new Date(d); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); x.setHours(0,0,0,0); return x; }
 function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function periodDates(period){
@@ -471,12 +514,40 @@ function rnd(x,d=1){ return (Math.round(x*Math.pow(10,d))/Math.pow(10,d)); }
 // ── State ───────────────────────────────────────────────────────────────────
 // plan = elevens EGNE data: { self:[øvelser eleven selv har lavet], logs, badges }
 // plan.exercises = AFLEDT (træner-øvelser der matcher eleven + egne) — bygges af syncActive()
-let plan = { self: [], exercises: [], logs: {} };
+let plan = { self: [], exercises: [], logs: {}, fb: {} };
 let period = 'day';
 let editingId = null;
 let exView = {}; // exId -> 'main' | 'sec' | 'pace'  (hvilken måleenhed grafen viser)
 let selSpark = {}; // exId -> valgt søjle-dato (til boble)
 function setExView(id, v){ exView[id]=v; selSpark[id]=null; render(); }
+
+// ── Bagdatér et log ──────────────────────────────────────────────────────────
+// logDate = den dato "Dagens program"-rækkerne LÆSER/SKRIVER logs+feedback for.
+// Selve listen af aktionable øvelser (todayActionable) bygger stadig på dags
+// dato — kun værdien der læses/gemmes flytter sig. Nulstilles til i dag ved
+// hvert sideindlæsning (ingen persistens) for at undgå at man ved en fejl
+// bliver "hængende" på en gammel dato.
+const LOG_LOOKBACK_DAYS = 13; // ~2 uger tilbage — nok til et glemt logget pas, ikke nok til at omskrive historikken
+let logDate = todayStr();
+function minLogDate(){ const d=new Date(); d.setDate(d.getDate()-LOG_LOOKBACK_DAYS); return ymd(d); }
+function setLogDate(ds){
+  const today=todayStr(), min=minLogDate();
+  if(!ds) ds=today;
+  if(ds>today) ds=today;
+  if(ds<min) ds=min;
+  logDate=ds;
+  render();
+}
+function resetLogDate(){ setLogDate(todayStr()); }
+function renderLogDateBar(){
+  const input=document.getElementById('logDateInput');
+  if(input){ input.min=minLogDate(); input.max=todayStr(); input.value=logDate; }
+  const isPast = logDate!==todayStr();
+  const btn=document.getElementById('logDateTodayBtn'); if(btn) btn.style.display=isPast?'':'none';
+  const card=document.getElementById('todayCard'); if(card) card.classList.toggle('logging-past',isPast);
+  const warn=document.getElementById('logDateWarn');
+  if(warn){ warn.style.display=isPast?'':'none'; if(isPast) warn.textContent=T[lang].logDateWarn; }
+}
 
 // ── Logget-ind elev + træner-øvelser (kommer fra backenden, getTrainingPlan) ──
 // me: { memberId, name, group, belt } — sættes af onPlanLoaded().
@@ -484,6 +555,7 @@ function setExView(id, v){ exView[id]=v; selSpark[id]=null; render(); }
 //   → skrivebeskyttede her; eleven kan kun ændre sine EGNE (plan.self).
 let me = null;
 let coachActive = [];
+let focusPoints = []; // [{t:'fokusområde', by:'træner'}] fra seneste vurdering (getTrainingPlan)
 // Byg den aktive liste: træner-øvelser (skrivebeskyttet) + elevens egne.
 function syncActive(){
   const coach=(coachActive||[]).map(e=>Object.assign({},e,{owner:'coach'}));
@@ -498,7 +570,17 @@ function syncActive(){
 function secsOf(ex){ return Array.isArray(ex.secs) ? ex.secs : (ex.sec ? [ex.sec] : []); }
 function valFor(dateStr, exId){ const day=plan.logs[dateStr]; if(!day) return 0; const v=day[exId]; if(v===true) return 1; if(v&&typeof v==='object') return Number(v.v)||0; return Number(v)||0; }
 function valSec(dateStr, exId, i){ const day=plan.logs[dateStr]; if(!day) return 0; const v=day[exId]; if(!v||typeof v!=='object') return 0; if(Array.isArray(v.s)) return Number(v.s[i])||0; if(i===0) return Number(v.t)||0; return 0; }
-function isScheduled(ex, dateStr){ return (ex.days||[0,1,2,3,4,5,6]).includes(parseYmd(dateStr).getDay()); }
+// Blok-vindue (valgfri start-/slutdato på øvelsen): uden for vinduet stiller
+// øvelsen ingen krav og vises ikke i dagens program. SKAL matche _tpInWindow i apps-script.gs.
+function inWindow(ex, ds){ return (!ex.startDate||ds>=ex.startDate) && (!ex.endDate||ds<=ex.endDate); }
+// "12/8–8/9" — kort visning af en bloks periode (+ status i dag)
+function fmtBlock(ex){
+  const f=ds=>{ if(!ds) return '…'; const p=ds.split('-'); return Number(p[2])+'/'+Number(p[1]); };
+  const t0=todayStr();
+  const state = ex.endDate&&t0>ex.endDate ? ' · '+L('afsluttet','ended') : (ex.startDate&&t0<ex.startDate ? ' · '+L('kommende','upcoming') : '');
+  return f(ex.startDate)+'–'+f(ex.endDate)+state;
+}
+function isScheduled(ex, dateStr){ return inWindow(ex,dateStr) && (ex.days||[0,1,2,3,4,5,6]).includes(parseYmd(dateStr).getDay()); }
 
 // ── Uge-model (fleksibel plan) ────────────────────────────────────────────
 // ex.weekly = 1..7 → "N gange om ugen" (eleven vælger selv dagene). 0/mangler =
@@ -508,8 +590,9 @@ function isScheduled(ex, dateStr){ return (ex.days||[0,1,2,3,4,5,6]).includes(pa
 function weeklyOf(ex){ const n=Number(ex&&ex.weekly); return (n>=1&&n<=7)?Math.round(n):0; }
 // Ugens datoer (man–søn) til og med ds — pro-rated kvote for igangværende uge.
 function weekDatesUpTo(ds){ const s=startOfWeek(parseYmd(ds)); const out=[]; for(let i=0;i<7;i++){ const d=new Date(s); d.setDate(s.getDate()+i); const y=ymd(d); if(y>ds) break; out.push(y); } return out; }
-// Kvote for et sæt datoer i SAMME uge: uge-mode = min(N, dage); dage-mode = planlagte ugedage.
-function weekQuota(ex, dates){ const w=weeklyOf(ex); return w ? Math.min(w,dates.length) : dates.filter(ds=>isScheduled(ex,ds)).length; }
+// Kvote for et sæt datoer i SAMME uge: uge-mode = min(N, dage i blok-vinduet);
+// dage-mode = planlagte ugedage (isScheduled respekterer vinduet).
+function weekQuota(ex, dates){ const w=weeklyOf(ex); return w ? Math.min(w,dates.filter(ds=>inWindow(ex,ds)).length) : dates.filter(ds=>isScheduled(ex,ds)).length; }
 // Antal FORSKELLIGE gennemførte dage i sættet — uanset ugedag (= catch-up).
 function weekDoneDays(ex, dates){ return dates.filter(ds=>isDoneOn(ex,ds)).length; }
 // Er ugens (forløbne) kvote nået pr. dags dato?
@@ -538,7 +621,7 @@ function calcStreak(){
   let n=0; const d=new Date();
   for(let i=0;i<400;i++){
     const ds=ymd(d);
-    const sched=plan.exercises.filter(ex=>!weeklyOf(ex)&&isScheduled(ex,ds));
+    const sched=plan.exercises.filter(ex=>!ex.archived&&!weeklyOf(ex)&&isScheduled(ex,ds));
     const any=plan.exercises.some(ex=>valFor(ds,ex.id)>0);
     if(any) n++;
     else if(sched.length) break;
@@ -552,7 +635,8 @@ function isDoneOn(ex, dateStr){ return periodStatsForDay(ex,dateStr).done; }
 // (dage-mode) + uge-mode-øvelser der FAKTISK blev lavet den dag (de har ingen
 // faste dage, så kun udførte tæller — en tom dag forbliver hviledag).
 function dayCompletion(ds){
-  const sched=plan.exercises.filter(ex=>!weeklyOf(ex)&&isScheduled(ex,ds));
+  // Arkiverede stiller ingen krav (sched), men historiske gennemførsler tæller stadig som aktivitet.
+  const sched=plan.exercises.filter(ex=>!ex.archived&&!weeklyOf(ex)&&isScheduled(ex,ds));
   const flexDone=plan.exercises.filter(ex=>weeklyOf(ex)&&isDoneOn(ex,ds));
   const total=sched.length+flexDone.length;
   if(!total) return { rest:true, ratio:0, done:0, total:0 };
@@ -561,19 +645,22 @@ function dayCompletion(ds){
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
-function render(){ syncActive(); renderHero(); renderToday(); renderHeatmap(); renderBadges(); renderProgress(); renderBuilder(); }
+function render(){ syncActive(); renderLogDateBar(); renderHero(); renderToday(); renderHeatmap(); renderBadges(); renderProgress(); renderBuilder(); }
 
 // "Aktionable" øvelser i dag = fast planlagte i dag + alle uge-mode + indhentninger.
 // En øvelse er "klaret" hvis den er gjort i dag ELLER ugens kvote allerede er nået.
 function todayActionable(){
   const t0=todayStr(), elapsed=weekDatesUpTo(t0);
-  const flex=plan.exercises.filter(ex=>weeklyOf(ex));
-  const fixed=plan.exercises.filter(ex=>!weeklyOf(ex));
+  // Arkiverede øvelser deltager IKKE i dagens program (kun historik i Udvikling).
+  const act=plan.exercises.filter(ex=>!ex.archived);
+  const flex=act.filter(ex=>weeklyOf(ex)&&inWindow(ex,t0)); // blok-vindue: kun aktive blokke i dag
+  const fixed=act.filter(ex=>!weeklyOf(ex));
   const todays=fixed.filter(ex=>isScheduled(ex,t0));
   const notToday=fixed.filter(ex=>!isScheduled(ex,t0));
   // Indhent: fast øvelse med u-nået uge-kvote — ELLER logget i dag (bliver stående som klaret).
   const catchUp=notToday.filter(ex=>{ const q=weekQuota(ex,elapsed); return q>0 && (weekDoneDays(ex,elapsed)<q || isDoneOn(ex,t0)); });
-  const others=notToday.filter(ex=>!catchUp.includes(ex));
+  // "Andre": kun øvelser hvis blok-vindue dækker i dag (kommende/afsluttede blokke skjules)
+  const others=notToday.filter(ex=>!catchUp.includes(ex) && inWindow(ex,t0));
   const isMet=ex=> isDoneOn(ex,t0) || weekMet(ex,t0);
   return { t0, elapsed, todays, flex, catchUp, others, isMet };
 }
@@ -584,32 +671,63 @@ function renderHero(){
   const done=acts.filter(act.isMet).length;
   document.getElementById('stDone').textContent = done+'/'+acts.length;
   document.getElementById('stStreak').textContent = calcStreak();
-  let s=0,tg=0; plan.exercises.forEach(ex=>{ const st=periodStats(ex); s+=Math.min(st.sum,st.target||st.sum); tg+=st.target; });
+  let s=0,tg=0; plan.exercises.filter(ex=>!ex.archived).forEach(ex=>{ const st=periodStats(ex); s+=Math.min(st.sum,st.target||st.sum); tg+=st.target; });
   document.getElementById('stPct').textContent = (tg>0?Math.round(s/tg*100):0)+'%';
   document.getElementById('heroSub').textContent = L('Din fremgang ','Your progress ') +
     (period==='day'?L('i dag','today'):period==='week'?L('denne uge','this week'):L('denne måned','this month'));
+  // Fokuspunkter fra trænerens seneste vurdering (kobler graduering → daglig træning)
+  const hf=document.getElementById('heroFocus');
+  if(hf){
+    if(focusPoints.length){
+      hf.style.display='';
+      hf.innerHTML = '🎯 '+L('Din træner ser gerne, du arbejder med:','Your trainer wants you to work on:')+' '+
+        focusPoints.map(p=>`<span class="fp" ${p.by?`title="${esc(L('Sat af','Set by'))} ${esc(p.by)}"`:''}>${esc(p.t)}</span>`).join('');
+    } else hf.style.display='none';
+  }
 }
 
 // Én checklist-række (bruges til alle sektioner i Dagens program).
 // opts: { chip: html vist ved navnet (fx "2/3 denne uge"), wkDone: ugens kvote nået → grøn række }
 function chkRow(ex, t0, dim, opts){
   opts=opts||{};
-  const {v,done}=periodStatsForDay(ex,t0);
+  // Værdi/afkrydsning/feedback læses og skrives for logDate (kan være bagdateret),
+  // IKKE nødvendigvis t0 (dags dato — bruges kun til at afgøre hvilke øvelser der
+  // er aktionable/planlagte i dag, se todayActionable()).
+  const {v,done}=periodStatsForDay(ex,logDate);
   const rowDone = done || !!opts.wkDone;
   const goal = ex.type==='check' ? '' : (ex.target?(L('mål ','goal ')+ex.target+' '+esc(ex.unit||'')):'');
   let fields = '';
   if(ex.type!=='check'){
     fields += `<span class="chk-field"><input class="chk-input" type="number" min="0" inputmode="decimal" value="${v||''}" placeholder="0" title="${esc(ex.unit||'')}" onchange="setLog('${ex.id}','v',this.value)"><span class="chk-unit">${esc(ex.unit||'')}</span></span>`;
     secsOf(ex).forEach((sc,i)=>{
-      fields += `<span class="chk-field"><input class="chk-input" type="number" min="0" inputmode="decimal" value="${valSec(t0,ex.id,i)||''}" placeholder="0" title="${esc(sc.label||'')}" onchange="setLog('${ex.id}','s${i}',this.value)"><span class="chk-unit">${esc(sc.unit||'')}</span></span>`;
+      fields += `<span class="chk-field"><input class="chk-input" type="number" min="0" inputmode="decimal" value="${valSec(logDate,ex.id,i)||''}" placeholder="0" title="${esc(sc.label||'')}" onchange="setLog('${ex.id}','s${i}',this.value)"><span class="chk-unit">${esc(sc.unit||'')}</span></span>`;
     });
   }
+  // Progressions-forslag (kun egne øvelser): målet nået 3 hele uger i træk.
+  const sug=suggestTarget(ex);
+  const sugStrip = sug ? `<div class="chk-sug">🎯 ${L('3 uger i træk! Klar til mere?','3 weeks straight! Ready for more?')}
+      <button class="sug-yes" onclick="applySuggest('${esc(ex.id)}',${sug})">${L('Hæv mål til','Raise goal to')} ${sug} ${esc(ex.unit||'')}</button>
+      <button class="sug-no" title="${esc(L('Ikke nu','Not now'))}" onclick="muteSuggest('${esc(ex.id)}')">✕</button>
+    </div>` : '';
+  // Feedback (adaptiv plan): dagens 😅/👍/🥱 + note — vises som lille panel under rækken.
+  const fb=fbFor(logDate,ex.id), fbIsOpen=fbOpen.has(ex.id), hasFb=!!(fb.f||fb.n);
+  const fbPanel = fbIsOpen ? `<div class="chk-fb">
+      <div class="fb-feels">
+        <button class="fb-feel ${fb.f===1?'on':''}" onclick="setFeel('${esc(ex.id)}',1)">😅 ${L('For svært','Too hard')}</button>
+        <button class="fb-feel ${fb.f===2?'on':''}" onclick="setFeel('${esc(ex.id)}',2)">👍 ${L('Tilpas','Just right')}</button>
+        <button class="fb-feel ${fb.f===3?'on':''}" onclick="setFeel('${esc(ex.id)}',3)">🥱 ${L('For let','Too easy')}</button>
+      </div>
+      <input class="fb-note" maxlength="120" placeholder="${esc(L('Note til din træner (valgfri)…','Note to your trainer (optional)…'))}" value="${esc(fb.n||'')}" onchange="setFbNote('${esc(ex.id)}',this.value)">
+    </div>` : '';
   return `<div class="chk ${rowDone?'is-done':''} ${dim?'dim':''}">
     <div class="chk-ico">${esc(ex.icon||'🏋️')}</div>
     <div class="chk-main">
       <div class="chk-body"><div class="chk-name">${esc(ex.name)}${ex.owner==='coach'?' <span class="tag-coach">🥋</span>':''}${opts.chip?` <span class="wk-chip${opts.wkDone?' ok':''}">${opts.chip}</span>`:''}</div><div class="chk-meta">${goal}</div></div>
       ${fields?`<div class="chk-fields">${fields}</div>`:''}
+      ${sugStrip}
+      ${fbPanel}
     </div>
+    <div class="fb-btn ${hasFb?'has':''}" title="${esc(L('Hvordan føltes det? + note til træneren','How did it feel? + note to your trainer'))}" onclick="toggleFb('${esc(ex.id)}')">${fb.f?FEEL_EMO[fb.f]:'💬'}</div>
     <div class="tick ${done?'done':''}" title="${esc(L('Markér som lavet','Mark as done'))}" onclick="toggleDone('${ex.id}')">✓</div>
   </div>`;
 }
@@ -693,7 +811,8 @@ function renderProgress(){
     '📈 ' + L('Udvikling','Progress') + ' — ' + (period==='day'?L('i dag','today'):period==='week'?L('denne uge','this week'):L('denne måned','this month'));
   const list=document.getElementById('progList');
   if(!plan.exercises.length){ list.innerHTML=`<div class="empty">${L('Ingen øvelser endnu.','No exercises yet.')}</div>`; return; }
-  list.innerHTML = plan.exercises.map(ex=>{
+  // Arkiverede øvelser vises SIDST med chip — historikken bevares, men de larmer ikke.
+  list.innerHTML = plan.exercises.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)).map(ex=>{
     const st=periodStats(ex);
     const pct = st.target>0 ? Math.min(100, Math.round(st.sum/st.target*100)) : (st.sum>0?100:0);
     const over = st.target>0 && st.sum>st.target;
@@ -788,10 +907,10 @@ function renderProgress(){
       cap = `<div class="metric-cap"><span>${metricUnit}${hint?' · '+hint:''}</span>${trend}</div>`;
     }
 
-    return `<div class="ex">
+    return `<div class="ex${ex.archived?' ex-archived':''}">
       <div class="ex-top">
         <div class="ex-ico">${esc(ex.icon||'🏋️')}</div>
-        <div class="ex-name">${esc(ex.name)}</div>
+        <div class="ex-name">${esc(ex.name)}${ex.archived?` <span class="wk-chip">📦 ${L('arkiveret','archived')}</span>`:''}${(ex.startDate||ex.endDate)?` <span class="wk-chip">📅 ${esc(fmtBlock(ex))}</span>`:''}</div>
         <div class="ex-sum">${st.sum} <small>/ ${st.target||'–'} ${unit}</small></div>
       </div>
       <div class="bar ${over?'over':''}"><i style="width:${pct}%"></i></div>
@@ -867,7 +986,7 @@ function buildMetricLog(ex, t0, override){
 }
 function setLog(exId, field, raw){
   const wasAll=todayProgress().all;
-  const t0=todayStr(); plan.logs[t0]=plan.logs[t0]||{};
+  const t0=logDate; plan.logs[t0]=plan.logs[t0]||{};
   const ex=plan.exercises.find(e=>e.id===exId);
   const n=Number(raw)||0;
   if(secsOf(ex).length){
@@ -880,7 +999,7 @@ function setLog(exId, field, raw){
 }
 function toggleDone(exId){
   const wasAll=todayProgress().all;
-  const t0=todayStr(); plan.logs[t0]=plan.logs[t0]||{};
+  const t0=logDate; plan.logs[t0]=plan.logs[t0]||{};
   const ex=plan.exercises.find(e=>e.id===exId); const cur=valFor(t0,exId);
   if(ex.type==='check'){ if(cur>0) delete plan.logs[t0][exId]; else plan.logs[t0][exId]=true; }
   else {
@@ -890,6 +1009,61 @@ function toggleDone(exId){
   }
   afterChange(wasAll);
 }
+
+// ── Progressions-forslag (kun elevens EGNE øvelser) ─────────────────────────
+// Dagsmålet nået i 3 HELE uger i træk → foreslå +10 % (mindst +1). Træner-
+// øvelser er delt mellem elever, så forslag for dem vises hos TRÆNEREN
+// (fremgangs-oversigten) — ikke her. Afvisning ("✕") huskes pr. enhed i
+// localStorage, indtil målet ændres.
+function pastWeeks(n){
+  const s=startOfWeek(new Date()); const out=[];
+  for(let w=1;w<=n;w++){ const arr=[]; for(let i=0;i<7;i++){ const d=new Date(s); d.setDate(s.getDate()-7*w+i); arr.push(ymd(d)); } out.push(arr); }
+  return out;
+}
+function _sugMuted(){ try{ return JSON.parse(localStorage.getItem('kk2_sug_muted')||'{}'); }catch(e){ return {}; } }
+function suggestTarget(ex){
+  if(ex.owner!=='self'||ex.archived||ex.type==='check') return null;
+  const t=Number(ex.target)||0; if(!(t>0)) return null;
+  if(Number(_sugMuted()[ex.id])===t) return null; // afvist for dette mål
+  for(const dates of pastWeeks(3)){
+    const q=weekQuota(ex,dates);
+    if(!(q>0) || weekDoneDays(ex,dates)<q) return null;
+  }
+  return Math.max(t+1, Math.ceil(t*1.1));
+}
+function applySuggest(exId, nt){
+  const ex=(plan.self||[]).find(e=>e.id===exId); if(!ex) return;
+  ex.target=Number(nt)||ex.target;
+  STORE.save(plan); syncActive(); render();
+  showToast('🎯 '+L('Sejt! Nyt dagsmål: ','Nice! New daily goal: ')+ex.target+' '+esc(ex.unit||''));
+}
+function muteSuggest(exId){
+  const ex=(plan.self||[]).find(e=>e.id===exId); if(!ex) return;
+  const m=_sugMuted(); m[exId]=Number(ex.target)||0;
+  try{ localStorage.setItem('kk2_sug_muted',JSON.stringify(m)); }catch(e){}
+  render();
+}
+
+// ── Feedback til træneren (adaptiv plan) ────────────────────────────────────
+// plan.fb = { 'YYYY-MM-DD': { <exId>: { f:1|2|3, n:'kort note' } } } — adskilt
+// fra logs, så done/kvote/stime-beregninger aldrig påvirkes. f: 1=for svært,
+// 2=tilpas, 3=for let. Vises hos træneren i fremgangs-oversigten.
+const FEEL_EMO={1:'😅',2:'👍',3:'🥱'};
+let fbOpen=new Set();
+function fbFor(ds,exId){ return (plan.fb&&plan.fb[ds]&&plan.fb[ds][exId])||{}; }
+function toggleFb(exId){ if(fbOpen.has(exId)) fbOpen.delete(exId); else fbOpen.add(exId); render(); }
+function _setFb(exId,patch){
+  const t0=logDate;
+  plan.fb=plan.fb||{}; plan.fb[t0]=plan.fb[t0]||{};
+  const cur=Object.assign({},plan.fb[t0][exId]||{},patch);
+  if(!cur.f) delete cur.f;
+  if(!(cur.n||'').trim()) delete cur.n; else cur.n=String(cur.n).trim().slice(0,120);
+  if(cur.f||cur.n) plan.fb[t0][exId]=cur;
+  else { delete plan.fb[t0][exId]; if(!Object.keys(plan.fb[t0]).length) delete plan.fb[t0]; }
+  STORE.save(plan);
+}
+function setFeel(exId,f){ const cur=fbFor(logDate,exId); _setFb(exId,{f:cur.f===f?0:f}); render(); }
+function setFbNote(exId,text){ _setFb(exId,{n:text}); render(); }
 
 // ── Toast + konfetti 🎉 ──────────────────────────────────────────────────────
 let toastTimer=null;
@@ -1056,10 +1230,10 @@ document.getElementById('seg').addEventListener('click',e=>{
 const STUDENT = (()=>{ try{ return { email:sessionStorage.getItem('kk2_student_email'), hash:sessionStorage.getItem('kk2_student_hash') }; }catch(e){ return {email:null,hash:null}; } })();
 let _saveTimer=null, _dirtyPlan=null; // _dirtyPlan = seneste endnu-ikke-bekræftede payload (flushes ved sideluk)
 function _saveBody(p){
-  return JSON.stringify(appAuthBody({
+  return {
     action:'saveTrainingPlan', memberId:me.memberId, passwordHash:STUDENT.hash,
-    plan:{ self:(p.self||[]), logs:(p.logs||{}), badges:(p.badges||{}) }
-  }));
+    plan:{ self:(p.self||[]), logs:(p.logs||{}), badges:(p.badges||{}), fb:(p.fb||{}) }
+  };
 }
 // STORE.save bevares som navn (kaldes mange steder) men gemmer nu mod backenden (debounced).
 const STORE = {
@@ -1071,8 +1245,7 @@ const STORE = {
       _saveTimer=null;
       const snap=_dirtyPlan;
       try{
-        fetch(SCRIPT_URL,{ method:'POST', headers:{'Content-Type':'text/plain'}, body:_saveBody(snap) })
-          .then(r=>r.json())
+        apiPost(_saveBody(snap))
           .then(d=>{
             if(d && d.ok){ if(_dirtyPlan===snap) _dirtyPlan=null; }
             else showToast(L('⚠️ Kunne ikke gemme din registrering — prøver igen ved næste ændring.','⚠️ Could not save your entry — will retry on your next change.'));
@@ -1087,7 +1260,7 @@ const STORE = {
 function _flushSave(){
   if(!_dirtyPlan || !me || !STUDENT.hash) return;
   clearTimeout(_saveTimer); _saveTimer=null;
-  try{ navigator.sendBeacon(SCRIPT_URL, _saveBody(_dirtyPlan)); _dirtyPlan=null; }catch(e){}
+  try{ navigator.sendBeacon(SCRIPT_URL, JSON.stringify(appAuthBody(_saveBody(_dirtyPlan)))); _dirtyPlan=null; }catch(e){}
 }
 window.addEventListener('pagehide', _flushSave);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') _flushSave(); });
@@ -1099,15 +1272,13 @@ function showFatal(msg){
       <button class="btn" onclick="location.href='elev.html'">${L('Til min side','Back to my page')}</button></div></div>`;
 }
 function loadPlan(){
-  const name='_gtp'+Date.now();
-  const s=document.createElement('script');
-  const cleanup=()=>{ delete window[name]; if(s.parentNode) s.parentNode.removeChild(s); };
-  const timer=setTimeout(()=>{ cleanup(); showFatal(L('Kunne ikke hente din træningsplan (timeout). Prøv igen.','Could not load your training plan (timeout). Please try again.')); }, 15000);
-  window[name]=function(d){ clearTimeout(timer); cleanup(); onPlanLoaded(d); };
-  s.onerror=()=>{ clearTimeout(timer); cleanup(); showFatal(L('Netværksfejl — kunne ikke hente din træningsplan.','Network error — could not load your training plan.')); };
-  s.src = SCRIPT_URL + '?action=getTrainingPlan&email=' + encodeURIComponent(STUDENT.email)
-    + '&passwordHash=' + encodeURIComponent(STUDENT.hash) + '&callback=' + name + '&' + appAuthQS() + '&t=' + Date.now();
-  document.head.appendChild(s);
+  jsonp('getTrainingPlan', { email: STUDENT.email, passwordHash: STUDENT.hash })
+    .then(onPlanLoaded)
+    .catch(err=>{
+      showFatal(err && err.message==='timeout'
+        ? L('Kunne ikke hente din træningsplan (timeout). Prøv igen.','Could not load your training plan (timeout). Please try again.')
+        : L('Netværksfejl — kunne ikke hente din træningsplan.','Network error — could not load your training plan.'));
+    });
 }
 function onPlanLoaded(d){
   if(!d || !d.ok){
@@ -1120,7 +1291,8 @@ function onPlanLoaded(d){
   }
   me = { memberId:d.memberId, name:d.name, group:d.group, belt:d.belt };
   coachActive = d.coach || [];
-  plan = { self:(d.self||[]), exercises:[], logs:(d.logs||{}), badges:(d.badges||{}) };
+  focusPoints = d.focus || [];
+  plan = { self:(d.self||[]), exercises:[], logs:(d.logs||{}), badges:(d.badges||{}), fb:(d.fb||{}) };
   syncActive();
   // Seed bedrifter lydløst første gang (så historik ikke udløser en byge af toasts)
   if(!plan.badges || !Object.keys(plan.badges).length){ plan.badges = currentBadges(); STORE.save(plan); }
