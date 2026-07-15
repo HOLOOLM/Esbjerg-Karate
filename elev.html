@@ -782,7 +782,10 @@ function openPensumModal(belt, titleEmoji, titleLabel, introText){
   }
 
   const rows = skills.map(sk=>{
-    const safeSk = String(sk).replace(/'/g,"\\'");
+    // XSS-fund (sikkerhedsgennemgang #4): kun '-escape er ikke nok inde i en
+    // dobbeltcitat onclick-attribut — en '"' i øvelsesnavnet (trænerstyret via
+    // saveTrainingLibrary) kunne stadig bryde ud. Escap begge citat-typer.
+    const safeSk = String(sk).replace(/'/g,"\\'").replace(/"/g,'&quot;');
     const note = getSkillNote(sk);
     const infoBtn = note ? ' <span style="font-size:.7rem;color:#6366f1;cursor:pointer" onclick="event.stopPropagation();showSkillNote(\''+safeSk+'\')">ℹ️</span>' : '';
     const best = bestBySkill[sk] || 0;
@@ -915,10 +918,12 @@ async function doLogin(){
       document.head.appendChild(tlScript);
     } catch(e){}
     if(d.forcePasswordChange){
+      // Serveren har bevidst udeladt alle rigtige data her (standard-koden er gættelig —
+      // se sikkerhedsfund #7 i apps-script.gs) — så vis KUN tvangsskift-skærmen, uden at
+      // rendere et dashboard der reelt ikke indeholder noget følsomt alligevel.
       _changePwEmail = input;
       _changePwOldHash = hash;
       showChangePwView();
-      renderDashboard(d);
       return;
     }
     renderDashboard(d);
@@ -948,7 +953,7 @@ function autoLoginFromSession(){
       try{ sessionStorage.removeItem('kk2_student_hash'); }catch(e){}
       return;
     }
-    if(d.forcePasswordChange){ _changePwEmail=email; _changePwOldHash=hash; showChangePwView(); renderDashboard(d); return; }
+    if(d.forcePasswordChange){ _changePwEmail=email; _changePwOldHash=hash; showChangePwView(); return; }
     renderDashboard(d);
     _startBgRefresh();
   });
@@ -1045,13 +1050,25 @@ async function submitPasswordChange(){
   btn.disabled = true; btn.textContent = 'Saving…';
   const newHash = await sha256hex(pw1);
   changePasswordApi(_changePwEmail, _changePwOldHash, newHash, (err, d)=>{
-    btn.disabled = false; btn.textContent = 'Save password';
     if(err || !d || !d.ok){
+      btn.disabled = false; btn.textContent = 'Save password';
       errEl.textContent = (d && d.error) || (err && err.message) || 'Something went wrong.';
       errEl.classList.add('show'); return;
     }
-    document.getElementById('changePwView').style.display = 'none';
-    document.getElementById('dashView').style.display = '';
+    try{ sessionStorage.setItem('kk2_student_hash', newHash); }catch(e){}
+    // Det oprindelige login-svar var bevidst tomt (standard-kode → data blokeret,
+    // se sikkerhedsfund #7) — genhent nu hvor den rigtige kode er sat, så dashboardet
+    // rent faktisk har noget at vise.
+    fetchStudentWithRetry(_changePwEmail, newHash, (err2, d2)=>{
+      btn.disabled = false; btn.textContent = 'Save password';
+      if(err2 || !d2 || !d2.ok){
+        errEl.textContent = 'Password saved, but could not load your data — try reloading the page.';
+        errEl.classList.add('show'); return;
+      }
+      document.getElementById('changePwView').style.display = 'none';
+      renderDashboard(d2);
+      _startBgRefresh();
+    });
   });
 }
 
@@ -1118,6 +1135,8 @@ function markMyTrainerMessagesRead(){
   const myName = ((m0.firstName||'')+' '+(m0.lastName||'')).trim();
   if(!myId) return;
   const readerToken = String(myId); // gem altid som ID fremover
+  let myHash = '';
+  try{ myHash = sessionStorage.getItem('kk2_student_hash') || ''; }catch(e){}
   (CURRENT.messages||[]).forEach(msg=>{
     if(msg.sender==='trainer'){
       const rb = (msg.readBy||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -1125,7 +1144,8 @@ function markMyTrainerMessagesRead(){
       if(!alreadyRead){
         rb.push(readerToken);
         msg.readBy = rb.join(', ');
-        _studentMsgJsonp('markMessageRead', {id: msg.id, reader: readerToken});
+        // Backenden kræver nu ejerskabsbevis (memberId+passwordHash) — se sikkerhedsgennemgang #5.
+        _studentMsgJsonp('markMessageRead', {id: msg.id, reader: readerToken, memberId: myId, passwordHash: myHash});
       }
     }
   });

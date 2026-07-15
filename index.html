@@ -47,7 +47,9 @@
 
 <div id="presenceModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:9500;background:rgba(10,30,30,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:320px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
-    <div style="font-size:2rem;margin-bottom:.6rem">👤</div>
+    <div style="width:46px;height:46px;margin:0 auto .6rem;border-radius:50%;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.22);flex-shrink:0">
+      <img id="presenceBadgeImg" src="" alt="Shuri-Ryu" style="width:100%;height:100%;object-fit:cover;display:block"/>
+    </div>
     <h3 style="margin:0 0 .4rem;color:#1a3a3a;font-size:1.1rem">Vælg din profil</h3>
     <p style="margin:0 0 1.2rem;color:#4a6a6a;font-size:.85rem">Markér hvem der logger ind i dag</p>
     <div id="presenceSyncNotice" style="display:none;background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:.7rem .9rem;margin-bottom:1rem;text-align:left">
@@ -84,6 +86,46 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
     <button class="lock-btn" onclick="lockSubmit()">🔓 Lås op</button>
     <div class="lock-err" id="lockErr"></div>
   </div>
+
+  <style>
+    /* .lock-box > div:first-child carries heavy !important theming built for the PIN
+       screen's badge header — it hijacks ANY first-child div (grid layout, background,
+       padding, min-height...). These two divs are also lock-box first-children, so they
+       need an equal-or-higher-specificity !important reset to escape it. */
+    #lockPickerBadgeWrap,#lockPasswordAvatar{all:revert!important;margin:0 0 1.1rem!important;padding:0!important;min-height:0!important;background:none!important;border-bottom:none!important;box-shadow:none!important}
+    #lockPickerBadgeWrap{display:flex!important;align-items:center!important;justify-content:center!important;gap:1.2rem!important}
+    #lockPasswordAvatar{display:flex!important;align-items:center!important;justify-content:center!important;width:84px!important;height:84px!important;margin:32px auto .8rem!important;border-radius:50%!important;background:#1a5c5c!important;color:#fff!important;font-weight:700!important;font-size:1.3rem!important;overflow:hidden!important;flex-shrink:0}
+  </style>
+  <div class="lock-box" id="lockPickerBox" style="display:none">
+    <div id="lockPickerBadgeWrap">
+      <img id="lockPickerBadgeImg" src="" alt="Shuri-Ryu mærke" style="width:78px;height:78px;border-radius:50%;object-fit:cover;box-shadow:0 3px 12px rgba(0,0,0,.25);flex-shrink:0"/>
+    </div>
+    <div class="lock-title">Vælg din profil</div>
+    <div class="lock-sub">Tryk på dit billede for at logge ind</div>
+    <div id="lockPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.6rem;margin:1rem 0;max-height:52vh;overflow-y:auto"></div>
+    <div class="lock-err" id="lockPickerErr"></div>
+  </div>
+
+  <div class="lock-box" id="lockPasswordBox" style="display:none">
+    <div id="lockPasswordAvatar"></div>
+    <div class="lock-title" id="lockPasswordName"></div>
+    <input class="lock-input" id="lockPasswordInput" type="password"
+           placeholder="Adgangskode"
+           onkeydown="if(event.key==='Enter')trainerPasswordSubmit()"
+           autocomplete="current-password"/>
+    <button class="lock-btn" onclick="trainerPasswordSubmit()">🔓 Log ind</button>
+    <button class="btn bg btn-sm" onclick="showLockPicker()" style="margin-top:.6rem">← Tilbage</button>
+    <div class="lock-err" id="lockPasswordErr"></div>
+  </div>
+
+  <div class="lock-box" id="lockForceChangeBox" style="display:none">
+    <div class="lock-title">Vælg ny adgangskode</div>
+    <div class="lock-sub">Du bruger stadig standard-koden — vælg en ny (min. 6 tegn) for at fortsætte.</div>
+    <input class="lock-input" id="newPw1" type="password" placeholder="Ny adgangskode" autocomplete="new-password"/>
+    <input class="lock-input" id="newPw2" type="password" placeholder="Gentag adgangskode" autocomplete="new-password" style="margin-top:.5rem"/>
+    <button class="lock-btn" onclick="submitTrainerPasswordChange()">Gem og fortsæt</button>
+    <div class="lock-err" id="lockForceChangeErr"></div>
+  </div>
 </div>
 
 <header>
@@ -102,6 +144,7 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
     <button class="btn bg btn-sm" onclick="openArchiveModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">📦<span class="hdr-lbl"> Arkiv</span></button>
     <button class="btn bg btn-sm" onclick="openGlobalSearch()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Global søgning">🔍</button>
     <button class="btn bg btn-sm" onclick="openModal('settingsModal')" style="color:#fff;border-color:rgba(255,255,255,.3)">⚙️</button>
+    <button class="btn bg btn-sm" onclick="doTrainerLogout()" style="color:#fff;border-color:rgba(255,255,255,.3)" title="Log ud">🚪</button>
   </div>
 </header>
 
@@ -770,16 +813,25 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
 
 <div class="page" id="page-trainingplan">
   <div class="board-hero">
-    <h2>🗓️ Træningsplan — push øvelser til eleverne</h2>
+    <h2>🗓️ Træningsplan</h2>
     <p>Opret øvelser og målret dem mod hele klubben, bestemte hold, bælter eller enkelte elever. Eleverne ser dem (skrivebeskyttet) i deres egen træningsplan, hvor de tikker af og logger.</p>
   </div>
   <div class="sh">
-    <div class="st">🥋 Øvelsesbibliotek</div>
+    <div class="st">🎯 Hvem har hvad <span style="font-weight:400;color:var(--xtl);font-size:.8rem">— klik en celle, eller klik og træk hen over flere for at tildele/fjerne på én gang</span></div>
     <div class="controls">
+      <label class="tp-grid-filter-toggle"><input type="checkbox" id="tpGridOnlyGradChk" checked onchange="tpGridSetOnlyGrad(this.checked)"> Kun "ønsker graduering" <span id="tpGridCount" class="tp-hint"></span></label>
+      <div class="tp-grid-beltfilter" id="tpGridBeltFilterWrap">
+        <button type="button" class="btn bs" id="tpGridBeltFilterBtn" onclick="tpGridToggleBeltMenu(event)">🥋 Bælter <span id="tpGridBeltFilterCount" class="tp-hint"></span></button>
+      </div>
+      <select class="fs" id="tpGridSortSel" onchange="tpGridSetSort(this.value)">
+        <option value="name">Sortér: navn</option>
+        <option value="belt">Sortér: bæltegrad (højest først)</option>
+      </select>
+      <input class="sbx" type="text" id="tpGridSearch" placeholder="🔍 Søg elev…" oninput="tpGridFilterRows(this.value)"/>
       <button class="btn bp" onclick="openTPExercise()">+ Ny øvelse</button>
     </div>
   </div>
-  <div id="tpLibList"></div>
+  <div class="tp-grid-scroll" id="tpGridWrap"></div>
 
   <div class="sh" style="margin-top:1.6rem">
     <div class="st">📊 Elevernes fremgang <span style="font-weight:400;color:var(--xtl);font-size:.8rem">(seneste 4 uger · tryk på en elev for detaljer)</span></div>
@@ -792,6 +844,11 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
     </div>
   </div>
   <div id="tpOverviewList"></div>
+
+  <div class="sh" style="margin-top:1.6rem">
+    <div class="st">🥋 Øvelser <span style="font-weight:400;color:var(--xtl);font-size:.8rem">(ret navn, mål, frekvens, blok-periode)</span></div>
+  </div>
+  <div id="tpLibList"></div>
 </div>
 
 <div class="mbd" id="tpModal">
@@ -1488,7 +1545,7 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
       <button class="mclose" onclick="closeModal('digestReportModal')">✕</button>
     </div>
     <div id="digestReportBody" style="padding:.5rem 0">
-      <div style="text-align:center;color:var(--xtl);padding:2rem">Henter rapport…</div>
+      <div style="text-align:center;color:var(--xtl);padding:2rem"><span class="photo-spinner" style="width:20px;height:20px"></span><br><br>Henter rapport…</div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeModal('digestReportModal')">Luk</button>
@@ -1497,6 +1554,7 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
 </div>
 
 <script src="config.js"></script>
+<script src="api.js"></script>
 <script src="belts.js"></script>
 <script src="app.js"></script>
 

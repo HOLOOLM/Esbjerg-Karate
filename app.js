@@ -735,7 +735,10 @@ function showPresenceTimestamp(el){
   const userPage=user&&user.page?user.page:'';
   const pageInfo=PAGE_LABELS[userPage]||null;
   const pageStr=pageInfo?`<br><span style="opacity:.75">${pageInfo.icon} ${pageInfo.label}</span>`:'';
-  popup.innerHTML=`👤 <strong>${name}</strong><br>${loginStr}${activeStr}${pageStr}`;
+  // XSS-fund (sikkerhedsgennemgang #4): .dataset AFKODER attributten igen, så en
+  // tidligere escAttr() ved skrivning ikke hjælper her — navnet skal escapes IGEN
+  // ved læsning, siden det ender direkte i innerHTML.
+  popup.innerHTML=`👤 <strong>${escHtml(name)}</strong><br>${loginStr}${activeStr}${pageStr}`;
   document.body.appendChild(popup);
   const rect=el.getBoundingClientRect();
   popup.style.top=(rect.bottom+6)+'px';
@@ -784,12 +787,12 @@ function autoLogout(){
   clearInterval(_countdownInterval);
   leavePresence();
   if(_presenceInterval){clearInterval(_presenceInterval);_presenceInterval=null;}
-  sessionStorage.removeItem('kk2_unlocked');
-  sessionStorage.removeItem('kk2_presence_name');
+  _clearAllCachedData(); // token + al cached medlems-/klub-PII ryddes (ikke kun kk2_unlocked)
   _myPresenceName='';
   _presenceShown=false;
   updatePresenceBar([]);
-  // Vis lock screen igen
+  // Vis lock screen igen, tilbage på PIN-trinnet (PIN-boksen har bevidst intet id)
+  _showLockBox('');
   const ls=document.getElementById('lockScreen');
   if(ls)ls.classList.remove('hidden');
   const blocker=document.createElement('style');
@@ -797,6 +800,14 @@ function autoLogout(){
   document.head.appendChild(blocker);
   _appInited=false;
   setTimeout(()=>document.getElementById('lockInput')?.focus(),100);
+}
+// Log ud manuelt (ny knap i header) — rydder alt og genindlæser til PIN-skærmen,
+// den simpleste og mest robuste måde at sikre at intet in-memory state overlever.
+function doTrainerLogout(){
+  _clearAllCachedData();
+  leavePresence();
+  if(_presenceInterval){clearInterval(_presenceInterval);_presenceInterval=null;}
+  location.reload();
 }
 // Scroll-detektion til at undgå utilsigtet fremmøde-toggle ved scroll på mobil
 let _touchStartY=0, _touchScrolled=false;
@@ -1595,6 +1606,17 @@ function _clearAuth(){
     sessionStorage.removeItem('kk2_unlocked');
   }catch(e){}
 }
+// Ryd token OG al cached medlems-/klub-data (localStorage) — bruges ved både
+// manuelt logout og inaktivitets-auto-logout, så intet PII overlever på en delt maskine.
+function _clearAllCachedData(){
+  _clearAuth();
+  ['kk2_members','kk2_sessions','kk2_config','kk2_cancelled','kk2_cancelled_reasons',
+   'kk2_assessments','kk2_deletedAssessments','kk2_pensum','kk2_skillNotes','kk2_board',
+   'kk2_deletedBoards','kk2_deletedSessions','kk2_gultPensum','kk2_messages',
+   'kk2_announcement','kk2_endDates','kk2_lastBackup','kk2_trainer_rtoken'
+  ].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  ['kk2_presence_name','kk2_presence_id','kk2_dismissed_cancel'].forEach(function(k){ try{ sessionStorage.removeItem(k); }catch(e){} });
+}
 function _hasValidToken(){
   try{
     const t=sessionStorage.getItem('kk2_token');
@@ -1629,6 +1651,22 @@ function verifyPinWithServer(pin, cb){
   }catch(e){ cb({ok:false,error:String(e.message||e)}); }
 }
 
+// sha256hex(str) er allerede defineret længere nede i filen (bruges også til password-reset) — genbruges her.
+
+// Kortlivet "gate"-token fra PIN-trinnet — kun i hukommelsen (aldrig sessionStorage):
+// giver KUN adgang til getTrainerList/verifyTrainerLogin, ikke til rigtige data-kald.
+let _gateToken='';
+let _pickedTrainer=null; // {id, firstName, lastName}
+let _pickedPasswordHash=''; // gemt midlertidigt så tvangsskift kan sende oldHash uden at bede igen
+
+// Lille inline spinner til "Tjekker…"-tilstande i lock-err-diverne (genbruger .photo-spinner).
+function _showChecking(errEl, text){
+  errEl.innerHTML = '<span class="photo-spinner" style="width:13px;height:13px;border-width:2px;vertical-align:-2px;margin-right:.4em"></span>'+(text||'Tjekker…');
+}
+function _showLockBox(id){
+  document.querySelectorAll('#lockScreen .lock-box').forEach(b=>{ b.style.display = (b.id===id) ? '' : 'none'; });
+}
+
 function lockSubmit(){
   const input=document.getElementById('lockInput');
   const errEl=document.getElementById('lockErr');
@@ -1636,17 +1674,14 @@ function lockSubmit(){
   const pin=input.value;
   if(!pin){ return; }
   if(btn) btn.disabled=true;
-  errEl.textContent='Tjekker…';
+  _showChecking(errEl);
   verifyPinWithServer(pin, function(res){
     if(btn) btn.disabled=false;
-    if(res && res.ok && res.token){
-      try{
-        sessionStorage.setItem('kk2_token',res.token);
-        sessionStorage.setItem('kk2_role',res.role||'instruktor');
-        sessionStorage.setItem('kk2_token_exp',String(res.exp||0));
-      }catch(e){}
+    if(res && res.ok && res.gateToken){
+      _gateToken=res.gateToken;
       errEl.textContent='';
-      unlockApp();
+      input.value='';
+      showLockPicker();
     } else {
       const networkErr=res&&(res.error==='timeout'||res.error==='network');
       errEl.textContent=networkErr?'Ingen forbindelse – prøv igen':'Forkert adgangskode – prøv igen';
@@ -1658,6 +1693,116 @@ function lockSubmit(){
       input.focus();
     }
   });
+}
+
+// Stage 2: vis trænerbillede-vælgeren (henter listen med gate-tokenet).
+function showLockPicker(){
+  _showLockBox('lockPickerBox');
+  const grid=document.getElementById('lockPickerGrid');
+  const errEl=document.getElementById('lockPickerErr');
+  grid.innerHTML='<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1.2rem 0;opacity:.75"><span class="photo-spinner" style="width:28px;height:28px;border-width:3px"></span><span>Henter…</span></div>';
+  errEl.textContent='';
+  apiPost({ action:'getTrainerList', token:_gateToken }).then(res=>{
+    if(!res || !res.ok){
+      grid.innerHTML='';
+      errEl.textContent='Kunne ikke hente trænerliste — prøv at logge ind igen.';
+      return;
+    }
+    const trainers=res.trainers||[];
+    grid.innerHTML = trainers.map(t=>{
+      const fullName=escHtml(((t.firstName||'')+' '+(t.lastName||'')).trim());
+      const initials=escHtml(((t.firstName||'')[0]||'')+((t.lastName||'')[0]||''));
+      const img = t.photoId
+        ? '<img src="'+photoUrl(t.photoId)+'" loading="lazy" alt="" style="width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover" onerror="this.parentElement.textContent=\''+initials.replace(/'/g,"\\'")+'\'"/>'
+        : initials;
+      return '<div onclick="selectTrainer('+Number(t.id)+',\''+String(t.firstName||'').replace(/'/g,"\\'")+'\',\''+String(t.lastName||'').replace(/'/g,"\\'")+'\',\''+String(t.photoId||'').replace(/'/g,"\\'")+'\')" '+
+        'style="cursor:pointer;text-align:center;padding:.4rem;border-radius:10px" '+
+        'onmouseover="this.style.background=\'rgba(0,0,0,.05)\'" onmouseout="this.style.background=\'\'">'+
+        '<div style="width:64px;height:64px;margin:0 auto .3rem;border-radius:50%;background:#1a5c5c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden">'+img+'</div>'+
+        '<div style="font-size:.78rem">'+fullName+'</div></div>';
+    }).join('') || '<div style="grid-column:1/-1;text-align:center;opacity:.7">Ingen trænere fundet</div>';
+  }).catch(()=>{
+    grid.innerHTML='';
+    errEl.textContent='Ingen forbindelse — prøv igen.';
+  });
+}
+
+// Stage 2 → 3: en træner er valgt, vis password-prompt for netop den person.
+function selectTrainer(id, firstName, lastName, photoId){
+  _pickedTrainer={ id:id, firstName:firstName, lastName:lastName, photoId:photoId };
+  _showLockBox('lockPasswordBox');
+  document.getElementById('lockPasswordName').textContent=(firstName+' '+lastName).trim();
+  const initials=escHtml(((firstName||'')[0]||'')+((lastName||'')[0]||''));
+  const avatar=document.getElementById('lockPasswordAvatar');
+  avatar.innerHTML = photoId
+    ? '<img src="'+photoUrl(photoId)+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent=\''+initials.replace(/'/g,"\\'")+'\'"/>'
+    : initials;
+  const input=document.getElementById('lockPasswordInput');
+  document.getElementById('lockPasswordErr').textContent='';
+  input.value='';
+  setTimeout(()=>input.focus(),50);
+}
+
+// Stage 3: verificér den valgte træners personlige kodeord.
+function trainerPasswordSubmit(){
+  const input=document.getElementById('lockPasswordInput');
+  const errEl=document.getElementById('lockPasswordErr');
+  const pw=input.value;
+  if(!pw || !_pickedTrainer) return;
+  _showChecking(errEl);
+  sha256hex(pw).then(hash=>{
+    _pickedPasswordHash=hash;
+    return apiPost({ action:'verifyTrainerLogin', token:_gateToken, memberId:_pickedTrainer.id, passwordHash:hash });
+  }).then(res=>{
+    if(res && res.ok && res.token){
+      try{
+        sessionStorage.setItem('kk2_token',res.token);
+        sessionStorage.setItem('kk2_role',res.role||'admin');
+        sessionStorage.setItem('kk2_token_exp',String(res.exp||0));
+      }catch(e){}
+      // Identiteten er allerede kendt fra login — den separate "hvem logger ind i dag"
+      // fremmøde-vælger (presenceModal) er nu overflødig for den der lige har logget ind.
+      _myPresenceName=((_pickedTrainer.firstName||'')+' '+(_pickedTrainer.lastName||'')).trim();
+      _myPresenceMemberId=_pickedTrainer.id||0;
+      try{
+        sessionStorage.setItem('kk2_presence_name',_myPresenceName);
+        sessionStorage.setItem('kk2_presence_id',String(_myPresenceMemberId));
+      }catch(e){}
+      errEl.textContent='';
+      if(res.forcePasswordChange){
+        _showLockBox('lockForceChangeBox');
+        document.getElementById('newPw1').value='';
+        document.getElementById('newPw2').value='';
+        document.getElementById('lockForceChangeErr').textContent='';
+      } else {
+        unlockApp();
+      }
+    } else {
+      errEl.textContent=(res&&res.error)||'Forkert adgangskode';
+      input.value='';
+      input.focus();
+    }
+  }).catch(()=>{ errEl.textContent='Ingen forbindelse — prøv igen.'; });
+}
+
+// Tvangsskift af standard-kode (før adgang gives, jf. sikkerhedsgennemgang).
+function submitTrainerPasswordChange(){
+  const pw1=document.getElementById('newPw1').value;
+  const pw2=document.getElementById('newPw2').value;
+  const errEl=document.getElementById('lockForceChangeErr');
+  if(!pw1 || pw1.length<6){ errEl.textContent='Mindst 6 tegn'; return; }
+  if(pw1!==pw2){ errEl.textContent='Adgangskoderne matcher ikke'; return; }
+  _showChecking(errEl, 'Gemmer…');
+  sha256hex(pw1).then(newHash=>{
+    return apiPost({ action:'changePassword', memberId:_pickedTrainer.id, oldHash:_pickedPasswordHash, newHash:newHash });
+  }).then(res=>{
+    if(res && res.ok){
+      errEl.textContent='';
+      unlockApp();
+    } else {
+      errEl.textContent=(res&&res.error)||'Kunne ikke skifte adgangskode';
+    }
+  }).catch(()=>{ errEl.textContent='Ingen forbindelse — prøv igen.'; });
 }
 let _appInited=false;
 function unlockApp(){
@@ -1708,7 +1853,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   load(); // load config + data first
   updateNotifBadge();
   // Sæt badge-billeder straks — lockBadgeImg vises FØR login, så det skal ske her
-  try{['headerBadgeImg','lockBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el&&typeof SHURI_BADGE!=='undefined')el.src=SHURI_BADGE;});}catch(e){}
+  try{['headerBadgeImg','lockBadgeImg','lockPickerBadgeImg','presenceBadgeImg'].forEach(id=>{const el=document.getElementById(id);if(el&&typeof SHURI_BADGE!=='undefined')el.src=SHURI_BADGE;});}catch(e){}
   const locked=checkLock();
   if(locked) return; // wait for lockSubmit → unlockApp → initApp
   _appInited=true;
@@ -1955,8 +2100,12 @@ function _promoInitials(m){return ((m.firstName||'?')[0]+(m.lastName||'')[0]).to
 function _promoAvatar(m){
   const bc=BC[m.belt]||'#a5d6a7';
   if(m && m.photoId){
-    const fullName=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'");
-    const esc=_promoInitials(m).replace(/'/g,"\\'");
+    // XSS-fund (sikkerhedsgennemgang #4): disse værdier sidder i en dobbeltcitat-
+    // HTML-attribut (onclick/onerror) — kun JS-streng-escape (') er ikke nok, en
+    // '"' i navnet ville stadig kunne bryde ud af attributten. Navne kan komme fra
+    // den offentlige indmeldelsesformular. Escap BEGGE citat-typer, som avatarInner().
+    const fullName=((m.firstName||'')+' '+(m.lastName||'')).trim().replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const esc=_promoInitials(m).replace(/'/g,"\\'").replace(/"/g,'&quot;');
     return `<div class="promo-avatar" style="background:linear-gradient(135deg,${bc},#2c4a4a);overflow:hidden;padding:0"><img src="${photoUrl(m.photoId)}" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer" onclick="event.stopPropagation();openPhotoLightbox('${m.photoId}','${fullName}')" onerror="this.parentElement.innerHTML='${esc}'"/></div>`;
   }
   return `<div class="promo-avatar" style="background:linear-gradient(135deg,${bc},#2c4a4a)">${_promoInitials(m)}</div>`;
@@ -5869,7 +6018,7 @@ function renderLoginStatsCard(){
   if(!_loginStatsCache){
     card.innerHTML=`<div class="tcard" style="padding:1rem 1.2rem;border-left:4px solid #6366f1;background:linear-gradient(135deg,#f5f3ff 0%,#fff 60%)">
       <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4f46e5;margin-bottom:.4rem">📱 Elev-app brug</div>
-      <div style="font-size:.85rem;color:var(--xtm)">Henter statistik…</div>
+      <div style="font-size:.85rem;color:var(--xtm);display:flex;align-items:center;gap:.5rem"><span class="photo-spinner" style="width:14px;height:14px;border-width:2px"></span>Henter statistik…</div>
     </div>`;
     return;
   }
@@ -7354,7 +7503,7 @@ function resetHalvaar(){
   const halvaar=new Date().getMonth()<6?'forår':'efterår';
   const year=new Date().getFullYear();
   if(!confirm(`Nulstil betaling for nyt halvår (${halvaar} ${year})?\n\nDette nulstiller indbetalt beløb og betalingsstatus for alle medlemmer inkl. arkiverede.\n\nKan ikke fortrydes.`))return;
-  members.filter(m=>m.status!=='passiv').forEach(m=>{
+  members.forEach(m=>{
     m.betaltBeløb=0;
     m.payment=null;
   });
@@ -10118,7 +10267,7 @@ function saveDigestHour(){
 function openDigestReport(){
   openModal('digestReportModal');
   const body=document.getElementById('digestReportBody');
-  body.innerHTML='<div style="text-align:center;color:var(--xtl);padding:2rem">Henter rapport…</div>';
+  body.innerHTML='<div style="text-align:center;color:var(--xtl);padding:2rem"><span class="photo-spinner" style="width:20px;height:20px"></span><br><br>Henter rapport…</div>';
   _callAction('getDigestReport',{},function(res){
     if(!res||!res.ok){
       body.innerHTML='<div style="padding:1rem;background:#fee2e2;border-radius:8px;color:#991b1b;text-align:center">⚠️ Kunne ikke hente rapport: '+(res&&res.error||'ukendt fejl')+'</div>';
@@ -10275,11 +10424,11 @@ function tpTgtTxt(ex){ const per=weeklyOf(ex)?'/gang':'/dag'; const base=ex.type
 
 // Ved tpLoading: gør intet — "Henter øvelser…"-placeholderen står allerede, og
 // load-callbacket kalder selv renderTPList (ellers overskrives den med "Ingen øvelser endnu").
-function tpEnsureLoaded(){ if(tpLoaded){ renderTPList(); } else if(!tpLoading){ tpLoadLibrary(); } tpEnsureOverview(); }
+function tpEnsureLoaded(){ if(tpLoaded){ renderTPList(); renderTPGrid(); } else if(!tpLoading){ tpLoadLibrary(); } tpEnsureOverview(); }
 function tpEnsureOverview(){ if(tpOvLoaded){ renderTPOverview(); } else if(!tpOvLoading){ tpLoadOverview(); } }
 function tpLoadLibrary(){
   tpLoading=true;
-  const list=document.getElementById('tpLibList'); if(list) list.innerHTML='<div class="tp-empty">Henter øvelser…</div>';
+  const list=document.getElementById('tpLibList'); if(list) list.innerHTML='<div class="tp-empty" style="display:flex;align-items:center;justify-content:center;gap:.5rem"><span class="photo-spinner" style="width:16px;height:16px;border-width:2px"></span>Henter øvelser…</div>';
   const cb='_tplib'+Date.now();
   const s=document.createElement('script');
   const cleanup=()=>{ delete window[cb]; if(s.parentNode)s.parentNode.removeChild(s); };
@@ -10288,7 +10437,7 @@ function tpLoadLibrary(){
   window[cb]=function(d){ clearTimeout(timer); cleanup(); tpLoading=false;
     if(d&&d.authRequired){ if(typeof handleAuthExpired==='function') handleAuthExpired(); return; }
     if(!d||!d.ok){ fail('Kunne ikke hente øvelser'+(d&&d.error?(': '+d.error):'')+'.'); return; }
-    tpLib=d.exercises||[]; tpLoaded=true; renderTPList();
+    tpLib=d.exercises||[]; tpLoaded=true; renderTPList(); renderTPGrid();
   };
   s.onerror=()=>{ clearTimeout(timer); cleanup(); tpLoading=false; fail('Netværksfejl — kunne ikke hente øvelser.'); };
   s.src=SCRIPT_URL+'?action=getTrainingLibrary&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
@@ -10310,7 +10459,7 @@ function renderTPList(){
   el.innerHTML=tpLib.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)).map(ex=>`<div class="tp-row${ex.archived?' tp-row-archived':''}">
     <div class="tp-ico">${escHtml(ex.icon||'🏋️')}</div>
     <div class="tp-body">
-      <div class="tp-name">${escHtml(ex.name)} <span class="tp-chip">${escHtml(tpTgtTxt(ex))} · ${escHtml(tpDayTxt(ex))}</span>${ex.archived?' <span class="tp-chip">📦 arkiveret</span>':''}${(ex.startDate||ex.endDate)?` <span class="tp-chip">📅 ${escHtml(tpBlockTxt(ex))}</span>`:''}</div>
+      <div class="tp-name">${escHtml(ex.name)} <span class="tp-chip">${escHtml(tpTgtTxt(ex))} · ${escHtml(tpDayTxt(ex))}</span>${ex.archived?' <span class="tp-chip">📦 arkiveret</span>':''}${(ex.startDate||ex.endDate)?` <span class="tp-chip">📅 ${escHtml(tpBlockTxt(ex))}</span>`:''}${Object.keys((ex.assign&&ex.assign.overrides)||{}).length?` <span class="tp-chip" title="Elever med sit eget mål i stedet for standarden">✎ ${Object.keys(ex.assign.overrides).length} tilpasset${Object.keys(ex.assign.overrides).length===1?'':'e'}</span>`:''}</div>
       <div class="tp-meta">→ ${escHtml(tpAssignSummary(ex.assign))}</div>
     </div>
     ${ex.archived
@@ -10335,6 +10484,292 @@ function tpDuplicateExercise(id){
   tpEditingId=null; // gem opretter en ny biblioteks-øvelse i stedet for at overskrive
   const t=document.getElementById('tpMTitle'); if(t) t.textContent='Kopiér øvelse → vælg elever';
 }
+/* ── Tildelings-grid: elever × øvelser i ét overblik ──────────────────────
+   Viser den FAKTISKE (opløste) tildeling pr. elev/øvelse — uanset om den
+   stammer fra "alle", et hold, et bælte eller navngivne elever. Klik en
+   celle, eller klik-og-træk hen over flere, for at (af)tildele. Første
+   redigering af en øvelse via gridet "materialiserer" dens targeting til en
+   navngivet elev-liste (alle/hold/bælte konverteres til de elever der matcher
+   LIGE NU) — grov hold/bælte-omtildeling laves stadig i "Ret øvelse"-modalen.
+   NB: nye elever i et hold/bælte tilføjes derfor ikke automatisk til en
+   øvelse, når først gridet har redigeret den — det er den bevidste tradeoff. */
+let tpGridQuery='';
+let tpGridOnlyGrad=true; // som standard: kun elever der ønsker graduering (ellers alt for mange rækker)
+let tpGridSort='name'; // 'name' | 'belt'
+let tpGridBeltFilter=new Set(); // tom = vis alle bælter; ellers kun de valgte
+let tpGridDrag=null; // {value:bool} mens museknappen er nede (dragmaling)
+let _tpGridSaveTimer=null;
+function tpMemberMatches(ex, m){
+  const a=(ex&&ex.assign)||{}; if(!m) return false;
+  if(a.all) return true;
+  if((a.groups||[]).includes(m.group)) return true;
+  if((a.belts||[]).includes(m.belt)) return true;
+  if((a.members||[]).map(Number).includes(Number(m.id))) return true;
+  return false;
+}
+// Pr.-elev mål-override: samme øvelse (fx "Løb") kan have ét standardmål, men en
+// enkelt elev kan have sit eget (fx 3 km i stedet for 5 km). Gemmes i
+// ex.assign.overrides = { "<memberId>": tal }, helt uafhængigt af HVORDAN øvelsen
+// er tildelt (alle/hold/bælte/navngivet) — kræver altså ingen materialisering.
+function tpGridOverrideOf(ex, mid){ const ov=(ex.assign&&ex.assign.overrides)||{}; const v=ov[String(mid)]; return (v===undefined||v===null||v==='')?null:Number(v); }
+function tpGridEffectiveTarget(ex, mid){ const ov=tpGridOverrideOf(ex,mid); if(ov!=null) return ov; return ex.target==null?null:Number(ex.target); }
+// Fuld liste — bruges til materialisering/udfyld/kopiér, SÅ gruppe/bælte-tildelinger
+// altid opløses mod ALLE matchende elever, uanset gradueringsfilteret i visningen.
+function tpGridMembers(){
+  return members.filter(m=>m.status!=='passiv' && !m.archived)
+    .map(m=>({id:m.id, name:((m.firstName||'')+' '+(m.lastName||'')).trim()||('#'+m.id), group:m.group||'', belt:m.belt||'', grad:!!m.ønskerGraduering, start:m.startDate||''}))
+    .sort((a,b)=>a.name.localeCompare(b.name,'da'));
+}
+// Viste rækker — begrænset til "ønsker graduering" + evt. bæltefilter, medmindre slået fra.
+function tpGridVisibleMembers(){
+  const all=tpGridMembers();
+  let rows=tpGridOnlyGrad ? all.filter(m=>m.grad) : all;
+  if(tpGridBeltFilter.size) rows=rows.filter(m=>tpGridBeltFilter.has(m.belt));
+  return rows;
+}
+function tpGridSetOnlyGrad(v){ tpGridOnlyGrad=!!v; const chk=document.getElementById('tpGridOnlyGradChk'); if(chk) chk.checked=tpGridOnlyGrad; renderTPGrid(); }
+function tpGridSetSort(v){ tpGridSort=v; renderTPGrid(); }
+// ── Bælte-filter: multi-select dropdown over "Hvem har hvad"-gridet ──
+function tpGridToggleBeltMenu(e){
+  e.stopPropagation(); closeTpGridMenu();
+  const beltsPresent=BELT_ORDER.filter(b=>tpGridMembers().some(m=>m.belt===b));
+  const menu=document.createElement('div');
+  menu.className='tp-grid-menu'; menu.id='tpGridMenuEl';
+  let html='<div class="tp-grid-menu-h">Vis kun bælter</div>';
+  html+=`<div class="tp-grid-menu-item" onclick="tpGridBeltFilterClear()">👥 Vis alle bælter</div>`;
+  beltsPresent.forEach(b=>{
+    const checked=tpGridBeltFilter.has(b);
+    html+=`<label class="tp-grid-copy-item"><input type="checkbox" ${checked?'checked':''} onchange="tpGridBeltMenuToggle('${escAttr(b)}',this.checked)"> <span class="tp-grid-mbelt" style="background:${BC[b]||'#ccc'}"></span> ${escHtml(b)}</label>`;
+  });
+  menu.innerHTML=html;
+  tpGridPositionMenu(menu, e.currentTarget);
+}
+function tpGridBeltMenuToggle(belt, checked){
+  if(checked) tpGridBeltFilter.add(belt); else tpGridBeltFilter.delete(belt);
+  tpGridUpdateBeltFilterBtn(); renderTPGrid();
+}
+function tpGridBeltFilterClear(){ tpGridBeltFilter=new Set(); tpGridUpdateBeltFilterBtn(); closeTpGridMenu(); renderTPGrid(); }
+function tpGridUpdateBeltFilterBtn(){ const c=document.getElementById('tpGridBeltFilterCount'); if(c) c.textContent=tpGridBeltFilter.size?('('+tpGridBeltFilter.size+')'):''; }
+function tpGridExercises(){ return tpLib.filter(e=>!e.archived); }
+function tpGridFilterRows(q){ tpGridQuery=q||''; renderTPGrid(); }
+// Beregner klasse + indhold for ÉN celle — delt mellem fuld-render og enkelt-celle-opdatering (drag).
+function tpGridCellParts(ex, m){
+  const on=tpMemberMatches(ex,m);
+  const isCheck=ex.type==='check';
+  const eff=tpGridEffectiveTarget(ex,m.id);
+  const hasOv=tpGridOverrideOf(ex,m.id)!=null;
+  const val = on ? (isCheck?'✓':(eff==null?'–':tpNum(eff))) : '';
+  const editBtn = (on && !isCheck) ? `<button type="button" class="tp-grid-cell-edit${hasOv?' has':''}" title="Sæt individuelt mål (nu: ${escAttr(eff==null?'—':tpNum(eff))}${ex.unit?(' '+escAttr(ex.unit)):''})" onmousedown="event.stopPropagation()" onclick="tpGridEditOverride(event,'${escAttr(String(m.id))}','${escAttr(ex.id)}')">✎</button>` : '';
+  return { cls:'tp-grid-cell'+(on?' on':'')+(hasOv?' has-override':''), inner:`<span class="tp-grid-cell-val">${val}</span>${editBtn}` };
+}
+function renderTPGrid(){
+  const el=document.getElementById('tpGridWrap'); if(!el) return;
+  const exs=tpGridExercises(), all=tpGridMembers(), visible=tpGridVisibleMembers();
+  const cnt=document.getElementById('tpGridCount'); if(cnt) cnt.textContent=all.length?('('+visible.length+' af '+all.length+')'):'';
+  if(!exs.length){ el.innerHTML='<div class="tp-empty">Opret en øvelse for at se tildelingsoversigten.</div>'; return; }
+  if(!all.length){ el.innerHTML='<div class="tp-empty">Ingen aktive elever.</div>'; return; }
+  if(!visible.length){ el.innerHTML='<div class="tp-empty">Ingen elever ønsker graduering lige nu. <span class="tp-grid-empty-link" onclick="tpGridSetOnlyGrad(false)">Vis alle '+all.length+' elever</span></div>'; return; }
+  const q=tpGridQuery.toLowerCase().trim();
+  let rows=q?visible.filter(m=>m.name.toLowerCase().includes(q)):visible.slice();
+  if(tpGridSort==='belt'){
+    // Højest graduerede først; ved samme bælte vinder anciennitet (tidligst startdato), så navn som sidste udvej.
+    rows.sort((a,b)=>{
+      const ra=(BELT_RANK[a.belt]!=null)?BELT_RANK[a.belt]:-1, rb=(BELT_RANK[b.belt]!=null)?BELT_RANK[b.belt]:-1;
+      if(ra!==rb) return rb-ra;
+      const sa=a.start||'9999', sb=b.start||'9999';
+      if(sa!==sb) return sa.localeCompare(sb);
+      return a.name.localeCompare(b.name,'da');
+    });
+  }
+  let html='<div class="tp-grid" id="tpGridTable">';
+  html+='<div class="tp-grid-row tp-grid-head"><div class="tp-grid-corner"></div>';
+  exs.forEach(ex=>{
+    html+=`<div class="tp-grid-col-head">
+      <div class="tp-grid-exico">${escHtml(ex.icon||'🏋️')}</div>
+      <div class="tp-grid-exname" title="${escAttr(ex.name)}">${escHtml(ex.name)}</div>
+      <button type="button" class="tp-grid-fill" title="Udfyld eller ryd hele kolonnen" onclick="tpGridColMenu(event,'${escAttr(ex.id)}')">⚡</button>
+    </div>`;
+  });
+  html+='</div>';
+  if(!rows.length){ html+='<div class="tp-empty" style="padding:14px">Ingen match</div>'; }
+  rows.forEach(m=>{
+    html+='<div class="tp-grid-row">';
+    html+=`<div class="tp-grid-rowhead">
+      <button type="button" class="tp-grid-copy" title="Kopiér ${escAttr(m.name)}s tildelinger til andre elever" onclick="tpGridCopyRow(event,'${escAttr(String(m.id))}')">📋</button>
+      <span class="tp-grid-mbelt" style="background:${BC[m.belt]||'#ccc'}" title="${escAttr(m.belt||'')}"></span>
+      <span class="tp-grid-mname">${escHtml(m.name)}</span><span class="tp-grid-mgroup">${escHtml(m.group)}</span>
+    </div>`;
+    exs.forEach(ex=>{
+      const {cls,inner}=tpGridCellParts(ex,m);
+      html+=`<div class="${cls}" data-mid="${escAttr(String(m.id))}" data-exid="${escAttr(ex.id)}" title="${escAttr(m.name)} · ${escAttr(ex.name)}">${inner}</div>`;
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  el.querySelectorAll('.tp-grid-cell').forEach(c=>{
+    c.addEventListener('mousedown', tpGridCellDown);
+    c.addEventListener('mouseenter', tpGridCellEnter);
+  });
+}
+function tpGridCellDown(e){
+  e.preventDefault();
+  const cell=e.currentTarget;
+  const newVal=!cell.classList.contains('on');
+  tpGridDrag={value:newVal};
+  document.body.style.userSelect='none';
+  tpGridSetCell(cell.dataset.mid, cell.dataset.exid, newVal, cell);
+}
+function tpGridCellEnter(e){
+  if(!tpGridDrag) return;
+  const cell=e.currentTarget;
+  tpGridSetCell(cell.dataset.mid, cell.dataset.exid, tpGridDrag.value, cell);
+}
+document.addEventListener('mouseup', ()=>{ tpGridDrag=null; document.body.style.userSelect=''; });
+// Konverterer "alle/hold/bælte"-targeting til en eksplicit elev-liste (dem der
+// matcher LIGE NU) — kun hvis øvelsen endnu ikke bruger en navngivet liste.
+function tpGridMaterialize(ex){
+  const a=ex.assign||{all:true,groups:[],belts:[],members:[]};
+  if(a.all || (a.groups||[]).length || (a.belts||[]).length){
+    const matched=tpGridMembers().filter(m=>tpMemberMatches(ex,m)).map(m=>Number(m.id));
+    ex.assign={all:false,groups:[],belts:[],members:matched,overrides:a.overrides||{}}; // overrides følger med — må ALDRIG tabes her
+  } else if(!ex.assign){ ex.assign={all:false,groups:[],belts:[],members:[],overrides:{}}; }
+}
+function tpGridSetCell(mid, exid, val, cellEl){
+  const ex=tpLib.find(e=>e.id===exid); if(!ex) return;
+  tpGridMaterialize(ex);
+  const midN=Number(mid);
+  const set=new Set((ex.assign.members||[]).map(Number));
+  if(val) set.add(midN);
+  else { set.delete(midN); if(ex.assign.overrides) delete ex.assign.overrides[String(midN)]; } // afmeld → ryd evt. individuelt mål
+  ex.assign.members=[...set];
+  if(cellEl){
+    const m=tpGridMembers().find(x=>String(x.id)===String(mid));
+    if(m){ const {cls,inner}=tpGridCellParts(ex,m); cellEl.className=cls; cellEl.innerHTML=inner; }
+  }
+  tpGridSaveDebounced();
+}
+function tpGridSaveDebounced(){
+  clearTimeout(_tpGridSaveTimer);
+  _tpGridSaveTimer=setTimeout(()=>{ tpSaveLibrary(); renderTPList(); showToast('✅ Tildelinger gemt'); }, 500);
+}
+function closeTpGridMenu(){ const m=document.getElementById('tpGridMenuEl'); if(m) m.remove(); }
+function tpGridPositionMenu(menu, anchorEl){
+  document.body.appendChild(menu);
+  menu.addEventListener('click', ev=>ev.stopPropagation());
+  const r=anchorEl.getBoundingClientRect();
+  const w=menu.offsetWidth||220;
+  menu.style.top=(r.bottom+window.scrollY+4)+'px';
+  menu.style.left=(Math.min(r.left+window.scrollX, window.scrollX+document.documentElement.clientWidth-w-12))+'px';
+  setTimeout(()=>document.addEventListener('click', closeTpGridMenu, {once:true}), 0);
+}
+function tpGridColMenu(e, exId){
+  e.stopPropagation(); closeTpGridMenu();
+  const ex=tpLib.find(x=>x.id===exId); if(!ex) return;
+  const groups=tpGroupsAll();
+  const menu=document.createElement('div');
+  menu.className='tp-grid-menu'; menu.id='tpGridMenuEl';
+  let html='<div class="tp-grid-menu-h">Udfyld kolonne</div>';
+  html+=`<div class="tp-grid-menu-item" onclick="tpGridFillCol('${escAttr(exId)}','all')">👥 Alle elever</div>`;
+  html+='<div class="tp-grid-menu-sub">Hold</div>';
+  groups.forEach(g=>{ html+=`<div class="tp-grid-menu-item" onclick="tpGridFillCol('${escAttr(exId)}','group','${escAttr(g)}')">${escHtml(g)}</div>`; });
+  html+='<div class="tp-grid-menu-sub">Bælte</div>';
+  BELT_ORDER.forEach(b=>{ html+=`<div class="tp-grid-menu-item" onclick="tpGridFillCol('${escAttr(exId)}','belt','${escAttr(b)}')">${escHtml(b)}</div>`; });
+  html+=`<div class="tp-grid-menu-item tp-grid-menu-danger" onclick="tpGridFillCol('${escAttr(exId)}','clear')">✕ Ryd kolonne</div>`;
+  menu.innerHTML=html;
+  tpGridPositionMenu(menu, e.currentTarget);
+}
+function tpGridFillCol(exId, type, value){
+  const ex=tpLib.find(x=>x.id===exId); if(!ex) return;
+  const mems=tpGridMembers();
+  let matched=[];
+  if(type==='all') matched=mems.map(m=>Number(m.id));
+  else if(type==='group') matched=mems.filter(m=>m.group===value).map(m=>Number(m.id));
+  else if(type==='belt') matched=mems.filter(m=>m.belt===value).map(m=>Number(m.id));
+  ex.assign={all:false,groups:[],belts:[],members:matched,overrides:(ex.assign&&ex.assign.overrides)||{}}; // overrides følger med — samme regel som materialize
+  closeTpGridMenu();
+  renderTPGrid(); renderTPList(); tpSaveLibrary();
+  showToast('✅ Kolonne opdateret');
+}
+let tpRowCopySel=new Set(), _tpGridCopyMembers=[];
+function tpGridCopyRow(e, mid){
+  e.stopPropagation(); closeTpGridMenu();
+  tpRowCopySel=new Set();
+  _tpGridCopyMembers=tpGridMembers().filter(m=>String(m.id)!==String(mid));
+  const menu=document.createElement('div');
+  menu.className='tp-grid-menu tp-grid-menu-copy'; menu.id='tpGridMenuEl';
+  menu.innerHTML=`<div class="tp-grid-menu-h">Kopiér tildelinger til…</div>
+    <input class="form-select tp-grid-copy-search" placeholder="🔍 Søg elev…" oninput="tpGridCopyFilter(this.value)">
+    <div id="tpGridCopyList" class="tp-grid-copy-list"></div>
+    <div class="tp-grid-menu-actions"><button class="btn bg" onclick="closeTpGridMenu()">Annullér</button><button class="btn bp" onclick="tpGridCopyApply('${escAttr(String(mid))}')">Kopiér</button></div>`;
+  tpGridPositionMenu(menu, e.currentTarget);
+  tpGridRenderCopyList('');
+}
+function tpGridRenderCopyList(q){
+  const list=document.getElementById('tpGridCopyList'); if(!list) return;
+  q=(q||'').toLowerCase().trim();
+  const mems=_tpGridCopyMembers.filter(m=>!q||m.name.toLowerCase().includes(q));
+  list.innerHTML=mems.map(m=>`<label class="tp-grid-copy-item"><input type="checkbox" ${tpRowCopySel.has(String(m.id))?'checked':''} onchange="tpGridCopyToggle('${escAttr(String(m.id))}',this.checked)"> ${escHtml(m.name)} <span class="tp-hint">${escHtml(m.group)}</span></label>`).join('') || '<div class="tp-empty" style="padding:8px">Ingen match</div>';
+}
+function tpGridCopyFilter(q){ tpGridRenderCopyList(q); }
+function tpGridCopyToggle(id, checked){ if(checked) tpRowCopySel.add(id); else tpRowCopySel.delete(id); }
+function tpGridCopyApply(srcMid){
+  if(!tpRowCopySel.size){ showToast('Vælg mindst én elev'); return; }
+  const srcId=Number(srcMid);
+  const targets=[...tpRowCopySel].map(Number);
+  tpGridExercises().forEach(ex=>{
+    tpGridMaterialize(ex);
+    const isOn=(ex.assign.members||[]).map(Number).includes(srcId);
+    const srcOv=tpGridOverrideOf(ex,srcId); // kopiér også et evt. individuelt mål med
+    const set=new Set((ex.assign.members||[]).map(Number));
+    targets.forEach(t=>{
+      if(isOn){ set.add(t); if(!ex.assign.overrides) ex.assign.overrides={}; if(srcOv!=null) ex.assign.overrides[String(t)]=srcOv; else delete ex.assign.overrides[String(t)]; }
+      else { set.delete(t); if(ex.assign.overrides) delete ex.assign.overrides[String(t)]; }
+    });
+    ex.assign.members=[...set];
+  });
+  closeTpGridMenu();
+  renderTPGrid(); renderTPList(); tpSaveLibrary();
+  showToast('✅ Tildelinger kopieret til '+targets.length+' elev'+(targets.length===1?'':'er'));
+}
+// ── Individuelt mål: overskriv/nulstil én elevs mål for én øvelse ──
+function tpGridEditOverride(e, mid, exid){
+  e.stopPropagation(); closeTpGridMenu();
+  const ex=tpLib.find(x=>x.id===exid); if(!ex) return;
+  const m=tpGridMembers().find(x=>String(x.id)===String(mid));
+  const cur=tpGridOverrideOf(ex,mid);
+  const menu=document.createElement('div');
+  menu.className='tp-grid-menu tp-grid-menu-override'; menu.id='tpGridMenuEl';
+  menu.innerHTML=`<div class="tp-grid-menu-h">Individuelt mål${m?(' — '+escHtml(m.name)):''}</div>
+    <div class="tp-grid-override-row">
+      <input type="number" min="0" step="any" id="tpGridOvInput" value="${cur!=null?escAttr(String(cur)):''}" placeholder="${escAttr(ex.target!=null?String(ex.target):'0')} (standard)">
+      <span class="tp-hint">${escHtml(ex.unit||'')}</span>
+    </div>
+    <div class="tp-grid-menu-actions">
+      <button class="btn bg" onclick="tpGridClearOverride('${escAttr(exid)}','${escAttr(String(mid))}')">Brug standard</button>
+      <button class="btn bp" onclick="tpGridSaveOverride('${escAttr(exid)}','${escAttr(String(mid))}')">Gem</button>
+    </div>`;
+  tpGridPositionMenu(menu, e.currentTarget);
+  setTimeout(()=>{ const inp=document.getElementById('tpGridOvInput'); if(inp){ inp.focus(); inp.select(); } },0);
+}
+function tpGridSaveOverride(exid, mid){
+  const ex=tpLib.find(x=>x.id===exid); if(!ex) return;
+  const inp=document.getElementById('tpGridOvInput');
+  const raw=(inp&&inp.value!=='')?Number(inp.value):NaN;
+  if(!ex.assign) ex.assign={all:false,groups:[],belts:[],members:[]};
+  if(!ex.assign.overrides) ex.assign.overrides={};
+  if(isNaN(raw)) delete ex.assign.overrides[String(mid)];
+  else ex.assign.overrides[String(mid)]=raw;
+  closeTpGridMenu(); renderTPGrid(); renderTPList(); tpSaveLibrary();
+  showToast('✅ Individuelt mål gemt');
+}
+function tpGridClearOverride(exid, mid){
+  const ex=tpLib.find(x=>x.id===exid);
+  if(ex&&ex.assign&&ex.assign.overrides) delete ex.assign.overrides[String(mid)];
+  closeTpGridMenu(); renderTPGrid(); renderTPList(); tpSaveLibrary();
+  showToast('↺ Bruger nu standardmål');
+}
+
 function tpRenderIcons(){ document.getElementById('tpIcons').innerHTML=TP_ICONS.map(ic=>`<span class="${ic===tpIcon?'on':''}" onclick="tpIcon='${ic}';tpRenderIcons()">${ic}</span>`).join(''); }
 function tpRenderDays(){ document.getElementById('tpDays').innerHTML=TP_WK_ORDER.map(i=>`<div class="pill ${tpDays.includes(i)?'on':''}" onclick="tpToggleDay(${i})">${TP_DAY_SHORT[i]}</div>`).join(''); }
 function tpToggleDay(i){ const k=tpDays.indexOf(i); if(k>=0)tpDays.splice(k,1); else tpDays.push(i); tpRenderDays(); }
@@ -10442,7 +10877,7 @@ function tpSaveExercise(){
     else { tpLib.push(obj); showToast('⚠️ Øvelsen fandtes ikke længere — gemt som ny'); } // fx slettet af en anden træner
   }
   else tpLib.push(obj);
-  closeModal('tpModal'); renderTPList(); tpSaveLibrary();
+  closeModal('tpModal'); renderTPList(); renderTPGrid(); tpSaveLibrary();
   showToast(wasEditing?('✏️ "'+name+'" opdateret'):('✅ "'+name+'" pushet til eleverne'));
 }
 // Arkivér i stedet for at slette: øvelsen forsvinder fra elevernes daglige program
@@ -10452,13 +10887,13 @@ function tpArchiveExercise(id){
   const ex=tpLib.find(e=>e.id===id); if(!ex) return;
   if(!confirm('Arkivér "'+ex.name+'"? Den forsvinder fra elevernes daglige program, men al historik bevares. Du kan gendanne den igen.')) return;
   ex.archived=true;
-  renderTPList(); tpSaveLibrary();
+  renderTPList(); renderTPGrid(); tpSaveLibrary();
   showToast('📦 "'+ex.name+'" arkiveret — kan gendannes');
 }
 function tpRestoreExercise(id){
   const ex=tpLib.find(e=>e.id===id); if(!ex) return;
   ex.archived=false;
-  renderTPList(); tpSaveLibrary();
+  renderTPList(); renderTPGrid(); tpSaveLibrary();
   showToast('♻️ "'+ex.name+'" gendannet — er igen aktiv hos eleverne');
 }
 function tpDeleteExercise(id){
@@ -10466,7 +10901,7 @@ function tpDeleteExercise(id){
   if(!ex.archived){ showToast('⚠️ Arkivér øvelsen først — slet er permanent'); return; }
   if(!confirm('SLET "'+ex.name+'" permanent? Elevernes historik for øvelsen bliver usynlig (rådata bevares i arket, men kan ikke ses i appen igen).')) return;
   tpLib=tpLib.filter(e=>e.id!==id);
-  renderTPList(); tpSaveLibrary();
+  renderTPList(); renderTPGrid(); tpSaveLibrary();
   showToast('🗑️ Øvelse slettet permanent');
 }
 
@@ -10475,7 +10910,7 @@ function tpLoadOverview(force){
   if(force){ tpOvLoaded=false; }
   if(tpOvLoading) return;
   tpOvLoading=true;
-  const el=document.getElementById('tpOverviewList'); if(el) el.innerHTML='<div class="tp-empty">Henter fremgang…</div>';
+  const el=document.getElementById('tpOverviewList'); if(el) el.innerHTML='<div class="tp-empty" style="display:flex;align-items:center;justify-content:center;gap:.5rem"><span class="photo-spinner" style="width:16px;height:16px;border-width:2px"></span>Henter fremgang…</div>';
   const cb='_tpov'+Date.now();
   const s=document.createElement('script');
   const cleanup=()=>{ delete window[cb]; if(s.parentNode)s.parentNode.removeChild(s); };
@@ -10538,7 +10973,7 @@ function tpStudentDetail(s){
     return `<div class="tp-exwrap${open?' open':''}">
       <div class="tp-exrow tp-exclick" onclick="tpToggleEx('${escAttr(String(s.memberId))}','${escAttr(ex.id)}')">
         <span class="tp-exico">${escHtml(ex.icon||'🏋️')}</span>
-        <span class="tp-exname">${escHtml(ex.name)}${TP_FEEL[ex.lastFeel]?` <span class="tp-exfeel" title="Elevens seneste feedback: ${TP_FEEL[ex.lastFeel][1]}">${TP_FEEL[ex.lastFeel][0]}</span>`:''}${ex.suggest?` <span class="tp-exsug" title="Målet er nået 3 hele uger i træk — overvej at hæve dagsmålet til ${ex.suggest}${ex.unit?' '+escAttr(ex.unit):''} (kopiér evt. øvelsen kun til denne elev med højere mål)">🎯 ${ex.suggest}?</span>`:''}</span>
+        <span class="tp-exname">${escHtml(ex.name)}${ex.self?` <span class="tp-exsug" title="Eleven har selv tilføjet denne øvelse">🙋 Egen</span>`:''}${TP_FEEL[ex.lastFeel]?` <span class="tp-exfeel" title="Elevens seneste feedback: ${TP_FEEL[ex.lastFeel][1]}">${TP_FEEL[ex.lastFeel][0]}</span>`:''}${ex.suggest?` <span class="tp-exsug" title="Målet er nået 3 hele uger i træk — overvej at hæve dagsmålet til ${ex.suggest}${ex.unit?' '+escAttr(ex.unit):''} (kopiér evt. øvelsen kun til denne elev med højere mål)">🎯 ${ex.suggest}?</span>`:''}</span>
         <span class="tp-exbar"><i style="width:${ex.pct}%;background:${col}"></i></span>
         <span class="tp-exnum">${ex.done}/${ex.scheduled}</span>
         <span class="tp-expct" style="color:${col}">${ex.pct}%</span>

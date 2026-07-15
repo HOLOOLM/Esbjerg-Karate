@@ -593,8 +593,18 @@ function weekDatesUpTo(ds){ const s=startOfWeek(parseYmd(ds)); const out=[]; for
 // Kvote for et sæt datoer i SAMME uge: uge-mode = min(N, dage i blok-vinduet);
 // dage-mode = planlagte ugedage (isScheduled respekterer vinduet).
 function weekQuota(ex, dates){ const w=weeklyOf(ex); return w ? Math.min(w,dates.filter(ds=>inWindow(ex,ds)).length) : dates.filter(ds=>isScheduled(ex,ds)).length; }
-// Antal FORSKELLIGE gennemførte dage i sættet — uanset ugedag (= catch-up).
-function weekDoneDays(ex, dates){ return dates.filter(ds=>isDoneOn(ex,ds)).length; }
+// Delvis kredit for en dags registrering: 0..1. Afkrydsning er stadig binær;
+// mål-baserede øvelser giver forholdsmæssig kredit (v/target) — et forsøg der ikke
+// når målet tæller stadig delvist med i ugens kvote. SKAL matche _tpDayCredit i apps-script.gs.
+function dayCredit(ex, dateStr){
+  const v=valFor(dateStr,ex.id);
+  if(ex.type==='check') return v>0?1:0;
+  const t=Number(ex.target)||0;
+  if(t>0) return Math.max(0,Math.min(1, v/t));
+  return v>0?1:0;
+}
+// Sum af delvis kredit for sættet af datoer — uanset ugedag (= catch-up).
+function weekDoneDays(ex, dates){ return dates.reduce((s,ds)=>s+dayCredit(ex,ds),0); }
 // Er ugens (forløbne) kvote nået pr. dags dato?
 function weekMet(ex, ds){ const dates=weekDatesUpTo(ds); const q=weekQuota(ex,dates); return q>0 && weekDoneDays(ex,dates)>=q; }
 
@@ -637,10 +647,10 @@ function isDoneOn(ex, dateStr){ return periodStatsForDay(ex,dateStr).done; }
 function dayCompletion(ds){
   // Arkiverede stiller ingen krav (sched), men historiske gennemførsler tæller stadig som aktivitet.
   const sched=plan.exercises.filter(ex=>!ex.archived&&!weeklyOf(ex)&&isScheduled(ex,ds));
-  const flexDone=plan.exercises.filter(ex=>weeklyOf(ex)&&isDoneOn(ex,ds));
+  const flexDone=plan.exercises.filter(ex=>weeklyOf(ex)&&dayCredit(ex,ds)>0);
   const total=sched.length+flexDone.length;
   if(!total) return { rest:true, ratio:0, done:0, total:0 };
-  const done=sched.filter(ex=>isDoneOn(ex,ds)).length + flexDone.length;
+  const done=sched.reduce((s,ex)=>s+dayCredit(ex,ds),0) + flexDone.reduce((s,ex)=>s+dayCredit(ex,ds),0);
   return { rest:false, ratio:done/total, done, total };
 }
 
@@ -735,7 +745,7 @@ function renderToday(){
   document.getElementById('dayName').textContent = '· '+dFull(new Date().getDay());
   const list=document.getElementById('todayList');
   const { t0, elapsed, todays, flex, catchUp, others } = todayActionable();
-  const weekChip=(n,q)=> `${Math.min(n,q)}/${q} ${L('denne uge','this week')}`;
+  const weekChip=(n,q)=> `${Math.round(Math.min(n,q)*10)/10}/${q} ${L('denne uge','this week')}`;
   let html='';
   // 1) Fast planlagt i dag
   html += todays.length
