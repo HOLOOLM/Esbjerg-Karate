@@ -148,18 +148,6 @@ body > *:not(#lockScreen){visibility:hidden;pointer-events:none}
   </div>
 </header>
 
-<div id="qsOverlay" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;background:rgba(10,30,30,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" onclick="if(event.target===this)closeQuickSearch()">
-  <div style="background:#fff;border-radius:0 0 18px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:80vh">
-    <div style="padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;border-bottom:1.5px solid #e8f0f0;flex-shrink:0">
-      <span style="font-size:1.3rem">🔍</span>
-      <input id="qsInput" type="text" placeholder="Søg navn, bælte, tlf., årgang, betalt, mand, dreng…"
-        style="flex:1;border:none;outline:none;font-size:1rem;padding:.3rem 0;color:#1a3a3a;background:transparent"
-        oninput="_dRenderQS()" autocomplete="off"/>
-      <button onclick="closeQuickSearch()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;padding:0 .2rem;line-height:1">✕</button>
-    </div>
-    <div id="qsResults" style="padding:.5rem 1rem 1rem;overflow-y:auto;background:#fff;border-radius:0 0 18px 18px"></div>
-  </div>
-</div>
 
 <div id="globalSearchOverlay" onclick="if(event.target===this)closeGlobalSearch()">
   <div class="gs-box">

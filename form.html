@@ -675,7 +675,6 @@ function clearSignature() {
 // ── Hjælpere ──────────────────────────────────────────
 function req(id) { return document.getElementById(id).value.trim(); }
 function markErr(id, yes) { document.getElementById(id).classList.toggle('err', yes); }
-function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── Format-validering (genindført fra tidligere version) ──
 function _validEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim()); }

@@ -1275,17 +1275,18 @@ function _flushSave(){
 window.addEventListener('pagehide', _flushSave);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') _flushSave(); });
 
-// ── Henter elevens plan fra backenden (JSONP) ─────────────────────────────────
+// ── Henter elevens plan fra backenden (POST — undgår passwordHash i URL'en,
+//    som JSONP/GET ellers ville kræve) ─────────────────────────────────────
 function showFatal(msg){
   document.querySelector('.layout').innerHTML =
     `<div class="card" style="grid-column:1/-1"><div class="empty">${esc(msg)}<br><br>
       <button class="btn" onclick="location.href='elev.html'">${L('Til min side','Back to my page')}</button></div></div>`;
 }
 function loadPlan(){
-  jsonp('getTrainingPlan', { email: STUDENT.email, passwordHash: STUDENT.hash })
+  apiPost({ action:'getTrainingPlan', email: STUDENT.email, passwordHash: STUDENT.hash }, { timeout: 15000 })
     .then(onPlanLoaded)
     .catch(err=>{
-      showFatal(err && err.message==='timeout'
+      showFatal((err && (err.name==='AbortError' || err.message==='timeout'))
         ? L('Kunne ikke hente din træningsplan (timeout). Prøv igen.','Could not load your training plan (timeout). Please try again.')
         : L('Netværksfejl — kunne ikke hente din træningsplan.','Network error — could not load your training plan.'));
     });
