@@ -51,7 +51,7 @@ const GRP_CHIP = {Børnehold:'grp-b','Basis-hold':'grp-j',Avanceret:'grp-s'};
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, assessments=[], pensum={}, skillNotes={}, boardMeetings=[], messages=[];
+let members=[], sessions=[], cancelledDates=[], cancelledReasons={}, extraTrainingDates=[], assessments=[], pensum={}, skillNotes={}, boardMeetings=[], messages=[];
 let activeAnnouncement=null;
 let studentActiveToday=false;
 let nextMessageId=1;
@@ -254,6 +254,7 @@ function load(){
     const s=localStorage.getItem('kk2_sessions');
     const c=localStorage.getItem('kk2_config');
     const cd=localStorage.getItem('kk2_cancelled');
+    const et=localStorage.getItem('kk2_extra_training');
     members =m?JSON.parse(m):[]; // start tom — rigtige data hentes fra cloud (Sheets)
     sessions=s?JSON.parse(s):[];
     // Rens sessioner med korrupte datoer (ikke YYYY-MM-DD format)
@@ -265,6 +266,7 @@ function load(){
     cancelledDates=cd?JSON.parse(cd):[];
     const cr=localStorage.getItem('kk2_cancelled_reasons');
     cancelledReasons=cr?JSON.parse(cr):{};
+    extraTrainingDates=et?JSON.parse(et):[];
     // Migrer gamle bæltenavne til kyu/dan
     const beltMap={
       'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)',
@@ -332,6 +334,7 @@ function _persistLocal(){
   safeSet('kk2_sessions',JSON.stringify(sessions));
   safeSet('kk2_cancelled',JSON.stringify(cancelledDates));
   safeSet('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
+  safeSet('kk2_extra_training',JSON.stringify(extraTrainingDates));
   safeSet('kk2_assessments',JSON.stringify(assessments));
   safeSet('kk2_board',JSON.stringify(boardMeetings));
   safeSet('kk2_messages',JSON.stringify(messages));
@@ -551,19 +554,6 @@ function setPresenceName(name){
   // Per-træner ulæst-badge skal opdateres nu hvor vi ved hvem der er logget ind
   try{ updateNotifBadge(); }catch(e){}
   // Logins tælles kun fra elev.html — management-appen logger ikke i Logins-arket
-}
-function showPresenceConflict(name){
-  const n=name.replace(/'/g,'\\\'');
-  const box=document.querySelector('#presenceModal > div');
-  box.innerHTML=`
-    <div style="font-size:2rem;margin-bottom:.6rem">⚠️</div>
-    <h3 style="margin:0 0 .5rem;color:#1a3a3a;font-size:1.05rem">${name} er allerede logget ind</h3>
-    <p style="margin:0 0 1.4rem;color:#4a6a6a;font-size:.85rem">Det ser ud til at <strong>${name}</strong> allerede er aktiv på en anden enhed.<br><br>Er det dig? Du kan sagtens fortsætte — den anden session vil blive overskrevet.</p>
-    <button onclick="setPresenceName('${n}')" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#1a5c5c,#2d8080);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:.6rem">✓ Ja, det er mig — fortsæt</button>
-    <button onclick="showPresenceModal()" style="width:100%;padding:.55rem;background:#f3f4f6;border:1.5px solid #d1d5db;color:#374151;border-radius:10px;font-size:.88rem;cursor:pointer">← Vælg et andet navn</button>`;
-}
-function skipPresenceName(){
-  document.getElementById('presenceModal').style.display='none';
 }
 function startPresence(){
   if(!_myPresenceName||!config.scriptUrl)return;
@@ -860,7 +850,7 @@ window.addEventListener('visibilitychange',()=>{
       try{
         let vault={};
         try{ vault=JSON.parse(localStorage.getItem('kk2_endDates')||'{}'); }catch(e){}
-        const body=JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],deletedSessionDates:[...deletedSessionDates],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}));
+        const body=JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,extraTrainingDates,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],deletedSessionDates:[...deletedSessionDates],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}));
         navigator.sendBeacon(config.scriptUrl, new Blob([body],{type:'text/plain'}));
       }catch(e){}
     }
@@ -889,7 +879,7 @@ function _doPush(attempt){
     method:'POST',
     headers:{'Content-Type':'text/plain'},
     signal:ctrl.signal,
-    body:JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],deletedSessionDates:[...deletedSessionDates],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}))
+    body:JSON.stringify(appAuthBody({members,sessions,cancelledDates,cancelledReasons,extraTrainingDates,assessments,boardMeetings,messages,endDates:vault,gultPensumOverrides,config,activeAnnouncement,deletedAssessmentIds:[...deletedAssessmentIds],deletedBoardIds:[...deletedBoardIds],deletedSessionDates:[...deletedSessionDates],passwordResets:[..._pendingPasswordResets],_savedAt:config._savedAt}))
   })
   .then(r=>{ clearTimeout(tmo); return r.json(); })
   .then(d=>{
@@ -974,6 +964,8 @@ function loadFromCloud(onDone,_attempt){
       localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates));
       cancelledReasons=d.cancelledReasons||{};
       localStorage.setItem('kk2_cancelled_reasons',JSON.stringify(cancelledReasons));
+      extraTrainingDates=(d.extraTrainingDates||[]).map(x=>String(x).slice(0,10));
+      localStorage.setItem('kk2_extra_training',JSON.stringify(extraTrainingDates));
       const beltMap={'Hvidt':'10. Kyu (Hvidt)','9 kyu':'10. Kyu (Hvidt)','10. kyu (Hvid)':'10. Kyu (Hvidt)','9. kyu (Gult)':'9. Kyu - Hvid + 1 snip','8. kyu (Gult m. stribe)':'9. Kyu - Hvid + 2 snip','Gult':'7. Kyu (Gult)','7. kyu (Grønt)':'7. Kyu (Gult)','6. kyu (Grønt m. stribe)':'6. Kyu (Blåt)','5. kyu (Blåt)':'5. Kyu (Grønt)','4. kyu (Blåt m. stribe)':'4. Kyu (Violet)','3. kyu (Brunt)':'3. Kyu (Brunt)','2. kyu (Brunt m. stribe)':'2. Kyu (Brunt + 1 Snip)','1. kyu (Brunt)':'1. Kyu (Brunt + 2 Snip)','Sort':'1. Dan (Sort)','1 dan':'1. Dan (Sort)','2 dan':'2. Dan (Sort)','3 dan':'3. Dan (Sort)','1. dan':'1. Dan (Sort)','2. dan':'2. Dan (Sort)','3. dan':'3. Dan (Sort)'};
       members.forEach(mb=>{
         if(beltMap[mb.belt])mb.belt=beltMap[mb.belt];
@@ -1098,65 +1090,6 @@ function loadFromCloud(onDone,_attempt){
 /* ════════════════════════════════════════
    INIT
 ════════════════════════════════════════ */
-
-/* ════════════════════════════════════════
-   QUICK SEARCH
-════════════════════════════════════════ */
-function openQuickSearch(){
-  document.getElementById('qsOverlay').style.display='block';
-  setTimeout(()=>document.getElementById('qsInput').focus(),60);
-  renderQS();
-}
-function closeQuickSearch(){
-  document.getElementById('qsOverlay').style.display='none';
-  document.getElementById('qsInput').value='';
-}
-function renderQS(){
-  const q=document.getElementById('qsInput').value.toLowerCase().trim();
-  const el=document.getElementById('qsResults');
-  if(!q){el.innerHTML='<div style="color:#888;font-size:.85rem;text-align:center;padding:1.5rem">Begynd at skrive for at søge…</div>';return;}
-  const res=members.filter(m=>{
-    if(m.archived)return false;
-    // Basistjek — fejler aldrig
-    const nm=(m.firstName+' '+m.lastName).toLowerCase();
-    const belt=(m.belt||'').toLowerCase();
-    const phone=(m.phone||'');
-    const email=(m.email||'').toLowerCase();
-    const birthYear=m.birthdate?String(m.birthdate).slice(0,4):'';
-    if(nm.includes(q)||belt.includes(q)||phone.includes(q)||email.includes(q)||birthYear.includes(q)) return true;
-    // Køn-label
-    try{
-      const age=getAge(m);
-      const under18=age!==null&&age<18;
-      const gLbl=m.gender==='M'?(under18?'dreng':'mand'):m.gender==='K'?(under18?'pige':'dame'):'';
-      if(gLbl.includes(q)) return true;
-    }catch(e){}
-    // Betalingsstatus — særskilt try-catch så den ikke blokerer resten
-    try{
-      const eps=effectivePaymentStatus(m);
-      const payLbl=eps==='paid'?'betalt':eps==='partial'?'delvis betalt':'ikke betalt';
-      if(payLbl.includes(q)) return true;
-    }catch(e){}
-    return false;
-  });
-  if(!res.length){el.innerHTML='<div style="color:#888;font-size:.85rem;text-align:center;padding:1.5rem">Ingen resultater</div>';return;}
-  el.innerHTML=res.map(m=>{
-    const bc=BC[m.belt]||'#ccc';
-    const eps=effectivePaymentStatus(m);
-    const payColor=eps==='paid'?'#16a34a':eps==='partial'?'#d97706':'#dc2626';
-    const payLabel=eps==='paid'?'✅ Betalt':eps==='partial'?'⚠️ Delvis':'⏳ Ikke betalt';
-    const passivBadge=m.status==='passiv'?'<span style="font-size:.65rem;background:#f3f4f6;color:#6b7280;border-radius:4px;padding:1px 5px;font-weight:600;margin-left:4px">Passiv</span>':'';
-    return `<div style="display:flex;align-items:center;gap:.8rem;padding:.75rem .4rem;border-bottom:1px solid #e8f0f0;cursor:pointer;opacity:${m.status==='passiv'?.6:1}" onclick="closeQuickSearch();openEditModal(${m.id})">
-      <div class="av ${avClass(m.group)}" style="width:38px;height:38px;font-size:.8rem;flex-shrink:0">${avatarInner(m)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:.88rem">${nm(m)}${passivBadge}</div>
-        <div style="font-size:.74rem;color:#666">${escHtml(m.phone||'ingen tlf.')} · ${escHtml(m.email||'ingen e-mail')}</div>
-        <div style="font-size:.73rem;margin-top:2px"><span class="blt" style="background:${bc};border:1px solid rgba(0,0,0,.1);display:inline-block;vertical-align:middle"></span> ${m.belt}</div>
-      </div>
-      <div style="font-size:.78rem;font-weight:700;color:${payColor};flex-shrink:0">${m.status==='passiv'?'':payLabel}</div>
-    </div>`;
-  }).join('');
-}
 
 /* ════════════════════════════════════════
    GLOBAL SØGNING
@@ -2012,7 +1945,6 @@ window._dRenderT=debounce(()=>renderT(),180);
 window._dRenderM=debounce(()=>renderM(),180);
 window._dRenderDashboard=debounce(()=>renderDashboard(),180);
 window._dRenderHeatmap=debounce(()=>renderHeatmap(),180);
-window._dRenderQS=debounce(()=>renderQS(),180);
 window._dRenderGlobalSearch=debounce(()=>renderGlobalSearch(),180);
 
 // ── Event delegation for genererede lister ──────────────
@@ -2087,13 +2019,6 @@ function _computePromotionStatus(memberId,forceReturn=false){
   if(avg>=almostThr&&avg<promoThr) return {...base,status:'almost'};
   if(avg>=almostThr&&!allRated&&pensumSkills.length) return {...base,status:'almost'};
   if(forceReturn) return {...base,status:'almost'}; // returnér altid data til fokus-sektionen
-  return null;
-}
-function getPromoOverdue(memberId){
-  const threshold=config.assessReminderTrainings??24;
-  const info=getLastAssessmentInfo(memberId);
-  if(info.lastDate===null) return {memberId,never:true,info};
-  if(info.trainingDaysSince>=threshold) return {memberId,never:false,info};
   return null;
 }
 function _promoInitials(m){return ((m.firstName||'?')[0]+(m.lastName||'')[0]).toUpperCase()}
@@ -2721,11 +2646,6 @@ function renderPromotion(){
   if(!html) html=`<div class="promo-empty">Ingen synlige grupper. Slå grupper til/fra med knapperne ovenfor.</div>`;
   document.getElementById('promoContent').innerHTML=html;
 }
-function togglePromoGradFilter(val){
-  config.promoGradFilter=config.promoGradFilter===val?null:val;
-  save();
-  renderPromotion();
-}
 
 /* ════════════════════════════════════════
    STATS
@@ -2924,7 +2844,7 @@ function renderT(){
 /* _BELT_SORT kommer nu fra belts.js */
 const _GRP_ORDER={'Børnehold':0,'Basis-hold':1,'Avanceret':2};
 // Escape-helpers (bruges i innerHTML og inline onclick for at håndtere fx O'Brien, <tag>, " i navne)
-function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+// escHtml/escAttr kommer fra config.js, som loades FØR app.js — ingen lokal kopi her.
 function escJs(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');}
 // HTML-escaped fuldt navn — bruges i ALLE innerHTML/template-sinks så et medlemsnavn
 // som '<img onerror=...>' (kan sættes via tilmeldingsformularen) ikke kan køre kode.
@@ -3725,7 +3645,7 @@ function showTopAttendanceModal(){
   const act=actMembers();
   // Regulære træninger i indeværende halvår
   const hyReg=sessions.filter(s=>{
-    if(!s.date||cancelledDates.includes(s.date))return false;
+    if(!s.date||cancelledDates.includes(s.date)||extraTrainingDates.includes(s.date))return false;
     if(!hy.inRange(s.date))return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
     return td.includes(dw);
@@ -3735,7 +3655,7 @@ function showTopAttendanceModal(){
     if(!s.date||cancelledDates.includes(s.date))return false;
     if(!hy.inRange(s.date))return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
-    return !td.includes(dw);
+    return !td.includes(dw)||extraTrainingDates.includes(s.date);
   });
   const regCount={}, exCount={};
   act.forEach(m=>{ regCount[m.id]=0; exCount[m.id]=0; });
@@ -3987,25 +3907,34 @@ function renderHistory(){
   const allowedMonths=periodMonths[period]||periodMonths.all;
   grid.innerHTML='';
 
-  // Byg sæt af planlagte datoer (konfigurerede ugedage)
+  // Byg sæt af planlagte datoer (konfigurerede ugedage) — datoer manuelt
+  // markeret som ekstra-træning (fx en fast træningsdag i en ferieperiode)
+  // udelades her og optræder i stedet i extraSet nedenfor.
   const plannedSet=new Set();
   if(df!=='extra'){
     const d=new Date(year,0,1);
     while(d.getFullYear()===year){
       const dw=d.getDay();
-      if(trainingDays.includes(dw)&&allowedMonths.includes(d.getMonth()))
-        plannedSet.add(localDate(new Date(d)));
+      const dsLoop=localDate(new Date(d));
+      if(trainingDays.includes(dw)&&allowedMonths.includes(d.getMonth())&&!extraTrainingDates.includes(dsLoop))
+        plannedSet.add(dsLoop);
       d.setDate(d.getDate()+1);
     }
   }
 
-  // Tilføj ekstra sessioner (gemt på dage der IKKE er planlagte træningsdage)
+  // Tilføj ekstra sessioner (gemt på dage der IKKE er planlagte træningsdage,
+  // inkl. datoer manuelt markeret som ekstra-træning selvom de falder på en fast ugedag)
   const extraSet=new Set();
   sessions.forEach(s=>{
     if(!s.date)return;
     const sd=new Date(s.date+'T12:00:00');
     if(sd.getFullYear()!==year||!allowedMonths.includes(sd.getMonth()))return;
     if(!plannedSet.has(s.date)) extraSet.add(s.date);
+  });
+  extraTrainingDates.forEach(ds=>{
+    const sd=new Date(ds+'T12:00:00');
+    if(isNaN(sd.getTime())||sd.getFullYear()!==year||!allowedMonths.includes(sd.getMonth()))return;
+    if(!plannedSet.has(ds)) extraSet.add(ds);
   });
 
   // Saml og sortér alle datoer — nyeste først
@@ -4028,6 +3957,8 @@ function renderHistory(){
   filtered.forEach(({ds,date,isExtra})=>{
     const isToday=ds===todayStr;
     const dw=date.getDay();
+    const isWeekdayTrainingDay=trainingDays.includes(dw);
+    const isManualExtra=extraTrainingDates.includes(ds);
     const saved=sessions.find(s=>s.date===ds);
     if(date.getMonth()!==curM){
       curM=date.getMonth();
@@ -4100,14 +4031,15 @@ function renderHistory(){
       </div>
       ${saved.note?`<div style="margin-top:.5rem;font-size:.74rem;color:#795548;background:#fffde7;border-radius:6px;padding:.3rem .6rem;border:1px solid #ffe082;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">📝 ${escHtml(saved.note)}</div>`:''}`:
       !isCancelled?`<div style="margin-top:.8rem;font-size:.75rem;color:var(--xtl)">Ingen data gemt endnu</div>`:'')}
-      ${!isCancelled?`<div style="display:flex;gap:.4rem;align-items:center;margin-top:.75rem">
-        <select id="cr-${ds}" class="fs" style="flex:1;font-size:.76rem;padding:.35rem .5rem;box-sizing:border-box" onclick="event.stopPropagation()">
+      ${!isCancelled?`<div style="display:flex;gap:.4rem;align-items:center;margin-top:.75rem;flex-wrap:wrap">
+        <select id="cr-${ds}" class="fs" style="flex:1;min-width:120px;font-size:.76rem;padding:.35rem .5rem;box-sizing:border-box" onclick="event.stopPropagation()">
           <option value="">Vælg årsag…</option>
           <option value="Helligdag">🗓 Helligdag</option>
           <option value="Ferie">🏖 Ferie</option>
           <option value="Andet">📌 Andet</option>
         </select>
         <button class="hc-cancel-btn" data-date="${ds}" style="margin-top:0;width:auto;flex-shrink:0;padding:.35rem .75rem" onclick="event.stopPropagation();const r=document.getElementById('cr-'+this.dataset.date);if(!r||!r.value){showToast('Vælg en årsag først');return;}toggleCancelled(this.dataset.date,r.value)">🚫 Aflys</button>
+        ${isWeekdayTrainingDay?`<button class="hc-cancel-btn" data-date="${ds}" style="margin-top:0;width:auto;flex-shrink:0;padding:.35rem .75rem;background:#fff7ed;border-color:#fdba74;color:#c2410c" onclick="event.stopPropagation();toggleExtraTraining(this.dataset.date)">${isManualExtra?'↩️ Fjern ekstra-status':'⭐ Ekstra-træning'}</button>`:''}
       </div>`:
       `<div style="display:flex;gap:.4rem;flex-wrap:wrap">
         <button class="hc-cancel-btn active" data-date="${ds}" onclick="event.stopPropagation();toggleCancelled(this.dataset.date)">↩️ Gendan træning</button>
@@ -4141,10 +4073,10 @@ function convertToExtraTraining(dateStr){
   // Fjern fra aflyste datoer
   const idx=cancelledDates.indexOf(dateStr);
   if(idx>=0){ cancelledDates.splice(idx,1); delete cancelledReasons[dateStr]; }
-  // Find eller opret session og sæt type=extra
+  if(!extraTrainingDates.includes(dateStr)) extraTrainingDates.push(dateStr);
+  // Find eller opret session
   let sess=sessions.find(s=>s.date===dateStr);
   if(!sess){ sess={date:dateStr,name:'Ekstra træning',presentIds:[]}; sessions.push(sess); }
-  sess.type='extra';
   if(!sess.name||sess.name==='Træning') sess.name='Ekstra træning';
   save();
   renderHistory();
@@ -4154,6 +4086,19 @@ function convertToExtraTraining(dateStr){
   const date=new Date(dateStr+'T12:00:00');
   openHD(dateStr,date,sess);
   showToast('⭐ Konverteret til ekstra-træning — registrér fremmøde herunder');
+}
+
+// Markér en almindelig, planlagt træningsdag (fast ugedag) som ekstra-træning —
+// fx en dag der falder i en ferieperiode, hvor sessionen godt kan afholdes/logges,
+// men ikke skal tælle med i det faste fremmøde-krav. Modsat toggleCancelled
+// bliver dagen IKKE aflyst — fremmøde kan stadig registreres som normalt.
+function toggleExtraTraining(dateStr){
+  const idx=extraTrainingDates.indexOf(dateStr);
+  if(idx>=0){ extraTrainingDates.splice(idx,1); showToast('↩️ Ekstra-status fjernet — dagen tæller igen som normal træning'); }
+  else{ extraTrainingDates.push(dateStr); showToast('⭐ Markeret som ekstra-træning — tæller ikke med i fremmøde-kravet'); }
+  save();
+  renderHistory();
+  if(document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
 }
 
 /* ════════════════════════════════════════
@@ -4205,12 +4150,6 @@ function regularDatesInWeek(wk){
   return out;
 }
 
-// Helper: Er ALLE regulære træningsdage i denne uge aflyst?
-function isWeekFullyCancelled(wk, cancelledSet){
-  const regDates=regularDatesInWeek(wk);
-  if(regDates.length===0) return false;
-  return regDates.every(d=>cancelledSet.has(d));
-}
 
 // Helper: formatér uge-label fra weekKey (år*100+ugenr) til "Uge 15 — 7.-13. apr"
 function weekLabelFromKey(wk){
@@ -4335,7 +4274,7 @@ function showMilestoneDetailModal(memberId){
   const attended=sessions
     .filter(s=>s.date&&s.date.startsWith(prefix)&&months.includes(s.date.slice(5,7)))
     .filter(s=>(s.presentIds||[]).includes(memberId))
-    .map(s=>({date:s.date, isExtra:!td.includes(new Date(s.date+'T12:00:00').getDay())}))
+    .map(s=>({date:s.date, isExtra:!td.includes(new Date(s.date+'T12:00:00').getDay())||extraTrainingDates.includes(s.date)}))
     .sort((a,b)=>a.date.localeCompare(b.date));
 
   // Kun regulære tæller til medaljen
@@ -4399,19 +4338,20 @@ function calcStreak(memberId){
   sessions.forEach(s=>{
     if((s.presentIds||[]).includes(memberId)&&s.date){
       const dw=new Date(s.date+'T12:00:00').getDay();
-      if(td.includes(dw)||s.type==='extra') attended.add(getWeekKey(s.date));
+      if(td.includes(dw)||extraTrainingDates.includes(s.date)) attended.add(getWeekKey(s.date));
     }
   });
   if(!attended.size) return 0;
-  // Lempelig regel: Uger med mindst én aflyst dato bryder ikke streaken
-  const cancelledWeeks=new Set((cancelledDates||[]).map(d=>getWeekKey(d)));
+  // Lempelig regel: uger med mindst én aflyst ELLER ekstra-markeret dato bryder ikke streaken
+  // (en ekstra-markeret dag er ikke obligatorisk, så et udeblivelse her skal ikke koste streaken)
+  const cancelledWeeks=new Set([...(cancelledDates||[]),...(extraTrainingDates||[])].map(d=>getWeekKey(d)));
   const currentWeek=getWeekKey(localDate());
   let streak=0, check=currentWeek, foundFirst=false;
   for(let i=0;i<52*5;i++){
     if(attended.has(check)){
       streak++; foundFirst=true; check=prevWeekKey(check);
     } else if(cancelledWeeks.has(check)){
-      // Mindst én dato i ugen er aflyst — spring over uden at bryde streak
+      // Mindst én dato i ugen er aflyst eller ekstra — spring over uden at bryde streak
       check=prevWeekKey(check);
     } else if(check===currentWeek){
       // Indeværende uge er ikke slut endnu — spring over uden at bryde streak
@@ -4470,14 +4410,14 @@ function renderDashboard(){
   // Split sessioner i regulære (faste træningsdage) og ekstra
   const td2=config.trainingDays||[2,4];
   const regSessions=sessions.filter(s=>{
-    if(!s.date||cancelledDates.includes(s.date))return false;
+    if(!s.date||cancelledDates.includes(s.date)||extraTrainingDates.includes(s.date))return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
     return td2.includes(dw);
   });
   const extraSessions=sessions.filter(s=>{
     if(!s.date||cancelledDates.includes(s.date))return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
-    return !td2.includes(dw);
+    return !td2.includes(dw)||extraTrainingDates.includes(s.date);
   });
 
   // Vælg aktiv sessionsliste baseret på filter
@@ -4927,6 +4867,7 @@ function renderDayPatternCard(){
     return {from,to};
   }
   function _isExtraSess(s){
+    if(extraTrainingDates.includes(s.date)) return true;
     const dw=new Date(s.date+'T12:00:00').getDay();
     return !_dpTd.includes(dw);
   }
@@ -5031,7 +4972,7 @@ function openDayBreakdownModal(dayOfWeek){
   const daySessions=sessions.filter(s=>{
     if(!s.date||cancelledDates.includes(s.date)) return false;
     const dw=new Date(s.date+'T12:00:00').getDay();
-    const isExtra=!_obdTd.includes(dw);
+    const isExtra=!_obdTd.includes(dw)||extraTrainingDates.includes(s.date);
     if(dpFilter==='regular'&&isExtra) return false;
     if(dpFilter==='extra'&&!isExtra) return false;
     if(dw!==dayOfWeek) return false;
@@ -5145,12 +5086,12 @@ function renderHeatmap(){
   if(typeF==='regular'){
     sessList=sessList.filter(s=>{
       const dw=new Date(s.date+'T12:00:00').getDay();
-      return td.includes(dw);
+      return td.includes(dw)&&!extraTrainingDates.includes(s.date);
     });
   } else if(typeF==='extra'){
     sessList=sessList.filter(s=>{
       const dw=new Date(s.date+'T12:00:00').getDay();
-      return !td.includes(dw);
+      return !td.includes(dw)||extraTrainingDates.includes(s.date);
     });
   }
 
@@ -5168,7 +5109,7 @@ function renderHeatmap(){
   const columns=[
     ...sessList.map(s=>{
       const dw=new Date(s.date+'T12:00:00').getDay();
-      const isExtra=!td.includes(dw);
+      const isExtra=!td.includes(dw)||extraTrainingDates.includes(s.date);
       return {date:s.date,session:s,cancelled:false,isExtra};
     }),
     ...(typeF==='extra'?[]:cancelDates.map(d=>({date:d,session:null,cancelled:true,isExtra:false})))
@@ -5347,7 +5288,7 @@ function _top3ComputePeriodWinners(){
     const c={},r={};
     act.forEach(m=>{c[m.id]=0;r[m.id]=0;});
     periodSess.forEach(s=>{
-      const isReg=td.includes(new Date(s.date+'T12:00:00').getDay());
+      const isReg=td.includes(new Date(s.date+'T12:00:00').getDay())&&!extraTrainingDates.includes(s.date);
       (s.presentIds||[]).forEach(id=>{ if(c[id]!==undefined){c[id]++; if(isReg)r[id]++;} });
     });
     groups.forEach(g=>{
@@ -5444,8 +5385,8 @@ function renderDashboardTop3(){
   } else {
     periodSessions=allSess.filter(s=>s.date.startsWith(selPeriod));
   }
-  const mRegSessions=periodSessions.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay()));
-  const mExtraSessions=periodSessions.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay()));
+  const mRegSessions=periodSessions.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay())&&!extraTrainingDates.includes(s.date));
+  const mExtraSessions=periodSessions.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay())||extraTrainingDates.includes(s.date));
   const act=members.filter(m=>m.status==='aktiv'&&!m.archived);
   const counts={}, regCounts={}, extraCounts={};
   act.forEach(m=>{counts[m.id]=0; regCounts[m.id]=0; extraCounts[m.id]=0;});
@@ -5650,7 +5591,7 @@ function openGroupDetailModal(groupName){
   const now=new Date(); now.setHours(0,0,0,0);
   const from3m=subMonths(now, 3); // BUG #5
   const fromStr=localDate(from3m);
-  const regSess=sessions.filter(s=>s.date&&s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
+  const regSess=sessions.filter(s=>s.date&&s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date)&&!extraTrainingDates.includes(s.date));
   const totalSess=regSess.length;
 
   // Bæltefordeling
@@ -5892,7 +5833,6 @@ function renderLoginBanner(){
   </div>`;
   b.style.display='block';
 }
-function fetchLoginBanner(force){ fetchLoginStats(!!force); }
 function showTodayLoginDetail(){
   const d=_loginStatsCache;
   const popup=document.getElementById('loginDayPopup');
@@ -5985,28 +5925,6 @@ function showLoginPeriodDetail(days){
   }
   body.innerHTML=html;
   popup.style.display='flex';
-}
-let _instructorLoginFired=false;
-function fireInstructorLogin(){
-  if(_instructorLoginFired) return;
-  if(!config.scriptUrl) return;
-  const nm=(_myPresenceName||sessionStorage.getItem('kk2_presence_name')||'').toString().trim().slice(0,80);
-  if(!nm) return; // Log kun når brugeren faktisk har valgt navn — undgå bogus "instructor"-rækker
-  _instructorLoginFired=true;
-  // Find matching instructor member so we can log their actual email (for dedup vs student logins + popup avatar lookup)
-  let instrEmail=nm, instrMid=0;
-  try{
-    const nlow=nm.toLowerCase();
-    const match=(members||[]).find(x=>!x.archived&&(x.role==='Instruktør'||x.role==='Hjælpetræner')&&((x.firstName+' '+x.lastName).trim().toLowerCase()===nlow));
-    if(match){ if(match.email) instrEmail=match.email; instrMid=match.id||0; }
-  }catch(e){}
-  try{
-    const cb='_tli'+Date.now();
-    const sc=document.createElement('script');
-    window[cb]=function(){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); };
-    sc.src=config.scriptUrl+'?action=trackLogin&role=instructor&memberId='+encodeURIComponent(instrMid)+'&email='+encodeURIComponent(instrEmail)+'&ua='+encodeURIComponent((navigator.userAgent||'').slice(0,200))+'&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
-    document.head.appendChild(sc);
-  }catch(e){}
 }
 function getMemberLoginInfo(memberId){
   if(!_loginStatsCache||!_loginStatsCache.perMember) return null;
@@ -6343,29 +6261,6 @@ function toggleCI(id,val){
   showToast(val?`✅ ${nm(m)} mødt op`:`❌ ${nm(m)} fjernet`);
   updateStats();
 }
-function resetAllCheckIns(){
-  if(!confirm('Nulstil fremmøde for alle?'))return;
-  members.forEach(m=>m.checkedIn=false);save();renderT();showToast('🔄 Nulstillet');
-}
-let _markAllUndoIds=[];
-function markAllPresent(){
-  _markAllUndoIds=actMembers().filter(m=>!m.checkedIn).map(m=>m.id);
-  actMembers().forEach(m=>m.checkedIn=true);
-  save();renderT();
-  if(_markAllUndoIds.length===0){showToast('☑️ Alle var allerede markeret til stede');return;}
-  showToastUndo(`☑️ ${actMembers().length} markeret til stede`,()=>{
-    _markAllUndoIds.forEach(id=>{const m=members.find(x=>x.id===id);if(m)m.checkedIn=false;});
-    _markAllUndoIds=[];save();renderT();showToast('↩️ Fortrudt — fremmøde nulstillet');
-  });
-}
-function saveSession(){
-  const ds=currentTrainingDate;
-  const ids=members.filter(m=>m.checkedIn).map(m=>m.id);
-  const idx=sessions.findIndex(s=>s.date===ds);
-  const e={date:ds,name:'Træning',presentIds:ids};
-  if(idx>=0)sessions[idx]=e;else sessions.push(e);
-  save();showToast(`💾 Session gemt (${fmtDate(ds)}) — ${ids.length} til stede`);
-}
 
 /* ════════════════════════════════════════
    CRUD — TILFØJ / REDIGER
@@ -6437,8 +6332,10 @@ function openEditModal(id){
   // Progress synlig: default afkrydset (synlig). Kun eksplicit false = skjult.
   document.getElementById('fProgressVisible').checked=(m.progressSynlig!==false&&m.progressSynlig!=='false');
   document.getElementById('fPW').value='';
-  document.getElementById('pwStatusLine').textContent=m.passwordHash?'🔒 Eleven har sat sin egen adgangskode':'🔓 Bruger standard-adgangskode (fornavn)';
-  document.getElementById('pwResetBtn').style.display=m.passwordHash?'inline-flex':'none';
+  let pwStatusTxt=m.hasCustomPassword?'🔒 Eleven har sat sin egen adgangskode':'🔓 Bruger standard-adgangskode (fornavn)';
+  if(m.isLocked) pwStatusTxt+=' · 🚫 LÅST (for mange forsøg)';
+  document.getElementById('pwStatusLine').textContent=pwStatusTxt;
+  document.getElementById('pwResetBtn').style.display=(m.hasCustomPassword||m.isLocked)?'inline-flex':'none';
   updateAgePreview();
   renderMemberAttendanceSection(id);
   renderBeltHistory(id);
@@ -6464,10 +6361,7 @@ function updateAgePreview(){
     af.readOnly=false;hint.style.display='';calc.style.display='none';
   }
 }
-async function sha256hex(str){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
+// sha256hex kommer fra config.js (loades før app.js) — ingen lokal kopi her.
 function renderBeltHistory(memberId){
   const sec=document.getElementById('beltHistorySection');
   if(!sec) return;
@@ -6732,8 +6626,8 @@ function renderMemberAttendanceSection(memberId){
 
   // Opdel i faste og ekstra sessioner
   const td=config.trainingDays||[2,4];
-  const regSess=allSorted.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
-  const extraSess=allSorted.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date));
+  const regSess=allSorted.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date)&&!extraTrainingDates.includes(s.date));
+  const extraSess=allSorted.filter(s=>!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date)||extraTrainingDates.includes(s.date));
 
   // Last 3 months attendance % — faste og ekstra separat
   const now=new Date(); now.setHours(0,0,0,0);
@@ -6816,8 +6710,8 @@ function _renderMsm(){
 
   const memberGroup=m.group;
   const isExtraRelevant=s=>(s.presentIds||[]).some(id=>{const pm=members.find(x=>x.id===id);return pm&&pm.group===memberGroup;});
-  const periodReg=allSorted.filter(s=>s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
-  const periodExtra=allSorted.filter(s=>s.date>=fromStr&&(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date))&&isExtraRelevant(s));
+  const periodReg=allSorted.filter(s=>s.date>=fromStr&&td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date)&&!extraTrainingDates.includes(s.date));
+  const periodExtra=allSorted.filter(s=>s.date>=fromStr&&(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date)||extraTrainingDates.includes(s.date))&&isExtraRelevant(s));
   const regAtt=periodReg.filter(s=>attended.has(s.date)).length;
   const extraAtt=periodExtra.filter(s=>attended.has(s.date)).length;
   const pct=periodReg.length>0?Math.round(regAtt/periodReg.length*100):null;
@@ -6848,8 +6742,8 @@ function _renderMsm(){
     </div>`;
 
   // Mini squares — faste og ekstra separat
-  const regAll=allSorted.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date));
-  const extraAll=allSorted.filter(s=>(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date))&&isExtraRelevant(s));
+  const regAll=allSorted.filter(s=>td.includes(new Date(s.date+'T12:00:00').getDay())&&!cancelledDates.includes(s.date)&&!extraTrainingDates.includes(s.date));
+  const extraAll=allSorted.filter(s=>(!td.includes(new Date(s.date+'T12:00:00').getDay())||cancelledDates.includes(s.date)||extraTrainingDates.includes(s.date))&&isExtraRelevant(s));
   const _sq=(list,label,color)=>{
     if(!list.length) return '';
     const sq=list.slice(-12).map(s=>{
@@ -7405,8 +7299,6 @@ function copyEmails(){
     .catch(()=>{f.select();document.execCommand('copy');showToast('📋 Kopieret!');});
 }
 
-function showEmailFallback(){} // bagudkompatibilitet
-function emailQuick(seg){ setEmailGroup(seg==='none'?'all':seg); }
 
 /* ════════════════════════════════════════
    EXCEL EKSPORT (SpreadsheetML — åbner i Excel)
@@ -7717,6 +7609,7 @@ function downloadBackup(){
     members:members,
     sessions:sessions,
     cancelledDates:cancelledDates,
+    extraTrainingDates:extraTrainingDates,
     assessments:assessments,
     boardMeetings:boardMeetings,
     config:config
@@ -7759,6 +7652,7 @@ function handleRestoreFile(input){
       if(data.members)   { members=data.members; localStorage.setItem('kk2_members',JSON.stringify(members)); }
       if(data.sessions)  { sessions=data.sessions; localStorage.setItem('kk2_sessions',JSON.stringify(sessions)); }
       if(data.cancelledDates){ cancelledDates=data.cancelledDates; localStorage.setItem('kk2_cancelled',JSON.stringify(cancelledDates)); }
+      if(data.extraTrainingDates){ extraTrainingDates=data.extraTrainingDates; localStorage.setItem('kk2_extra_training',JSON.stringify(extraTrainingDates)); }
       if(data.assessments){ assessments=data.assessments; _amInvalidate(); localStorage.setItem('kk2_assessments',JSON.stringify(assessments)); }
       if(data.boardMeetings){ boardMeetings=data.boardMeetings; localStorage.setItem('kk2_board',JSON.stringify(boardMeetings)); }
       if(data.config){ config=Object.assign(config,data.config); localStorage.setItem('kk2_config',JSON.stringify(config)); }
@@ -7822,15 +7716,6 @@ function safeCloseModal(id) {
 ════════════════════════════════════════ */
 let _assessMemberId=null, _assessRatings={}, _editingAssessmentId=null;
 
-function latestAssessmentAvg(memberId){
-  const sorted=_am(memberId).slice().sort((a,b)=>new Date(b.date)-new Date(a.date)||Number(b.id)-Number(a.id));
-  if(!sorted.length)return null;
-  let ratings={};
-  try{ratings=JSON.parse(sorted[0].ratings||'{}');}catch(e){}
-  const vals=Object.values(ratings).map(Number).filter(v=>v>0);
-  if(!vals.length)return null;
-  return vals.reduce((s,v)=>s+v,0)/vals.length;
-}
 
 function posScoreTip(wrap,tip){
   const r=wrap.getBoundingClientRect();
@@ -10214,23 +10099,6 @@ function renderArrangementList(){
   }).join('');
 }
 
-function addArrangement(){
-  if(!config.arrangements) config.arrangements=[];
-  config.arrangements.push({id:Date.now(),date:'',time:'',title:'',note:''});
-  renderArrangementList();
-}
-
-function updateArrangement(id,field,val){
-  if(!config.arrangements) return;
-  const a=config.arrangements.find(x=>x.id===id);
-  if(a) a[field]=val;
-}
-
-function deleteArrangement(id){
-  if(!config.arrangements) return;
-  config.arrangements=config.arrangements.filter(x=>x.id!==id);
-  renderArrangementList();
-}
 
 // Køres ved load + når annonce-modal/indbakke åbnes for at synke UI med config
 function applyEmailDigestVisibility(){
@@ -10278,7 +10146,6 @@ function openDigestReport(){
 }
 
 function renderDigestReport(res){
-  const escHtml=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmtTs=iso=>{ try{ const d=new Date(iso); return d.toLocaleString('da-DK',{dateStyle:'medium',timeStyle:'short'}); }catch(e){ return iso||''; } };
   const pendingTxt=res.pendingCount>0
     ? `<div style="margin-top:.4rem;font-size:.78rem;color:#1e3a8a;background:#dbeafe;border-radius:8px;padding:.5rem .75rem">📥 <strong>${res.pendingCount}</strong> beskeder venter på næste send (${res.pendingMembers} ${res.pendingMembers===1?'forælder':'forældre'})</div>`
@@ -10925,7 +10792,6 @@ function tpLoadOverview(force){
   s.src=SCRIPT_URL+'?action=getTrainingOverview&callback='+cb+'&'+appAuthQS()+'&t='+Date.now();
   document.head.appendChild(s);
 }
-function tpInitials(name){ return (String(name||'').trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('')||'?').toUpperCase(); }
 function tpPctColor(p){ return p>=80?'#10b981':p>=50?'#d97706':'#c0392b'; }
 function renderTPOverview(){
   const el=document.getElementById('tpOverviewList'); if(!el) return;

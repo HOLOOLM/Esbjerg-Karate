@@ -1703,14 +1703,15 @@ function calcLongestStreak(trainingDates){
   if(!trainingDates || !trainingDates.length) return 0;
   const td=(CURRENT && CURRENT.trainingDays && Array.isArray(CURRENT.trainingDays)) ? CURRENT.trainingDays : [2,4];
   const cancelledDates=(CURRENT && Array.isArray(CURRENT.cancelledDates)) ? CURRENT.cancelledDates : [];
+  const extraTrainingDates=(CURRENT && Array.isArray(CURRENT.extraTrainingDates)) ? CURRENT.extraTrainingDates : [];
   const attended=new Set();
   trainingDates.forEach(t=>{
     if(!t.date) return;
     const dw=new Date(t.date+'T12:00:00').getDay();
-    if(td.indexOf(dw)!==-1 || t.type==='extra') attended.add(_eGetWeekKey(t.date));
+    if(td.indexOf(dw)!==-1 || extraTrainingDates.indexOf(t.date)!==-1) attended.add(_eGetWeekKey(t.date));
   });
   if(!attended.size) return 0;
-  const cancelledWeeks=new Set(cancelledDates.map(d=>_eGetWeekKey(d)));
+  const cancelledWeeks=new Set([...cancelledDates,...extraTrainingDates].map(d=>_eGetWeekKey(d)));
   const dStrs=trainingDates.map(t=>t.date).filter(Boolean).sort();
   let dt=new Date(dStrs[0]+'T12:00:00');
   const endDt=new Date(dStrs[dStrs.length-1]+'T12:00:00');
@@ -1731,15 +1732,16 @@ function calcStreak(trainingDates){
   if(!trainingDates || !trainingDates.length) return 0;
   const td=(CURRENT && CURRENT.trainingDays && Array.isArray(CURRENT.trainingDays)) ? CURRENT.trainingDays : [2,4];
   const cancelledDates=(CURRENT && Array.isArray(CURRENT.cancelledDates)) ? CURRENT.cancelledDates : [];
+  const extraTrainingDates=(CURRENT && Array.isArray(CURRENT.extraTrainingDates)) ? CURRENT.extraTrainingDates : [];
   const attended=new Set();
   trainingDates.forEach(t=>{
     if(!t.date) return;
     const dw=new Date(t.date+'T12:00:00').getDay();
-    if(td.indexOf(dw)!==-1 || t.type==='extra') attended.add(_eGetWeekKey(t.date));
+    if(td.indexOf(dw)!==-1 || extraTrainingDates.indexOf(t.date)!==-1) attended.add(_eGetWeekKey(t.date));
   });
   if(!attended.size) return 0;
   // Lempelig regel: Uger med mindst én aflyst dato bryder ikke streaken
-  const cancelledWeeks=new Set(cancelledDates.map(d=>_eGetWeekKey(d)));
+  const cancelledWeeks=new Set([...cancelledDates,...extraTrainingDates].map(d=>_eGetWeekKey(d)));
   const currentWeek=_eGetWeekKey(_eLocalDate());
   let streak=0, check=currentWeek, foundFirst=false;
   for(let i=0;i<52*5;i++){
