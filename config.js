@@ -52,6 +52,16 @@ function escHtml(s) {
 // Alias — samme escaping dur til attributter.
 function escAttr(s) { return escHtml(s); }
 
+// ── Password-hashing ───────────────────────────────────────────────────────
+// SHA-256 → hex. ÉN kopi her, så trænerappen (app.js) og elev-appen
+// (elev.html) hasher HELT identisk — samme password skal virke i begge apps.
+// (Tidligere var samme funktion defineret to steder.)
+// Bemærk: crypto.subtle kræver en sikker kontekst (https eller localhost).
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Tilføj auth-felter til et POST-body-objekt (text/plain JSON). Returnerer objektet.
 function appAuthBody(obj) {
   obj = obj || {};
