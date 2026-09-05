@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<title>Esbjerg Shuri-Ryu Karate</title>
+<!-- Omlaegning til Cloudflare (trin G). Den gamle app ligger som
+     index-legacy.html — omdoeb tilbage for at rulle bagud. -->
+<script>
+  // Ret KUN denne linje pr. fil: '' · 'elev' · 'form' · 'traeningsplan'
+  var MAAL = 'form';
+  var BASE = 'https://karate.jonasholm.workers.dev/';
+  // Query og hash foelger med, saa gamle links fra mails stadig virker
+  // (fx ...?email=nogen@eksempel.dk).
+  location.replace(BASE + MAAL + location.search + location.hash);
+</script>
+<meta http-equiv="refresh" content="0;url=https://karate.jonasholm.workers.dev/form">
+<style>
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#1a1a1a;color:#eee;
+       display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center}
+  a{color:#7ecece}
+</style>
+</head>
+<body>
+  <!-- Vises kun hvis JavaScript OG meta-refresh begge er slaaet fra -->
+  <p>Appen er flyttet.<br><a href="https://karate.jonasholm.workers.dev/form">Fortsæt til Esbjerg Shuri-Ryu Karate</a></p>
+</body>
+</html>
